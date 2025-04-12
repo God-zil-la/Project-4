@@ -1,0 +1,231 @@
+/* Base Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+main {
+    flex: 1;
+}
+
+/* Theme Variables */
+:root {
+    --bg-color: #fefae0; /* cream white */
+    --text-color: #333333;
+    --nav-bg: #fff8dc;
+    --nav-text: #000000;
+    --button-bg: #222222;
+    --button-text: #ffffff;
+    --button-hover: #444444;
+    --footer-bg: #ddd4b2;
+}
+
+
+html.dark {
+    --bg-color: #121212;
+    --text-color: #e0e0e0;
+    --nav-bg: #1e1e1e;
+    --nav-text: #ffffff;
+    --button-bg: #222222;
+    --button-text: #ffffff;
+    --button-hover: #444444;
+    --footer-bg: #1e1e1e;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    line-height: 1.6;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+/* Nav */
+nav {
+    background-color: var(--nav-bg);
+    padding: 1rem;
+}
+
+nav ul {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1.5rem;
+    list-style: none;
+}
+
+/* Buttons in nav and elsewhere */
+nav a,
+.nav-btn,
+#toggleTheme,
+button {
+    background-color: var(--button-bg);
+    color: var(--button-text);
+    border: none;
+    padding: 0.6rem 1.2rem;
+    border-radius: 4px;
+    font: inherit;
+    font-weight: bold;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background-color 0.3s ease;
+}
+
+nav a:hover,
+.nav-btn:hover,
+#toggleTheme:hover,
+button:hover {
+    background-color: var(--button-hover);
+}
+
+/* Align logout form with nav items */
+.nav-logout-form {
+    margin: 0;
+    display: flex;
+    align-items: center;
+}
+
+/* Shared base button */
+.btn {
+    background-color: var(--button-bg);
+    color: var(--button-text);
+    border: none;
+    padding: 0.6rem 1.2rem;
+    margin-right: 0.5rem;
+    border-radius: 4px;
+    font-weight: bold;
+    text-decoration: none;
+    display: inline-block;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+/* Hover style */
+.btn:hover {
+    background-color: var(--button-hover);
+}
+
+/* Danger style for delete */
+.btn-danger {
+    background-color: #8b0000;
+    color: #fff;
+}
+
+.btn-danger:hover {
+    background-color: #a80000;
+}
+
+/* Footer */
+footer {
+    background-color: var(--footer-bg);
+    padding: 1.5rem;
+    text-align: center;
+    font-size: 1rem;
+    font-weight: bold;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.2);
+    color: var(--button-text);
+}
+
+/* Forms */
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"],
+textarea {
+    padding: 0.5rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+/* Main */
+main {
+    padding: 2rem;
+    max-width: 800px;
+    margin: auto;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+    nav ul {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    main {
+        padding: 1rem;
+    }
+}
+
+/* Subscription Card (Dark Theme Only) */
+.subscription-card {
+    background: linear-gradient(145deg, #121212, #1a1a1a);
+    border: 1px solid #2a2a2a;
+    border-radius: 12px;
+    padding: 2rem;
+    color: #e0e0e0;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+    transition: transform 0.2s ease, box-shadow 0.3s ease;
+    text-align: center;
+    margin: 2rem auto;
+    max-width: 600px;
+}
+
+.subscription-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+}
+
+.subscription-card h2 {
+    font-size: 1.8rem;
+    margin-bottom: 0.5rem;
+    color: #f5f5f5;
+}
+
+.subscription-card .price {
+    font-size: 1.4rem;
+    color: #ffd700;
+    margin-bottom: 1rem;
+}
+
+.subscription-card p {
+    margin: 0.3rem 0;
+    color: #ccc;
+}
+
+.subscribe-button {
+    margin-top: 1.5rem;
+    padding: 0.7rem 2rem;
+    background-color: #ffd700;
+    color: #000;
+    border: none;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.subscribe-button:hover {
+    background-color: #e6c200;
+}
+
+/* Light Mode Footer - Enhanced Visibility */
+html:not(.dark) footer {
+    background-color: #f0f0e8; /* cream-like background */
+    color: #111; /* darker text for readability */
+    border-top: 1px solid #ccc;
+    box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.05);
+}
+
