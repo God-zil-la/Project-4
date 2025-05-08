@@ -3,7 +3,6 @@
 <html lang="en">
   <head>
     <script>
-      // Apply theme before render to prevent white flash
       if (
         localStorage.getItem("theme") === "dark" ||
         (!("theme" in localStorage) &&
@@ -26,11 +25,7 @@
         <li><a href="/bots/">My Bots</a></li>
         <li><a href="/payments/">Billing</a></li>
         <li>
-          <form
-            method="POST"
-            action="{% url 'accounts:logout' %}"
-            class="nav-logout-form"
-          >
+          <form method="POST" action="{% url 'accounts:logout' %}" class="nav-logout-form">
             {% csrf_token %}
             <button type="submit" class="nav-btn">Logout</button>
           </form>
@@ -42,7 +37,9 @@
       </ul>
     </nav>
 
-    <button id="toggleTheme" class="toggle-theme">Toggle Theme</button>
+    <button id="toggleTheme" class="toggle-theme" aria-label="Toggle theme">
+      <span id="theme-icon">🌙</span>
+    </button>
 
     <main>{% block content %}{% endblock %}</main>
 
@@ -52,11 +49,19 @@
 
     <script>
       const toggleButton = document.getElementById("toggleTheme");
+      const icon = document.getElementById("theme-icon");
+      const html = document.documentElement;
+
+      function updateIcon() {
+        icon.textContent = html.classList.contains("dark") ? "🌙" : "🌞";
+      }
+
+      updateIcon();
 
       toggleButton?.addEventListener("click", () => {
-        const html = document.documentElement;
         const isDark = html.classList.toggle("dark");
         localStorage.setItem("theme", isDark ? "dark" : "light");
+        updateIcon();
       });
     </script>
   </body>

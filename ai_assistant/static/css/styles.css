@@ -17,15 +17,16 @@ main {
 
 /* Theme Variables */
 :root {
-    --bg-color: #ffffff;
+    --bg-color: #fefae0; /* cream white */
     --text-color: #333333;
-    --nav-bg: #f4f4f4;
+    --nav-bg: #fff8dc;
     --nav-text: #000000;
     --button-bg: #222222;
     --button-text: #ffffff;
     --button-hover: #444444;
-    --footer-bg: #222222;
+    --footer-bg: #ddd4b2;
 }
+
 
 html.dark {
     --bg-color: #121212;
