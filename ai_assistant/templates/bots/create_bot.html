@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block title %}Build a Bot - AI Assistant{% endblock %}
+
+{% block content %}
+<section>
+    <h1>Build Your AI Bot</h1>
+    <p>Start by giving your bot a name and choosing a domain it will specialize in.</p>
+    <p>{{ form.category.label_tag }} {{ form.category }}</p>
+
+    <form method="post">
+        {% csrf_token %}
+        <label for="name">Bot Name:</label>
+        <input type="text" name="name" id="name" required placeholder="e.g. FinanceHelper3000">
+
+        <label for="category">Bot Category:</label>
+        <select name="category" id="category" required>
+            <option value="">-- Select Category --</option>
+            <option value="general">General</option>
+            <option value="fitness">Fitness</option>
+            <option value="finance">Finance</option>
+            <option value="funny">Funny</option>
+            <option value="support">Support</option>
+            <option value="tech">Tech</option>
+            <option value="customer_support">Customer Support</option>
+            <option value="education">Education</option>
+            <option value="healthcare">Healthcare</option>
+        </select>
+
+        <label for="description">Bot Description:</label>
+        <textarea name="description" id="description" rows="4" placeholder="Tell us what your bot should do..."></textarea>
+
+        <button type="submit">Create Bot</button>
+    </form>
+</section>
+{% endblock %}

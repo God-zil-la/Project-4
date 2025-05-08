@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% block title %}Chat with {{ bot.name }}{% endblock %}
+
+{% block content %}
+<h2>Chat with {{ bot.name }}</h2>
+<p style="font-style: italic;">Personality: {{ bot.personality }}</p>
+
+<div id="chat-box" class="chat-box" style="height: 300px; overflow-y: auto; border-radius: 8px;"></div>
+
+<form id="chat-form" style="margin-top: 1rem;">
+    {% csrf_token %}
+    <input type="text" id="user-input" placeholder="Type your message..." autocomplete="off" style="width: 80%; padding: 0.5rem;">
+    <button type="submit" class="btn">Send</button>
+</form>
+
+<script>
+    const chatBox = document.getElementById('chat-box');
+    const form = document.getElementById('chat-form');
+    const input = document.getElementById('user-input');
+    const ajaxUrl = "{% url 'bots:ajax_chat' bot.id %}";
+    const fetchMessagesUrl = "{% url 'bots:bot_chat_api' bot.id %}";
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+    function scrollToBottom() {
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    function escapeHtml(unsafe) {
+        return unsafe
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;");
+    }
+
+    function loadMessages() {
+        fetch(fetchMessagesUrl)
+            .then(response => response.json())
+            .then(data => {
+                chatBox.innerHTML = '';
+                data.messages.forEach(msg => {
+                    const msgDiv = document.createElement('div');
+                    msgDiv.innerHTML = `<strong>${msg.sender === 'user' ? 'You' : '{{ bot.name }}'}:</strong> ${escapeHtml(msg.message)}`;
+                    chatBox.appendChild(msgDiv);
+                });
+                scrollToBottom();
+            });
+    }
+
+    // Initial load
+    loadMessages();
+
+    // Refresh every 3 seconds
+    setInterval(loadMessages, 3000);
+
+    form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        const message = input.value.trim();
+        if (!message) return;
+
+        fetch(ajaxUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken,
+            },
+            body: JSON.stringify({ message })
+        })
+        .then(response => {
+            if (!response.ok) throw new Error('Login required or error occurred.');
+            return response.json();
+        })
+        .then(data => {
+            input.value = '';
+            loadMessages();
+        })
+        .catch(error => {
+            alert("Error: " + error.message);
+        });
+    });
+</script>
+
+<style>
+    .chat-box {
+        padding: 1rem;
+        background: var(--chat-bg, #1a1a1a);
+        color: #fff;
+        border: 1px solid #333;
+    }
+
+    body.light-mode .chat-box {
+        background: #f9f9f9;
+        color: #000;
+        border: 1px solid #ccc;
+    }
+</style>
+{% endblock %}

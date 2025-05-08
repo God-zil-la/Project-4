@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+
+{% block title %}Account Dashboard{% endblock %}
+
+{% block content %}
+<div class="account-dashboard">
+    <h1>Welcome to Your Account</h1>
+    <p>This is your account homepage where you can manage your login, register new users, or sign out.</p>
+
+    <div class="account-actions">
+        {% if user.is_authenticated %}
+            <p>You are logged in as <strong>{{ user.username }}</strong>.</p>
+            <a href="/accounts/logout/">Logout</a>
+        {% else %}
+            <a href="/accounts/login/">Login</a> |
+            <a href="/accounts/register/">Register</a>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

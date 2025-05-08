@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Buy AI Assistant Premium</h2>
+<button id="checkout-button">Pay $9.99</button>
+
+<script src="https://js.stripe.com/v3/"></script>
+<script>
+  const stripe = Stripe("{{ stripe_public_key }}");
+  const checkoutButton = document.getElementById("checkout-button");
+
+  checkoutButton.addEventListener("click", function () {
+    fetch("{% url 'create_checkout_session' %}", {
+      method: "POST",
+      headers: {
+        "X-CSRFToken": "{{ csrf_token }}",
+      },
+    })
+    .then((response) => response.json())
+    .then((session) => {
+      return stripe.redirectToCheckout({ sessionId: session.id });
+    });
+  });
+</script>
+{% endblock %}

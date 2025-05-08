@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block title %}Home - AI Assistant{% endblock %}
+
+{% block content %}
+<section>
+    <h1>Welcome to AI Assistant</h1>
+    <p>Your all-in-one platform to build, train, and deploy smart AI bots.</p>
+
+    <div style="margin-top: 2rem;">
+        <h2>What You Can Do</h2>
+        <ul>
+            <li>🧠 Create AI bots tailored for your business or hobby</li>
+            <li>📚 Train them with custom knowledge</li>
+            <li>⚙️ Deploy on platforms like Slack, Discord, or your own site</li>
+            <li>📊 Monitor performance and chat logs</li>
+        </ul>
+    </div>
+
+    <div style="margin-top: 2rem;">
+      <a href="{% url 'bots:create' %}" class="nav-btn">Get Started</a>
+
+    </div>
+</section>
+{% endblock %}

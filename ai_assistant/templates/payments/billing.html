@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}Billing{% endblock %}
+
+{% block content %}
+<div class="billing-container" style="max-width: 600px; margin: auto; padding: 2rem;">
+  <h1>Upgrade to Premium</h1>
+
+  <!-- 1. Headline & Explanation -->
+  <p>
+    Unlock powerful tools to build, train, and deploy your own AI bots with our premium subscription.
+  </p>
+
+  <!-- 2. Feature List -->
+  <h3>What's included:</h3>
+  <ul style="line-height: 1.8;">
+    <li>✔️ Unlimited bot creation</li>
+    <li>✔️ Premium bot templates and NLP tools</li>
+    <li>✔️ Deploy to chat apps like Slack or Discord</li>
+    <li>✔️ Real-time training & testing environment</li>
+    <li>✔️ Priority customer support</li>
+  </ul>
+
+  <!-- 3. Test Card Info (for dev only) -->
+  <!-- 1. Test Mode Box -->
+<div style="background-color: #000000; color: #ffffff; padding: 1rem; border: 1px solid #ddd; margin-top: 1rem;">
+  <p><strong>🧪 Test Mode:</strong> Use card <code>4242 4242 4242 4242</code>, any future expiry date, any 3-digit CVC.</p>
+</div>
+
+<!-- 2. Pricing Box -->
+<div style="border: 2px solid #fff; padding: 1rem; text-align: center; margin-top: 1rem; background-color: #000000; color: #ffffff;">
+  <h2 style="margin: 0;">$15/month</h2>
+  <p style="margin: 0;">Cancel anytime</p>
+</div>
+
+<!-- 3. Stripe Payment Form -->
+<form action="{% url 'payments:create_checkout_session' %}" method="POST" id="payment-form" style="margin-top: 1.5rem;">
+  {% csrf_token %}
+  <button type="submit" style="background-color: #000000; color: #ffffff; padding: 0.75rem 1.5rem; border: 1px solid #ffffff; border-radius: 5px; cursor: pointer;">
+    Subscribe Now
+  </button>
+</form>
+
+
+<script src="https://js.stripe.com/v3/"></script>
+<script>
+  const stripe = Stripe("{{ STRIPE_PUBLIC_KEY }}");
+
+  document.querySelector("#payment-form").addEventListener("submit", function (e) {
+
+    e.preventDefault();
+
+    fetch("{% url 'payments:create_checkout_session' %}", {
+      method: "POST",
+      headers: {
+        "X-CSRFToken": "{{ csrf_token }}",
+        "Content-Type": "application/json",
+      },
+    })
+    .then((res) => res.json())
+    .then((data) => {
+      return stripe.redirectToCheckout({ sessionId: data.id });
+    })
+    .then((res) => {
+      if (res.error) alert(res.error.message);
+    });
+  });
+</script>
+{% endblock %}
