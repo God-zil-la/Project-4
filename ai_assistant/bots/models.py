@@ -4,12 +4,64 @@ from django.contrib.auth.models import User
 
 class Bot(models.Model):
     CATEGORY_CHOICES = [
-        ('general', 'General'),
-        ('fitness', 'Fitness'),
+        ('art', 'Art'),
+        ('business', 'Business'),
+        ('career', 'Career'),
+        ('community', 'Community'),
+        ('culture', 'Culture'),
+        ('current_affairs', 'Current Affairs'),
+        ('education', 'Education'),
+        ('entrepreneurship', 'Entrepreneurship'),
+        ('entertainment', 'Entertainment'),
+        ('environment', 'Environment'),
+        ('events', 'Events'),
+        ('fashion', 'Fashion'),
         ('finance', 'Finance'),
+        ('fitness', 'Fitness'),
+        ('food', 'Food'),
         ('funny', 'Funny'),
+        ('gaming', 'Gaming'),
+        ('gardening', 'Gardening'),
+        ('general', 'General'),
+        ('hobbies', 'Hobbies'),
+        ('history', 'History'),
+        ('home_improvement', 'Home Improvement'),
+        ('innovation', 'Innovation'),
+        ('interview_preparation', 'Interview Preparation'),
+        ('job_search', 'Job Search'),
+        ('language', 'Language'),
+        ('leadership', 'Leadership'),
+        ('lifestyle', 'Lifestyle'),
+        ('local', 'Local'),
+        ('management', 'Management'),
+        ('marketing', 'Marketing'),
+        ('mental_health', 'Mental Health'),
+        ('music', 'Music'),
+        ('news', 'News'),
+        ('other', 'Other'),
+        ('parenting', 'Parenting'),
+        ('pets', 'Pets'),
+        ('philosophy', 'Philosophy'),
+        ('politics', 'Politics'),
+        ('productivity', 'Productivity'),
+        ('relationships', 'Relationships'),
+        ('resume_building', 'Resume Building'),
+        ('sales', 'Sales'),
+        ('science', 'Science'),
+        ('self_improvement', 'Self Improvement'),
+        ('shopping', 'Shopping'),
+        ('society', 'Society'),
+        ('spirituality', 'Spirituality'),
+        ('sports', 'Sports'),
         ('support', 'Support'),
+        ('sustainability', 'Sustainability'),
         ('tech', 'Tech'),
+        ('technology', 'Technology'),
+        ('therapy', 'Therapy'),
+        ('travel', 'Travel'),
+        ('wellbeing', 'Wellbeing'),
+        ('wellness', 'Wellness'),
+
     ]
 
     name = models.CharField(max_length=100)
@@ -17,7 +69,7 @@ class Bot(models.Model):
     owner = models.ForeignKey(User, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     personality = models.TextField(default="I am a helpful and friendly assistant.")
-    category = models.CharField(max_length=20, choices=CATEGORY_CHOICES, default='general')
+    category = models.CharField(max_length=23, choices=CATEGORY_CHOICES, default='general')
 
     def __str__(self):
         return self.name

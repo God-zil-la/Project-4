@@ -4,33 +4,38 @@
 
 {% block content %}
 <section>
-    <h1>Build Your AI Bot</h1>
-    <p>Start by giving your bot a name and choosing a domain it will specialize in.</p>
-    <p>{{ form.category.label_tag }} {{ form.category }}</p>
+  <h1>Build Your AI Bot</h1>
+  <p>Start by giving your bot a name and choosing a domain it will specialize in.</p>
 
-    <form method="post">
-        {% csrf_token %}
-        <label for="name">Bot Name:</label>
-        <input type="text" name="name" id="name" required placeholder="e.g. FinanceHelper3000">
+  <form method="post">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
 
-        <label for="category">Bot Category:</label>
-        <select name="category" id="category" required>
-            <option value="">-- Select Category --</option>
-            <option value="general">General</option>
-            <option value="fitness">Fitness</option>
-            <option value="finance">Finance</option>
-            <option value="funny">Funny</option>
-            <option value="support">Support</option>
-            <option value="tech">Tech</option>
-            <option value="customer_support">Customer Support</option>
-            <option value="education">Education</option>
-            <option value="healthcare">Healthcare</option>
-        </select>
+    <div>
+      <label for="{{ form.name.id_for_label }}">Bot Name:</label>
+      {{ form.name }}
+      {{ form.name.errors }}
+    </div>
 
-        <label for="description">Bot Description:</label>
-        <textarea name="description" id="description" rows="4" placeholder="Tell us what your bot should do..."></textarea>
+    <div>
+      <label for="{{ form.category.id_for_label }}">Bot Category:</label>
+      {{ form.category }}
+      {{ form.category.errors }}
+    </div>
 
-        <button type="submit">Create Bot</button>
-    </form>
+    <div>
+      <label for="{{ form.description.id_for_label }}">Bot Description:</label>
+      {{ form.description }}
+      {{ form.description.errors }}
+    </div>
+
+    <div>
+      <label for="{{ form.personality.id_for_label }}">Bot Personality:</label>
+      {{ form.personality }}
+      {{ form.personality.errors }}
+    </div>
+
+    <button type="submit">Create Bot</button>
+  </form>
 </section>
 {% endblock %}

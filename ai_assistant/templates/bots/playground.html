@@ -39,42 +39,46 @@
                 chatBox.innerHTML = '';
                 data.messages.forEach(msg => {
                     const msgDiv = document.createElement('div');
-                    msgDiv.innerHTML = `<strong>${msg.sender === 'user' ? 'You' : '{{ bot.name }}'}:</strong> ${escapeHtml(msg.message)}`;
+                    msgDiv.classList.add('chat-message', msg.sender);
+                    msgDiv.innerHTML = `
+                        <div class="sender">${msg.sender === 'user' ? 'You' : '{{ bot.name }}'}</div>
+                        <div class="text">${escapeHtml(msg.message)}</div>
+                    `;
                     chatBox.appendChild(msgDiv);
                 });
                 scrollToBottom();
             });
     }
 
-    // Initial load
-    loadMessages();
+    // DOM ready logic
+    document.addEventListener("DOMContentLoaded", function () {
+        loadMessages(); // initial load
+        setInterval(loadMessages, 3000); // auto-refresh
 
-    // Refresh every 3 seconds
-    setInterval(loadMessages, 3000);
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+            const message = input.value.trim();
+            if (!message) return;
 
-    form.addEventListener('submit', function (e) {
-        e.preventDefault();
-        const message = input.value.trim();
-        if (!message) return;
-
-        fetch(ajaxUrl, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': csrfToken,
-            },
-            body: JSON.stringify({ message })
-        })
-        .then(response => {
-            if (!response.ok) throw new Error('Login required or error occurred.');
-            return response.json();
-        })
-        .then(data => {
-            input.value = '';
-            loadMessages();
-        })
-        .catch(error => {
-            alert("Error: " + error.message);
+            fetch(ajaxUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken,
+                },
+                body: JSON.stringify({ message })
+            })
+            .then(response => {
+                if (!response.ok) throw new Error('Login required or error occurred.');
+                return response.json();
+            })
+            .then(data => {
+                input.value = '';
+                loadMessages(); // refresh on new message
+            })
+            .catch(error => {
+                alert("Error: " + error.message);
+            });
         });
     });
 </script>

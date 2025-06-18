@@ -220,3 +220,12 @@ main {
 .subscribe-button:hover {
     background-color: #e6c200;
 }
+
+/* Light Mode Footer - Enhanced Visibility */
+html:not(.dark) footer {
+    background-color: #f0f0e8; /* cream-like background */
+    color: #111; /* darker text for readability */
+    border-top: 1px solid #ccc;
+    box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.05);
+}
+

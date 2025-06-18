@@ -1,17 +1,19 @@
+from openai import OpenAI
 from django.contrib.auth.models import User
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
 from django.views.decorators.csrf import csrf_protect
 from django.http import JsonResponse
-import openai
 import json
+from django.conf import settings
 from .models import Bot, ChatMessage
 from .forms import BotForm
 from ai_assistant.buildabot import settings
+import os
 
-# Load OpenAI API key
-openai.api_key = settings.OPENAI_API_KEY
+
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 
 @staff_member_required
@@ -42,7 +44,7 @@ def ajax_chat(request, bot_id):
             sender='user'
         )
 
-        # Choose system message based on bot category
+        # System prompt
         category_prompt = {
             "general": "You are a helpful assistant who answers clearly and briefly.",
             "fitness": "You are a fitness coach. Give motivating, accurate health advice.",
@@ -52,24 +54,23 @@ def ajax_chat(request, bot_id):
             "tech": "You are a tech specialist. Explain technology in simple terms.",
         }.get(bot.category, "You are a helpful assistant.")
 
-        # Final system message
-        system_message = f"{category_prompt} Personality: {bot.personality}"
+        personality = bot.personality or "friendly and professional"
 
-        # Get response from OpenAI
+        system_message = f"{category_prompt} Your tone should be '{personality}'."
+
         try:
-            response = openai.ChatCompletion.create(
+            response = client.chat.completions.create(
                 model="gpt-3.5-turbo",
                 messages=[
                     {"role": "system", "content": system_message},
-                    {"role": "user", "content": user_message},
+                    {"role": "user", "content": user_message}
                 ]
             )
-            bot_response = response['choices'][0]['message']['content'].strip()
+            bot_response = response.choices[0].message.content.strip()
         except Exception as e:
             print("❌ OpenAI API error:", e)
-            bot_response = f"[Test Mode] You asked: {user_message}"
+            bot_response = f"[API Error] {str(e)}"
 
-        # Save bot message
         ChatMessage.objects.create(
             bot=bot,
             user=request.user,
@@ -78,6 +79,7 @@ def ajax_chat(request, bot_id):
         )
 
         return JsonResponse({'response': bot_response})
+
 
 
 @login_required
@@ -101,9 +103,13 @@ def create_bot(request):
             bot.owner = request.user
             bot.save()
             return redirect('bots:my-bots')
+        else:
+            print("Form errors:", form.errors)  # ✅ DEBUG
     else:
         form = BotForm()
+    
     return render(request, 'bots/create_bot.html', {'form': form})
+
 
 
 @login_required
@@ -154,3 +160,4 @@ def bot_chat_api(request, bot_id):
         messages = ChatMessage.objects.filter(bot=bot, user=request.user).order_by('timestamp')
         data = [{'sender': m.sender, 'message': m.message} for m in messages]
         return JsonResponse({'messages': data})
+    
