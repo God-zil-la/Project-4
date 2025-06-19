@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block title %}Build a Bot - AI Assistant{% endblock %}
+
+{% block content %}
+<section>
+    <h1>Build Your AI Bot</h1>
+    <p>Start by giving your bot a name and choosing a domain it will specialize in.</p>
+
+    <form method="post">
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+
+        <div>
+            <label for="{{ form.name.id_for_label }}">Bot Name:</label>
+            {{ form.name }}
+            {{ form.name.errors }}
+        </div>
+
+        <div>
+            <label for="{{ form.category.id_for_label }}">Bot Category:</label>
+            {{ form.category }}
+            {{ form.category.errors }}
+        </div>
+
+        <div>
+            <label for="{{ form.description.id_for_label }}">Bot Description:</label>
+            {{ form.description }}
+            {{ form.description.errors }}
+        </div>
+
+        <div>
+            <label for="{{ form.personality.id_for_label }}">Bot Personality:</label>
+            {{ form.personality }}
+            {{ form.personality.errors }}
+        </div>
+
+        <button type="submit">Create Bot</button>
+    </form>
+</section>
+{% endblock %}

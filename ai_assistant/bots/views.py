@@ -42,7 +42,7 @@ def ajax_chat(request, bot_id):
     profile, _ = UserProfile.objects.get_or_create(user=request.user)
     profile.reset_daily_count()
 
-    if not profile.is_subscribed and profile.daily_message_count >= 20:  # or your limit
+    if not profile.is_subscribed and profile.daily_message_count >= 50:
         return JsonResponse(
             {'response': "⚠️ Daily limit reached. Please subscribe to continue chatting."},
             status=429
@@ -59,10 +59,10 @@ def ajax_chat(request, bot_id):
         "tech": "You are a tech specialist explaining technology simply and clearly.",
     }.get(bot.category, "You are a helpful assistant.")
 
-    # Use only category prompt as system message, ignoring custom personality
+    
     system_message = category_prompt
 
-    # Call OpenAI
+    
     for attempt in range(3):
         try:
             response = client.chat.completions.create(
