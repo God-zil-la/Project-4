@@ -61,6 +61,7 @@ class Bot(models.Model):
         ('travel', 'Travel'),
         ('wellbeing', 'Wellbeing'),
         ('wellness', 'Wellness'),
+        ('3-D Printing', '3-D Printing'),
 
     ]
 

@@ -323,3 +323,10 @@ html:not(.dark) footer {
         padding: 0.3rem 0.4rem;
     }
 }
+
+/* Target the forgot password link in the login page */
+p a[href$="password-reset/"] {
+  color: red;
+  font-weight: bold;
+  text-decoration: underline; 
+}

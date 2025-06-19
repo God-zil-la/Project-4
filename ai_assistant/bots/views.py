@@ -4,20 +4,16 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
 from django.views.decorators.csrf import csrf_protect
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponseNotAllowed
 import json
-from django.conf import settings
-from .models import Bot, ChatMessage
-from .forms import BotForm
-from ai_assistant.buildabot import settings
+import time
 import os
 from openai import OpenAI
 from dotenv import load_dotenv
+from .models import Bot, ChatMessage
+from .forms import BotForm
 
-# Load .env variables
 load_dotenv()
-
-# Initialize OpenAI client for v1+
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 
@@ -36,68 +32,78 @@ def admin_dashboard(request):
 @login_required
 @csrf_protect
 def ajax_chat(request, bot_id):
-    if request.method == 'POST':
-        data = json.loads(request.body)
-        user_message = data.get('message')
-        bot = get_object_or_404(Bot, id=bot_id)
+    if request.method != 'POST':
+        return HttpResponseNotAllowed(['POST'])
 
-        try:
-            profile = request.user.profile
-        except UserProfile.DoesNotExist:
-            # If profile does not exist, create it on the fly
-            profile = UserProfile.objects.create(user=request.user)
+    data = json.loads(request.body)
+    user_message = data.get('message')
+    bot = get_object_or_404(Bot, id=bot_id)
 
-        profile.reset_daily_count()
+    profile, _ = UserProfile.objects.get_or_create(user=request.user)
+    profile.reset_daily_count()
 
-        if not profile.is_subscribed and profile.daily_message_count >= 10:
-            return JsonResponse({'response': "⚠️ Daily limit reached. Please subscribe to continue chatting."})
-
-        # Save user message
-        ChatMessage.objects.create(
-            bot=bot,
-            user=request.user,
-            message=user_message,
-            sender='user'
+    if not profile.is_subscribed and profile.daily_message_count >= 20:  # or your limit
+        return JsonResponse(
+            {'response': "⚠️ Daily limit reached. Please subscribe to continue chatting."},
+            status=429
         )
 
-        category_prompt = {
-            "general": "You are a helpful assistant who answers clearly and briefly.",
-            "fitness": "You are a fitness coach. Give motivating, accurate health advice.",
-            "finance": "You are a financial expert. Explain money, budgeting, and investment tips.",
-            "funny": "You are a stand-up comedian. Always respond with jokes and humor.",
-            "support": "You are a kind, supportive friend. Be empathetic and comforting.",
-            "tech": "You are a tech specialist. Explain technology in simple terms.",
-        }.get(bot.category, "You are a helpful assistant.")
+    ChatMessage.objects.create(bot=bot, user=request.user, message=user_message, sender='user')
 
-        personality = bot.personality or "friendly and professional"
-        system_message = f"{category_prompt} Your tone should be '{personality}'."
+    category_prompt = {
+        "general": "You are a helpful assistant who answers clearly and concisely.",
+        "fitness": "You are a fitness coach giving motivating, accurate health advice.",
+        "finance": "You are a financial expert explaining money, budgeting, and investment tips.",
+        "funny": "You are a stand-up comedian who always responds with jokes and humor.",
+        "support": "You are a kind, supportive friend who is empathetic and comforting.",
+        "tech": "You are a tech specialist explaining technology simply and clearly.",
+    }.get(bot.category, "You are a helpful assistant.")
 
+    # Use only category prompt as system message, ignoring custom personality
+    system_message = category_prompt
+
+    # Call OpenAI
+    for attempt in range(3):
         try:
             response = client.chat.completions.create(
                 model="gpt-3.5-turbo",
                 messages=[
                     {"role": "system", "content": system_message},
                     {"role": "user", "content": user_message}
-                ]
+                ],
             )
             bot_response = response.choices[0].message.content.strip()
+            break
         except Exception as e:
-            print("❌ OpenAI API error:", e)
-            bot_response = f"[API Error] {str(e)}"
+            err_msg = str(e).lower()
+            if "rate limit" in err_msg or "too many requests" in err_msg:
+                if attempt < 2:
+                    time.sleep(2 ** attempt)
+                    continue
+                else:
+                    return JsonResponse({'response': "⚠️ Rate limit exceeded. Please try again later."}, status=429)
+            else:
+                print("❌ OpenAI API error:", e)
+                bot_response = f"[API Error] {str(e)}"
+                break
 
-        # Save bot response
-        ChatMessage.objects.create(
-            bot=bot,
-            user=request.user,
-            message=bot_response,
-            sender='bot'
-        )
+    ChatMessage.objects.create(bot=bot, user=request.user, message=bot_response, sender='bot')
 
-        profile.increment_message_count()
+    profile.increment_message_count()
 
-        return JsonResponse({'response': bot_response})
+    return JsonResponse({'response': bot_response})
 
 
+
+@login_required
+def bot_chat_api(request, bot_id):
+    bot = get_object_or_404(Bot, id=bot_id, owner=request.user)
+
+    if request.method == 'GET':
+        messages = ChatMessage.objects.filter(bot=bot, user=request.user).order_by('timestamp')
+        return JsonResponse({'messages': [{'sender': m.sender, 'message': m.message} for m in messages]})
+
+    return HttpResponseNotAllowed(['GET'])
 
 
 @login_required
@@ -121,11 +127,9 @@ def create_bot(request):
             bot.owner = request.user
             bot.save()
             return redirect('bots:my-bots')
-        else:
-            print("Form errors:", form.errors)
     else:
         form = BotForm()
-    
+
     return render(request, 'bots/create_bot.html', {'form': form})
 
 
@@ -159,21 +163,3 @@ def bot_chat_playground(request, bot_id):
         'bot': bot,
         'messages': messages
     })
-
-
-@login_required
-def bot_chat_api(request, bot_id):
-    bot = get_object_or_404(Bot, id=bot_id, owner=request.user)
-
-    if request.method == 'POST':
-        user_msg = request.POST.get('message')
-        if user_msg:
-            ChatMessage.objects.create(bot=bot, user=request.user, message=user_msg, sender='user')
-            bot_reply = f"You said: {user_msg}"
-            ChatMessage.objects.create(bot=bot, user=request.user, message=bot_reply, sender='bot')
-            return JsonResponse({'reply': bot_reply})
-
-    elif request.method == 'GET':
-        messages = ChatMessage.objects.filter(bot=bot, user=request.user).order_by('timestamp')
-        data = [{'sender': m.sender, 'message': m.message} for m in messages]
-        return JsonResponse({'messages': data})

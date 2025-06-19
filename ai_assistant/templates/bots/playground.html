@@ -34,7 +34,7 @@
     }
 
     function loadMessages() {
-        fetch(fetchMessagesUrl, { credentials: 'same-origin' })  // ensure cookies sent
+        fetch(fetchMessagesUrl, { credentials: 'same-origin' })
             .then(response => {
                 if (!response.ok) {
                     if (response.status === 401) {
@@ -63,8 +63,9 @@
     }
 
     document.addEventListener("DOMContentLoaded", function () {
-        loadMessages();
-        setInterval(loadMessages, 3000);
+        loadMessages(); // load once on page load
+
+        // Removed setInterval so no auto-refresh and scrolling is stable
 
         form.addEventListener('submit', function (e) {
             e.preventDefault();
@@ -80,25 +81,32 @@
                 credentials: 'same-origin',
                 body: JSON.stringify({ message })
             })
-                .then(response => {
-                    if (!response.ok) {
-                        if (response.status === 401) {
-                            alert('⚠️ You must be logged in to send messages.');
-                            window.location.href = "{% url 'accounts:login' %}";
-                        } else if (response.status === 429) {
-                            alert('⚠️ Rate limit exceeded. Please try later.');
-                        } else {
-                            alert('Error sending message.');
-                        }
-                        throw new Error('Failed to send message');
+                .then(response => response.json().then(data => ({
+                    status: response.status,
+                    body: data
+                })))
+                .then(({ status, body }) => {
+                    if (status === 429) {
+                        // Show rate limit message inside chat box as bot message
+                        const msgDiv = document.createElement('div');
+                        msgDiv.classList.add('chat-message', 'bot');
+                        msgDiv.innerHTML = `
+                            <div class="sender">{{ bot.name }}</div>
+                            <div class="text">${escapeHtml(body.response)}</div>
+                        `;
+                        chatBox.appendChild(msgDiv);
+                        scrollToBottom();
+                    } else if (!body.response) {
+                        alert('Error sending message.');
+                    } else {
+                        input.value = '';
+                        loadMessages();
                     }
-                    return response.json();
                 })
-                .then(data => {
-                    input.value = '';
-                    loadMessages();
-                })
-                .catch(console.error);
+                .catch(err => {
+                    console.error(err);
+                    alert('Error sending message.');
+                });
         });
     });
 </script>

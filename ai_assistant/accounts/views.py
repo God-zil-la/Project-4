@@ -5,13 +5,26 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 from django.core.mail import EmailMessage
 from django.shortcuts import render, redirect
+from django.contrib import messages
 from .tokens import account_activation_token
+from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
+
+@login_required
+def index(request):
+    return render(request, 'accounts/index.html')
+
 
 def register(request):
     if request.method == 'POST':
         username = request.POST['username']
         email = request.POST['email']
         password = request.POST['password']
+
+        if User.objects.filter(username=username).exists():
+            messages.error(request, "Username already exists. Please choose another.")
+            return render(request, 'accounts/register.html')
+
         user = User.objects.create_user(username=username, email=email, password=password)
         user.is_active = False
         user.save()
@@ -23,16 +36,19 @@ def register(request):
             'domain': current_site.domain,
             'uid': urlsafe_base64_encode(force_bytes(user.pk)),
             'token': account_activation_token.make_token(user),
-        })
+        }, request=request) 
+
         email_message = EmailMessage(mail_subject, message, to=[email])
         email_message.send()
+
         return render(request, 'accounts/activation_sent.html')
+
     return render(request, 'accounts/register.html')
+
+
+
+
 from django.contrib.auth import get_user_model
-from django.utils.http import urlsafe_base64_decode
-from django.utils.encoding import force_str
-from .tokens import account_activation_token
-from django.shortcuts import render
 
 User = get_user_model()
 
@@ -49,10 +65,3 @@ def activate(request, uidb64, token):
         return render(request, 'accounts/activation_success.html')
     else:
         return render(request, 'accounts/activation_invalid.html')
-
-from django.shortcuts import render
-from django.contrib.auth.decorators import login_required
-
-@login_required
-def index(request):
-    return render(request, 'accounts/index.html')

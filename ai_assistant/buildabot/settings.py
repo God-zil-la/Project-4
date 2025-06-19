@@ -19,6 +19,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_extensions',
     'ai_assistant.dashboard',
     'ai_assistant.bots',
     'ai_assistant.payments',
