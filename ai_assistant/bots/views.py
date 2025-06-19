@@ -1,4 +1,4 @@
-from openai import OpenAI
+from ai_assistant.accounts.models import UserProfile
 from django.contrib.auth.models import User
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
@@ -11,8 +11,13 @@ from .models import Bot, ChatMessage
 from .forms import BotForm
 from ai_assistant.buildabot import settings
 import os
+from openai import OpenAI
+from dotenv import load_dotenv
 
+# Load .env variables
+load_dotenv()
 
+# Initialize OpenAI client for v1+
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 
@@ -36,6 +41,17 @@ def ajax_chat(request, bot_id):
         user_message = data.get('message')
         bot = get_object_or_404(Bot, id=bot_id)
 
+        try:
+            profile = request.user.profile
+        except UserProfile.DoesNotExist:
+            # If profile does not exist, create it on the fly
+            profile = UserProfile.objects.create(user=request.user)
+
+        profile.reset_daily_count()
+
+        if not profile.is_subscribed and profile.daily_message_count >= 10:
+            return JsonResponse({'response': "⚠️ Daily limit reached. Please subscribe to continue chatting."})
+
         # Save user message
         ChatMessage.objects.create(
             bot=bot,
@@ -44,7 +60,6 @@ def ajax_chat(request, bot_id):
             sender='user'
         )
 
-        # System prompt
         category_prompt = {
             "general": "You are a helpful assistant who answers clearly and briefly.",
             "fitness": "You are a fitness coach. Give motivating, accurate health advice.",
@@ -55,7 +70,6 @@ def ajax_chat(request, bot_id):
         }.get(bot.category, "You are a helpful assistant.")
 
         personality = bot.personality or "friendly and professional"
-
         system_message = f"{category_prompt} Your tone should be '{personality}'."
 
         try:
@@ -71,6 +85,7 @@ def ajax_chat(request, bot_id):
             print("❌ OpenAI API error:", e)
             bot_response = f"[API Error] {str(e)}"
 
+        # Save bot response
         ChatMessage.objects.create(
             bot=bot,
             user=request.user,
@@ -78,7 +93,10 @@ def ajax_chat(request, bot_id):
             sender='bot'
         )
 
+        profile.increment_message_count()
+
         return JsonResponse({'response': bot_response})
+
 
 
 
@@ -104,12 +122,11 @@ def create_bot(request):
             bot.save()
             return redirect('bots:my-bots')
         else:
-            print("Form errors:", form.errors)  # ✅ DEBUG
+            print("Form errors:", form.errors)
     else:
         form = BotForm()
     
     return render(request, 'bots/create_bot.html', {'form': form})
-
 
 
 @login_required
@@ -160,4 +177,3 @@ def bot_chat_api(request, bot_id):
         messages = ChatMessage.objects.filter(bot=bot, user=request.user).order_by('timestamp')
         data = [{'sender': m.sender, 'message': m.message} for m in messages]
         return JsonResponse({'messages': data})
-    

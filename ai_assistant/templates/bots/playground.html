@@ -9,7 +9,8 @@
 
 <form id="chat-form" style="margin-top: 1rem;">
     {% csrf_token %}
-    <input type="text" id="user-input" placeholder="Type your message..." autocomplete="off" style="width: 80%; padding: 0.5rem;">
+    <input type="text" id="user-input" placeholder="Type your message..." autocomplete="off"
+        style="width: 80%; padding: 0.5rem;" required>
     <button type="submit" class="btn">Send</button>
 </form>
 
@@ -33,8 +34,18 @@
     }
 
     function loadMessages() {
-        fetch(fetchMessagesUrl)
-            .then(response => response.json())
+        fetch(fetchMessagesUrl, { credentials: 'same-origin' })  // ensure cookies sent
+            .then(response => {
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        alert('⚠️ Please log in to chat.');
+                    } else {
+                        alert('Error loading messages.');
+                    }
+                    throw new Error('Failed to load messages');
+                }
+                return response.json();
+            })
             .then(data => {
                 chatBox.innerHTML = '';
                 data.messages.forEach(msg => {
@@ -47,13 +58,13 @@
                     chatBox.appendChild(msgDiv);
                 });
                 scrollToBottom();
-            });
+            })
+            .catch(console.error);
     }
 
-    // DOM ready logic
     document.addEventListener("DOMContentLoaded", function () {
-        loadMessages(); // initial load
-        setInterval(loadMessages, 3000); // auto-refresh
+        loadMessages();
+        setInterval(loadMessages, 3000);
 
         form.addEventListener('submit', function (e) {
             e.preventDefault();
@@ -66,19 +77,28 @@
                     'Content-Type': 'application/json',
                     'X-CSRFToken': csrfToken,
                 },
+                credentials: 'same-origin',
                 body: JSON.stringify({ message })
             })
-            .then(response => {
-                if (!response.ok) throw new Error('Login required or error occurred.');
-                return response.json();
-            })
-            .then(data => {
-                input.value = '';
-                loadMessages(); // refresh on new message
-            })
-            .catch(error => {
-                alert("Error: " + error.message);
-            });
+                .then(response => {
+                    if (!response.ok) {
+                        if (response.status === 401) {
+                            alert('⚠️ You must be logged in to send messages.');
+                            window.location.href = "{% url 'accounts:login' %}";
+                        } else if (response.status === 429) {
+                            alert('⚠️ Rate limit exceeded. Please try later.');
+                        } else {
+                            alert('Error sending message.');
+                        }
+                        throw new Error('Failed to send message');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    input.value = '';
+                    loadMessages();
+                })
+                .catch(console.error);
         });
     });
 </script>
@@ -86,15 +106,61 @@
 <style>
     .chat-box {
         padding: 1rem;
-        background: var(--chat-bg, #1a1a1a);
-        color: #fff;
-        border: 1px solid #333;
+        background: var(--bg-color);
+        color: var(--text-color);
+        border: 1px solid var(--button-hover);
+        border-radius: 8px;
+        font-size: 1rem;
+        overflow-wrap: break-word;
+        word-break: break-word;
     }
 
-    body.light-mode .chat-box {
-        background: #f9f9f9;
-        color: #000;
-        border: 1px solid #ccc;
+    .chat-message.user {
+        text-align: right;
+        margin-bottom: 0.75rem;
+    }
+
+    .chat-message.bot {
+        text-align: left;
+        margin-bottom: 0.75rem;
+    }
+
+    .sender {
+        font-weight: bold;
+        margin-bottom: 0.25rem;
+    }
+
+    .text {
+        background: var(--button-bg);
+        color: var(--button-text);
+        display: inline-block;
+        padding: 0.5rem 0.75rem;
+        border-radius: 10px;
+        max-width: 80%;
+        white-space: pre-wrap;
+    }
+
+    /* Light mode overrides */
+    html:not(.dark) .text {
+        background: var(--button-bg);
+        color: var(--button-text);
+    }
+
+    /* Responsive input/button */
+    #user-input {
+        font-size: 1rem;
+    }
+
+    @media (max-width: 480px) {
+        #user-input {
+            width: 70%;
+            font-size: 0.9rem;
+        }
+
+        button.btn {
+            width: 25%;
+            font-size: 0.9rem;
+        }
     }
 </style>
 {% endblock %}
