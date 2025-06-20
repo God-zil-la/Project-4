@@ -1,50 +1,115 @@
-{% extends 'base.html' %}
-{% block title %}Admin Dashboard{% endblock %}
+{% extends "base.html" %}
+{% load static %}
 
 {% block content %}
-<h1 style="margin-bottom: 1rem;">⚙️ Admin Dashboard</h1>
+<div class="container mt-5">
+  <h2 class="mb-4 text-center">📊 Monitor Logs & Analytics</h2>
 
-<div style="display: flex; flex-wrap: wrap; gap: 2rem;">
-
-  <!-- Users Section -->
-  <div style="flex: 1; min-width: 250px;">
-    <h2>👤 All Users</h2>
-    <ul style="list-style-type: none; padding: 0;">
-      {% for user in users %}
-        <li style="border-bottom: 1px solid #ccc; padding: 0.5rem 0;">
-          <strong>{{ user.username }}</strong><br>
-          <small>{{ user.email }}</small>
-        </li>
-      {% endfor %}
-    </ul>
+  <!-- Summary Cards -->
+  <div class="row text-center mb-4">
+    <div class="col-md-4 mb-3">
+      <div class="card shadow-sm rounded-4 p-3">
+        <h5>Total Users</h5>
+        <p class="display-6">{{ users.count }}</p>
+      </div>
+    </div>
+    <div class="col-md-4 mb-3">
+      <div class="card shadow-sm rounded-4 p-3">
+        <h5>Total Bots</h5>
+        <p class="display-6">{{ bots.count }}</p>
+      </div>
+    </div>
+    <div class="col-md-4 mb-3">
+      <div class="card shadow-sm rounded-4 p-3">
+        <h5>Total Logs</h5>
+        <p class="display-6">{{ total_logs }}</p>
+      </div>
+    </div>
   </div>
 
-  <!-- Bots Section -->
-  <div style="flex: 1; min-width: 250px;">
-    <h2>🤖 All Bots</h2>
-    <ul style="list-style-type: none; padding: 0;">
-      {% for bot in bots %}
-        <li style="border-bottom: 1px solid #ccc; padding: 0.5rem 0;">
-          <strong>{{ bot.name }}</strong><br>
-          <small>Owner: {{ bot.owner.username }}</small>
-        </li>
-      {% endfor %}
-    </ul>
+  <!-- Top Bots and Users -->
+  <div class="row mb-4">
+    <div class="col-md-6 mb-3">
+      <div class="card shadow-sm rounded-4 p-3">
+        <h5>🔥 Top 5 Bots (by usage)</h5>
+        <ul class="list-group">
+          {% for bot in top_bots %}
+          <li class="list-group-item d-flex justify-content-between">
+            <span>{{ bot.bot__name }}</span>
+            <span class="badge bg-primary">{{ bot.count }}</span>
+          </li>
+          {% empty %}
+          <li class="list-group-item">No bot data found.</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+    <div class="col-md-6 mb-3">
+      <div class="card shadow-sm rounded-4 p-3">
+        <h5>🌟 Top 5 Users (by activity)</h5>
+        <ul class="list-group">
+          {% for user in top_users %}
+          <li class="list-group-item d-flex justify-content-between">
+            <span>{{ user.user__username }}</span>
+            <span class="badge bg-success">{{ user.count }}</span>
+          </li>
+          {% empty %}
+          <li class="list-group-item">No user data found.</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
   </div>
 
-</div>
+  <!-- Daily Usage Chart -->
+  <div class="card shadow-sm rounded-4 p-4 mb-4">
+    <h5 class="mb-3">📈 Daily Logs (Past 7 Days)</h5>
+    <canvas id="usageChart" height="80"></canvas>
+  </div>
 
-<!-- Messages Section -->
-<div style="margin-top: 2rem;">
-  <h2>🗨️ Recent Messages</h2>
-  <ul style="list-style-type: none; padding: 0;">
-    {% for msg in messages %}
-      <li style="border-bottom: 1px solid #eee; padding: 0.5rem 0;">
-        <strong>{{ msg.sender|title }}:</strong> {{ msg.message }}<br>
-        <small>{{ msg.timestamp|date:"F j, Y, g:i a" }}</small>
+  <!-- Recent Messages -->
+  <div class="card shadow-sm rounded-4 p-4 mb-5">
+    <h5 class="mb-3">📝 Recent Messages</h5>
+    <ul class="list-group">
+      {% for msg in messages %}
+      <li class="list-group-item">
+        <strong>{{ msg.user.username }}</strong> → <em>{{ msg.bot.name }}</em><br>
+        {{ msg.message|truncatechars:120 }}<br>
+        <small class="text-muted">{{ msg.timestamp }}</small>
       </li>
-    {% endfor %}
-  </ul>
+      {% empty %}
+      <li class="list-group-item">No messages available.</li>
+      {% endfor %}
+    </ul>
+  </div>
 </div>
 
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  const ctx = document.getElementById('usageChart').getContext('2d');
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: {{ chart_labels| safe }},
+    datasets: [{
+      label: 'Bot Logs per Day',
+      data: {{ chart_data| safe }},
+    borderColor: '#0d6efd',
+    backgroundColor: 'rgba(13, 110, 253, 0.1)',
+    tension: 0.3,
+    fill: true,
+    pointBackgroundColor: '#0d6efd',
+      }]
+    },
+    options: {
+    scales: {
+      y: { beginAtZero: true, stepSize: 1 }
+    },
+    plugins: {
+      legend: { display: false }
+    }
+  }
+  });
+</script>
 {% endblock %}

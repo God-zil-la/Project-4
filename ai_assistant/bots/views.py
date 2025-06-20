@@ -1,31 +1,84 @@
-from ai_assistant.accounts.models import UserProfile
-from django.contrib.auth.models import User
-from django.shortcuts import render, redirect, get_object_or_404
+from django.views.decorators.csrf import csrf_protect
+from datetime import timedelta
+from django.utils import timezone
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
-from django.views.decorators.csrf import csrf_protect
+from django.db.models import Count
+from django.db.models.functions import TruncDate
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.models import User
 from django.http import JsonResponse, HttpResponseNotAllowed
-import json
-import time
-import os
-from openai import OpenAI
-from dotenv import load_dotenv
+
+from ai_assistant.accounts.models import UserProfile
+from ai_assistant.dashboard.models import BotUsageLog
 from .models import Bot, ChatMessage
 from .forms import BotForm
+
+import json
+import os
+import time
+from dotenv import load_dotenv
+from openai import OpenAI
 
 load_dotenv()
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 
-@staff_member_required
-def admin_dashboard(request):
-    users = User.objects.all()
-    bots = Bot.objects.all()
-    messages = ChatMessage.objects.order_by('-timestamp')[:50]
-    return render(request, 'bots/admin_dashboard.html', {
-        'users': users,
-        'bots': bots,
-        'messages': messages,
+@login_required
+def bot_list(request):
+    bots = Bot.objects.filter(owner=request.user)
+    return render(request, 'bots/bot_list.html', {'bots': bots})
+
+
+@login_required
+def my_bots(request):
+    user_bots = Bot.objects.filter(owner=request.user)
+    return render(request, 'bots/my_bots.html', {'bots': user_bots})
+
+
+@login_required
+def create_bot(request):
+    if request.method == 'POST':
+        form = BotForm(request.POST)
+        if form.is_valid():
+            bot = form.save(commit=False)
+            bot.owner = request.user
+            bot.save()
+            return redirect('bots:my-bots')
+    else:
+        form = BotForm()
+    return render(request, 'bots/create_bot.html', {'form': form})
+
+
+@login_required
+def edit_bot(request, bot_id):
+    bot = get_object_or_404(Bot, id=bot_id, owner=request.user)
+    if request.method == 'POST':
+        form = BotForm(request.POST, instance=bot)
+        if form.is_valid():
+            form.save()
+            return redirect('bots:list')
+    else:
+        form = BotForm(instance=bot)
+    return render(request, 'bots/edit_bot.html', {'form': form})
+
+
+@login_required
+def delete_bot(request, bot_id):
+    bot = get_object_or_404(Bot, id=bot_id, owner=request.user)
+    if request.method == 'POST':
+        bot.delete()
+        return redirect('bots:list')
+    return render(request, 'bots/confirm_delete.html', {'bot': bot})
+
+
+@login_required
+def bot_chat_playground(request, bot_id):
+    bot = get_object_or_404(Bot, id=bot_id, owner=request.user)
+    messages = ChatMessage.objects.filter(bot=bot, user=request.user).order_by('timestamp')
+    return render(request, 'bots/playground.html', {
+        'bot': bot,
+        'messages': messages
     })
 
 
@@ -59,10 +112,8 @@ def ajax_chat(request, bot_id):
         "tech": "You are a tech specialist explaining technology simply and clearly.",
     }.get(bot.category, "You are a helpful assistant.")
 
-    
     system_message = category_prompt
 
-    
     for attempt in range(3):
         try:
             response = client.chat.completions.create(
@@ -73,6 +124,7 @@ def ajax_chat(request, bot_id):
                 ],
             )
             bot_response = response.choices[0].message.content.strip()
+            usage = response.usage
             break
         except Exception as e:
             err_msg = str(e).lower()
@@ -85,81 +137,74 @@ def ajax_chat(request, bot_id):
             else:
                 print("❌ OpenAI API error:", e)
                 bot_response = f"[API Error] {str(e)}"
+                usage = None
                 break
 
     ChatMessage.objects.create(bot=bot, user=request.user, message=bot_response, sender='bot')
-
     profile.increment_message_count()
 
-    return JsonResponse({'response': bot_response})
+    if usage:
+        BotUsageLog.objects.create(
+            user=request.user,
+            bot=bot,
+            message=user_message,
+            token_count=usage.total_tokens
+        )
 
+    return JsonResponse({'response': bot_response})
 
 
 @login_required
 def bot_chat_api(request, bot_id):
     bot = get_object_or_404(Bot, id=bot_id, owner=request.user)
-
     if request.method == 'GET':
         messages = ChatMessage.objects.filter(bot=bot, user=request.user).order_by('timestamp')
         return JsonResponse({'messages': [{'sender': m.sender, 'message': m.message} for m in messages]})
-
     return HttpResponseNotAllowed(['GET'])
 
 
-@login_required
-def bot_list(request):
-    bots = Bot.objects.filter(owner=request.user)
-    return render(request, 'bots/bot_list.html', {'bots': bots})
+@staff_member_required
+def admin_dashboard(request):
+    users = User.objects.all()
+    bots = Bot.objects.all()
+    messages = ChatMessage.objects.order_by('-timestamp')[:50]
 
+    total_logs = BotUsageLog.objects.count()
 
-@login_required
-def my_bots(request):
-    user_bots = Bot.objects.filter(owner=request.user)
-    return render(request, 'bots/my_bots.html', {'bots': user_bots})
+    top_bots = (
+        BotUsageLog.objects.values('bot__name')
+        .annotate(count=Count('id'))
+        .order_by('-count')[:5]
+    )
 
+    top_users = (
+        BotUsageLog.objects.values('user__username')
+        .annotate(count=Count('id'))
+        .order_by('-count')[:5]
+    )
 
-@login_required
-def create_bot(request):
-    if request.method == 'POST':
-        form = BotForm(request.POST)
-        if form.is_valid():
-            bot = form.save(commit=False)
-            bot.owner = request.user
-            bot.save()
-            return redirect('bots:my-bots')
-    else:
-        form = BotForm()
+    today = timezone.now().date()
+    week_ago = today - timedelta(days=6)
 
-    return render(request, 'bots/create_bot.html', {'form': form})
+    daily_logs = (
+        BotUsageLog.objects
+        .filter(timestamp__date__gte=week_ago)
+        .annotate(day=TruncDate('timestamp'))
+        .values('day')
+        .annotate(count=Count('id'))
+        .order_by('day')
+    )
 
+    chart_labels = [entry['day'].strftime('%b %d') for entry in daily_logs]
+    chart_data = [entry['count'] for entry in daily_logs]
 
-@login_required
-def edit_bot(request, bot_id):
-    bot = get_object_or_404(Bot, id=bot_id, owner=request.user)
-    if request.method == 'POST':
-        form = BotForm(request.POST, instance=bot)
-        if form.is_valid():
-            form.save()
-            return redirect('bots:list')
-    else:
-        form = BotForm(instance=bot)
-    return render(request, 'bots/edit_bot.html', {'form': form})
-
-
-@login_required
-def delete_bot(request, bot_id):
-    bot = get_object_or_404(Bot, id=bot_id, owner=request.user)
-    if request.method == 'POST':
-        bot.delete()
-        return redirect('bots:list')
-    return render(request, 'bots/confirm_delete.html', {'bot': bot})
-
-
-@login_required
-def bot_chat_playground(request, bot_id):
-    bot = get_object_or_404(Bot, id=bot_id, owner=request.user)
-    messages = ChatMessage.objects.filter(bot=bot, user=request.user).order_by('timestamp')
-    return render(request, 'bots/playground.html', {
-        'bot': bot,
-        'messages': messages
+    return render(request, 'bots/admin_dashboard.html', {
+        'users': users,
+        'bots': bots,
+        'messages': messages,
+        'total_logs': total_logs,
+        'top_bots': top_bots,
+        'top_users': top_users,
+        'chart_labels': chart_labels,
+        'chart_data': chart_data,
     })
