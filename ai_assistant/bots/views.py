@@ -1,24 +1,26 @@
-from django.views.decorators.csrf import csrf_protect
+import os
+import json
+import time
 from datetime import timedelta
-from django.utils import timezone
+
+from django.shortcuts import render, redirect, get_object_or_404
+from django.http import JsonResponse, HttpResponseNotAllowed
+from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
+from django.views.decorators.csrf import csrf_protect
+from django.utils import timezone
 from django.db.models import Count
 from django.db.models.functions import TruncDate
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.models import User
-from django.http import JsonResponse, HttpResponseNotAllowed
+
+from dotenv import load_dotenv
+from openai import OpenAI
 
 from ai_assistant.accounts.models import UserProfile
 from ai_assistant.dashboard.models import BotUsageLog
 from .models import Bot, ChatMessage
 from .forms import BotForm
 
-import json
-import os
-import time
-from dotenv import load_dotenv
-from openai import OpenAI
 
 load_dotenv()
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
@@ -207,4 +209,33 @@ def admin_dashboard(request):
         'top_users': top_users,
         'chart_labels': chart_labels,
         'chart_data': chart_data,
+    })
+
+
+@staff_member_required
+def analytics_dashboard(request):
+    usage_by_bot = (
+        BotUsageLog.objects.values("bot__name")
+        .annotate(total=Count("id"))
+        .order_by("-total")
+    )
+    usage_by_user = (
+        BotUsageLog.objects.values("user__username")
+        .annotate(total=Count("id"))
+        .order_by("-total")
+    )
+
+    bot_data = {
+        "labels": [entry["bot__name"] for entry in usage_by_bot],
+        "counts": [entry["total"] for entry in usage_by_bot],
+    }
+
+    user_data = {
+        "labels": [entry["user__username"] for entry in usage_by_user],
+        "counts": [entry["total"] for entry in usage_by_user],
+    }
+
+    return render(request, "bots/analytics_dashboard.html", {
+        "bot_data": json.dumps(bot_data),
+        "user_data": json.dumps(user_data),
     })

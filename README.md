@@ -74,6 +74,41 @@ Live Demo: https://ai-assistant.herokuapp.com (replace with actual link)
 * Prompt combines user message + bot's category/personality
 * Response formatted and displayed with JS
 
+## 📊 Monitor Logs & Analytics
+
+*** All bot interactions are logged and can be reviewed by staff through the Django Admin interface. ***
+
+### ✅ Logged Data (via BotUsageLog model)
+* 👤 User
+* 🤖 Bot
+* 💬 Message
+* 🔢 Token count (OpenAI usage)
+* 🕒 Timestamp
+
+### 🛠️ Admin Dashboard Features
+
+*** How to Access: ***
+* Go to: https://yourdomain.com/admin/
+* Log in using a staff or superuser account
+* Click on Bot Usage Logs
+
+*** Features: ***
+* 📅 Date range filter: Use the sidebar to filter logs by specific dates.
+* 🔍 Search: Use the search bar to find logs by:
+* Username (user__username)
+* Bot name (bot__name)
+* Message content
+
+*** 🧾 Export as CSV: ***
+* Select log entries using checkboxes
+* Choose "Export selected logs as CSV" from the action dropdown
+
+*** 🎨 Dark Mode & Branding: ***
+* The admin interface is customized with a dark theme and project branding
+
+*** 👥 Access Restriction: ***
+* Only staff users (those with is_staff=True) can log in to the admin panel
+
 ## 🛠️ Technologies Used
 
 *** Backend: ***
@@ -114,15 +149,18 @@ ai-assistant/
 
 ### ✅ Manual Testing
 
-Feature                         Test Description                       Status
+Feature                         Test Description                              Status
 
-Register/Login Forms            Valid + invalid inputs                   ✅
-Bot CRUD                        Permissions, validation, ownership       ✅
-Chat Playground                 Real-time interaction + scroll           ✅
-Stripe Payment Flow             Success and cancel flows                 ✅
-Access Control                  Premium-only bots require subscription   ✅
-Theme Toggle                    Dark/light transitions work on all pages ✅
-Footer/Nav                      Layout consistent on all screen sizes    ✅
+Register/Login Forms            Valid + invalid inputs                          ✅
+Bot CRUD                        Permissions, validation, ownership              ✅
+Chat Playground                 Real-time interaction + scroll                  ✅
+Stripe Payment Flow             Success and cancel flows                        ✅
+Access Control                  Premium-only bots require subscription          ✅
+Theme Toggle                    Dark/light transitions work on all pages        ✅
+Footer/Nav                      Layout consistent on all screen sizes           ✅
+Monitor Logs & Analytics	    Chat logs saved, appear in admin with filters	✅
+CSV export downloads filtered logs	                                            ✅
+Only staff users can access Django Admin	                                    ✅
 
 ## ✅ Validation
 

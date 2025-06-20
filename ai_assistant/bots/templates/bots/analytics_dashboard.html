@@ -1,42 +1,80 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
 {% load static %}
+{% block title %}Analytics Dashboard{% endblock %}
 
 {% block content %}
-<div class="container" style="padding: 2rem;">
-    <h1>📊 Admin Usage Dashboard</h1>
+<div class="container">
+    <h1 class="text-center my-4">📊 Analytics Dashboard</h1>
 
-    <hr>
+    <div class="chart-container">
+        <h2>Messages by Bot</h2>
+        <canvas id="botUsageChart"></canvas>
+    </div>
 
-    <h2>Total Tracked Messages</h2>
-    <p><strong>{{ total_logs }}</strong> messages logged by users.</p>
-
-    <h2>🔥 Top 5 Bots</h2>
-    <ul>
-        {% for bot in top_bots %}
-        <li><strong>{{ bot.bot__name }}</strong> — {{ bot.count }} uses</li>
-        {% empty %}
-        <li>No bot usage data found.</li>
-        {% endfor %}
-    </ul>
-
-    <h2>👤 Top 5 Active Users</h2>
-    <ul>
-        {% for user in top_users %}
-        <li><strong>{{ user.user__username }}</strong> — {{ user.count }} messages</li>
-        {% empty %}
-        <li>No user usage activity found.</li>
-        {% endfor %}
-    </ul>
-
-    <h2>🕐 Recent Messages</h2>
-    <ul>
-        {% for msg in messages %}
-        <li>
-            <strong>{{ msg.user.username }}</strong> to <strong>{{ msg.bot.name }}</strong>:
-            <em>{{ msg.message|truncatewords:10 }}</em>
-            <span style="color:gray;">({{ msg.timestamp|date:"Y-m-d H:i" }})</span>
-        </li>
-        {% endfor %}
-    </ul>
+    <div class="chart-container mt-5">
+        <h2>Messages by User</h2>
+        <canvas id="userUsageChart"></canvas>
+    </div>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const botData = {{ bot_data| safe }};
+    const userData = {{ user_data| safe }};
+
+    new Chart(document.getElementById('botUsageChart'), {
+        type: 'bar',
+        data: {
+            labels: botData.labels,
+            datasets: [{
+                label: 'Messages by Bot',
+                data: botData.counts,
+                backgroundColor: 'rgba(255, 206, 86, 0.6)',
+                borderColor: 'rgba(255, 206, 86, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: { stepSize: 1 }
+                }
+            }
+        }
+    });
+
+    new Chart(document.getElementById('userUsageChart'), {
+        type: 'bar',
+        data: {
+            labels: userData.labels,
+            datasets: [{
+                label: 'Messages by User',
+                data: userData.counts,
+                backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: { stepSize: 1 }
+                }
+            }
+        }
+    });
+</script>
+
+<style>
+    .chart-container {
+        max-width: 800px;
+        margin: auto;
+    }
+</style>
 {% endblock %}

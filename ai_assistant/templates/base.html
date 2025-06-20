@@ -26,6 +26,9 @@
       {% if user.is_authenticated %}
       <li><a href="/bots/">My Bots</a></li>
       <li><a href="/payments/">Billing</a></li>
+      {% if user.is_staff %}
+      <li><a href="{% url 'bots:analytics' %}">Analytics Dashboard</a></li>
+      {% endif %}
       <li>
         <form method="POST" action="{% url 'accounts:logout' %}" class="nav-logout-form">
           {% csrf_token %}

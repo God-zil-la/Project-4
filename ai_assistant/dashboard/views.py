@@ -1,12 +1,11 @@
 import os
 import openai
 from django.shortcuts import render
-from django.contrib.auth.decorators import login_required
 from dotenv import load_dotenv
 
+# Load environment variables from .env
 load_dotenv()
 openai.api_key = os.getenv("OPENAI_API_KEY")
-
 
 def home(request):
     bot_response = None
