@@ -20,12 +20,13 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django_extensions',
-    'ai_assistant.dashboard',
+    
+    'ai_assistant.dashboard.apps.DashboardConfig', 
     'ai_assistant.bots',
     'ai_assistant.payments',
     'ai_assistant.accounts.apps.AccountsConfig',
-
 ]
+
 
 
 MIDDLEWARE = [
