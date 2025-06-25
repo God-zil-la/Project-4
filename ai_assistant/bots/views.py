@@ -73,7 +73,6 @@ def upload_knowledge(request, bot_id):
     })
 
 
-
 @login_required
 def bot_list(request):
     print("📢 bot_list view called")
@@ -99,6 +98,14 @@ def create_bot(request):
     else:
         form = BotForm()
     return render(request, 'bots/create_bot.html', {'form': form})
+
+@login_required
+def bot_chat_api(request, bot_id):
+    bot = get_object_or_404(Bot, id=bot_id, owner=request.user)
+    if request.method == 'GET':
+        messages = ChatMessage.objects.filter(bot=bot, user=request.user).order_by('timestamp')
+        return JsonResponse({'messages': [{'sender': m.sender, 'message': m.message} for m in messages]})
+    return HttpResponseNotAllowed(['GET'])
 
 @login_required
 def edit_bot(request, bot_id):
@@ -154,14 +161,25 @@ def ajax_chat(request, bot_id):
     try:
         user_embedding = generate_embedding(user_message)
     except Exception as e:
-        # Use Django logging if possible
         print(f"Embedding generation failed: {e}")
 
     context_text = ""
     if user_embedding:
-        relevant_chunks = search_relevant_chunks(bot, user_embedding, top_k=5)
-        context_text = "\n\n".join(chunk.text for chunk in relevant_chunks)
-        # Optionally limit total context length here
+        relevant_chunks = search_relevant_chunks(bot, user_embedding, top_k=10)  # you can increase top_k to have more chunks to pick from
+        MAX_CONTEXT_CHARS = 1500  # max chars to inject
+
+        context_chunks = []
+        total_len = 0
+        for chunk in relevant_chunks:
+            chunk_len = len(chunk.text)
+            if total_len + chunk_len > MAX_CONTEXT_CHARS:
+                break
+            context_chunks.append(chunk.text)
+            total_len += chunk_len
+
+        context_text = "\n\n".join(context_chunks)
+
+
 
     category_prompt = {
         "general": "You are a helpful assistant who answers clearly and concisely.",
@@ -214,14 +232,6 @@ def ajax_chat(request, bot_id):
         )
 
     return JsonResponse({'response': bot_response})
-
-@login_required
-def bot_chat_api(request, bot_id):
-    bot = get_object_or_404(Bot, id=bot_id, owner=request.user)
-    if request.method == 'GET':
-        messages = ChatMessage.objects.filter(bot=bot, user=request.user).order_by('timestamp')
-        return JsonResponse({'messages': [{'sender': m.sender, 'message': m.message} for m in messages]})
-    return HttpResponseNotAllowed(['GET'])
 
 @staff_member_required
 def admin_dashboard(request):
