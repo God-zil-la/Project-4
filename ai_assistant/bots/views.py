@@ -2,11 +2,10 @@ import os
 import json
 import time
 from datetime import timedelta
-from django.template.loader import get_template
 
+from django.template.loader import get_template
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse, HttpResponseNotAllowed
-from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
 from django.views.decorators.csrf import csrf_protect
@@ -14,15 +13,13 @@ from django.utils import timezone
 from django.db.models import Count
 from django.db.models.functions import TruncDate
 
-from dotenv import load_dotenv
-from openai import OpenAI
-
 from ai_assistant.accounts.models import UserProfile
 from ai_assistant.dashboard.models import BotUsageLog
-from .models import Bot, ChatMessage
-from .forms import BotForm
-from .models import Bot, KnowledgeBase
-from .forms import KnowledgeBaseForm
+from .models import Bot, ChatMessage, KnowledgeBase
+from .forms import BotForm, KnowledgeBaseForm
+from .utils import generate_embedding, search_relevant_chunks, extract_text, chunk_text
+
+import traceback
 
 @login_required
 def upload_knowledge(request, bot_id):
@@ -35,8 +32,36 @@ def upload_knowledge(request, bot_id):
             knowledge.bot = bot
             knowledge.uploaded_by = request.user
             knowledge.save()
-            return redirect('bots:playground', bot_id=bot.id)
 
+            from .models import KnowledgeChunk
+            KnowledgeChunk.objects.filter(knowledge_file=knowledge).delete()
+
+            try:
+                text = extract_text(knowledge.file.path, knowledge.file.name)
+                chunks = chunk_text(text)
+                
+                created_chunks = []
+                for chunk_text_part in chunks:
+                    chunk = KnowledgeChunk.objects.create(knowledge_file=knowledge, text=chunk_text_part)
+                    created_chunks.append(chunk)
+
+                print(f"[INFO] Uploaded file processed into {len(chunks)} chunks.")
+
+                # Now generate embeddings for each chunk
+                for chunk in created_chunks:
+                    try:
+                        embedding = generate_embedding(chunk.text)
+                        chunk.embedding = embedding
+                        chunk.save(update_fields=['embedding'])
+                    except Exception as e:
+                        print(f"[ERROR] Failed to generate embedding for chunk {chunk.id}: {e}")
+
+                print("[INFO] Embeddings generated and saved for all chunks.")
+
+            except Exception as e:
+                print(f"[ERROR] Failed to extract or chunk file: {e}")
+
+            return redirect('bots:playground', bot_id=bot.id)
     else:
         form = KnowledgeBaseForm()
 
@@ -48,25 +73,19 @@ def upload_knowledge(request, bot_id):
     })
 
 
-load_dotenv()
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-
 
 @login_required
 def bot_list(request):
     print("📢 bot_list view called")
     template = get_template('bots/bot_list.html')
     print("📄 Loaded bot_list.html from:", template.origin)
-    bots = Bot.objects.all()  # 🔥 Show ALL bots, not just user's
+    bots = Bot.objects.all()
     return render(request, 'bots/bot_list.html', {'bots': bots})
-
-
 
 @login_required
 def my_bots(request):
     user_bots = Bot.objects.filter(owner=request.user)
     return render(request, 'bots/my_bots.html', {'bots': user_bots})
-
 
 @login_required
 def create_bot(request):
@@ -81,7 +100,6 @@ def create_bot(request):
         form = BotForm()
     return render(request, 'bots/create_bot.html', {'form': form})
 
-
 @login_required
 def edit_bot(request, bot_id):
     bot = get_object_or_404(Bot, id=bot_id, owner=request.user)
@@ -94,7 +112,6 @@ def edit_bot(request, bot_id):
         form = BotForm(instance=bot)
     return render(request, 'bots/edit_bot.html', {'form': form})
 
-
 @login_required
 def delete_bot(request, bot_id):
     bot = get_object_or_404(Bot, id=bot_id, owner=request.user)
@@ -103,16 +120,11 @@ def delete_bot(request, bot_id):
         return redirect('bots:list')
     return render(request, 'bots/confirm_delete.html', {'bot': bot})
 
-
 @login_required
 def bot_chat_playground(request, bot_id):
     bot = get_object_or_404(Bot, id=bot_id, owner=request.user)
     messages = ChatMessage.objects.filter(bot=bot, user=request.user).order_by('timestamp')
-    return render(request, 'bots/playground.html', {
-        'bot': bot,
-        'messages': messages
-    })
-
+    return render(request, 'bots/playground.html', {'bot': bot, 'messages': messages})
 
 @login_required
 @csrf_protect
@@ -121,7 +133,10 @@ def ajax_chat(request, bot_id):
         return HttpResponseNotAllowed(['POST'])
 
     data = json.loads(request.body)
-    user_message = data.get('message')
+    user_message = data.get('message', '').strip()
+    if not user_message:
+        return JsonResponse({'response': "⚠️ Please enter a message."}, status=400)
+
     bot = get_object_or_404(Bot, id=bot_id)
 
     profile, _ = UserProfile.objects.get_or_create(user=request.user)
@@ -135,6 +150,19 @@ def ajax_chat(request, bot_id):
 
     ChatMessage.objects.create(bot=bot, user=request.user, message=user_message, sender='user')
 
+    user_embedding = None
+    try:
+        user_embedding = generate_embedding(user_message)
+    except Exception as e:
+        # Use Django logging if possible
+        print(f"Embedding generation failed: {e}")
+
+    context_text = ""
+    if user_embedding:
+        relevant_chunks = search_relevant_chunks(bot, user_embedding, top_k=5)
+        context_text = "\n\n".join(chunk.text for chunk in relevant_chunks)
+        # Optionally limit total context length here
+
     category_prompt = {
         "general": "You are a helpful assistant who answers clearly and concisely.",
         "fitness": "You are a fitness coach giving motivating, accurate health advice.",
@@ -144,7 +172,9 @@ def ajax_chat(request, bot_id):
         "tech": "You are a tech specialist explaining technology simply and clearly.",
     }.get(bot.category, "You are a helpful assistant.")
 
-    system_message = category_prompt
+    system_message = f"{category_prompt}"
+    if context_text:
+        system_message += f"\n\nHere is some relevant knowledge:\n{context_text}"
 
     for attempt in range(3):
         try:
@@ -185,7 +215,6 @@ def ajax_chat(request, bot_id):
 
     return JsonResponse({'response': bot_response})
 
-
 @login_required
 def bot_chat_api(request, bot_id):
     bot = get_object_or_404(Bot, id=bot_id, owner=request.user)
@@ -194,9 +223,9 @@ def bot_chat_api(request, bot_id):
         return JsonResponse({'messages': [{'sender': m.sender, 'message': m.message} for m in messages]})
     return HttpResponseNotAllowed(['GET'])
 
-
 @staff_member_required
 def admin_dashboard(request):
+    from django.contrib.auth.models import User
     users = User.objects.all()
     bots = Bot.objects.all()
     messages = ChatMessage.objects.order_by('-timestamp')[:50]
@@ -240,7 +269,6 @@ def admin_dashboard(request):
         'chart_labels': chart_labels,
         'chart_data': chart_data,
     })
-
 
 @staff_member_required
 def analytics_dashboard(request):
