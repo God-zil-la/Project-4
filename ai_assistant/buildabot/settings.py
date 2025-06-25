@@ -126,3 +126,15 @@ LOGGING = {
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
+# Ensure secure cookies are enforced in production (especially for Heroku)
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+SECURE_SSL_REDIRECT = True
+
+# Optional: avoid www to non-www redirect issues
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+# Session config using secure signed cookies
+SESSION_ENGINE = 'django.contrib.sessions.backends.signed_cookies'
+
+
