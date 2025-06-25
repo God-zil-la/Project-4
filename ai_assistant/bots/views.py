@@ -2,6 +2,7 @@ import os
 import json
 import time
 from datetime import timedelta
+from django.template.loader import get_template
 
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse, HttpResponseNotAllowed
@@ -20,6 +21,31 @@ from ai_assistant.accounts.models import UserProfile
 from ai_assistant.dashboard.models import BotUsageLog
 from .models import Bot, ChatMessage
 from .forms import BotForm
+from .models import Bot, KnowledgeBase
+from .forms import KnowledgeBaseForm
+
+@login_required
+def upload_knowledge(request, bot_id):
+    bot = get_object_or_404(Bot, id=bot_id, owner=request.user)
+
+    if request.method == 'POST':
+        form = KnowledgeBaseForm(request.POST, request.FILES)
+        if form.is_valid():
+            knowledge = form.save(commit=False)
+            knowledge.bot = bot
+            knowledge.uploaded_by = request.user
+            knowledge.save()
+            return redirect('bots:playground', bot_id=bot.id)
+
+    else:
+        form = KnowledgeBaseForm()
+
+    knowledge_files = bot.knowledge_files.all()
+    return render(request, 'bots/upload_knowledge.html', {
+        'form': form,
+        'bot': bot,
+        'knowledge_files': knowledge_files
+    })
 
 
 load_dotenv()
@@ -28,8 +54,12 @@ client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 @login_required
 def bot_list(request):
-    bots = Bot.objects.filter(owner=request.user)
+    print("📢 bot_list view called")
+    template = get_template('bots/bot_list.html')
+    print("📄 Loaded bot_list.html from:", template.origin)
+    bots = Bot.objects.all()  # 🔥 Show ALL bots, not just user's
     return render(request, 'bots/bot_list.html', {'bots': bots})
+
 
 
 @login_required

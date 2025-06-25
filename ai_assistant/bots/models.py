@@ -1,5 +1,17 @@
+# bots/models.py
+
 from django.db import models
 from django.contrib.auth.models import User
+
+class KnowledgeBase(models.Model):
+    bot = models.ForeignKey("Bot", on_delete=models.CASCADE, related_name="knowledge_files")
+    uploaded_by = models.ForeignKey(User, on_delete=models.CASCADE)
+    file = models.FileField(upload_to="knowledge/")
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.bot.name} - {self.file.name}"
+
 
 
 class Bot(models.Model):

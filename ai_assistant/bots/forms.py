@@ -2,6 +2,13 @@
 
 from django import forms
 from .models import Bot
+from .models import KnowledgeBase
+
+class KnowledgeBaseForm(forms.ModelForm):
+    class Meta:
+        model = KnowledgeBase
+        fields = ['file']
+
 
 
 class BotForm(forms.ModelForm):
