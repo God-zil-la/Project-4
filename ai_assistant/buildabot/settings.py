@@ -105,11 +105,11 @@ LOGOUT_REDIRECT_URL = '/'
 # EMAIL (Production — SendGrid)
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.sendgrid.net'
-EMAIL_HOST_USER = 'apikey'
-EMAIL_HOST_PASSWORD = os.getenv('SENDGRID_API_KEY')  # keep in .env
+EMAIL_HOST_USER = 'apikey'  # Yes, this should literally be 'apikey'
+EMAIL_HOST_PASSWORD = os.getenv('SENDGRID_API_KEY')  # Already set in Heroku
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-DEFAULT_FROM_EMAIL = 'noreply@yourdomain.com'
+DEFAULT_FROM_EMAIL = 'husseelali@gmail.com'
 
 # OPENAI
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
