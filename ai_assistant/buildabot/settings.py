@@ -9,7 +9,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'django-insecure-placeholder')
 DEBUG = False
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1']  
+ALLOWED_HOSTS = [
+    'ai-assistants-8c06fcfeab86.herokuapp.com',
+    'localhost',
+    '127.0.0.1',
+]
+
 
 
 INSTALLED_APPS = [
