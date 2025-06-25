@@ -1,15 +1,21 @@
-{% extends 'base.html' %}
-{% load static %}
-
-{% block title %}Login{% endblock %}
-
+{% extends "base.html" %}
 {% block content %}
+
 <h2>Login</h2>
-<form method="post">
+
+<form method="post" action="{% url 'accounts:login' %}">
     {% csrf_token %}
-    {{ form.as_p }}
+    <label for="id_username">Username:</label>
+    <input type="text" name="username" id="id_username" required>
+
+    <label for="id_password">Password:</label>
+    <input type="password" name="password" id="id_password" required>
+
     <button type="submit">Log in</button>
 </form>
 
-<p><a href="{% url 'accounts:password_reset' %}">Forgot your password?</a></p>
+{% if form.errors %}
+<p style="color: red;">{{ form.errors }}</p>
+{% endif %}
+
 {% endblock %}
