@@ -5,21 +5,33 @@ from django.shortcuts import render, redirect
 from django.template.loader import render_to_string
 from django.utils.encoding import force_bytes, force_str
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
-from django.contrib import messages
 from django.urls import reverse
-
-from .tokens import account_activation_token
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from .tokens import account_activation_token
+from bots.models import Bot  # Make sure this import matches your app structure
 
-# Use the custom user model or default User
 User = get_user_model()
 
 @login_required
+def bot_list(request):
+    """
+    List bots belonging to the logged-in user only.
+    """
+    user_bots = Bot.objects.filter(owner=request.user)
+    return render(request, 'bots/bot_list.html', {'bots': user_bots})
+
+@login_required
 def index(request):
-    # Simple authenticated page example
+    """
+    Simple index/dashboard view for logged-in users.
+    """
     return render(request, 'accounts/index.html')
 
 def register(request):
+    """
+    Handle new user registration and send activation email.
+    """
     if request.method == 'POST':
         username = request.POST.get('username', '').strip()
         email = request.POST.get('email', '').strip()
@@ -40,13 +52,8 @@ def register(request):
         current_site = get_current_site(request)
         uid = urlsafe_base64_encode(force_bytes(user.pk))
         token = account_activation_token.make_token(user)
-
-        url_path = reverse('accounts:activate', kwargs={'uidb64': uid, 'token': token})
-        print(f"[DEBUG] URL path: {url_path!r}")
-
-        activation_link = f"https://{current_site.domain}{url_path}"
-        activation_link = activation_link.rstrip('"\'' )  # strip trailing quotes if any
-        print(f"[DEBUG] Activation link: {activation_link!r}")
+        activation_path = reverse('accounts:activate', kwargs={'uidb64': uid, 'token': token})
+        activation_link = f"https://{current_site.domain}{activation_path}"
 
         context = {
             'user': user,
@@ -57,37 +64,42 @@ def register(request):
             'activation_link': activation_link,
         }
 
-        text_content = render_to_string('accounts/activation_email.txt', context)
-        html_content = render_to_string('accounts/activation_email.html', context)
+        try:
+            text_content = render_to_string('accounts/activation_email.txt', context)
+            html_content = render_to_string('accounts/activation_email.html', context)
+            email = EmailMultiAlternatives(
+                subject='Activate your AI Assistant account.',
+                body=text_content,
+                to=[email]
+            )
+            email.attach_alternative(html_content, "text/html")
+            email.send()
+        except Exception:
+            messages.error(request, "Failed to send activation email. Please try again later.")
+            user.delete()  # Remove user if email sending failed
+            return render(request, 'accounts/register.html')
 
-        email_message = EmailMultiAlternatives(
-            subject='Activate your AI Assistant account.',
-            body=text_content,
-            to=[email]
-        )
-        email_message.attach_alternative(html_content, "text/html")
-        email_message.send()
-
-        return render(request, 'accounts/activation_sent.html')
+        messages.success(request, "Registration successful! Check your email to activate your account.")
+        return redirect('accounts:login')
 
     return render(request, 'accounts/register.html')
 
-
 def activate(request, uidb64, token):
+    """
+    Activate user account via link with uidb64 and token.
+    """
     try:
-        # Decode uid from base64 to get user ID
         uid = force_str(urlsafe_base64_decode(uidb64))
         user = User.objects.get(pk=uid)
     except (TypeError, ValueError, OverflowError, User.DoesNotExist):
         user = None
 
-    # Check token validity and user existence
     if user is not None and account_activation_token.check_token(user, token):
-        # Activate user and log them in
         user.is_active = True
         user.save()
         login(request, user)
-        return render(request, 'accounts/activation_success.html')
-    else:
-        # Invalid activation link
-        return render(request, 'accounts/activation_invalid.html')
+        messages.success(request, "Your account has been activated! You are now logged in.")
+        return redirect('accounts:index')
+
+    messages.error(request, "Activation link is invalid or expired.")
+    return redirect('accounts:register')
