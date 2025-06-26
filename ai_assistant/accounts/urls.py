@@ -1,5 +1,6 @@
 from django.urls import path, reverse_lazy
 from django.contrib.auth import views as auth_views
+from ai_assistant.accounts.forms import CustomPasswordResetForm
 from . import views
 
 app_name = 'accounts'
@@ -21,13 +22,15 @@ urlpatterns = [
 
     # Password reset views
     path('password-reset/',
-         auth_views.PasswordResetView.as_view(
-             template_name='accounts/password_reset.html',
-             email_template_name='accounts/password_reset_email.html',
-             subject_template_name='accounts/password_reset_subject.txt',
-             success_url=reverse_lazy('accounts:password_reset_done')
-         ),
-         name='password_reset'),
+     auth_views.PasswordResetView.as_view(
+         form_class=CustomPasswordResetForm,  # ← Add this line
+         template_name='accounts/password_reset.html',
+         email_template_name='accounts/password_reset_email.html',
+         subject_template_name='accounts/password_reset_subject.txt',
+         success_url=reverse_lazy('accounts:password_reset_done')
+     ),
+     name='password_reset'),
+
 
     path('password-reset/done/',
          auth_views.PasswordResetDoneView.as_view(

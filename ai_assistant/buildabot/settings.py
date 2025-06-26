@@ -171,3 +171,8 @@ SITE_ID = 1
 DOMAIN = 'ai-assistants.herokuapp.com'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+# settings.py
+
+DEFAULT_DOMAIN = "ai-assistants-8c06fcfeab86.herokuapp.com"
+DEFAULT_PROTOCOL = "https"
+
