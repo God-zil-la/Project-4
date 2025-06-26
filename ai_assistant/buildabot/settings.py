@@ -4,24 +4,17 @@ import certifi
 from pathlib import Path
 from dotenv import load_dotenv
 
-# Load environment variables from .env file
 load_dotenv()
 
-# Fix SSL issues on Windows
+# Fix SSL issues on Windows for Python 3.13+
 ssl._create_default_https_context = ssl.create_default_context(cafile=certifi.where())
 
-# Base directory
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY
-SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'unsafe-secret-for-dev-only')
-DEBUG = os.getenv('DEBUG', 'False') == 'True'
-
-ALLOWED_HOSTS = [
-    'ai-assistants-8c06fcfeab86.herokuapp.com',
-    'localhost',
-    '127.0.0.1',
-]
+SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "django-insecure-placeholder")
+DEBUG = False
+ALLOWED_HOSTS = ['ai-assistants.herokuapp.com', 'localhost', '127.0.0.1']
 
 # APPLICATIONS
 INSTALLED_APPS = [
@@ -88,53 +81,52 @@ AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
-# LANGUAGE & TIMEZONE
+# LANGUAGE & TIME
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
 
-# STATIC FILES
+# STATIC & MEDIA
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-# MEDIA FILES
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-# AUTHENTICATION REDIRECTS
+# AUTH REDIRECTS
 LOGIN_URL = '/accounts/login/'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
 
-# EMAIL SETTINGS — BULLETPROOF WITH SENDGRID
+# EMAIL via SendGrid
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.sendgrid.net'
 EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'apikey'  # This must be the string 'apikey'
+EMAIL_HOST_USER = 'apikey'  # literally 'apikey'
 EMAIL_HOST_PASSWORD = os.getenv('SENDGRID_API_KEY')
-DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'husseelali@gmail.com')
+EMAIL_USE_TLS = True
+DEFAULT_FROM_EMAIL = 'husseelali@gmail.com'  # must be verified in SendGrid
 
 # OPENAI
-OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
-if not OPENAI_API_KEY:
-    raise ValueError("OPENAI_API_KEY not set in .env")
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 # STRIPE
-STRIPE_PUBLIC_KEY = os.getenv('STRIPE_PUBLIC_KEY')
-STRIPE_SECRET_KEY = os.getenv('STRIPE_SECRET_KEY')
+STRIPE_PUBLIC_KEY = os.getenv("STRIPE_PUBLIC_KEY")
+STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY")
 
-# SESSION & SECURITY
-SESSION_ENGINE = 'django.contrib.sessions.backends.signed_cookies'
-SESSION_COOKIE_SECURE = True
+# SECURITY SETTINGS
 CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SECURE = True
 SECURE_SSL_REDIRECT = True
-SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
-# LOGGING — FOR EMAIL AND DEBUGGING ERRORS
+# SESSIONS
+SESSION_ENGINE = 'django.contrib.sessions.backends.signed_cookies'
+
+# LOGGING
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -152,20 +144,14 @@ LOGGING = {
     },
     'root': {
         'handlers': ['console'],
-        'level': 'DEBUG' if DEBUG else 'INFO',
+        'level': 'DEBUG',
     },
     'loggers': {
         'django': {
             'handlers': ['console'],
-            'level': 'DEBUG' if DEBUG else 'INFO',
-        },
-        'django.request': {
-            'handlers': ['console'],
-            'level': 'ERROR',
-            'propagate': False,
+            'level': 'DEBUG',
         },
     },
 }
 
-# AUTO FIELD
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
