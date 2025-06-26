@@ -6,31 +6,31 @@ from . import views
 app_name = 'accounts'
 
 urlpatterns = [
-    # User registration and email activation
+    # Registration and activation URLs
     path('register/', views.register, name='register'),
     path('activate/<uidb64>/<token>/', views.activate, name='activate'),
 
-    # Login & Logout using Django's built-in views
+    # Login using Django's built-in LoginView
     path('login/', auth_views.LoginView.as_view(
         template_name='accounts/login.html',
         redirect_authenticated_user=True
     ), name='login'),
 
+    # Logout using Django's built-in LogoutView
     path('logout/', auth_views.LogoutView.as_view(
         next_page='accounts:login'
     ), name='logout'),
 
-    # Password reset views
+    # Password reset views with custom form for email sending
     path('password-reset/',
-     auth_views.PasswordResetView.as_view(
-         form_class=CustomPasswordResetForm,  # ← Add this line
-         template_name='accounts/password_reset.html',
-         email_template_name='accounts/password_reset_email.html',
-         subject_template_name='accounts/password_reset_subject.txt',
-         success_url=reverse_lazy('accounts:password_reset_done')
-     ),
-     name='password_reset'),
-
+         auth_views.PasswordResetView.as_view(
+             form_class=CustomPasswordResetForm,  # Custom form to handle domain & protocol
+             template_name='accounts/password_reset.html',
+             email_template_name='accounts/password_reset_email.html',
+             subject_template_name='accounts/password_reset_subject.txt',
+             success_url=reverse_lazy('accounts:password_reset_done')
+         ),
+         name='password_reset'),
 
     path('password-reset/done/',
          auth_views.PasswordResetDoneView.as_view(
