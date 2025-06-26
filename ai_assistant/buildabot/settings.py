@@ -114,7 +114,7 @@ class PatchedEmailBackend(EmailBackend):
         self.ssl_context = ssl.create_default_context(cafile=certifi.where())
         super().__init__(*args, **kwargs)
 
-EMAIL_BACKEND = 'ai_assistant.accounts.email_backend.PatchedEmailBackend'  # <-- make sure this file exists
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.sendgrid.net'
 EMAIL_PORT = 587
 EMAIL_HOST_USER = 'apikey'  # literally 'apikey'
