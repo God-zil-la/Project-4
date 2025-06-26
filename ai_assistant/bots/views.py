@@ -4,7 +4,7 @@ import time
 import logging
 from datetime import timedelta
 
-import openai  # Added import for OpenAI
+from openai import OpenAI
 
 from django.template.loader import get_template
 from django.shortcuts import render, redirect, get_object_or_404
@@ -24,8 +24,8 @@ from .utils import generate_embedding, search_relevant_chunks, extract_text, chu
 
 logger = logging.getLogger(__name__)
 
-# Set your OpenAI API key securely via environment variable!
-openai.api_key = os.getenv("OPENAI_API_KEY")
+client = OpenAI() 
+
 
 @login_required
 def upload_knowledge(request, bot_id):
@@ -149,7 +149,7 @@ def ajax_chat(request, bot_id):
     if not user_message:
         return JsonResponse({'response': "⚠️ Please enter a message."}, status=400)
 
-    bot = get_object_or_404(Bot, id=bot_id, owner=request.user)  # Enforce ownership check
+    bot = get_object_or_404(Bot, id=bot_id, owner=request.user)
 
     profile, _ = UserProfile.objects.get_or_create(user=request.user)
     profile.reset_daily_count()
@@ -199,14 +199,14 @@ def ajax_chat(request, bot_id):
 
     for attempt in range(3):
         try:
-            response = openai.ChatCompletion.create(
+            response = client.chat.completions.create(
                 model="gpt-3.5-turbo",
                 messages=[
                     {"role": "system", "content": system_message},
                     {"role": "user", "content": user_message}
-                ],
+                ]
             )
-            bot_response = response.choices[0].message['content'].strip()
+            bot_response = response.choices[0].message.content.strip()
             usage = response.usage
             break
         except Exception as e:
