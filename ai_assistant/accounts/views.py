@@ -7,8 +7,11 @@ from django.core.mail import EmailMessage
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from .tokens import account_activation_token
-from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth import login
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
 
 @login_required
 def index(request):
@@ -25,6 +28,10 @@ def register(request):
             messages.error(request, "Username already exists. Please choose another.")
             return render(request, 'accounts/register.html')
 
+        if User.objects.filter(email=email).exists():
+            messages.error(request, "Email already registered. Try logging in.")
+            return render(request, 'accounts/register.html')
+
         user = User.objects.create_user(username=username, email=email, password=password)
         user.is_active = False
         user.save()
@@ -36,7 +43,7 @@ def register(request):
             'domain': current_site.domain,
             'uid': urlsafe_base64_encode(force_bytes(user.pk)),
             'token': account_activation_token.make_token(user),
-        }, request=request) 
+        }, request=request)
 
         email_message = EmailMessage(mail_subject, message, to=[email])
         email_message.send()
@@ -45,12 +52,6 @@ def register(request):
 
     return render(request, 'accounts/register.html')
 
-
-
-
-from django.contrib.auth import get_user_model
-
-User = get_user_model()
 
 def activate(request, uidb64, token):
     try:
@@ -62,6 +63,7 @@ def activate(request, uidb64, token):
     if user is not None and account_activation_token.check_token(user, token):
         user.is_active = True
         user.save()
+        login(request, user)
         return render(request, 'accounts/activation_success.html')
     else:
         return render(request, 'accounts/activation_invalid.html')

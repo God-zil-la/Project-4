@@ -1,14 +1,19 @@
 import os
+import ssl
+import certifi
 from pathlib import Path
 from dotenv import load_dotenv
 
 load_dotenv()
 
+# Fix SSL cert issues on Windows with Python 3.13+
+ssl._create_default_https_context = ssl.create_default_context(cafile=certifi.where())
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'django-insecure-placeholder')
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = [
     'ai-assistants-8c06fcfeab86.herokuapp.com',
@@ -102,14 +107,20 @@ LOGIN_URL = '/accounts/login/'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
 
-# EMAIL (Production — SendGrid)
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# EMAIL (SendGrid)
 EMAIL_HOST = 'smtp.sendgrid.net'
-EMAIL_HOST_USER = 'apikey'  # Yes, this should literally be 'apikey'
-EMAIL_HOST_PASSWORD = os.getenv('SENDGRID_API_KEY')  # Already set in Heroku
+EMAIL_HOST_USER = 'apikey'  # This must be the literal string 'apikey'
+EMAIL_HOST_PASSWORD = os.getenv('SENDGRID_API_KEY')
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-DEFAULT_FROM_EMAIL = 'husseelali@gmail.com'
+DEFAULT_FROM_EMAIL = 'husseelali@gmail.com'  # Should be a verified sender
+
+# Use patched backend only in development
+if DEBUG:
+    EMAIL_BACKEND = 'ai_assistant.accounts.email_backend.PatchedEmailBackend'
+else:
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+
 
 # OPENAI
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
@@ -120,14 +131,14 @@ if not OPENAI_API_KEY:
 STRIPE_PUBLIC_KEY = os.getenv('STRIPE_PUBLIC_KEY')
 STRIPE_SECRET_KEY = os.getenv('STRIPE_SECRET_KEY')
 
-# SESSIONS
+# SESSIONS & SECURITY
 SESSION_ENGINE = 'django.contrib.sessions.backends.signed_cookies'
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 SECURE_SSL_REDIRECT = True
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
-# LOGGING (DEBUGGING LOGIN ISSUES)
+# LOGGING (Debug email issues, etc.)
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,

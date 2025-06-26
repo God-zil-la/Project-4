@@ -2,6 +2,18 @@
 {% block title %}Invalid Activation{% endblock %}
 
 {% block content %}
-<h2>Activation link is invalid or expired.</h2>
-<p>Please register again or contact support.</p>
+<div class="activation-invalid">
+    <h2>⚠️ Activation Link Invalid or Expired</h2>
+    <p>Sorry, the activation link you used is no longer valid.</p>
+    <p>This may happen if:</p>
+    <ul>
+        <li>The link has already been used</li>
+        <li>It expired after a certain time</li>
+        <li>The account has already been activated</li>
+    </ul>
+    <p>
+        You can <a href="{% url 'accounts:register' %}">register again</a> or
+        <a href="mailto:support@yourdomain.com">contact support</a> if you believe this is a mistake.
+    </p>
+</div>
 {% endblock %}

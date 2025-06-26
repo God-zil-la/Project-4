@@ -5,15 +5,21 @@ from . import views
 app_name = 'accounts'
 
 urlpatterns = [
+    # User registration and email activation
     path('register/', views.register, name='register'),
     path('activate/<uidb64>/<token>/', views.activate, name='activate'),
 
+    # Login & Logout using Django's built-in views
     path('login/', auth_views.LoginView.as_view(
-        template_name='accounts/login.html'), name='login'),
+        template_name='accounts/login.html',
+        redirect_authenticated_user=True
+    ), name='login'),
 
     path('logout/', auth_views.LogoutView.as_view(
-        next_page='/'), name='logout'),
+        next_page='accounts:login'
+    ), name='logout'),
 
+    # Password reset views
     path('password-reset/',
          auth_views.PasswordResetView.as_view(
              template_name='accounts/password_reset.html',
@@ -30,7 +36,9 @@ urlpatterns = [
 
     path('reset/<uidb64>/<token>/',
          auth_views.PasswordResetConfirmView.as_view(
-             template_name='accounts/password_reset_confirm.html'),
+             template_name='accounts/password_reset_confirm.html',
+             success_url=reverse_lazy('accounts:password_reset_complete')
+         ),
          name='password_reset_confirm'),
 
     path('reset/done/',
