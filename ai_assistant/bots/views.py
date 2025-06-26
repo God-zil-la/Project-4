@@ -79,7 +79,7 @@ def bot_list(request):
     logger.info("bot_list view called")
     template = get_template('bots/bot_list.html')
     logger.info(f"Loaded bot_list.html from: {template.origin}")
-    bots = Bot.objects.all()
+    bots = Bot.objects.filter(owner=request.user) 
     return render(request, 'bots/bot_list.html', {'bots': bots})
 
 
