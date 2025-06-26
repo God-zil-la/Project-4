@@ -30,10 +30,6 @@ def register(request):
         email = request.POST.get('email', '').strip()
         password = request.POST.get('password', '')
 
-        if not username or not email or not password:
-            messages.error(request, "All fields are required.")
-            return render(request, 'accounts/register.html')
-
         if User.objects.filter(username=username).exists():
             messages.error(request, "Username already exists. Please choose another.")
             return render(request, 'accounts/register.html')
@@ -42,37 +38,48 @@ def register(request):
             messages.error(request, "Email already registered. Try logging in.")
             return render(request, 'accounts/register.html')
 
+        # ✅ Save user first and ensure it's committed to DB
         user = User.objects.create_user(username=username, email=email, password=password)
         user.is_active = False
         user.save()
+        user.refresh_from_db()  # ensures user.pk is populated
 
         current_site = get_current_site(request)
         uid = urlsafe_base64_encode(force_bytes(user.pk))
         token = account_activation_token.make_token(user)
 
-        activation_link = request.build_absolute_uri(
-            reverse('accounts:activate', kwargs={'uidb64': uid, 'token': token})
-        )
+        try:
+            url_path = reverse('accounts:activate', kwargs={'uidb64': uid, 'token': token})
+        except Exception as e:
+            messages.error(request, f"URL generation failed: {e}")
+            return render(request, 'accounts/register.html')
+
+        activation_link = f"https://{current_site.domain}{url_path}"
 
         context = {
             'user': user,
+            'domain': current_site.domain,
+            'uid': uid,
+            'token': token,
+            'protocol': 'https',
             'activation_link': activation_link,
         }
 
         text_content = render_to_string('accounts/activation_email.txt', context)
         html_content = render_to_string('accounts/activation_email.html', context)
 
+        email_message = EmailMultiAlternatives(
+            subject='Activate your AI Assistant account.',
+            body=text_content,
+            from_email=settings.DEFAULT_FROM_EMAIL, 
+            to=[email]
+        )
+        email_message.attach_alternative(html_content, "text/html")
+
         try:
-            email_message = EmailMultiAlternatives(
-                subject='Activate your AI Assistant account.',
-                body=text_content,
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                to=[email]
-            )
-            email_message.attach_alternative(html_content, "text/html")
             email_message.send()
         except Exception as e:
-            messages.error(request, f"⚠️ Failed to send activation email: {e}")
+            messages.error(request, f"⚠️ Email sending failed: {e}")
             return render(request, 'accounts/register.html')
 
         return render(request, 'accounts/activation_sent.html')

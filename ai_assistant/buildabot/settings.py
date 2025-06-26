@@ -120,7 +120,7 @@ EMAIL_PORT = 587
 EMAIL_HOST_USER = 'apikey'  # literally 'apikey'
 EMAIL_HOST_PASSWORD = os.getenv('SENDGRID_API_KEY')
 EMAIL_USE_TLS = True
-DEFAULT_FROM_EMAIL = 'husseelali@gmail.com'
+DEFAULT_FROM_EMAIL = 'aibotassistants@gmail.com'
 
 # OPENAI
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
