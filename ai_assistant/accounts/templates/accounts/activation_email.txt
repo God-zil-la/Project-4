@@ -1,0 +1,9 @@
+Welcome to AI Assistant, {{ user.username }}!
+
+Thanks for registering with us. To complete your registration and activate your account, please use the link below:
+
+{{ activation_link }}
+
+If you didn’t register for an AI Assistant account, you can safely ignore this email.
+
+© {{ domain }} - All rights reserved.
