@@ -4,6 +4,8 @@ import time
 import logging
 from datetime import timedelta
 
+import openai  # Added import for OpenAI
+
 from django.template.loader import get_template
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse, HttpResponseNotAllowed
@@ -21,6 +23,9 @@ from .forms import BotForm, KnowledgeBaseForm
 from .utils import generate_embedding, search_relevant_chunks, extract_text, chunk_text
 
 logger = logging.getLogger(__name__)
+
+# Set your OpenAI API key securely via environment variable!
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
 @login_required
 def upload_knowledge(request, bot_id):
@@ -73,7 +78,6 @@ def upload_knowledge(request, bot_id):
         'knowledge_files': knowledge_files
     })
 
-
 @login_required
 def bot_list(request):
     logger.info("bot_list view called")
@@ -82,12 +86,10 @@ def bot_list(request):
     bots = Bot.objects.filter(owner=request.user) 
     return render(request, 'bots/bot_list.html', {'bots': bots})
 
-
 @login_required
 def my_bots(request):
     user_bots = Bot.objects.filter(owner=request.user)
     return render(request, 'bots/my_bots.html', {'bots': user_bots})
-
 
 @login_required
 def create_bot(request):
@@ -102,7 +104,6 @@ def create_bot(request):
         form = BotForm()
     return render(request, 'bots/create_bot.html', {'form': form})
 
-
 @login_required
 def bot_chat_api(request, bot_id):
     bot = get_object_or_404(Bot, id=bot_id, owner=request.user)
@@ -110,7 +111,6 @@ def bot_chat_api(request, bot_id):
         messages = ChatMessage.objects.filter(bot=bot, user=request.user).order_by('timestamp')
         return JsonResponse({'messages': [{'sender': m.sender, 'message': m.message} for m in messages]})
     return HttpResponseNotAllowed(['GET'])
-
 
 @login_required
 def edit_bot(request, bot_id):
@@ -124,7 +124,6 @@ def edit_bot(request, bot_id):
         form = BotForm(instance=bot)
     return render(request, 'bots/edit_bot.html', {'form': form})
 
-
 @login_required
 def delete_bot(request, bot_id):
     bot = get_object_or_404(Bot, id=bot_id, owner=request.user)
@@ -133,13 +132,11 @@ def delete_bot(request, bot_id):
         return redirect('bots:list')
     return render(request, 'bots/confirm_delete.html', {'bot': bot})
 
-
 @login_required
 def bot_chat_playground(request, bot_id):
     bot = get_object_or_404(Bot, id=bot_id, owner=request.user)
     messages = ChatMessage.objects.filter(bot=bot, user=request.user).order_by('timestamp')
     return render(request, 'bots/playground.html', {'bot': bot, 'messages': messages})
-
 
 @login_required
 @csrf_protect
@@ -152,7 +149,7 @@ def ajax_chat(request, bot_id):
     if not user_message:
         return JsonResponse({'response': "⚠️ Please enter a message."}, status=400)
 
-    bot = get_object_or_404(Bot, id=bot_id, owner=request.user)  # Fixed owner filter here
+    bot = get_object_or_404(Bot, id=bot_id, owner=request.user)  # Enforce ownership check
 
     profile, _ = UserProfile.objects.get_or_create(user=request.user)
     profile.reset_daily_count()
@@ -173,8 +170,8 @@ def ajax_chat(request, bot_id):
 
     context_text = ""
     if user_embedding:
-        relevant_chunks = search_relevant_chunks(bot, user_embedding, top_k=10)  # can increase top_k
-        MAX_CONTEXT_CHARS = 1500  # max chars to inject
+        relevant_chunks = search_relevant_chunks(bot, user_embedding, top_k=10)
+        MAX_CONTEXT_CHARS = 1500
 
         context_chunks = []
         total_len = 0
@@ -202,14 +199,14 @@ def ajax_chat(request, bot_id):
 
     for attempt in range(3):
         try:
-            response = client.chat.completions.create(
+            response = openai.ChatCompletion.create(
                 model="gpt-3.5-turbo",
                 messages=[
                     {"role": "system", "content": system_message},
                     {"role": "user", "content": user_message}
                 ],
             )
-            bot_response = response.choices[0].message.content.strip()
+            bot_response = response.choices[0].message['content'].strip()
             usage = response.usage
             break
         except Exception as e:
@@ -238,7 +235,6 @@ def ajax_chat(request, bot_id):
         )
 
     return JsonResponse({'response': bot_response})
-
 
 @staff_member_required
 def admin_dashboard(request):
@@ -286,7 +282,6 @@ def admin_dashboard(request):
         'chart_labels': chart_labels,
         'chart_data': chart_data,
     })
-
 
 @staff_member_required
 def analytics_dashboard(request):
