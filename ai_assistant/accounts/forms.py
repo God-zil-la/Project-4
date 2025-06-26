@@ -9,7 +9,29 @@ from django.contrib.sites.shortcuts import get_current_site
 class CustomPasswordResetForm(PasswordResetForm):
     def send_mail(self, subject_template_name, email_template_name,
                   context, from_email, to_email, html_email_template_name=None):
-        # ... [your current send_mail code here] ...
+        request = context.get('request')
+        if request:
+            current_site = get_current_site(request)
+            domain = current_site.domain
+            protocol = 'https' if request.is_secure() else 'http'
+        else:
+            domain = getattr(settings, 'DEFAULT_DOMAIN', 'example.com')
+            protocol = getattr(settings, 'DEFAULT_PROTOCOL', 'https')
+
+        context['domain'] = domain
+        context['protocol'] = protocol
+        context['site_name'] = domain
+
+        subject = render_to_string(subject_template_name, context)
+        subject = ''.join(subject.splitlines())
+        body = render_to_string(email_template_name, context)
+
+        email_message = EmailMultiAlternatives(subject, body, from_email, [to_email])
+        if html_email_template_name:
+            html_email = render_to_string(html_email_template_name, context)
+            email_message.attach_alternative(html_email, 'text/html')
+
+        email_message.send()
 
     def save(self, domain_override=None,
              subject_template_name='registration/password_reset_subject.txt',
@@ -17,9 +39,6 @@ class CustomPasswordResetForm(PasswordResetForm):
              use_https=False, token_generator=None,
              from_email=None, request=None, html_email_template_name=None,
              extra_email_context=None):
-        """
-        Generates a one-use only link for resetting password and sends to the user.
-        """
         from django.contrib.auth.tokens import default_token_generator
         from django.utils.http import urlsafe_base64_encode
         from django.utils.encoding import force_bytes
