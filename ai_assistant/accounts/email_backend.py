@@ -1,8 +1,7 @@
 from django.core.mail.backends.smtp import EmailBackend
-import ssl
+import ssl, certifi
 
 class PatchedEmailBackend(EmailBackend):
     def __init__(self, *args, **kwargs):
-        # ABSOLUTE DEV-ONLY: DISABLE CERT VALIDATION FOR WINDOWS/PYTHON 3.13
-        self.ssl_context = ssl._create_unverified_context()
+        self.ssl_context = ssl.create_default_context(cafile=certifi.where())
         super().__init__(*args, **kwargs)
