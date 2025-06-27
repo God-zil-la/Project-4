@@ -5,10 +5,10 @@ from pathlib import Path
 from dotenv import load_dotenv
 from django.core.mail.backends.smtp import EmailBackend
 
-# Load .env variables
+# Load .env
 load_dotenv()
 
-# SSL Fix for Python 3.13
+# SSL fix for Python 3.13
 ssl._create_default_https_context = ssl.create_default_context(cafile=certifi.where())
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -16,11 +16,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "django-insecure-placeholder")
 DEBUG = False
+
 ALLOWED_HOSTS = [
     'ai-assistants.herokuapp.com',
     'ai-assistants-8c06fcfeab86.herokuapp.com',
     'localhost',
-    '127.0.0.1'
+    '127.0.0.1',
+    '192.168.0.106'
 ]
 
 # APPLICATIONS
@@ -32,7 +34,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django_extensions',
-
     'ai_assistant.dashboard.apps.DashboardConfig',
     'ai_assistant.bots',
     'ai_assistant.payments.apps.PaymentsConfig',
@@ -80,7 +81,7 @@ DATABASES = {
     }
 }
 
-# PASSWORD VALIDATION
+# PASSWORD VALIDATORS
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
     {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
@@ -108,7 +109,7 @@ LOGIN_URL = '/accounts/login/'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
 
-# EMAIL: Patched SendGrid SMTP Backend (for Python 3.13 TLS issue)
+# EMAIL: Patched SendGrid SMTP
 class PatchedEmailBackend(EmailBackend):
     def __init__(self, *args, **kwargs):
         self.ssl_context = ssl.create_default_context(cafile=certifi.where())
@@ -117,7 +118,7 @@ class PatchedEmailBackend(EmailBackend):
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.sendgrid.net'
 EMAIL_PORT = 587
-EMAIL_HOST_USER = 'apikey'  # literally 'apikey'
+EMAIL_HOST_USER = 'apikey'
 EMAIL_HOST_PASSWORD = os.getenv('SENDGRID_API_KEY')
 EMAIL_USE_TLS = True
 DEFAULT_FROM_EMAIL = 'aibotassistants@gmail.com'
@@ -129,10 +130,18 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 STRIPE_PUBLIC_KEY = os.getenv("STRIPE_PUBLIC_KEY")
 STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY")
 
-# SECURITY SETTINGS
+# SECURITY SETTINGS - BULLETPROOF
 CSRF_COOKIE_SECURE = True
 SESSION_COOKIE_SECURE = True
 SECURE_SSL_REDIRECT = True
+
+# Allow local HTTP for dev server even if DEBUG is False
+if any(h in ALLOWED_HOSTS for h in ['localhost', '127.0.0.1']):
+    print('🟢 LOCAL DEVELOPMENT DETECTED - Disabling SSL redirect and secure cookies.')
+    CSRF_COOKIE_SECURE = False
+    SESSION_COOKIE_SECURE = False
+    SECURE_SSL_REDIRECT = False
+
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 # SESSIONS
@@ -156,23 +165,21 @@ LOGGING = {
     },
     'root': {
         'handlers': ['console'],
-        'level': 'DEBUG',
+        'level': 'INFO',
     },
     'loggers': {
         'django': {
             'handlers': ['console'],
-            'level': 'DEBUG',
+            'level': 'INFO',
         },
     },
 }
+
 
 # FOR EMAIL LINKS
 SITE_ID = 1
 DOMAIN = 'ai-assistants.herokuapp.com'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-# settings.py
-
 DEFAULT_DOMAIN = "ai-assistants-8c06fcfeab86.herokuapp.com"
 DEFAULT_PROTOCOL = "https"
-

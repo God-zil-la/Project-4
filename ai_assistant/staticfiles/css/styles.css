@@ -114,7 +114,7 @@ button:hover {
     background-color: var(--button-bg);
     color: var(--button-text);
     border: none;
-    padding: 0.6rem 1.2rem;
+    padding: 0rem 1rem;
     margin-right: 0.5rem;
     border-radius: 4px;
     font-weight: bold;
@@ -329,4 +329,56 @@ p a[href$="password-reset/"] {
   color: red;
   font-weight: bold;
   text-decoration: underline; 
+}
+.bot-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.bot-actions a {
+  flex: 1 1 150px;
+  max-width: 220px;
+  background-color: var(--button-bg);
+  color: var(--button-text);
+  text-align: center;
+  text-decoration: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: 4px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  box-sizing: border-box;
+  display: block;
+}
+
+.bot-actions a:hover {
+  background-color: var(--button-hover);
+}
+
+.bot-actions .btn-danger {
+  background-color: #8b0000;
+  color: #fff;
+}
+
+.bot-actions .btn-danger:hover {
+  background-color: #a80000;
+}
+
+/* MOBILE RESPONSIVE — EXACT 2 COLUMNS */
+@media (max-width: 500px) {
+  .bot-actions {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+  }
+
+  .bot-actions a {
+    max-width: 100%;
+    width: 100%;
+    font-size: 0.9rem;
+    padding: 0.5rem;
+  }
 }
