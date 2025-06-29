@@ -1,5 +1,3 @@
-
-
 /* ================= BASE RESET ================= */
 * {
   margin: 0;
@@ -17,9 +15,9 @@
   --button-text: #3a3228;
   --button-hover: #d8cdbb;
   --footer-bg: #ebe4d8;
-  --accent-color: #a76f2f;
-  --button-border: #cbbfae;
-  --button-shadow: 0 4px 12px rgba(120, 100, 80, 0.15); /* Shadow only in light theme */
+  --accent-color: #3a3228;
+  --button-border: #281a08;
+  --button-shadow: 0 4px 12px rgba(120, 100, 80, 0.15);
 }
 
 /* Dark theme overrides */
@@ -31,9 +29,13 @@ html.dark {
   --button-text: #ffffff;
   --button-hover: #1f3268;
   --footer-bg: linear-gradient(135deg, #0b1b3f, #0a1026);
-  --accent-color: #00cfff;
-  --button-border: rgba(0, 255, 255, 0.2);
-  --button-shadow: none; /* No shadow in dark theme */
+  --accent-color: #15839d;
+  --button-border: rgb(106 176 193);
+  --button-shadow: none;
+}
+
+h1 {
+  margin-bottom: 1rem;
 }
 
 /* ================= LAYOUT BASICS ================= */
@@ -377,16 +379,23 @@ p a[href$="password-reset/"] {
 
 /* ========== STYLING FOR MY BOTS PAGE ========== */
 
-.my-bots-container {
+.content {
   max-width: 900px;
   margin: 2rem auto;
   padding: 1.5rem 2rem;
   background: rgba(255, 255, 255, 0.02);
   border-radius: 16px;
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 0 20px rgba(0,0,0,0.05);
   backdrop-filter: blur(10px);
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   color: var(--text-color);
+}
+
+.content h1 {
+  font-size: 2rem;
+  margin-bottom: 1.5rem;
+  color: var(--accent-color);
+  text-align: center;
 }
 
 .bot-list {
@@ -400,16 +409,15 @@ p a[href$="password-reset/"] {
   border-radius: 12px;
   padding: 1.25rem 1.5rem;
   margin-bottom: 1.5rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.06);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .bot-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.12);
 }
 
-/* Default heading color for bot cards */
 .bot-card h3 {
   margin-bottom: 0.3rem;
   font-size: 1.6rem;
@@ -418,41 +426,28 @@ p a[href$="password-reset/"] {
   letter-spacing: 0.03em;
 }
 
-/* Lighter, easier-to-read text in blue theme */
 .bot-card p {
   font-size: 1rem;
   margin-bottom: 0.5rem;
-  color: rgba(224, 230, 240, 0.85); /* lighter blue-ish text */
+  color: var(--text-color);
+  opacity: 0.85;
   line-height: 1.4;
 }
 
 .bot-card small {
   font-size: 0.8rem;
-  color: rgba(224, 230, 240, 0.6); /* lighter and subtle for small text */
+  color: var(--button-border);
   font-style: italic;
 }
 
-/* SPECIFIC COLORS for "recipe" and "spoofy" bot cards */
-.bot-card.recipe h3,
-.bot-card.spoofy h3 {
-  color: #7a99d9; /* slightly darker, muted blue */
-}
-
-.bot-card.recipe p,
-.bot-card.spoofy p {
-  color: rgba(122, 153, 217, 0.85);
-}
-
-/* ================= BOT ACTIONS ================= */
-.bot-actions {
+.bot-card > div {
   margin-top: 1rem;
   display: flex;
   flex-wrap: wrap;
   gap: 0.8rem;
 }
 
-/* Common styling for all action buttons */
-.bot-actions a {
+.btn {
   background: var(--button-bg);
   color: var(--button-text);
   border: 1px solid var(--button-border);
@@ -462,36 +457,32 @@ p a[href$="password-reset/"] {
   text-decoration: none;
   box-shadow: var(--button-shadow);
   transition: all 0.3s ease;
-  white-space: nowrap;
-  flex-shrink: 0;
   cursor: pointer;
-  text-align: center;
+  white-space: nowrap;
   user-select: none;
+  text-align: center;
 }
 
-/* Custom colors for Chat, Edit, Upload, Knowledge buttons */
-.bot-actions a.chat,
-.bot-actions a.edit,
-.bot-actions a.upload,
-.bot-actions a.knowledge {
-  background: #476ca0; /* medium blue */
-  color: #d0d9f7;      /* light blue text */
-  border: 1px solid #6290d9;
-  box-shadow: 0 4px 10px rgba(70, 108, 160, 0.3);
-  transition: background-color 0.3s ease, box-shadow 0.3s ease;
-}
-
-.bot-actions a.chat:hover,
-.bot-actions a.edit:hover,
-.bot-actions a.upload:hover,
-.bot-actions a.knowledge:hover {
-  background: #5b81bf; /* lighter blue hover */
-  box-shadow: 0 6px 18px rgba(70, 108, 160, 0.5);
+.btn:hover {
+  background: var(--button-hover);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.1);
   transform: scale(1.05);
 }
 
-/* Delete button styling stays as is */
-.bot-actions a.btn-danger {
+.btn-primary {
+  background: var(--accent-color);
+  color: #fff;
+  border: none;
+  box-shadow: 0 4px 12px rgba(167, 111, 47, 0.4);
+}
+
+.btn-primary:hover {
+  background: #8b5d00;
+  box-shadow: 0 6px 18px rgba(167, 111, 47, 0.6);
+  transform: scale(1.05);
+}
+
+.btn-danger {
   background: linear-gradient(145deg, #8b0000, #5a0000);
   color: #fff;
   border: none;
@@ -500,38 +491,26 @@ p a[href$="password-reset/"] {
   transition: all 0.3s ease;
 }
 
-.bot-actions a.btn-danger:hover {
+.btn-danger:hover {
   background: linear-gradient(145deg, #a80000, #6b0000);
   box-shadow: 0 6px 18px rgba(255, 0, 0, 0.4);
   transform: scale(1.05);
 }
 
-/* ========== DARK MODE TEXT COLORS for bot cards ========== */
-html.dark .bot-card h3 {
-  color: #a0c8ff; /* lighter blue for titles */
-}
+/* Responsive adjustments */
+@media (max-width: 600px) {
+  .bot-card > div {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
 
-html.dark .bot-card p {
-  color: rgba(160, 200, 255, 0.85); /* lighter blue for paragraphs */
-}
-
-html.dark .bot-card small {
-  color: rgba(160, 200, 255, 0.6); /* lighter blue for small text */
-}
-
-html.dark .bot-card.recipe h3,
-html.dark .bot-card.spoofy h3 {
-  color: #8fb8e0; /* slightly different lighter blue */
-}
-
-html.dark .bot-card.recipe p,
-html.dark .bot-card.spoofy p {
-  color: rgba(143, 184, 224, 0.85);
+  .btn {
+    width: 100%;
+    text-align: center;
+  }
 }
 
 /* ==== DARK MODE: Make btn-danger text white ==== */
-html.dark .btn-danger,
-html.dark .bot-actions .btn-danger {
+html.dark .btn-danger {
   color: #ffffff;
 }
-
