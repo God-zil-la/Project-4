@@ -19,17 +19,24 @@
 
     <div class="form-group">
         <label for="id_username">Username:</label><br>
-        <input type="text" name="username" id="id_username" required value="{{ request.POST.username|default:'' }}">
+        <input type="text" name="username" id="id_username" required value="{{ request.POST.username|default:'' }}"
+            autocomplete="username">
     </div><br>
 
     <div class="form-group">
         <label for="id_email">Email:</label><br>
-        <input type="email" name="email" id="id_email" required value="{{ request.POST.email|default:'' }}">
+        <input type="email" name="email" id="id_email" required value="{{ request.POST.email|default:'' }}"
+            autocomplete="email">
     </div><br>
 
     <div class="form-group">
         <label for="id_password">Password:</label><br>
-        <input type="password" name="password" id="id_password" required>
+        <input type="password" name="password" id="id_password" required autocomplete="new-password">
+    </div><br>
+
+    <div class="form-group">
+        <label for="id_password_confirm">Confirm Password:</label><br>
+        <input type="password" name="password_confirm" id="id_password_confirm" required autocomplete="new-password">
     </div><br>
 
     <button type="submit">Register</button>
