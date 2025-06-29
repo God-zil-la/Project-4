@@ -7,35 +7,37 @@
 {% if messages %}
 <ul class="messages">
     {% for message in messages %}
-    <li{% if message.tags %} class="{{ message.tags }}" {% endif %}>
-        {{ message }}
-        </li>
+    <li{% if message.tags %} class="{{ message.tags }}" {% endif %}>{{ message }}</li>
         {% endfor %}
 </ul>
 {% endif %}
 
 <form method="post">
     {% csrf_token %}
+    {{ form.non_field_errors }}
 
     <div class="form-group">
-        <label for="id_username">Username:</label><br>
-        <input type="text" name="username" id="id_username" required value="{{ username|default:'' }}"
-            autocomplete="username">
+        {{ form.username.label_tag }}
+        {{ form.username }}
+        {{ form.username.errors }}
     </div><br>
 
     <div class="form-group">
-        <label for="id_email">Email:</label><br>
-        <input type="email" name="email" id="id_email" required value="{{ email|default:'' }}" autocomplete="email">
+        {{ form.email.label_tag }}
+        {{ form.email }}
+        {{ form.email.errors }}
     </div><br>
 
     <div class="form-group">
-        <label for="id_password">Password:</label><br>
-        <input type="password" name="password" id="id_password" required autocomplete="new-password">
+        {{ form.password.label_tag }}
+        {{ form.password }}
+        {{ form.password.errors }}
     </div><br>
 
     <div class="form-group">
-        <label for="id_password_confirm">Confirm Password:</label><br>
-        <input type="password" name="password_confirm" id="id_password_confirm" required autocomplete="new-password">
+        {{ form.password_confirm.label_tag }}
+        {{ form.password_confirm }}
+        {{ form.password_confirm.errors }}
     </div><br>
 
     <button type="submit">Register</button>

@@ -1,11 +1,38 @@
-# ai_assistant/accounts/forms.py
-
+from django import forms
+from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
 from django.contrib.auth.forms import PasswordResetForm
 from django.template.loader import render_to_string
 from django.core.mail import EmailMultiAlternatives
 from django.conf import settings
 from django.contrib.sites.shortcuts import get_current_site
 
+# ✅ RegisterForm with password confirmation
+class RegisterForm(forms.ModelForm):
+    password = forms.CharField(
+        label="Password",
+        widget=forms.PasswordInput(attrs={'autocomplete': 'new-password'})
+    )
+    password_confirm = forms.CharField(
+        label="Confirm Password",
+        widget=forms.PasswordInput(attrs={'autocomplete': 'new-password'})
+    )
+
+    class Meta:
+        model = User
+        fields = ['username', 'email', 'password']
+
+    def clean(self):
+        cleaned_data = super().clean()
+        password = cleaned_data.get("password")
+        password_confirm = cleaned_data.get("password_confirm")
+
+        if password and password_confirm and password != password_confirm:
+            raise ValidationError("Passwords do not match.")
+
+        return cleaned_data
+
+# ✅ CustomPasswordResetForm for sending styled password reset emails
 class CustomPasswordResetForm(PasswordResetForm):
     def send_mail(self, subject_template_name, email_template_name,
                   context, from_email, to_email, html_email_template_name=None):
@@ -22,8 +49,7 @@ class CustomPasswordResetForm(PasswordResetForm):
         context['protocol'] = protocol
         context['site_name'] = domain
 
-        subject = render_to_string(subject_template_name, context)
-        subject = ''.join(subject.splitlines())
+        subject = render_to_string(subject_template_name, context).strip()
         body = render_to_string(email_template_name, context)
 
         email_message = EmailMultiAlternatives(subject, body, from_email, [to_email])
