@@ -7,30 +7,38 @@ from django.core.mail import EmailMultiAlternatives
 from django.conf import settings
 from django.contrib.sites.shortcuts import get_current_site
 
-# ✅ RegisterForm with password confirmation
+
+# ✅ RegisterForm with password confirmation (fixed)
 class RegisterForm(forms.ModelForm):
-    password = forms.CharField(
+    password1 = forms.CharField(
         label="Password",
+        strip=False,
         widget=forms.PasswordInput(attrs={'autocomplete': 'new-password'})
     )
-    password_confirm = forms.CharField(
+    password2 = forms.CharField(
         label="Confirm Password",
-        widget=forms.PasswordInput(attrs={'autocomplete': 'new-password'})
+        widget=forms.PasswordInput(attrs={'autocomplete': 'new-password'}),
+        strip=False
     )
 
     class Meta:
         model = User
-        fields = ['username', 'email', 'password']
+        fields = ['username', 'email']
 
-    def clean(self):
-        cleaned_data = super().clean()
-        password = cleaned_data.get("password")
-        password_confirm = cleaned_data.get("password_confirm")
-
-        if password and password_confirm and password != password_confirm:
+    def clean_password2(self):
+        password1 = self.cleaned_data.get("password1")
+        password2 = self.cleaned_data.get("password2")
+        if password1 and password2 and password1 != password2:
             raise ValidationError("Passwords do not match.")
+        return password2
 
-        return cleaned_data
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.set_password(self.cleaned_data["password1"])
+        if commit:
+            user.save()
+        return user
+
 
 # ✅ CustomPasswordResetForm for sending styled password reset emails
 class CustomPasswordResetForm(PasswordResetForm):
