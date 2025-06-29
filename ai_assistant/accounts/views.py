@@ -36,17 +36,16 @@ def register(request):
             user.refresh_from_db()
 
             # Generate activation link
-            current_site = get_current_site(request)
-            uid = urlsafe_base64_encode(force_bytes(user.pk))
-            token = account_activation_token.make_token(user)
-
             try:
+                current_site = get_current_site(request)
+                uid = urlsafe_base64_encode(force_bytes(user.pk))
+                token = account_activation_token.make_token(user)
                 url_path = reverse('accounts:activate', kwargs={'uidb64': uid, 'token': token})
+                activation_link = f"https://{current_site.domain}{url_path}"
             except Exception as e:
-                messages.error(request, f"URL generation failed: {e}")
+                print(f"\n\n⚠️ URL GENERATION ERROR: {e}\n\n")
+                messages.error(request, f"⚠️ Activation link generation failed: {e}")
                 return render(request, 'accounts/register.html', {'form': form})
-
-            activation_link = f"https://{current_site.domain}{url_path}"
 
             context = {
                 'user': user,
@@ -57,24 +56,29 @@ def register(request):
                 'activation_link': activation_link,
             }
 
-            text_content = render_to_string('accounts/activation_email.txt', context)
-            html_content = render_to_string('accounts/activation_email.html', context)
-
-            email_message = EmailMultiAlternatives(
-                subject='Activate your AI Assistant account.',
-                body=text_content,
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                to=[user.email]
-            )
-            email_message.attach_alternative(html_content, "text/html")
-
+            # Send activation email
             try:
+                text_content = render_to_string('accounts/activation_email.txt', context)
+                html_content = render_to_string('accounts/activation_email.html', context)
+
+                email_message = EmailMultiAlternatives(
+                    subject='Activate your AI Assistant account',
+                    body=text_content,
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    to=[user.email]
+                )
+                email_message.attach_alternative(html_content, "text/html")
                 email_message.send()
+
+                print(f"\n✅ Activation email sent to: {user.email}\n")
+
             except Exception as e:
+                print(f"\n\n⚠️ EMAIL SENDING ERROR: {e}\n\n")
                 messages.error(request, f"⚠️ Email sending failed: {e}")
                 return render(request, 'accounts/register.html', {'form': form})
 
             return render(request, 'accounts/activation_sent.html')
+
     else:
         form = RegisterForm()
 
@@ -94,3 +98,4 @@ def activate(request, uidb64, token):
         return render(request, 'accounts/activation_success.html')
     else:
         return render(request, 'accounts/activation_invalid.html')
+
