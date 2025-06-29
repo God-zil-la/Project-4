@@ -19,14 +19,13 @@
 
     <div class="form-group">
         <label for="id_username">Username:</label><br>
-        <input type="text" name="username" id="id_username" required value="{{ request.POST.username|default:'' }}"
+        <input type="text" name="username" id="id_username" required value="{{ username|default:'' }}"
             autocomplete="username">
     </div><br>
 
     <div class="form-group">
         <label for="id_email">Email:</label><br>
-        <input type="email" name="email" id="id_email" required value="{{ request.POST.email|default:'' }}"
-            autocomplete="email">
+        <input type="email" name="email" id="id_email" required value="{{ email|default:'' }}" autocomplete="email">
     </div><br>
 
     <div class="form-group">

@@ -29,21 +29,38 @@ def register(request):
         username = request.POST.get('username', '').strip()
         email = request.POST.get('email', '').strip()
         password = request.POST.get('password', '')
+        password_confirm = request.POST.get('password_confirm', '')
 
+        # Check if username exists
         if User.objects.filter(username=username).exists():
             messages.error(request, "Username already exists. Please choose another.")
-            return render(request, 'accounts/register.html')
+            return render(request, 'accounts/register.html', {
+                'username': username,
+                'email': email,
+            })
 
+        # Check if email exists
         if User.objects.filter(email=email).exists():
             messages.error(request, "Email already registered. Try logging in.")
-            return render(request, 'accounts/register.html')
+            return render(request, 'accounts/register.html', {
+                'username': username,
+            })
 
-        # ✅ Save user first and ensure it's committed to DB
+        # Check if passwords match
+        if password != password_confirm:
+            messages.error(request, "Passwords do not match. Please try again.")
+            return render(request, 'accounts/register.html', {
+                'username': username,
+                'email': email,
+            })
+
+        # Create inactive user
         user = User.objects.create_user(username=username, email=email, password=password)
         user.is_active = False
         user.save()
-        user.refresh_from_db()  # ensures user.pk is populated
+        user.refresh_from_db()
 
+        # Generate activation link
         current_site = get_current_site(request)
         uid = urlsafe_base64_encode(force_bytes(user.pk))
         token = account_activation_token.make_token(user)
@@ -71,7 +88,7 @@ def register(request):
         email_message = EmailMultiAlternatives(
             subject='Activate your AI Assistant account.',
             body=text_content,
-            from_email=settings.DEFAULT_FROM_EMAIL, 
+            from_email=settings.DEFAULT_FROM_EMAIL,
             to=[email]
         )
         email_message.attach_alternative(html_content, "text/html")
@@ -84,6 +101,7 @@ def register(request):
 
         return render(request, 'accounts/activation_sent.html')
 
+    # GET request
     return render(request, 'accounts/register.html')
 
 def activate(request, uidb64, token):
