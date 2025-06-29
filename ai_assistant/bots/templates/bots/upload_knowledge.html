@@ -1,5 +1,3 @@
-<!-- templates/bots/playground.html -->
-
 {% extends "base.html" %}
 {% load static %}
 
@@ -17,13 +15,24 @@
     {% endfor %}
 </div>
 
-<form id="chat-form" autocomplete="off" style="display:flex; gap: 10px;">
+<!-- Chat form -->
+<form id="chat-form" autocomplete="off" style="display:flex; gap: 10px; margin-bottom: 1rem;">
     <input id="chat-input" type="text" name="message" placeholder="Type your message..."
         style="flex-grow: 1; padding: 8px;" required />
     <button type="submit" style="padding: 8px 15px;">Send</button>
 </form>
 
+<!-- Upload knowledge form -->
+<form action="{% url 'bots:upload_knowledge' bot.id %}" method="post" enctype="multipart/form-data"
+    class="upload-knowledge-container">
+    {% csrf_token %}
+    <label for="knowledge-file">Upload knowledge file:</label>
+    <input type="file" name="knowledge_file" id="knowledge-file" required>
+    <button type="submit" class="btn btn-primary" style="margin-top: 0.5rem;">Upload</button>
+</form>
+
 <style>
+    /* Chat message styles */
     .chat-message.user {
         text-align: right;
         color: #333;
@@ -47,6 +56,63 @@
         color: #5a4d00;
         border-radius: 4px;
     }
+
+    /* Upload knowledge container styling */
+    .upload-knowledge-container {
+        background: var(--nav-bg);
+        padding: 1.5rem 2rem;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        max-width: 600px;
+        margin: 0 auto 2rem auto;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        color: var(--text-color);
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .upload-knowledge-container label {
+        font-weight: 600;
+        color: var(--accent-color);
+        font-size: 1rem;
+    }
+
+    .upload-knowledge-container input[type="file"] {
+        padding: 0.6rem;
+        border-radius: 12px;
+        border: 1px solid var(--button-border);
+        background-color: rgba(255, 255, 255, 0.05);
+        color: var(--text-color);
+        cursor: pointer;
+        transition: border-color 0.3s ease;
+    }
+
+    .upload-knowledge-container input[type="file"]:hover,
+    .upload-knowledge-container input[type="file"]:focus {
+        border-color: var(--accent-color);
+        outline: none;
+    }
+
+    .upload-knowledge-container button.btn-primary {
+        width: 100%;
+        padding: 0.75rem 0;
+        font-weight: 700;
+        font-size: 1.1rem;
+        background: var(--accent-color);
+        color: #fff;
+        border: none;
+        border-radius: 14px;
+        box-shadow: 0 6px 18px rgba(0, 204, 255, 0.6);
+        cursor: pointer;
+        transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .upload-knowledge-container button.btn-primary:hover {
+        background: #00b8e6;
+        box-shadow: 0 8px 25px rgba(0, 184, 230, 0.8);
+        transform: scale(1.05);
+    }
 </style>
 
 <script>
@@ -54,7 +120,6 @@
         const chatForm = document.getElementById('chat-form');
         const chatInput = document.getElementById('chat-input');
         const chatBox = document.getElementById('chat-box');
-
         const botId = {{ bot.id }
     };
 
@@ -127,7 +192,6 @@
             const cookies = document.cookie.split(';');
             for (let i = 0; i < cookies.length; i++) {
                 const cookie = cookies[i].trim();
-                // Does this cookie string begin with the name we want?
                 if (cookie.substring(0, name.length + 1) === (name + '=')) {
                     cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
                     break;
@@ -137,5 +201,6 @@
         return cookieValue;
     }
 });
+
 </script>
 {% endblock %}

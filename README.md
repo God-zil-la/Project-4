@@ -202,3 +202,25 @@ Only staff users can access Django Admin	                                    ✅
 👨‍💻 Hussein ElaliGitHub: @god-zil-la
 
 Built from scratch with ❤️ — Designed, developed, styled, tested, and deployed by Hussein.
+
+Purpose of Knowledge Upload
+Add Custom Information to the Bot:
+Users can upload documents, text files, or data that contain information the bot should "know" or use as context for answering questions. This allows the bot to provide more specific, accurate, or personalized responses related to the uploaded content.
+
+Inject Domain-Specific Knowledge:
+If the bot is meant for a particular area (like recipes, legal info, company policies, etc.), uploading relevant documents lets the bot learn or reference those details when chatting.
+
+Improve Bot Responses Dynamically:
+Instead of only relying on pre-built training or general AI knowledge, the bot can pull from this uploaded knowledge base to give answers grounded in the specific data you provided.
+
+Expand Bot Capabilities Without Coding:
+This allows end-users who are not developers to customize and expand what the bot "knows" without changing the underlying code or retraining the AI model.
+
+How It Works Behind the Scenes (Simplified)
+User uploads files (like PDFs, text, or data).
+
+Backend processes these files, extracts relevant information.
+
+This info is stored or indexed and made available to the bot.
+
+During chat, the bot uses this uploaded knowledge to answer user queries more accurately or specifically.

@@ -53,7 +53,6 @@ def upload_knowledge(request, bot_id):
 
                 logger.info(f"Uploaded file processed into {len(chunks)} chunks.")
 
-                # Generate embeddings for each chunk
                 for chunk in created_chunks:
                     try:
                         embedding = generate_embedding(chunk.text)
@@ -67,7 +66,14 @@ def upload_knowledge(request, bot_id):
             except Exception as e:
                 logger.error(f"Failed to extract or chunk file: {e}")
 
-            return redirect('bots:playground', bot_id=bot.id)
+            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                return JsonResponse({'success': True, 'message': 'Knowledge uploaded successfully.'})
+            else:
+                return redirect('bots:playground', bot_id=bot.id)
+        else:
+            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                return JsonResponse({'success': False, 'errors': form.errors}, status=400)
+
     else:
         form = KnowledgeBaseForm()
 
