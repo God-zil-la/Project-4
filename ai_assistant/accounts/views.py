@@ -2,7 +2,7 @@ from django.contrib.auth import get_user_model, login
 from django.contrib.sites.shortcuts import get_current_site
 from django.core.mail import EmailMultiAlternatives
 from django.conf import settings
-from django.shortcuts import render, redirect
+from django.shortcuts import render
 from django.template.loader import render_to_string
 from django.utils.encoding import force_bytes, force_str
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
@@ -12,7 +12,6 @@ from django.contrib.auth.decorators import login_required
 
 from ai_assistant.bots.models import Bot
 from .tokens import account_activation_token
-from .forms import RegisterForm
 
 User = get_user_model()
 
@@ -27,70 +26,60 @@ def bot_list(request):
 
 def register(request):
     if request.method == 'POST':
-        form = RegisterForm(request.POST)
-        if form.is_valid():
-            user = form.save(commit=False)
-            user.set_password(form.cleaned_data['password1'])
-            user.is_active = False
-            user.save()
-            user.refresh_from_db()
+        username = request.POST.get('username', '').strip()
+        email = request.POST.get('email', '').strip()
+        password = request.POST.get('password', '')
 
-            # Generate activation link
-            try:
-                current_site = get_current_site(request)
-                uid = urlsafe_base64_encode(force_bytes(user.pk))
-                token = account_activation_token.make_token(user)
-                url_path = reverse('accounts:activate', kwargs={'uidb64': uid, 'token': token})
-                activation_link = f"https://{current_site.domain}{url_path}"
-            except Exception as e:
-                import sys
-                print("\n\n========================", file=sys.stderr)
-                print("⚠️ URL GENERATION ERROR:", repr(e), file=sys.stderr)
-                print("========================\n\n", file=sys.stderr)
-                messages.error(request, f"⚠️ Activation link generation failed: {e}")
-                return render(request, 'accounts/register.html', {'form': form})
+        # Validation
+        if not username or not email or not password:
+            messages.error(request, "All fields are required.")
+            return render(request, 'accounts/register.html')
 
-            context = {
-                'user': user,
-                'domain': current_site.domain,
-                'uid': uid,
-                'token': token,
-                'protocol': 'https',
-                'activation_link': activation_link,
-            }
+        if User.objects.filter(username=username).exists():
+            messages.error(request, "Username already exists. Please choose another.")
+            return render(request, 'accounts/register.html')
 
-            # Send activation email
-            try:
-                text_content = render_to_string('accounts/activation_email.txt', context)
-                html_content = render_to_string('accounts/activation_email.html', context)
+        if User.objects.filter(email=email).exists():
+            messages.error(request, "Email already registered. Try logging in.")
+            return render(request, 'accounts/register.html')
 
-                email_message = EmailMultiAlternatives(
-                    subject='Activate your AI Assistant account',
-                    body=text_content,
-                    from_email=settings.DEFAULT_FROM_EMAIL,
-                    to=[user.email]
-                )
-                email_message.attach_alternative(html_content, "text/html")
-                email_message.send()
+        # Create inactive user
+        user = User.objects.create_user(username=username, email=email, password=password)
+        user.is_active = False
+        user.save()
 
-                print(f"\n✅ Activation email sent to: {user.email}\n")
+        # Generate activation link
+        current_site = get_current_site(request)
+        uid = urlsafe_base64_encode(force_bytes(user.pk))
+        token = account_activation_token.make_token(user)
+        activation_link = f"https://{current_site.domain}{reverse('accounts:activate', kwargs={'uidb64': uid, 'token': token})}"
 
-            except Exception as e:
-                import sys
-                print("\n\n========================", file=sys.stderr)
-                print("⚠️ EMAIL SENDING ERROR:", repr(e), file=sys.stderr)
-                print("========================\n\n", file=sys.stderr)
-                messages.error(request, f"⚠️ Email sending failed: {e}")
-                return render(request, 'accounts/register.html', {'form': form})
+        context = {
+            'user': user,
+            'domain': current_site.domain,
+            'uid': uid,
+            'token': token,
+            'protocol': 'https',
+            'activation_link': activation_link,
+        }
 
-            return render(request, 'accounts/activation_sent.html')
+        # Send activation email
+        text_content = render_to_string('accounts/activation_email.txt', context)
+        html_content = render_to_string('accounts/activation_email.html', context)
 
-    else:
-        form = RegisterForm()
+        email_message = EmailMultiAlternatives(
+            subject='Activate your AI Assistant account.',
+            body=text_content,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            to=[email]
+        )
+        email_message.attach_alternative(html_content, "text/html")
+        email_message.send()
 
-    return render(request, 'accounts/register.html', {'form': form})
+        # Show success page
+        return render(request, 'accounts/activation_sent.html')
 
-
+    return render(request, 'accounts/register.html')
 
 def activate(request, uidb64, token):
     try:
@@ -106,4 +95,3 @@ def activate(request, uidb64, token):
         return render(request, 'accounts/activation_success.html')
     else:
         return render(request, 'accounts/activation_invalid.html')
-

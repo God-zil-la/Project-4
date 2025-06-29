@@ -1,46 +1,77 @@
-<!-- prettier-ignore -->
-{% extends "base.html" %}
-{% block title %}Register{% endblock %}
+<!DOCTYPE html>
+<html lang="en">
 
-{% block content %}
-<h2>Create an Account</h2>
+<head>
+    <script>
+        if (
+            localStorage.getItem("theme") === "dark" ||
+            (!("theme" in localStorage) &&
+                window.matchMedia("(prefers-color-scheme: dark)").matches)
+        ) {
+            document.documentElement.classList.add("dark");
+        }
+    </script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Register</title>
+    <link rel="stylesheet" href="/static/css/styles.a6166fbf318f.css?v=2" />
+    <link rel="icon" href="/static/images/favicon.4ef4b68c8bf7.ico" />
+</head>
 
-{% if messages %}
-<ul class="messages">
-    {% for message in messages %}
-    <li{% if message.tags %} class="{{ message.tags }}" {% endif %}>{{ message }}</li>
-        {% endfor %}
-</ul>
-{% endif %}
+<body>
+    <nav>
+        <ul>
+            <li><a href="/">Home</a></li>
 
-<form method="post">
-    {% csrf_token %}
-    {{ form.non_field_errors }}
+            <li><a href="/accounts/login/">Login</a></li>
+            <li><a href="/accounts/register/">Register</a></li>
 
-    <div class="form-group">
-        {{ form.username.label_tag }}
-        {{ form.username }}
-        {{ form.username.errors }}
-    </div><br>
+        </ul>
+    </nav>
 
-    <div class="form-group">
-        {{ form.email.label_tag }}
-        {{ form.email }}
-        {{ form.email.errors }}
-    </div><br>
+    <button id="toggleTheme" class="toggle-theme" aria-label="Toggle theme">
+        <span id="theme-icon">🌙</span>
+    </button>
 
-    <div class="form-group">
-        {{ form.password1.label_tag }}
-        {{ form.password1 }}
-        {{ form.password1.errors }}
-    </div><br>
+    <main>
+        <h2>Create an Account</h2>
 
-    <div class="form-group">
-        {{ form.password2.label_tag }}
-        {{ form.password2 }}
-        {{ form.password2.errors }}
-    </div><br>
 
-    <button type="submit">Register</button>
-</form>
-{% endblock %}
+
+        <form method="post">
+            <input type="hidden" name="csrfmiddlewaretoken"
+                value="g7aUHBS3PZ6UFzcJiEyFppAHFV0AI63mC8A8PbqTENNx58csQaG7e81G8Yte4Tnm">
+            <label>Username:</label><br>
+            <input type="text" name="username" required><br><br>
+            <label>Email:</label><br>
+            <input type="email" name="email" required><br><br>
+            <label>Password:</label><br>
+            <input type="password" name="password" required><br><br>
+            <button type="submit">Register</button>
+        </form>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 AI Assistant. Developed By Mr.Husse</p>
+    </footer>
+
+    <script>
+        const toggleButton = document.getElementById("toggleTheme");
+        const icon = document.getElementById("theme-icon");
+        const html = document.documentElement;
+
+        function updateIcon() {
+            icon.textContent = html.classList.contains("dark") ? "🌙" : "🌞";
+        }
+
+        updateIcon();
+
+        toggleButton?.addEventListener("click", () => {
+            const isDark = html.classList.toggle("dark");
+            localStorage.setItem("theme", isDark ? "dark" : "light");
+            updateIcon();
+        });
+    </script>
+</body>
+
+</html>
