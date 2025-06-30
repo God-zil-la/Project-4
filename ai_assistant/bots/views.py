@@ -22,9 +22,13 @@ from .models import Bot, ChatMessage, KnowledgeBase
 from .forms import BotForm, KnowledgeBaseForm
 from .utils import generate_embedding, search_relevant_chunks, extract_text, chunk_text
 
+# Initialize OpenAI client with API key from environment variables
+import openai
+openai.api_key = os.getenv("OPENAI_API_KEY")
+
 logger = logging.getLogger(__name__)
 
-client = OpenAI() 
+client = OpenAI()  # Assuming you're using OpenAI wrapper for GPT models
 
 
 @login_required
@@ -84,6 +88,7 @@ def upload_knowledge(request, bot_id):
         'knowledge_files': knowledge_files
     })
 
+
 @login_required
 def bot_list(request):
     logger.info("bot_list view called")
@@ -92,10 +97,12 @@ def bot_list(request):
     bots = Bot.objects.filter(owner=request.user) 
     return render(request, 'bots/bot_list.html', {'bots': bots})
 
+
 @login_required
 def my_bots(request):
     user_bots = Bot.objects.filter(owner=request.user)
     return render(request, 'bots/my_bots.html', {'bots': user_bots})
+
 
 @login_required
 def create_bot(request):
@@ -110,6 +117,7 @@ def create_bot(request):
         form = BotForm()
     return render(request, 'bots/create_bot.html', {'form': form})
 
+
 @login_required
 def bot_chat_api(request, bot_id):
     bot = get_object_or_404(Bot, id=bot_id, owner=request.user)
@@ -117,6 +125,7 @@ def bot_chat_api(request, bot_id):
         messages = ChatMessage.objects.filter(bot=bot, user=request.user).order_by('timestamp')
         return JsonResponse({'messages': [{'sender': m.sender, 'message': m.message} for m in messages]})
     return HttpResponseNotAllowed(['GET'])
+
 
 @login_required
 def edit_bot(request, bot_id):
@@ -130,6 +139,7 @@ def edit_bot(request, bot_id):
         form = BotForm(instance=bot)
     return render(request, 'bots/edit_bot.html', {'form': form})
 
+
 @login_required
 def delete_bot(request, bot_id):
     bot = get_object_or_404(Bot, id=bot_id, owner=request.user)
@@ -138,11 +148,13 @@ def delete_bot(request, bot_id):
         return redirect('bots:list')
     return render(request, 'bots/confirm_delete.html', {'bot': bot})
 
+
 @login_required
 def bot_chat_playground(request, bot_id):
     bot = get_object_or_404(Bot, id=bot_id, owner=request.user)
     messages = ChatMessage.objects.filter(bot=bot, user=request.user).order_by('timestamp')
     return render(request, 'bots/playground.html', {'bot': bot, 'messages': messages})
+
 
 @login_required
 @csrf_protect
@@ -212,8 +224,8 @@ def ajax_chat(request, bot_id):
                     {"role": "user", "content": user_message}
                 ]
             )
-            bot_response = response.choices[0].message.content.strip()
-            usage = response.usage
+            bot_response = response['choices'][0]['message']['content'].strip()
+            usage = response['usage']
             break
         except Exception as e:
             err_msg = str(e).lower()
@@ -241,6 +253,7 @@ def ajax_chat(request, bot_id):
         )
 
     return JsonResponse({'response': bot_response})
+
 
 @staff_member_required
 def admin_dashboard(request):
@@ -288,6 +301,7 @@ def admin_dashboard(request):
         'chart_labels': chart_labels,
         'chart_data': chart_data,
     })
+
 
 @staff_member_required
 def analytics_dashboard(request):
