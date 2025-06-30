@@ -10,20 +10,21 @@
   padding: 2rem 1rem;
   text-align: center;
 ">
-
     <div style="
-    background: var(--nav-bg);
-    padding: 1.5rem;
-    border-radius: 16px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
-    max-width: 600px;
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-  ">
-        <h1 style="margin-bottom: 1rem; color: var(--accent-color);">Welcome to AI Assistant</h1>
+        background: var(--nav-bg);
+        padding: 1.5rem;
+        border-radius: 16px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+        max-width: 600px;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    ">
+        <h1 style="margin-bottom: 1rem; color: var(--accent-color);">
+            Welcome to AI Assistant
+        </h1>
         <p style="max-width: 700px; margin: 0 auto; font-weight: 600;">
             Your all-in-one platform to build, train, and deploy smart AI bots. Simple to use, with powerful
             capabilities.
@@ -70,4 +71,17 @@
         </div>
     </div>
 </section>
+
+<style>
+    ul li:hover {
+        transform: scale(1.02);
+        transition: transform 0.3s ease;
+    }
+
+    a.nav-btn:hover {
+        background: var(--button-hover);
+        transform: scale(1.05);
+        transition: all 0.3s ease;
+    }
+</style>
 {% endblock %}
