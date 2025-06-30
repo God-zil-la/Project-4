@@ -70,7 +70,6 @@ nav {
   padding: 1.5rem 1rem;
   flex-shrink: 0;
   box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
-  border-bottom: 1px solid rgb(10 15 31);
 }
 
 nav ul {
@@ -120,7 +119,7 @@ button,
   color: var(--button-text);
   border: 1px solid var(--button-border);
   padding: 0.7rem 1.5rem;
-  border-radius: 12px;
+  border-radius: 0px;
   font-weight: 600;
   cursor: pointer;
   text-decoration: none;
