@@ -101,7 +101,7 @@ main {
 
 /* Large screen offset only on desktop */
 @media (min-width: 901px) {
-  main {
+  main.sidebar-layout {
     padding-left: 10rem;
     padding-right: 2rem;
   }
