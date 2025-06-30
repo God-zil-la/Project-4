@@ -1,21 +1,29 @@
-{% if bots %}
-<ul class="bot-list">
-    {% for bot in bots %}
-    <li class="bot-card">
-        <h3>{{ bot.name }}</h3>
-        <p>{{ bot.description }}</p>
-        <small>Created on {{ bot.created_at|date:"F j, Y" }}</small>
+{% extends 'base.html' %}
 
-        <div class="bot-actions">
-            <a href="{% url 'bots:playground' bot.id %}">Chat</a>
-            <a href="{% url 'bots:edit' bot.id %}">Edit</a>
-            <a href="{% url 'bots:upload_knowledge' bot.id %}">Upload Knowledge</a>
-            <a href="{% url 'bots:delete' bot.id %}" class="btn-danger">Delete</a>
-        </div>
+{% block title %}My Bots{% endblock %}
 
-    </li>
-    {% endfor %}
-</ul>
-{% else %}
-<p>You don't have any bots yet.</p>
-{% endif %}
+{% block content %}
+<section class="content">
+    <h1>My Bots</h1>
+    {% if bots %}
+    <ul class="bot-list">
+        {% for bot in bots %}
+        <li class="bot-card">
+            <h3>{{ bot.name }}</h3>
+            <p>{{ bot.description }}</p>
+            <small>Created on {{ bot.created_at|date:"F j, Y" }}</small>
+
+            <div class="bot-actions">
+                <a href="{% url 'bots:playground' bot.id %}">Chat</a>
+                <a href="{% url 'bots:edit' bot.id %}">Edit</a>
+                <a href="{% url 'bots:upload_knowledge' bot.id %}">Upload Knowledge</a>
+                <a href="{% url 'bots:delete' bot.id %}" class="btn-danger">Delete</a>
+            </div>
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p>You don't have any bots yet.</p>
+    {% endif %}
+</section>
+{% endblock %}
