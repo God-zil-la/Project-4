@@ -37,16 +37,47 @@
 
 <style>
     /* Chat message styles */
+    /* Chat message styles */
     .chat-message.user {
         text-align: right;
-        color: #333;
+        color: black;
         margin: 5px 0;
+        font-weight: bold;
+        font-size: 1.1rem;
+        /* Increase font size for better visibility */
+        background-color: #e0e0e0;
+        /* Light background for user messages */
+        padding: 10px 15px;
+        /* Add padding for better spacing */
+        border-radius: 12px;
+        /* Rounded corners */
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        /* Add shadow for depth */
+        max-width: 80%;
+        /* Limit width to prevent text from stretching too much */
+        word-wrap: break-word;
+        /* Ensure long words break and don't overflow */
     }
 
     .chat-message.bot {
         text-align: left;
-        color: #007BFF;
+        color: black;
         margin: 5px 0;
+        font-weight: bold;
+        font-size: 1.1rem;
+        /* Increase font size for better visibility */
+        background-color: #f0f0f0;
+        /* Light background for bot messages */
+        padding: 10px 15px;
+        /* Add padding for better spacing */
+        border-radius: 12px;
+        /* Rounded corners */
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        /* Add shadow for depth */
+        max-width: 80%;
+        /* Limit width to prevent text from stretching too much */
+        word-wrap: break-word;
+        /* Ensure long words break and don't overflow */
     }
 
     .injected-knowledge {
