@@ -18,6 +18,8 @@
   --accent-color: #3a3228;
   --button-border: #281a08;
   --button-shadow: 0 4px 12px rgba(120, 100, 80, 0.15);
+  --bot-message-bg: #e8e0d0;
+  --bot-message-text: #3a3228;
 }
 
 /* Dark theme overrides */
@@ -32,6 +34,8 @@ html.dark {
   --accent-color: #15839d;
   --button-border: rgb(106 176 193);
   --button-shadow: none;
+  --bot-message-bg: #1b2436;
+  --bot-message-text: #e0e6f0;
 }
 
 h1 {
@@ -66,7 +70,7 @@ nav {
   padding: 1.5rem 1rem;
   flex-shrink: 0;
   box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
-  border-bottom: 1px solid var(--button-border);
+  border-bottom: 1px solid rgb(10 15 31);
 }
 
 nav ul {
@@ -513,4 +517,36 @@ p a[href$="password-reset/"] {
 /* ==== DARK MODE: Make btn-danger text white ==== */
 html.dark .btn-danger {
   color: #ffffff;
+}
+
+/* ================= BOT MESSAGE BUBBLES ================= */
+.chat-message.bot {
+  background-color: var(--bot-message-bg);
+  color: var(--bot-message-text);
+  text-align: left;
+  margin: 5px 0;
+  font-weight: bold;
+  font-size: 1.1rem;
+  padding: 10px 15px;
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  max-width: 80%;
+  word-wrap: break-word;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* ================= USER MESSAGE BUBBLES ================= */
+.chat-message.user {
+  text-align: right;
+  color: var(--text-color);
+  margin: 5px 0;
+  font-weight: bold;
+  font-size: 1.1rem;
+  background-color: var(--button-bg);
+  padding: 10px 15px;
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  max-width: 80%;
+  word-wrap: break-word;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }

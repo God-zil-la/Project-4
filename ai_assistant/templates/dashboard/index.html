@@ -3,23 +3,88 @@
 {% block title %}Home - AI Assistant{% endblock %}
 
 {% block content %}
-<section>
-    <h1>Welcome to AI Assistant</h1>
-    <p>Your all-in-one platform to build, train, and deploy smart AI bots.</p>
+<section style="
+    max-width: 900px; 
+    margin: 2rem auto; 
+    padding: 2rem; 
+    border-radius: 16px; 
+    background: var(--nav-bg); 
+    box-shadow: 0 8px 24px rgba(0,0,0,0.1); 
+    animation: fadeIn 1s ease forwards;
+">
+    <h1 style="text-align: center; margin-bottom: 1rem;">Welcome to AI Assistant</h1>
+    <p style="max-width: 700px; margin: 0 auto; text-align: center; font-size: 1.1rem;">
+        Your all-in-one platform to build, train, and deploy smart AI bots. Simple to use, with powerful capabilities.
+    </p>
 
     <div style="margin-top: 2rem;">
-        <h2>What You Can Do</h2>
-        <ul>
-            <li>🧠 Create AI bots tailored for your business or hobby</li>
-            <li>📚 Train them with custom knowledge</li>
-            <li>⚙️ Deploy on platforms like Slack, Discord, or your own site</li>
-            <li>📊 Monitor performance and chat logs</li>
+        <h2 style="text-align: center; margin-bottom: 1.5rem;">What You Can Do</h2>
+        <ul style="list-style: none; padding: 0; max-width: 700px; margin: 0 auto;">
+            <li style="margin-bottom: 1.5rem; transition: transform 0.3s ease;">
+                🌸 <strong>Create</strong> AI bots tailored for your business or hobby
+                <p style="margin: 0.5rem 0 0; font-weight: 600;">
+                    Build bots for your business or hobbies with personalized features. Get started quickly with
+                    easy-to-use templates.
+                </p>
+            </li>
+            <li style="margin-bottom: 1.5rem; transition: transform 0.3s ease;">
+                📚 <strong>Train</strong> them with custom knowledge
+                <p style="margin: 0.5rem 0 0; font-weight: 600;">
+                    Upload documents or data to give your bot domain-specific knowledge for more accurate, tailored
+                    responses.
+                </p>
+            </li>
+            <li style="margin-bottom: 1.5rem; transition: transform 0.3s ease;">
+                ⚙️ <strong>Deploy</strong> on platforms like Slack, Discord, or your own site
+                <p style="margin: 0.5rem 0 0; font-weight: 600;">
+                    Easily deploy your bot across platforms with minimal setup and customizable settings.
+                </p>
+            </li>
+            <li style="margin-bottom: 1.5rem; transition: transform 0.3s ease;">
+                📊 <strong>Monitor</strong> performance and chat logs
+                <p style="margin: 0.5rem 0 0; font-weight: 600;">
+                    Track interactions, analyze usage, and use feedback to continuously improve your bot over time.
+                </p>
+            </li>
         </ul>
     </div>
 
-    <div style="margin-top: 2rem;">
-      <a href="{% url 'bots:create' %}" class="nav-btn">Get Started</a>
-
+    <div style="margin-top: 2rem; text-align: center;">
+        <a href="{% url 'bots:create' %}" class="nav-btn" style="
+            display: inline-block;
+            padding: 0.8rem 1.6rem;
+            border-radius: 12px;
+            font-weight: bold;
+            text-decoration: none;
+            background: var(--button-bg);
+            color: var(--button-text);
+            border: 1px solid var(--button-border);
+            box-shadow: var(--button-shadow);
+            transition: background 0.3s ease, transform 0.3s ease;
+        ">Get Started</a>
     </div>
 </section>
+
+<style>
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    ul li:hover {
+        transform: scale(1.02);
+    }
+
+    a.nav-btn:hover {
+        background: var(--button-hover);
+        transform: scale(1.05);
+    }
+</style>
 {% endblock %}
