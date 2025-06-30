@@ -166,7 +166,7 @@
             chatInput.disabled = true;  // Disable input until response is received
 
             try {
-                const response = await fetch(`/bots/${botId}/ajax-chat/`, {
+                const response = await fetch(`/bots/${botId}/ajax_chat/`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

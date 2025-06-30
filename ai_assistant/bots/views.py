@@ -159,6 +159,7 @@ def bot_chat_playground(request, bot_id):
 @login_required
 @csrf_protect
 def ajax_chat(request, bot_id):
+    print(f"Received request for bot ID {bot_id}")
     if request.method != 'POST':
         return HttpResponseNotAllowed(['POST'])
 
@@ -168,6 +169,7 @@ def ajax_chat(request, bot_id):
         return JsonResponse({'response': "⚠️ Please enter a message."}, status=400)
 
     bot = get_object_or_404(Bot, id=bot_id, owner=request.user)
+    print(f"Bot found: {bot.name}")
 
     profile, _ = UserProfile.objects.get_or_create(user=request.user)
     profile.reset_daily_count()
@@ -215,6 +217,7 @@ def ajax_chat(request, bot_id):
     if context_text:
         system_message += f"\n\nHere is some relevant knowledge:\n{context_text}"
 
+    # ---- ✅ FIXED OpenAI call ----
     for attempt in range(3):
         try:
             response = client.chat.completions.create(
@@ -224,8 +227,8 @@ def ajax_chat(request, bot_id):
                     {"role": "user", "content": user_message}
                 ]
             )
-            bot_response = response['choices'][0]['message']['content'].strip()
-            usage = response['usage']
+            bot_response = response.choices[0].message.content.strip()
+            usage = response.usage
             break
         except Exception as e:
             err_msg = str(e).lower()
@@ -240,6 +243,7 @@ def ajax_chat(request, bot_id):
                 bot_response = f"[API Error] {str(e)}"
                 usage = None
                 break
+    # ------------------------------
 
     ChatMessage.objects.create(bot=bot, user=request.user, message=bot_response, sender='bot')
     profile.increment_message_count()
@@ -253,6 +257,7 @@ def ajax_chat(request, bot_id):
         )
 
     return JsonResponse({'response': bot_response})
+
 
 
 @staff_member_required
