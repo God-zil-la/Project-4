@@ -140,89 +140,83 @@
         const chatForm = document.getElementById('chat-form');
         const chatInput = document.getElementById('chat-input');
         const chatBox = document.getElementById('chat-box');
-        const botId = {{ bot.id }
-    }; // Correctly assign botId
+        const botId = '{{ bot.id }}';  // Ensure this is correctly formatted
 
-    // Function to append a message to the chat window
-    function appendMessage(sender, text) {
-        const messageDiv = document.createElement('div');
-        messageDiv.className = 'chat-message ' + sender;
-        messageDiv.innerHTML = `<strong>${sender.charAt(0).toUpperCase() + sender.slice(1)}:</strong> ${text.replace(/\n/g, '<br>')}`;
-        chatBox.appendChild(messageDiv);
-        chatBox.scrollTop = chatBox.scrollHeight; // Scroll to the bottom
-    }
-
-    // Function to append knowledge message (if applicable)
-    function appendInjectedKnowledge(text) {
-        const knowledgeDiv = document.createElement('div');
-        knowledgeDiv.className = 'injected-knowledge';
-        knowledgeDiv.textContent = `📚 Injected Knowledge:\n${text}`;
-        chatBox.appendChild(knowledgeDiv);
-        chatBox.scrollTop = chatBox.scrollHeight;
-    }
-
-    // Function to send a message to the bot and get a response
-    async function sendMessage(userMessage) {
-        if (!userMessage.trim()) return;
-
-        appendMessage('user', userMessage);
-        chatInput.value = '';
-        chatInput.disabled = true;  // Disable input until response is received
-
-        try {
-            const response = await fetch(`/bots/${botId}/ajax-chat/`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': getCookie('csrftoken'),
-                },
-                body: JSON.stringify({ message: userMessage }),
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                appendMessage('bot', errorData.response || 'An error occurred.');
-                chatInput.disabled = false;
-                return;
-            }
-
-            const data = await response.json();
-            appendMessage('bot', data.response);
-
-            if (data.knowledge && data.knowledge.trim() !== '') {
-                appendInjectedKnowledge(data.knowledge);
-            }
-        } catch (err) {
-            appendMessage('bot', '⚠️ Network error. Please try again.');
-            console.error(err);
-        } finally {
-            chatInput.disabled = false;
-            chatInput.focus();  // Focus back on input after the response
+        function appendMessage(sender, text) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'chat-message ' + sender;
+            messageDiv.innerHTML = `<strong>${sender.charAt(0).toUpperCase() + sender.slice(1)}:</strong> ${text.replace(/\n/g, '<br>')}`;
+            chatBox.appendChild(messageDiv);
+            chatBox.scrollTop = chatBox.scrollHeight;  // Scroll to the bottom
         }
-    }
 
-    // Handle form submission
-    chatForm.addEventListener('submit', e => {
-        e.preventDefault();
-        const message = chatInput.value;
-        sendMessage(message);
-    });
+        function appendInjectedKnowledge(text) {
+            const knowledgeDiv = document.createElement('div');
+            knowledgeDiv.className = 'injected-knowledge';
+            knowledgeDiv.textContent = `📚 Injected Knowledge:\n${text}`;
+            chatBox.appendChild(knowledgeDiv);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
 
-    // Helper to get CSRF token
-    function getCookie(name) {
-        let cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            const cookies = document.cookie.split(';');
-            for (let i = 0; i < cookies.length; i++) {
-                const cookie = cookies[i].trim();
-                if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
+        async function sendMessage(userMessage) {
+            if (!userMessage.trim()) return;
+
+            appendMessage('user', userMessage);
+            chatInput.value = '';
+            chatInput.disabled = true;  // Disable input until response is received
+
+            try {
+                const response = await fetch(`/bots/${botId}/ajax-chat/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken'),
+                    },
+                    body: JSON.stringify({ message: userMessage }),
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    appendMessage('bot', errorData.response || 'An error occurred.');
+                    chatInput.disabled = false;
+                    return;
+                }
+
+                const data = await response.json();
+                appendMessage('bot', data.response);
+
+                if (data.knowledge && data.knowledge.trim() !== '') {
+                    appendInjectedKnowledge(data.knowledge);
+                }
+            } catch (err) {
+                appendMessage('bot', '⚠️ Network error. Please try again.');
+                console.error(err);
+            } finally {
+                chatInput.disabled = false;
+                chatInput.focus();  // Focus back on input after the response
+            }
+        }
+
+        chatForm.addEventListener('submit', e => {
+            e.preventDefault();
+            const message = chatInput.value;
+            sendMessage(message);
+        });
+
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
                 }
             }
+            return cookieValue;
         }
-        return cookieValue;
-    }
     });
 </script>
 {% endblock %}
