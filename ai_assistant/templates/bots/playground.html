@@ -37,26 +37,18 @@
 
 <style>
     /* Chat message styles */
-    /* Chat message styles */
     .chat-message.user {
         text-align: right;
         color: black;
         margin: 5px 0;
         font-weight: bold;
         font-size: 1.1rem;
-        /* Increase font size for better visibility */
         background-color: #e0e0e0;
-        /* Light background for user messages */
         padding: 10px 15px;
-        /* Add padding for better spacing */
         border-radius: 12px;
-        /* Rounded corners */
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        /* Add shadow for depth */
         max-width: 80%;
-        /* Limit width to prevent text from stretching too much */
         word-wrap: break-word;
-        /* Ensure long words break and don't overflow */
     }
 
     .chat-message.bot {
@@ -65,19 +57,12 @@
         margin: 5px 0;
         font-weight: bold;
         font-size: 1.1rem;
-        /* Increase font size for better visibility */
         background-color: #f0f0f0;
-        /* Light background for bot messages */
         padding: 10px 15px;
-        /* Add padding for better spacing */
         border-radius: 12px;
-        /* Rounded corners */
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        /* Add shadow for depth */
         max-width: 80%;
-        /* Limit width to prevent text from stretching too much */
         word-wrap: break-word;
-        /* Ensure long words break and don't overflow */
     }
 
     .injected-knowledge {
@@ -156,19 +141,18 @@
         const chatInput = document.getElementById('chat-input');
         const chatBox = document.getElementById('chat-box');
         const botId = {{ bot.id }
-    };
-    const uploadForm = document.querySelector('.upload-knowledge-container');
-    const fileInput = document.getElementById('knowledge-file');
-    const uploadStatus = document.getElementById('upload-status');
+    };  // Correctly close the curly brace here
 
+    // Function to append a message to the chat window
     function appendMessage(sender, text) {
         const messageDiv = document.createElement('div');
         messageDiv.className = 'chat-message ' + sender;
         messageDiv.innerHTML = `<strong>${sender.charAt(0).toUpperCase() + sender.slice(1)}:</strong> ${text.replace(/\n/g, '<br>')}`;
         chatBox.appendChild(messageDiv);
-        chatBox.scrollTop = chatBox.scrollHeight;
+        chatBox.scrollTop = chatBox.scrollHeight; // Scroll to the bottom
     }
 
+    // Function to append knowledge message (if applicable)
     function appendInjectedKnowledge(text) {
         const knowledgeDiv = document.createElement('div');
         knowledgeDiv.className = 'injected-knowledge';
@@ -177,13 +161,13 @@
         chatBox.scrollTop = chatBox.scrollHeight;
     }
 
+    // Function to send a message to the bot and get a response
     async function sendMessage(userMessage) {
         if (!userMessage.trim()) return;
 
         appendMessage('user', userMessage);
-
         chatInput.value = '';
-        chatInput.disabled = true;
+        chatInput.disabled = true;  // Disable input until response is received
 
         try {
             const response = await fetch(`/bots/${botId}/ajax-chat/`, {
@@ -213,55 +197,18 @@
             console.error(err);
         } finally {
             chatInput.disabled = false;
-            chatInput.focus();
+            chatInput.focus();  // Focus back on input after the response
         }
     }
 
+    // Handle form submission
     chatForm.addEventListener('submit', e => {
         e.preventDefault();
         const message = chatInput.value;
         sendMessage(message);
     });
 
-    // Knowledge upload form AJAX handler
-    uploadForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        uploadStatus.textContent = '';
-        if (!fileInput.files.length) {
-            uploadStatus.style.color = 'red';
-            uploadStatus.textContent = 'Please select a file to upload.';
-            return;
-        }
-
-        const formData = new FormData(uploadForm);
-        try {
-            const response = await fetch(uploadForm.action, {
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': getCookie('csrftoken'),
-                    'X-Requested-With': 'XMLHttpRequest'
-                },
-                body: formData
-            });
-
-            const data = await response.json();
-
-            if (response.ok && data.success) {
-                uploadStatus.style.color = 'green';
-                uploadStatus.textContent = data.message || 'Knowledge uploaded successfully!';
-                fileInput.value = '';
-            } else {
-                uploadStatus.style.color = 'red';
-                uploadStatus.textContent = 'Upload failed: ' + (data.errors ? JSON.stringify(data.errors) : 'Unknown error.');
-            }
-        } catch (err) {
-            uploadStatus.style.color = 'red';
-            uploadStatus.textContent = 'Network error during upload.';
-            console.error(err);
-        }
-    });
-
-    // Helper to get CSRF token cookie from browser
+    // Helper to get CSRF token
     function getCookie(name) {
         let cookieValue = null;
         if (document.cookie && document.cookie !== '') {
