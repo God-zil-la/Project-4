@@ -34,9 +34,9 @@
                 mode: 'index',
                 intersect: false,
                 backgroundColor: 'rgba(0,0,0,0.75)',
-                titleColor: '#f0a500',
-                bodyColor: '#fff',
-                borderColor: '#f0a500',
+                titleColor: '#FFD700',    // bright gold
+                bodyColor: '#FFFFFF',     // white
+                borderColor: '#FFD700',
                 borderWidth: 1,
                 caretSize: 6,
             },
@@ -44,22 +44,22 @@
         scales: {
             y: {
                 beginAtZero: true,
-                ticks: { stepSize: 1, color: 'var(--text-color)' },
+                ticks: { stepSize: 1, color: '#FFFFFF' },     // white text on y-axis ticks
                 grid: { color: 'rgba(255,255,255,0.1)' },
                 title: {
                     display: true,
                     text: 'Messages Count',
-                    color: 'var(--accent-color)',
+                    color: '#FFD700',                         // gold for y-axis title
                     font: { weight: '600' }
                 }
             },
             x: {
-                ticks: { color: 'var(--text-color)', maxRotation: 45, minRotation: 30 },
+                ticks: { color: '#FFFFFF', maxRotation: 45, minRotation: 30 },  // white text on x-axis ticks
                 grid: { display: false },
                 title: {
                     display: true,
                     text: 'Name',
-                    color: 'var(--accent-color)',
+                    color: '#FFD700',                         // gold for x-axis title
                     font: { weight: '600' }
                 }
             }
@@ -73,7 +73,7 @@
             datasets: [{
                 label: 'Messages by Bot',
                 data: botData.counts,
-                backgroundColor: 'rgba(240, 165, 0, 0.75)',
+                backgroundColor: 'rgba(240, 165, 0, 0.85)',  // stronger gold
                 borderColor: 'rgba(240, 165, 0, 1)',
                 borderWidth: 1,
                 borderRadius: 6,
@@ -91,7 +91,7 @@
             datasets: [{
                 label: 'Messages by User',
                 data: userData.counts,
-                backgroundColor: 'rgba(54, 162, 235, 0.75)',
+                backgroundColor: 'rgba(54, 162, 235, 0.85)',  // stronger blue
                 borderColor: 'rgba(54, 162, 235, 1)',
                 borderWidth: 1,
                 borderRadius: 6,
@@ -117,14 +117,16 @@
 
     .dashboard-header h1 {
         font-size: 2.5rem;
-        color: var(--accent-color);
+        color: #FFD700;
+        /* gold accent color */
         font-weight: 800;
         margin-bottom: 0.25rem;
     }
 
     .dashboard-intro {
         font-size: 1.1rem;
-        color: var(--text-color-secondary, #bbb);
+        color: #CCC;
+        /* lighter text for subtitle */
         font-weight: 500;
     }
 
@@ -134,15 +136,17 @@
 
     .chart-title {
         font-size: 1.8rem;
-        color: var(--accent-color);
+        color: #FFD700;
+        /* gold accent */
         margin-bottom: 1rem;
         font-weight: 700;
     }
 
     canvas {
-        background: var(--nav-bg);
+        background: #1E1E1E;
+        /* dark background */
         border-radius: 16px;
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
         padding: 1rem;
     }
 
