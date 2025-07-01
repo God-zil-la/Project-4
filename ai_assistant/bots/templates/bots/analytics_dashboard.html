@@ -1,6 +1,5 @@
 {% extends 'base.html' %}
 {% load static %}
-{% load json_script %}
 
 {% block title %}My Bot Analytics - AI Assistant{% endblock %}
 
@@ -27,11 +26,9 @@
     </div>
 </section>
 
-{{ bot_data|json_script:"bot-data" }}
-
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    const botData = JSON.parse(document.getElementById('bot-data').textContent);
+    const botData = JSON.parse('{{ bot_data|escapejs }}');
 
     if (botData.labels.length) {
         const ctx = document.getElementById('botUsageChart').getContext('2d');
