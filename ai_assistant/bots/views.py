@@ -2,8 +2,8 @@ import os
 import json
 import time
 import logging
-from datetime import timedelta
 import traceback
+from datetime import timedelta
 
 from openai import OpenAI
 
@@ -44,6 +44,7 @@ def upload_knowledge(request, bot_id):
             knowledge.save()
 
             from .models import KnowledgeChunk
+            # Remove old chunks for this knowledge file to avoid duplicates
             KnowledgeChunk.objects.filter(knowledge_file=knowledge).delete()
 
             try:
@@ -69,6 +70,7 @@ def upload_knowledge(request, bot_id):
 
             except Exception as e:
                 logger.error(f"Failed to extract or chunk file: {e}")
+                # Optionally: add user notification for failure here
 
             if request.headers.get('x-requested-with') == 'XMLHttpRequest':
                 return JsonResponse({'success': True, 'message': 'Knowledge uploaded successfully.'})
@@ -92,8 +94,6 @@ def upload_knowledge(request, bot_id):
 @login_required
 def bot_list(request):
     logger.info("bot_list view called")
-    template = get_template('bots/bot_list.html')
-    logger.info(f"Loaded bot_list.html from: {template.origin}")
     bots = Bot.objects.filter(owner=request.user)
     return render(request, 'bots/bot_list.html', {'bots': bots})
 
@@ -123,7 +123,8 @@ def bot_chat_api(request, bot_id):
     bot = get_object_or_404(Bot, id=bot_id, owner=request.user)
     if request.method == 'GET':
         messages = ChatMessage.objects.filter(bot=bot, user=request.user).order_by('timestamp')
-        return JsonResponse({'messages': [{'sender': m.sender, 'message': m.message} for m in messages]})
+        data = [{'sender': m.sender, 'message': m.message} for m in messages]
+        return JsonResponse({'messages': data})
     return HttpResponseNotAllowed(['GET'])
 
 
@@ -163,7 +164,11 @@ def ajax_chat(request, bot_id):
     if request.method != 'POST':
         return HttpResponseNotAllowed(['POST'])
 
-    data = json.loads(request.body)
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({'response': "⚠️ Invalid JSON data."}, status=400)
+
     user_message = data.get('message', '').strip()
     if not user_message:
         return JsonResponse({'response': "⚠️ Please enter a message."}, status=400)
@@ -219,6 +224,7 @@ def ajax_chat(request, bot_id):
     if context_text:
         system_message += f"\n\nHere is some relevant knowledge:\n{context_text}"
 
+    # Call OpenAI API with retries on rate limit
     for attempt in range(3):
         try:
             previous_messages = ChatMessage.objects.filter(bot=bot, user=request.user).order_by('timestamp')
@@ -266,7 +272,7 @@ def ajax_chat(request, bot_id):
             logger.info(f"BotUsageLog created for user {request.user.username}, bot {bot.name}")
         except Exception as e:
             logger.error(f"Failed to create BotUsageLog: {e}")
-            logger.error(traceback.format_exc()) 
+            logger.error(traceback.format_exc())
 
     return JsonResponse({'response': bot_response})
 
@@ -280,16 +286,18 @@ def analytics_dashboard(request):
         .annotate(total=Count("id"))
         .order_by("-total")
     )
-    print(f"Usage by bot for user {request.user.username}: {list(usage_by_bot)}")  # Debug
 
     bot_data = {
         "labels": [entry["bot__name"] for entry in usage_by_bot],
         "counts": [entry["total"] for entry in usage_by_bot],
     }
-    print(f"Bot data to send to template: {bot_data}")  # Debug
 
     return render(request, "bots/analytics_dashboard.html", {
-        "bot_data": bot_data,
+        "bot_data": json.dumps(bot_data),
+        "user_data": json.dumps({  # For symmetry if you want to add user chart later
+            "labels": [request.user.username],
+            "counts": [BotUsageLog.objects.filter(user=request.user).count()]
+        }),
     })
 
 
