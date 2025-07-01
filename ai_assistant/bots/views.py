@@ -10,9 +10,11 @@ from django.template.loader import get_template
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse, HttpResponseNotAllowed
 from django.contrib.auth.decorators import login_required
+from django.contrib.admin.views.decorators import staff_member_required
 from django.views.decorators.csrf import csrf_protect
 from django.utils import timezone
 from django.db.models import Count
+from django.db.models.functions import TruncDate
 
 from ai_assistant.accounts.models import UserProfile
 from ai_assistant.dashboard.models import BotUsageLog
@@ -41,7 +43,6 @@ def upload_knowledge(request, bot_id):
             knowledge.save()
 
             from .models import KnowledgeChunk
-            # Remove old chunks for this knowledge file
             KnowledgeChunk.objects.filter(knowledge_file=knowledge).delete()
 
             try:
@@ -55,7 +56,6 @@ def upload_knowledge(request, bot_id):
 
                 logger.info(f"Uploaded file processed into {len(chunks)} chunks.")
 
-                # Generate embeddings for chunks
                 for chunk in created_chunks:
                     try:
                         embedding = generate_embedding(chunk.text)
@@ -218,7 +218,6 @@ def ajax_chat(request, bot_id):
     if context_text:
         system_message += f"\n\nHere is some relevant knowledge:\n{context_text}"
 
-    # Call OpenAI with persistent conversation
     for attempt in range(3):
         try:
             previous_messages = ChatMessage.objects.filter(bot=bot, user=request.user).order_by('timestamp')
@@ -252,21 +251,20 @@ def ajax_chat(request, bot_id):
                 usage = None
                 break
 
-    # Save bot response message
     ChatMessage.objects.create(bot=bot, user=request.user, message=bot_response, sender='bot')
     profile.increment_message_count()
 
-    # Always create usage log, even if usage info is missing
-    try:
-        BotUsageLog.objects.create(
-            user=request.user,
-            bot=bot,
-            message=user_message,
-            token_count=usage.total_tokens if usage else 0
-        )
-        logger.info(f"BotUsageLog created for user {request.user.username}, bot {bot.name}")
-    except Exception as e:
-        logger.error(f"Failed to create BotUsageLog: {e}")
+    if usage:
+        try:
+            BotUsageLog.objects.create(
+                user=request.user,
+                bot=bot,
+                message=user_message,
+                token_count=usage.total_tokens
+            )
+            logger.info(f"BotUsageLog created for user {request.user.username}, bot {bot.name}")
+        except Exception as e:
+            logger.error(f"Failed to create BotUsageLog: {e}")
 
     return JsonResponse({'response': bot_response})
 
@@ -285,5 +283,53 @@ def analytics_dashboard(request):
         "counts": [entry["total"] for entry in usage_by_bot],
     }
     return render(request, "bots/analytics_dashboard.html", {
-        "bot_data": bot_data,  # Python dict, not JSON string
+        "bot_data": bot_data,
+    })
+
+
+@staff_member_required
+def admin_dashboard(request):
+    from django.contrib.auth.models import User
+    users = User.objects.all()
+    bots = Bot.objects.all()
+    messages = ChatMessage.objects.order_by('-timestamp')[:50]
+
+    total_logs = BotUsageLog.objects.count()
+
+    top_bots = (
+        BotUsageLog.objects.values('bot__name')
+        .annotate(count=Count('id'))
+        .order_by('-count')[:5]
+    )
+
+    top_users = (
+        BotUsageLog.objects.values('user__username')
+        .annotate(count=Count('id'))
+        .order_by('-count')[:5]
+    )
+
+    today = timezone.now().date()
+    week_ago = today - timedelta(days=6)
+
+    daily_logs = (
+        BotUsageLog.objects
+        .filter(timestamp__date__gte=week_ago)
+        .annotate(day=TruncDate('timestamp'))
+        .values('day')
+        .annotate(count=Count('id'))
+        .order_by('day')
+    )
+
+    chart_labels = [entry['day'].strftime('%b %d') for entry in daily_logs]
+    chart_data = [entry['count'] for entry in daily_logs]
+
+    return render(request, 'bots/admin_dashboard.html', {
+        'users': users,
+        'bots': bots,
+        'messages': messages,
+        'total_logs': total_logs,
+        'top_bots': top_bots,
+        'top_users': top_users,
+        'chart_labels': chart_labels,
+        'chart_data': chart_data,
     })
