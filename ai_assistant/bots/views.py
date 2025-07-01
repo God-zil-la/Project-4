@@ -13,7 +13,6 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_protect
 from django.utils import timezone
 from django.db.models import Count
-from django.db.models.functions import TruncDate
 
 from ai_assistant.accounts.models import UserProfile
 from ai_assistant.dashboard.models import BotUsageLog
@@ -26,8 +25,7 @@ import openai
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
 logger = logging.getLogger(__name__)
-
-client = OpenAI()  # Assuming you're using OpenAI wrapper for GPT models
+client = OpenAI()  # Using OpenAI client wrapper
 
 
 @login_required
@@ -43,6 +41,7 @@ def upload_knowledge(request, bot_id):
             knowledge.save()
 
             from .models import KnowledgeChunk
+            # Remove old chunks for this knowledge file
             KnowledgeChunk.objects.filter(knowledge_file=knowledge).delete()
 
             try:
@@ -56,6 +55,7 @@ def upload_knowledge(request, bot_id):
 
                 logger.info(f"Uploaded file processed into {len(chunks)} chunks.")
 
+                # Generate embeddings for chunks
                 for chunk in created_chunks:
                     try:
                         embedding = generate_embedding(chunk.text)
@@ -158,7 +158,7 @@ def bot_chat_playground(request, bot_id):
 @login_required
 @csrf_protect
 def ajax_chat(request, bot_id):
-    print(f"Received request for bot ID {bot_id}")
+    logger.info(f"ajax_chat called for bot ID {bot_id} by user {request.user.username}")
     if request.method != 'POST':
         return HttpResponseNotAllowed(['POST'])
 
@@ -168,7 +168,7 @@ def ajax_chat(request, bot_id):
         return JsonResponse({'response': "⚠️ Please enter a message."}, status=400)
 
     bot = get_object_or_404(Bot, id=bot_id, owner=request.user)
-    print(f"Bot found: {bot.name}")
+    logger.info(f"Bot found: {bot.name}")
 
     profile, _ = UserProfile.objects.get_or_create(user=request.user)
     profile.reset_daily_count()
@@ -205,7 +205,6 @@ def ajax_chat(request, bot_id):
 
         context_text = "\n\n".join(context_chunks)
 
-    # Prepare system prompt based on bot category
     category_prompt = {
         "general": "You are a helpful assistant who answers clearly and concisely.",
         "fitness": "You are a fitness coach giving motivating, accurate health advice.",
@@ -258,12 +257,16 @@ def ajax_chat(request, bot_id):
     profile.increment_message_count()
 
     # Always create usage log, even if usage info is missing
-    BotUsageLog.objects.create(
-        user=request.user,
-        bot=bot,
-        message=user_message,
-        token_count=usage.total_tokens if usage else 0
-    )
+    try:
+        BotUsageLog.objects.create(
+            user=request.user,
+            bot=bot,
+            message=user_message,
+            token_count=usage.total_tokens if usage else 0
+        )
+        logger.info(f"BotUsageLog created for user {request.user.username}, bot {bot.name}")
+    except Exception as e:
+        logger.error(f"Failed to create BotUsageLog: {e}")
 
     return JsonResponse({'response': bot_response})
 
@@ -283,6 +286,8 @@ def analytics_dashboard(request):
         "labels": [entry["bot__name"] for entry in usage_by_bot],
         "counts": [entry["total"] for entry in usage_by_bot],
     }
+
+    logger.info(f"User {request.user.username} analytics data: {bot_data}")
 
     return render(request, "bots/analytics_dashboard.html", {
         "bot_data": json.dumps(bot_data),
