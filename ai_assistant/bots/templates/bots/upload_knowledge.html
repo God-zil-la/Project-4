@@ -17,22 +17,20 @@
 
 <!-- Chat form -->
 <form id="chat-form" autocomplete="off" style="display:flex; gap: 10px; margin-bottom: 1rem;">
+    {% csrf_token %}
     <input id="chat-input" type="text" name="message" placeholder="Type your message..."
         style="flex-grow: 1; padding: 8px;" required />
     <button type="submit" style="padding: 8px 15px;">Send</button>
 </form>
 
 <!-- Upload knowledge form -->
-<form action="{% url 'bots:upload_knowledge' bot.id %}" method="post" enctype="multipart/form-data"
-    class="upload-knowledge-container">
+<form method="post" enctype="multipart/form-data" class="upload-knowledge-container">
     {% csrf_token %}
-    <label for="knowledge-file">Upload knowledge file:</label>
-    <input type="file" name="knowledge_file" id="knowledge-file" required>
+    {{ knowledge_form.as_p }}
     <button type="submit" class="btn btn-primary" style="margin-top: 0.5rem;">Upload</button>
 </form>
 
 <style>
-    /* Chat message styles */
     .chat-message.user {
         text-align: right;
         color: #333;
@@ -57,7 +55,6 @@
         border-radius: 4px;
     }
 
-    /* Upload knowledge container styling */
     .upload-knowledge-container {
         background: var(--nav-bg);
         padding: 1.5rem 2rem;
@@ -70,28 +67,6 @@
         display: flex;
         flex-direction: column;
         gap: 0.5rem;
-    }
-
-    .upload-knowledge-container label {
-        font-weight: 600;
-        color: var(--accent-color);
-        font-size: 1rem;
-    }
-
-    .upload-knowledge-container input[type="file"] {
-        padding: 0.6rem;
-        border-radius: 12px;
-        border: 1px solid var(--button-border);
-        background-color: rgba(255, 255, 255, 0.05);
-        color: var(--text-color);
-        cursor: pointer;
-        transition: border-color 0.3s ease;
-    }
-
-    .upload-knowledge-container input[type="file"]:hover,
-    .upload-knowledge-container input[type="file"]:focus {
-        border-color: var(--accent-color);
-        outline: none;
     }
 
     .upload-knowledge-container button.btn-primary {
@@ -120,87 +95,91 @@
         const chatForm = document.getElementById('chat-form');
         const chatInput = document.getElementById('chat-input');
         const chatBox = document.getElementById('chat-box');
-        const botId = {{ bot.id }
-    };
+        const botId = '{{ bot.id }}';
 
-    function appendMessage(sender, text) {
-        const messageDiv = document.createElement('div');
-        messageDiv.className = 'chat-message ' + sender;
-        messageDiv.innerHTML = `<strong>${sender.charAt(0).toUpperCase() + sender.slice(1)}:</strong> ${text.replace(/\n/g, '<br>')}`;
-        chatBox.appendChild(messageDiv);
-        chatBox.scrollTop = chatBox.scrollHeight;
-    }
-
-    function appendInjectedKnowledge(text) {
-        const knowledgeDiv = document.createElement('div');
-        knowledgeDiv.className = 'injected-knowledge';
-        knowledgeDiv.textContent = `📚 Injected Knowledge:\n${text}`;
-        chatBox.appendChild(knowledgeDiv);
-        chatBox.scrollTop = chatBox.scrollHeight;
-    }
-
-    async function sendMessage(userMessage) {
-        if (!userMessage.trim()) return;
-
-        appendMessage('user', userMessage);
-
-        chatInput.value = '';
-        chatInput.disabled = true;
-
-        try {
-            const response = await fetch(`/bots/${botId}/ajax-chat/`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': getCookie('csrftoken'),
-                },
-                body: JSON.stringify({ message: userMessage }),
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                appendMessage('bot', errorData.response || 'An error occurred.');
-                chatInput.disabled = false;
-                return;
-            }
-
-            const data = await response.json();
-            appendMessage('bot', data.response);
-
-            if (data.knowledge && data.knowledge.trim() !== '') {
-                appendInjectedKnowledge(data.knowledge);
-            }
-        } catch (err) {
-            appendMessage('bot', '⚠️ Network error. Please try again.');
-            console.error(err);
-        } finally {
-            chatInput.disabled = false;
-            chatInput.focus();
+        function appendMessage(sender, text) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'chat-message ' + sender;
+            messageDiv.innerHTML = `<strong>${sender.charAt(0).toUpperCase() + sender.slice(1)}:</strong> ${text.replace(/\n/g, '<br>')}`;
+            chatBox.appendChild(messageDiv);
+            chatBox.scrollTop = chatBox.scrollHeight;
         }
-    }
 
-    chatForm.addEventListener('submit', e => {
-        e.preventDefault();
-        const message = chatInput.value;
-        sendMessage(message);
-    });
+        async function loadFullChat() {
+            try {
+                const response = await fetch(`/bots/${botId}/bot_chat_api/`);
+                const data = await response.json();
 
-    // Helper to get CSRF token cookie from browser
-    function getCookie(name) {
-        let cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            const cookies = document.cookie.split(';');
-            for (let i = 0; i < cookies.length; i++) {
-                const cookie = cookies[i].trim();
-                if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
+                chatBox.innerHTML = '';
+
+                data.messages.forEach(msg => {
+                    appendMessage(msg.sender, msg.message);
+                });
+
+                chatBox.scrollTop = chatBox.scrollHeight;
+            } catch (err) {
+                console.error('Failed to load chat history:', err);
+            }
+        }
+
+        async function sendMessage(userMessage) {
+            if (!userMessage.trim()) return;
+
+            appendMessage('user', userMessage);
+            chatInput.value = '';
+            chatInput.disabled = true;
+
+            try {
+                const response = await fetch(`/bots/${botId}/ajax_chat/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken'),
+                    },
+                    body: JSON.stringify({ message: userMessage }),
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    appendMessage('bot', errorData.response || 'An error occurred.');
+                    chatInput.disabled = false;
+                    return;
+                }
+
+                // Reload chat history
+                await loadFullChat();
+
+            } catch (err) {
+                appendMessage('bot', '⚠️ Network error. Please try again.');
+                console.error(err);
+            } finally {
+                chatInput.disabled = false;
+                chatInput.focus();
+            }
+        }
+
+        chatForm.addEventListener('submit', e => {
+            e.preventDefault();
+            const message = chatInput.value;
+            sendMessage(message);
+        });
+
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
                 }
             }
+            return cookieValue;
         }
-        return cookieValue;
-    }
-});
 
+        loadFullChat();
+    });
 </script>
 {% endblock %}

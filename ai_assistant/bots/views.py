@@ -7,7 +7,6 @@ from datetime import timedelta
 
 from openai import OpenAI
 
-from django.template.loader import get_template
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse, HttpResponseNotAllowed
 from django.contrib.auth.decorators import login_required
@@ -16,6 +15,7 @@ from django.views.decorators.csrf import csrf_protect
 from django.utils import timezone
 from django.db.models import Count
 from django.db.models.functions import TruncDate
+from django.contrib import messages  # for notifications
 
 from ai_assistant.accounts.models import UserProfile
 from ai_assistant.dashboard.models import BotUsageLog
@@ -28,67 +28,7 @@ import openai
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
 logger = logging.getLogger(__name__)
-client = OpenAI()  # Using OpenAI client wrapper
-
-
-@login_required
-def upload_knowledge(request, bot_id):
-    bot = get_object_or_404(Bot, id=bot_id, owner=request.user)
-
-    if request.method == 'POST':
-        form = KnowledgeBaseForm(request.POST, request.FILES)
-        if form.is_valid():
-            knowledge = form.save(commit=False)
-            knowledge.bot = bot
-            knowledge.uploaded_by = request.user
-            knowledge.save()
-
-            from .models import KnowledgeChunk
-            # Remove old chunks for this knowledge file to avoid duplicates
-            KnowledgeChunk.objects.filter(knowledge_file=knowledge).delete()
-
-            try:
-                text = extract_text(knowledge.file.path, knowledge.file.name)
-                chunks = chunk_text(text)
-
-                created_chunks = []
-                for chunk_text_part in chunks:
-                    chunk = KnowledgeChunk.objects.create(knowledge_file=knowledge, text=chunk_text_part)
-                    created_chunks.append(chunk)
-
-                logger.info(f"Uploaded file processed into {len(chunks)} chunks.")
-
-                for chunk in created_chunks:
-                    try:
-                        embedding = generate_embedding(chunk.text)
-                        chunk.embedding = embedding
-                        chunk.save(update_fields=['embedding'])
-                    except Exception as e:
-                        logger.error(f"Failed to generate embedding for chunk {chunk.id}: {e}")
-
-                logger.info("Embeddings generated and saved for all chunks.")
-
-            except Exception as e:
-                logger.error(f"Failed to extract or chunk file: {e}")
-                # Optionally: add user notification for failure here
-
-            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-                return JsonResponse({'success': True, 'message': 'Knowledge uploaded successfully.'})
-            else:
-                return redirect('bots:playground', bot_id=bot.id)
-        else:
-            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-                return JsonResponse({'success': False, 'errors': form.errors}, status=400)
-
-    else:
-        form = KnowledgeBaseForm()
-
-    knowledge_files = bot.knowledge_files.all()
-    return render(request, 'bots/upload_knowledge.html', {
-        'form': form,
-        'bot': bot,
-        'knowledge_files': knowledge_files
-    })
+client = OpenAI()
 
 
 @login_required
@@ -122,8 +62,8 @@ def create_bot(request):
 def bot_chat_api(request, bot_id):
     bot = get_object_or_404(Bot, id=bot_id, owner=request.user)
     if request.method == 'GET':
-        messages = ChatMessage.objects.filter(bot=bot, user=request.user).order_by('timestamp')
-        data = [{'sender': m.sender, 'message': m.message} for m in messages]
+        chat_messages = ChatMessage.objects.filter(bot=bot, user=request.user).order_by('timestamp')
+        data = [{'sender': m.sender, 'message': m.message} for m in chat_messages]
         return JsonResponse({'messages': data})
     return HttpResponseNotAllowed(['GET'])
 
@@ -151,16 +91,57 @@ def delete_bot(request, bot_id):
 
 
 @login_required
+@csrf_protect
 def bot_chat_playground(request, bot_id):
     bot = get_object_or_404(Bot, id=bot_id, owner=request.user)
-    messages = ChatMessage.objects.filter(bot=bot, user=request.user).order_by('timestamp')
-    return render(request, 'bots/playground.html', {'bot': bot, 'messages': messages})
+    from .models import KnowledgeChunk
+
+    knowledge_form = KnowledgeBaseForm()
+
+    if request.method == 'POST':
+        if 'knowledge_file' in request.FILES:
+            knowledge_form = KnowledgeBaseForm(request.POST, request.FILES)
+            if knowledge_form.is_valid():
+                knowledge = knowledge_form.save(commit=False)
+                knowledge.bot = bot
+                knowledge.uploaded_by = request.user
+                knowledge.save()
+
+                # Remove old chunks for this knowledge file
+                KnowledgeChunk.objects.filter(knowledge_file=knowledge).delete()
+
+                try:
+                    text = extract_text(knowledge.file.path, knowledge.file.name)
+                    chunks = chunk_text(text)
+                    for chunk_text_part in chunks:
+                        chunk = KnowledgeChunk.objects.create(knowledge_file=knowledge, text=chunk_text_part)
+                        embedding = generate_embedding(chunk.text)
+                        chunk.embedding = embedding
+                        chunk.save(update_fields=['embedding'])
+                    logger.info(f"Successfully uploaded and processed {len(chunks)} chunks.")
+                    messages.success(request, "✅ Your file was uploaded successfully!")
+                except Exception as e:
+                    logger.error(f"Error processing uploaded knowledge: {e}")
+                    messages.error(request, "⚠️ There was an error processing your file.")
+
+                return redirect('bots:playground', bot_id=bot.id)
+            else:
+                messages.error(request, "⚠️ The uploaded file is invalid.")
+
+    chat_messages = ChatMessage.objects.filter(bot=bot, user=request.user).order_by('timestamp')
+
+    return render(request, 'bots/playground.html', {
+        'bot': bot,
+        'chat_messages': chat_messages,   # distinct name for chat history
+        'knowledge_form': knowledge_form,
+    })
 
 
 @login_required
 @csrf_protect
 def ajax_chat(request, bot_id):
     logger.info(f"ajax_chat called for bot ID {bot_id} by user {request.user.username}")
+
     if request.method != 'POST':
         return HttpResponseNotAllowed(['POST'])
 
@@ -185,31 +166,39 @@ def ajax_chat(request, bot_id):
             status=429
         )
 
-    # Save user message
     ChatMessage.objects.create(bot=bot, user=request.user, message=user_message, sender='user')
 
-    # Generate embedding and search knowledge base for context (optional)
-    user_embedding = None
     try:
         user_embedding = generate_embedding(user_message)
     except Exception as e:
         logger.error(f"Embedding generation failed: {e}")
+        user_embedding = None
 
     context_text = ""
     if user_embedding:
         relevant_chunks = search_relevant_chunks(bot, user_embedding, top_k=10)
-        MAX_CONTEXT_CHARS = 1500
 
-        context_chunks = []
-        total_len = 0
-        for chunk in relevant_chunks:
-            chunk_len = len(chunk.text)
-            if total_len + chunk_len > MAX_CONTEXT_CHARS:
-                break
-            context_chunks.append(chunk.text)
-            total_len += chunk_len
+        if relevant_chunks:
+            logger.info(f"Found {len(relevant_chunks)} relevant knowledge chunks.")
+            MAX_CONTEXT_CHARS = 2000
 
-        context_text = "\n\n".join(context_chunks)
+            context_chunks = []
+            total_len = 0
+            for chunk in relevant_chunks:
+                text = chunk.text.strip()
+                if not text:
+                    continue
+                if total_len + len(text) > MAX_CONTEXT_CHARS:
+                    break
+                context_chunks.append(f"- {text}")
+                total_len += len(text)
+
+            if context_chunks:
+                context_text = "\n".join(context_chunks)
+        else:
+            logger.warning("No relevant knowledge chunks found.")
+    else:
+        logger.warning("Failed to generate user embedding.")
 
     category_prompt = {
         "general": "You are a helpful assistant who answers clearly and concisely.",
@@ -220,16 +209,21 @@ def ajax_chat(request, bot_id):
         "tech": "You are a tech specialist explaining technology simply and clearly.",
     }.get(bot.category, "You are a helpful assistant.")
 
-    system_message = f"{category_prompt}"
     if context_text:
-        system_message += f"\n\nHere is some relevant knowledge:\n{context_text}"
+        system_message = (
+            f"{category_prompt}\n\n"
+            "You also have access to the following knowledge base entries that may help answer the question. "
+            "Use them if relevant:\n"
+            f"{context_text}"
+        )
+    else:
+        system_message = category_prompt
 
-    # Call OpenAI API with retries on rate limit
     for attempt in range(3):
         try:
             previous_messages = ChatMessage.objects.filter(bot=bot, user=request.user).order_by('timestamp')
-
             conversation = [{"role": "system", "content": system_message}]
+
             for msg in previous_messages:
                 role = "user" if msg.sender == "user" else "assistant"
                 conversation.append({"role": role, "content": msg.message})
@@ -294,7 +288,7 @@ def analytics_dashboard(request):
 
     return render(request, "bots/analytics_dashboard.html", {
         "bot_data": json.dumps(bot_data),
-        "user_data": json.dumps({  # For symmetry if you want to add user chart later
+        "user_data": json.dumps({
             "labels": [request.user.username],
             "counts": [BotUsageLog.objects.filter(user=request.user).count()]
         }),

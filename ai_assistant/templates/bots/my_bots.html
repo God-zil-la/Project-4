@@ -1,29 +1,29 @@
-{% extends 'base.html' %}
-
+{% extends "base.html" %}
 {% block title %}My Bots{% endblock %}
 
 {% block content %}
-<section class="content">
-    <h1>My Bots</h1>
-    {% if bots %}
-    <ul class="bot-list">
-        {% for bot in bots %}
-        <li class="bot-card">
-            <h3>{{ bot.name }}</h3>
-            <p>{{ bot.description }}</p>
-            <small>Created on {{ bot.created_at|date:"F j, Y" }}</small>
+<h1>My Bots</h1>
 
-            <div class="bot-actions">
-                <a href="{% url 'bots:playground' bot.id %}">Chat</a>
-                <a href="{% url 'bots:edit' bot.id %}">Edit</a>
-                <a href="{% url 'bots:upload_knowledge' bot.id %}">Upload Knowledge</a>
-                <a href="{% url 'bots:delete' bot.id %}" class="btn-danger">Delete</a>
-            </div>
-        </li>
-        {% endfor %}
-    </ul>
-    {% else %}
-    <p>You don't have any bots yet.</p>
-    {% endif %}
-</section>
+<div style="margin-bottom: 1.5rem;">
+    <a href="{% url 'bots:create' %}" class="btn btn-primary">+ Create a Bot</a>
+</div>
+
+{% if bots %}
+<ul class="bot-list">
+    {% for bot in bots %}
+    <li class="bot-card">
+        <h3>{{ bot.name }}</h3>
+        <p>{{ bot.description }}</p>
+        <small>Created on {{ bot.created_at|date:"F j, Y" }}</small>
+        <div style="margin-top: 1rem;">
+            <a href="{% url 'bots:playground' bot.id %}" class="btn">Chat / Upload</a>
+            <a href="{% url 'bots:edit' bot.id %}" class="btn">Edit</a>
+            <a href="{% url 'bots:delete' bot.id %}" class="btn btn-danger">Delete</a>
+        </div>
+    </li>
+    {% endfor %}
+</ul>
+{% else %}
+<p>You don't have any bots yet.</p>
+{% endif %}
 {% endblock %}

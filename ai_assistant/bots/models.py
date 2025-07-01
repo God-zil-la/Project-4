@@ -15,13 +15,12 @@ class KnowledgeBase(models.Model):
 class KnowledgeChunk(models.Model):
     knowledge_file = models.ForeignKey(KnowledgeBase, on_delete=models.CASCADE, related_name='chunks')
     text = models.TextField()
-    embedding = models.JSONField(null=True, blank=True)  # <-- Changed here
+    embedding = models.JSONField(null=True, blank=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"Chunk of {self.knowledge_file.file.name[:30]} ({len(self.text)} chars)"
-
 
 
 class Bot(models.Model):
@@ -106,3 +105,13 @@ class ChatMessage(models.Model):
 
     def __str__(self):
         return f"{self.sender}: {self.message[:50]}"
+
+
+class BotTemplate(models.Model):
+    name = models.CharField(max_length=100)
+    description = models.TextField(blank=True)
+    personality = models.TextField(default="I am a helpful and friendly assistant.")
+    category = models.CharField(max_length=23, choices=Bot.CATEGORY_CHOICES, default='general')
+
+    def __str__(self):
+        return self.name

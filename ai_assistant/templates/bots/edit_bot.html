@@ -2,13 +2,11 @@
 {% block title %}Edit Bot{% endblock %}
 
 {% block content %}
-  <h1>Edit Bot</h1>
-  <p>{{ form.category.label_tag }} {{ form.category }}</p>
-  <form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit" class="btn">Save Changes</button>
-    <a href="{% url 'bots:my-bots' %}" class="btn btn-danger">Cancel</a>
-    <form method="post" style="max-width: 600px; margin: auto;">
-  </form>
+<h1>Edit Bot</h1>
+<form method="post" style="max-width: 600px; margin: auto;">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <button type="submit" class="btn">Save Changes</button>
+  <a href="{% url 'bots:my-bots' %}" class="btn btn-danger">Cancel</a>
+</form>
 {% endblock %}

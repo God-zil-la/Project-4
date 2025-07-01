@@ -8,25 +8,21 @@ from django.core.mail.backends.smtp import EmailBackend
 # Load .env
 load_dotenv()
 
-# SSL fix for Python 3.13
+# SSL fix for Python 3.13+
 ssl._create_default_https_context = ssl.create_default_context(cafile=certifi.where())
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# SECURITY
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "django-insecure-placeholder")
 DEBUG = os.getenv("DJANGO_DEBUG", "False").lower() in ("true", "1")
 
-ALLOWED_HOSTS = [
-    'ai-assistants.herokuapp.com',
-    'ai-assistants-8c06fcfeab86.herokuapp.com',
-]
+ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+if not DEBUG:
+    ALLOWED_HOSTS += [
+        'ai-assistants.herokuapp.com',
+        'ai-assistants-8c06fcfeab86.herokuapp.com',
+    ]
 
-# Add local dev hosts if DEBUG
-if DEBUG:
-    ALLOWED_HOSTS += ['localhost', '127.0.0.1', '192.168.0.106']
-
-# APPLICATIONS
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -40,9 +36,9 @@ INSTALLED_APPS = [
     'ai_assistant.bots',
     'ai_assistant.payments.apps.PaymentsConfig',
     'ai_assistant.accounts.apps.AccountsConfig',
+    'sslserver',
 ]
 
-# MIDDLEWARE
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
@@ -56,7 +52,6 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'ai_assistant.buildabot.urls'
 
-# TEMPLATES
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -75,7 +70,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'ai_assistant.buildabot.wsgi.application'
 
-# DATABASE
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -83,7 +77,6 @@ DATABASES = {
     }
 }
 
-# PASSWORD VALIDATORS
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
     {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
@@ -91,27 +84,43 @@ AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
-# LANGUAGE & TIME
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
 
-# STATIC & MEDIA
 STATIC_URL = '/static/'
-STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+STATICFILES_DIRS = []
+if (BASE_DIR / 'static').exists():
+    STATICFILES_DIRS.append(BASE_DIR / 'static')
+
+if DEBUG:
+    STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
+    print('⚠️ DEVELOPMENT: Using StaticFilesStorage (no manifest)')
+else:
+    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+    print('⚡️ PRODUCTION: Using CompressedManifestStaticFilesStorage')
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-# AUTH REDIRECTS
+if DEBUG:
+    CSRF_COOKIE_SECURE = False
+    SESSION_COOKIE_SECURE = False
+    SECURE_SSL_REDIRECT = False
+else:
+    CSRF_COOKIE_SECURE = True
+    SESSION_COOKIE_SECURE = True
+    SECURE_SSL_REDIRECT = True
+
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
 LOGIN_URL = '/accounts/login/'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
 
-# EMAIL: Patched SendGrid SMTP
 class PatchedEmailBackend(EmailBackend):
     def __init__(self, *args, **kwargs):
         self.ssl_context = ssl.create_default_context(cafile=certifi.where())
@@ -125,31 +134,12 @@ EMAIL_HOST_PASSWORD = os.getenv('SENDGRID_API_KEY')
 EMAIL_USE_TLS = True
 DEFAULT_FROM_EMAIL = 'aibotassistants@gmail.com'
 
-# OPENAI
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-
-# STRIPE
 STRIPE_PUBLIC_KEY = os.getenv("STRIPE_PUBLIC_KEY")
 STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY")
 
-# SECURITY SETTINGS - DEFAULT TRUE
-CSRF_COOKIE_SECURE = True
-SESSION_COOKIE_SECURE = True
-SECURE_SSL_REDIRECT = True
-
-# LOCAL DEV MODE OVERRIDE
-if DEBUG:
-    print('🟢 LOCAL DEVELOPMENT MODE: Disabling SSL redirect and secure cookies.')
-    CSRF_COOKIE_SECURE = False
-    SESSION_COOKIE_SECURE = False
-    SECURE_SSL_REDIRECT = False
-
-SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
-
-# SESSIONS
 SESSION_ENGINE = 'django.contrib.sessions.backends.signed_cookies'
 
-# LOGGING
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -177,11 +167,8 @@ LOGGING = {
     },
 }
 
-# FOR EMAIL LINKS
 SITE_ID = 1
-PASSWORD_RESET_TIMEOUT = 60 * 60 * 24 * 7  # 7 days
-
-# These control password reset URL generation
+PASSWORD_RESET_TIMEOUT = 60 * 60 * 24 * 7
 DEFAULT_DOMAIN = os.getenv("DEFAULT_DOMAIN", "ai-assistants-8c06fcfeab86.herokuapp.com")
 DEFAULT_PROTOCOL = os.getenv("DEFAULT_PROTOCOL", "https")
 

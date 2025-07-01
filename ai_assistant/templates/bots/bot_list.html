@@ -16,12 +16,10 @@
         <p>{{ bot.description }}</p>
         <small>Created on {{ bot.created_at|date:"F j, Y" }}</small>
         <div style="margin-top: 1rem;">
-            <a href="{% url 'bots:playground' bot.id %}" class="btn">Chat</a>
+            <a href="{% url 'bots:playground' bot.id %}" class="btn">Playground / Upload</a>
             <a href="{% url 'bots:edit' bot.id %}" class="btn">Edit</a>
-            <a href="{% url 'bots:upload_knowledge' bot.id %}" class="btn">Upload Knowledge</a>
             <a href="{% url 'bots:delete' bot.id %}" class="btn btn-danger">Delete</a>
         </div>
-
     </li>
     {% endfor %}
 </ul>
