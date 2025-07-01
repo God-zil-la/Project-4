@@ -3,6 +3,7 @@ import json
 import time
 import logging
 from datetime import timedelta
+import traceback
 
 from openai import OpenAI
 
@@ -265,6 +266,7 @@ def ajax_chat(request, bot_id):
             logger.info(f"BotUsageLog created for user {request.user.username}, bot {bot.name}")
         except Exception as e:
             logger.error(f"Failed to create BotUsageLog: {e}")
+            logger.error(traceback.format_exc()) 
 
     return JsonResponse({'response': bot_response})
 
@@ -278,10 +280,14 @@ def analytics_dashboard(request):
         .annotate(total=Count("id"))
         .order_by("-total")
     )
+    print(f"Usage by bot for user {request.user.username}: {list(usage_by_bot)}")  # Debug
+
     bot_data = {
         "labels": [entry["bot__name"] for entry in usage_by_bot],
         "counts": [entry["total"] for entry in usage_by_bot],
     }
+    print(f"Bot data to send to template: {bot_data}")  # Debug
+
     return render(request, "bots/analytics_dashboard.html", {
         "bot_data": bot_data,
     })
