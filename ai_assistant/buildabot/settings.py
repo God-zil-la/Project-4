@@ -15,15 +15,16 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "django-insecure-placeholder")
-DEBUG = False
+DEBUG = os.getenv("DJANGO_DEBUG", "False").lower() in ("true", "1")
 
 ALLOWED_HOSTS = [
     'ai-assistants.herokuapp.com',
     'ai-assistants-8c06fcfeab86.herokuapp.com',
-    'localhost',
-    '127.0.0.1',
-    '192.168.0.106'
 ]
+
+# Add local dev hosts if DEBUG
+if DEBUG:
+    ALLOWED_HOSTS += ['localhost', '127.0.0.1', '192.168.0.106']
 
 # APPLICATIONS
 INSTALLED_APPS = [
@@ -131,14 +132,14 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 STRIPE_PUBLIC_KEY = os.getenv("STRIPE_PUBLIC_KEY")
 STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY")
 
-# SECURITY SETTINGS - BULLETPROOF
+# SECURITY SETTINGS - DEFAULT TRUE
 CSRF_COOKIE_SECURE = True
 SESSION_COOKIE_SECURE = True
 SECURE_SSL_REDIRECT = True
 
-# Allow local HTTP for dev server even if DEBUG is False
-if any(h in ALLOWED_HOSTS for h in ['localhost', '127.0.0.1']):
-    print('🟢 LOCAL DEVELOPMENT DETECTED - Disabling SSL redirect and secure cookies.')
+# LOCAL DEV MODE OVERRIDE
+if DEBUG:
+    print('🟢 LOCAL DEVELOPMENT MODE: Disabling SSL redirect and secure cookies.')
     CSRF_COOKIE_SECURE = False
     SESSION_COOKIE_SECURE = False
     SECURE_SSL_REDIRECT = False
@@ -176,13 +177,12 @@ LOGGING = {
     },
 }
 
-
 # FOR EMAIL LINKS
 SITE_ID = 1
-DOMAIN = 'ai-assistants.herokuapp.com'
+PASSWORD_RESET_TIMEOUT = 60 * 60 * 24 * 7  # 7 days
 
-PASSWORD_RESET_TIMEOUT = 60 * 60 * 24 * 7  # 7 days in seconds
+# These control password reset URL generation
+DEFAULT_DOMAIN = os.getenv("DEFAULT_DOMAIN", "ai-assistants-8c06fcfeab86.herokuapp.com")
+DEFAULT_PROTOCOL = os.getenv("DEFAULT_PROTOCOL", "https")
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-DEFAULT_DOMAIN = "ai-assistants-8c06fcfeab86.herokuapp.com"
-DEFAULT_PROTOCOL = "https"

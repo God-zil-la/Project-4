@@ -10,7 +10,6 @@ from django.template.loader import get_template
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse, HttpResponseNotAllowed
 from django.contrib.auth.decorators import login_required
-from django.contrib.admin.views.decorators import staff_member_required
 from django.views.decorators.csrf import csrf_protect
 from django.utils import timezone
 from django.db.models import Count
@@ -275,65 +274,13 @@ def ajax_chat(request, bot_id):
     return JsonResponse({'response': bot_response})
 
 
-
-
-@staff_member_required
-def admin_dashboard(request):
-    from django.contrib.auth.models import User
-    users = User.objects.all()
-    bots = Bot.objects.all()
-    messages = ChatMessage.objects.order_by('-timestamp')[:50]
-
-    total_logs = BotUsageLog.objects.count()
-
-    top_bots = (
-        BotUsageLog.objects.values('bot__name')
-        .annotate(count=Count('id'))
-        .order_by('-count')[:5]
-    )
-
-    top_users = (
-        BotUsageLog.objects.values('user__username')
-        .annotate(count=Count('id'))
-        .order_by('-count')[:5]
-    )
-
-    today = timezone.now().date()
-    week_ago = today - timedelta(days=6)
-
-    daily_logs = (
-        BotUsageLog.objects
-        .filter(timestamp__date__gte=week_ago)
-        .annotate(day=TruncDate('timestamp'))
-        .values('day')
-        .annotate(count=Count('id'))
-        .order_by('day')
-    )
-
-    chart_labels = [entry['day'].strftime('%b %d') for entry in daily_logs]
-    chart_data = [entry['count'] for entry in daily_logs]
-
-    return render(request, 'bots/admin_dashboard.html', {
-        'users': users,
-        'bots': bots,
-        'messages': messages,
-        'total_logs': total_logs,
-        'top_bots': top_bots,
-        'top_users': top_users,
-        'chart_labels': chart_labels,
-        'chart_data': chart_data,
-    })
-
-
-@staff_member_required
+@login_required
 def analytics_dashboard(request):
+    # Show only this user's usage logs
     usage_by_bot = (
-        BotUsageLog.objects.values("bot__name")
-        .annotate(total=Count("id"))
-        .order_by("-total")
-    )
-    usage_by_user = (
-        BotUsageLog.objects.values("user__username")
+        BotUsageLog.objects
+        .filter(user=request.user)
+        .values("bot__name")
         .annotate(total=Count("id"))
         .order_by("-total")
     )
@@ -343,12 +290,6 @@ def analytics_dashboard(request):
         "counts": [entry["total"] for entry in usage_by_bot],
     }
 
-    user_data = {
-        "labels": [entry["user__username"] for entry in usage_by_user],
-        "counts": [entry["total"] for entry in usage_by_user],
-    }
-
     return render(request, "bots/analytics_dashboard.html", {
         "bot_data": json.dumps(bot_data),
-        "user_data": json.dumps(user_data),
     })
