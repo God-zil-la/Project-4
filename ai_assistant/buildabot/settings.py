@@ -181,6 +181,8 @@ LOGGING = {
 SITE_ID = 1
 DOMAIN = 'ai-assistants.herokuapp.com'
 
+PASSWORD_RESET_TIMEOUT = 60 * 60 * 24 * 7  # 7 days in seconds
+
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 DEFAULT_DOMAIN = "ai-assistants-8c06fcfeab86.herokuapp.com"
 DEFAULT_PROTOCOL = "https"
