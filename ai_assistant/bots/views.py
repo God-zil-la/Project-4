@@ -273,7 +273,6 @@ def ajax_chat(request, bot_id):
 
 @login_required
 def analytics_dashboard(request):
-    # Show only this user's usage logs
     usage_by_bot = (
         BotUsageLog.objects
         .filter(user=request.user)
@@ -281,14 +280,10 @@ def analytics_dashboard(request):
         .annotate(total=Count("id"))
         .order_by("-total")
     )
-
     bot_data = {
         "labels": [entry["bot__name"] for entry in usage_by_bot],
         "counts": [entry["total"] for entry in usage_by_bot],
     }
-
-    logger.info(f"User {request.user.username} analytics data: {bot_data}")
-
     return render(request, "bots/analytics_dashboard.html", {
-        "bot_data": json.dumps(bot_data),
+        "bot_data": bot_data,  # Python dict, not JSON string
     })
