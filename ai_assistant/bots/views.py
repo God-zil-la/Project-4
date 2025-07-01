@@ -180,8 +180,10 @@ def ajax_chat(request, bot_id):
             status=429
         )
 
+    # Save this user message
     ChatMessage.objects.create(bot=bot, user=request.user, message=user_message, sender='user')
 
+    # Optional: Generate embedding and search for knowledge context
     user_embedding = None
     try:
         user_embedding = generate_embedding(user_message)
@@ -204,6 +206,7 @@ def ajax_chat(request, bot_id):
 
         context_text = "\n\n".join(context_chunks)
 
+    # Create system prompt
     category_prompt = {
         "general": "You are a helpful assistant who answers clearly and concisely.",
         "fitness": "You are a fitness coach giving motivating, accurate health advice.",
@@ -217,19 +220,32 @@ def ajax_chat(request, bot_id):
     if context_text:
         system_message += f"\n\nHere is some relevant knowledge:\n{context_text}"
 
-    # ---- ✅ FIXED OpenAI call ----
+    # === ✅ Persistent conversation ===
     for attempt in range(3):
         try:
+            previous_messages = ChatMessage.objects.filter(
+                bot=bot, user=request.user
+            ).order_by('timestamp')
+
+            conversation = [{"role": "system", "content": system_message}]
+
+            # Add full history
+            for msg in previous_messages:
+                role = "user" if msg.sender == "user" else "assistant"
+                conversation.append({"role": role, "content": msg.message})
+
+            # Include the new message
+            conversation.append({"role": "user", "content": user_message})
+
+            # Call OpenAI
             response = client.chat.completions.create(
                 model="gpt-3.5-turbo",
-                messages=[
-                    {"role": "system", "content": system_message},
-                    {"role": "user", "content": user_message}
-                ]
+                messages=conversation
             )
             bot_response = response.choices[0].message.content.strip()
             usage = response.usage
             break
+
         except Exception as e:
             err_msg = str(e).lower()
             if "rate limit" in err_msg or "too many requests" in err_msg:
@@ -257,6 +273,7 @@ def ajax_chat(request, bot_id):
         )
 
     return JsonResponse({'response': bot_response})
+
 
 
 

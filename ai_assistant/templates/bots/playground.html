@@ -140,22 +140,30 @@
         const chatForm = document.getElementById('chat-form');
         const chatInput = document.getElementById('chat-input');
         const chatBox = document.getElementById('chat-box');
-        const botId = '{{ bot.id }}';  // Ensure this is correctly formatted
+        const botId = '{{ bot.id }}';
 
         function appendMessage(sender, text) {
             const messageDiv = document.createElement('div');
             messageDiv.className = 'chat-message ' + sender;
             messageDiv.innerHTML = `<strong>${sender.charAt(0).toUpperCase() + sender.slice(1)}:</strong> ${text.replace(/\n/g, '<br>')}`;
             chatBox.appendChild(messageDiv);
-            chatBox.scrollTop = chatBox.scrollHeight;  // Scroll to the bottom
         }
 
-        function appendInjectedKnowledge(text) {
-            const knowledgeDiv = document.createElement('div');
-            knowledgeDiv.className = 'injected-knowledge';
-            knowledgeDiv.textContent = `📚 Injected Knowledge:\n${text}`;
-            chatBox.appendChild(knowledgeDiv);
-            chatBox.scrollTop = chatBox.scrollHeight;
+        async function loadFullChat() {
+            try {
+                const response = await fetch(`/bots/${botId}/bot_chat_api/`);
+                const data = await response.json();
+
+                chatBox.innerHTML = '';
+
+                data.messages.forEach(msg => {
+                    appendMessage(msg.sender, msg.message);
+                });
+
+                chatBox.scrollTop = chatBox.scrollHeight;
+            } catch (err) {
+                console.error('Failed to load chat history:', err);
+            }
         }
 
         async function sendMessage(userMessage) {
@@ -163,7 +171,7 @@
 
             appendMessage('user', userMessage);
             chatInput.value = '';
-            chatInput.disabled = true;  // Disable input until response is received
+            chatInput.disabled = true;
 
             try {
                 const response = await fetch(`/bots/${botId}/ajax_chat/`, {
@@ -182,18 +190,15 @@
                     return;
                 }
 
-                const data = await response.json();
-                appendMessage('bot', data.response);
+                // NEW: Reload full chat after sending
+                await loadFullChat();
 
-                if (data.knowledge && data.knowledge.trim() !== '') {
-                    appendInjectedKnowledge(data.knowledge);
-                }
             } catch (err) {
                 appendMessage('bot', '⚠️ Network error. Please try again.');
                 console.error(err);
             } finally {
                 chatInput.disabled = false;
-                chatInput.focus();  // Focus back on input after the response
+                chatInput.focus();
             }
         }
 
@@ -217,6 +222,10 @@
             }
             return cookieValue;
         }
+
+        // Load full chat history on initial page load
+        loadFullChat();
     });
 </script>
+
 {% endblock %}
