@@ -28,69 +28,19 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    const botData = JSON.parse('{{ bot_data|escapejs }}');
-
-    if (botData.labels.length) {
-        const ctx = document.getElementById('botUsageChart').getContext('2d');
-        new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: botData.labels,
-                datasets: [{
-                    label: 'Messages Sent',
-                    data: botData.counts,
-                    backgroundColor: 'var(--accent-color, goldenrod)',
-                    borderRadius: 8,
-                }]
-            },
-            options: {
-                animation: {
-                    duration: 1500,
-                    easing: 'easeOutQuart'
-                },
-                responsive: true,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        grid: {
-                            color: 'rgba(255,255,255,0.05)'
-                        },
-                        title: {
-                            display: true,
-                            text: 'Messages Count',
-                            color: 'var(--accent-color)'
-                        },
-                        ticks: {
-                            color: 'var(--text-color)'
-                        }
-                    },
-                    x: {
-                        grid: {
-                            color: 'rgba(255,255,255,0.05)'
-                        },
-                        title: {
-                            display: true,
-                            text: 'Bot Name',
-                            color: 'var(--accent-color)'
-                        },
-                        ticks: {
-                            color: 'var(--text-color)'
-                        }
-                    }
-                },
-                plugins: {
-                    legend: { display: false },
-                    tooltip: {
-                        backgroundColor: 'var(--nav-bg)',
-                        titleColor: 'var(--accent-color)',
-                        bodyColor: 'var(--text-color)',
-                        borderColor: 'var(--accent-color)',
-                        borderWidth: 1
-                    }
-                }
-            }
-        });
-    }
+    const ctx = document.getElementById('botUsageChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['Test Bot 1', 'Test Bot 2'],
+            datasets: [{
+                label: 'Messages Sent',
+                data: [5, 3],
+                backgroundColor: 'goldenrod',
+                borderRadius: 8
+            }]
+        }
+    });
 </script>
 
 <style>
