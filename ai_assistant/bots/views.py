@@ -48,7 +48,7 @@ def upload_knowledge(request, bot_id):
             try:
                 text = extract_text(knowledge.file.path, knowledge.file.name)
                 chunks = chunk_text(text)
-                
+
                 created_chunks = []
                 for chunk_text_part in chunks:
                     chunk = KnowledgeChunk.objects.create(knowledge_file=knowledge, text=chunk_text_part)
@@ -93,7 +93,7 @@ def bot_list(request):
     logger.info("bot_list view called")
     template = get_template('bots/bot_list.html')
     logger.info(f"Loaded bot_list.html from: {template.origin}")
-    bots = Bot.objects.filter(owner=request.user) 
+    bots = Bot.objects.filter(owner=request.user)
     return render(request, 'bots/bot_list.html', {'bots': bots})
 
 
@@ -179,10 +179,10 @@ def ajax_chat(request, bot_id):
             status=429
         )
 
-    # Save this user message
+    # Save user message
     ChatMessage.objects.create(bot=bot, user=request.user, message=user_message, sender='user')
 
-    # Optional: Generate embedding and search for knowledge context
+    # Generate embedding and search knowledge base for context (optional)
     user_embedding = None
     try:
         user_embedding = generate_embedding(user_message)
@@ -205,7 +205,7 @@ def ajax_chat(request, bot_id):
 
         context_text = "\n\n".join(context_chunks)
 
-    # Create system prompt
+    # Prepare system prompt based on bot category
     category_prompt = {
         "general": "You are a helpful assistant who answers clearly and concisely.",
         "fitness": "You are a fitness coach giving motivating, accurate health advice.",
@@ -219,24 +219,18 @@ def ajax_chat(request, bot_id):
     if context_text:
         system_message += f"\n\nHere is some relevant knowledge:\n{context_text}"
 
-    # === ✅ Persistent conversation ===
+    # Call OpenAI with persistent conversation
     for attempt in range(3):
         try:
-            previous_messages = ChatMessage.objects.filter(
-                bot=bot, user=request.user
-            ).order_by('timestamp')
+            previous_messages = ChatMessage.objects.filter(bot=bot, user=request.user).order_by('timestamp')
 
             conversation = [{"role": "system", "content": system_message}]
-
-            # Add full history
             for msg in previous_messages:
                 role = "user" if msg.sender == "user" else "assistant"
                 conversation.append({"role": role, "content": msg.message})
 
-            # Include the new message
             conversation.append({"role": "user", "content": user_message})
 
-            # Call OpenAI
             response = client.chat.completions.create(
                 model="gpt-3.5-turbo",
                 messages=conversation
@@ -258,18 +252,18 @@ def ajax_chat(request, bot_id):
                 bot_response = f"[API Error] {str(e)}"
                 usage = None
                 break
-    # ------------------------------
 
+    # Save bot response message
     ChatMessage.objects.create(bot=bot, user=request.user, message=bot_response, sender='bot')
     profile.increment_message_count()
 
-    if usage:
-        BotUsageLog.objects.create(
-            user=request.user,
-            bot=bot,
-            message=user_message,
-            token_count=usage.total_tokens
-        )
+    # Always create usage log, even if usage info is missing
+    BotUsageLog.objects.create(
+        user=request.user,
+        bot=bot,
+        message=user_message,
+        token_count=usage.total_tokens if usage else 0
+    )
 
     return JsonResponse({'response': bot_response})
 
