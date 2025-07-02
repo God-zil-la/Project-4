@@ -1,7 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
 
-
 class KnowledgeBase(models.Model):
     bot = models.ForeignKey('Bot', on_delete=models.CASCADE, related_name='knowledge_files')
     file = models.FileField(upload_to='knowledge_files/')
@@ -11,17 +10,14 @@ class KnowledgeBase(models.Model):
     def __str__(self):
         return f"{self.bot.name} - {self.file.name}"
 
-
 class KnowledgeChunk(models.Model):
     knowledge_file = models.ForeignKey(KnowledgeBase, on_delete=models.CASCADE, related_name='chunks')
     text = models.TextField()
     embedding = models.JSONField(null=True, blank=True)
-
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"Chunk of {self.knowledge_file.file.name[:30]} ({len(self.text)} chars)"
-
 
 class Bot(models.Model):
     CATEGORY_CHOICES = [
@@ -95,7 +91,6 @@ class Bot(models.Model):
     def __str__(self):
         return self.name
 
-
 class ChatMessage(models.Model):
     bot = models.ForeignKey(Bot, on_delete=models.CASCADE, related_name='chat_messages')
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -106,7 +101,6 @@ class ChatMessage(models.Model):
     def __str__(self):
         return f"{self.sender}: {self.message[:50]}"
 
-
 class BotTemplate(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True)
@@ -115,3 +109,12 @@ class BotTemplate(models.Model):
 
     def __str__(self):
         return self.name
+
+class BotUsageLog(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    bot = models.ForeignKey(Bot, on_delete=models.CASCADE)
+    tokens_used = models.IntegerField()
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.username} used {self.tokens_used} tokens on {self.timestamp}"
