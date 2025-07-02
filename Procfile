@@ -1,2 +1,2 @@
 web: gunicorn ai_assistant.buildabot.wsgi --log-file -
-worker: python disc.py
+worker: python ai_assistant/bots/disc.py
