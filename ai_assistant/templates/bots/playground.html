@@ -24,10 +24,30 @@
 </form>
 
 <!-- Upload knowledge form -->
+<h2 style="text-align:center; margin-bottom: 1rem;">Upload Knowledge File for {{ bot.name }}</h2>
+
 <form method="post" enctype="multipart/form-data" class="upload-knowledge-container">
     {% csrf_token %}
-    {{ knowledge_form.as_p }}
-    <button type="submit" class="btn btn-primary" style="margin-top: 0.5rem;">Upload</button>
+
+    {% if messages %}
+    {% for message in messages %}
+    <div class="alert {{ message.tags }}">{{ message }}</div>
+    {% endfor %}
+    {% endif %}
+
+    {{ knowledge_form.non_field_errors }}
+
+    <div class="form-group">
+        <label for="{{ knowledge_form.file.id_for_label }}" style="font-weight:bold;">
+            Upload File (.txt, .pdf, .docx):
+        </label>
+        {{ knowledge_form.file }}
+        {% for error in knowledge_form.file.errors %}
+        <div class="error" style="color:red; margin-top:5px;">{{ error }}</div>
+        {% endfor %}
+    </div>
+
+    <button type="submit" class="btn btn-primary" style="margin-top: 0.5rem;">Upload Knowledge</button>
 </form>
 
 <style>

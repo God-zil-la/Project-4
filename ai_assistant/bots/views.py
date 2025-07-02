@@ -5,7 +5,7 @@ import logging
 import traceback
 from datetime import timedelta
 
-from openai import OpenAI
+import openai  # Corrected import: OpenAI client is now imported directly as 'openai'
 
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse, HttpResponseNotAllowed
@@ -24,12 +24,9 @@ from .forms import BotForm, KnowledgeBaseForm
 from .utils import generate_embedding, search_relevant_chunks, extract_text, chunk_text
 
 # Initialize OpenAI client with API key from environment variables
-import openai
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
 logger = logging.getLogger(__name__)
-client = OpenAI()
-
 
 @login_required
 def bot_list(request):
@@ -37,12 +34,10 @@ def bot_list(request):
     bots = Bot.objects.filter(owner=request.user)
     return render(request, 'bots/bot_list.html', {'bots': bots})
 
-
 @login_required
 def my_bots(request):
     user_bots = Bot.objects.filter(owner=request.user)
     return render(request, 'bots/my_bots.html', {'bots': user_bots})
-
 
 @login_required
 def create_bot(request):
@@ -57,7 +52,6 @@ def create_bot(request):
         form = BotForm()
     return render(request, 'bots/create_bot.html', {'form': form})
 
-
 @login_required
 def bot_chat_api(request, bot_id):
     bot = get_object_or_404(Bot, id=bot_id, owner=request.user)
@@ -66,7 +60,6 @@ def bot_chat_api(request, bot_id):
         data = [{'sender': m.sender, 'message': m.message} for m in chat_messages]
         return JsonResponse({'messages': data})
     return HttpResponseNotAllowed(['GET'])
-
 
 @login_required
 def edit_bot(request, bot_id):
@@ -80,7 +73,6 @@ def edit_bot(request, bot_id):
         form = BotForm(instance=bot)
     return render(request, 'bots/edit_bot.html', {'form': form})
 
-
 @login_required
 def delete_bot(request, bot_id):
     bot = get_object_or_404(Bot, id=bot_id, owner=request.user)
@@ -88,7 +80,6 @@ def delete_bot(request, bot_id):
         bot.delete()
         return redirect('bots:list')
     return render(request, 'bots/confirm_delete.html', {'bot': bot})
-
 
 @login_required
 @csrf_protect
@@ -147,7 +138,6 @@ def bot_chat_playground(request, bot_id):
         'chat_messages': chat_messages,
         'knowledge_form': knowledge_form,
     })
-
 
 @login_required
 @csrf_protect
@@ -242,7 +232,7 @@ def ajax_chat(request, bot_id):
 
             conversation.append({"role": "user", "content": user_message})
 
-            response = client.chat.completions.create(
+            response = openai.ChatCompletion.create(  # Corrected usage of openai
                 model="gpt-3.5-turbo",
                 messages=conversation
             )
@@ -282,7 +272,6 @@ def ajax_chat(request, bot_id):
 
     return JsonResponse({'response': bot_response})
 
-
 @login_required
 def analytics_dashboard(request):
     usage_by_bot = (
@@ -305,7 +294,6 @@ def analytics_dashboard(request):
             "counts": [BotUsageLog.objects.filter(user=request.user).count()]
         }),
     })
-
 
 @staff_member_required
 def admin_dashboard(request):
@@ -353,7 +341,6 @@ def admin_dashboard(request):
         'chart_labels': chart_labels,
         'chart_data': chart_data,
     })
-
 
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
@@ -426,7 +413,7 @@ def api_bot_chat(request, bot_id):
     conversation.append({"role": "user", "content": user_message})
 
     try:
-        response = client.chat.completions.create(
+        response = openai.ChatCompletion.create(  # Corrected usage of openai
             model="gpt-3.5-turbo",
             messages=conversation
         )
@@ -437,4 +424,3 @@ def api_bot_chat(request, bot_id):
     ChatMessage.objects.create(bot=bot, user=user, message=bot_response, sender='bot')
 
     return Response({"response": bot_response})
-

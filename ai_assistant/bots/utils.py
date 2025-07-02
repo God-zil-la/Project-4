@@ -2,10 +2,13 @@ import os
 import re
 import numpy as np
 from dotenv import load_dotenv
-from openai import OpenAI
+import openai
 
+# Load environment variables from .env file
 load_dotenv()
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+# Set OpenAI API key
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
 
 #######################
@@ -110,11 +113,11 @@ def generate_embedding(text):
     Calls OpenAI to generate an embedding for a text chunk.
     """
     try:
-        response = client.embeddings.create(
+        response = openai.Embedding.create(
             input=text,
-            model="text-embedding-3-small"
+            model="text-embedding-ada-002"  # Updated model name
         )
-        return response.data[0].embedding
+        return response['data'][0]['embedding']
     except Exception as e:
         print(f"[ERROR] Embedding generation failed: {e}")
         return None
