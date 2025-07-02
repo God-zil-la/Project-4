@@ -2,6 +2,8 @@ from django.urls import path, reverse_lazy
 from django.contrib.auth import views as auth_views
 from ai_assistant.accounts.forms import CustomPasswordResetForm
 from . import views
+from django.urls import path
+from .api_views import PublicChatAPIView
 
 app_name = 'accounts'
 
@@ -45,4 +47,6 @@ urlpatterns = [
     path('reset/done/', auth_views.PasswordResetCompleteView.as_view(
         template_name='accounts/password_reset_complete.html'
     ), name='password_reset_complete'),
+
+    path('api/public-chat/', PublicChatAPIView.as_view(), name='public-chat-api'),
 ]
