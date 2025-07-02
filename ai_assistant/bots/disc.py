@@ -71,10 +71,10 @@ async def on_message(message):
             # Log the model being used
             print("Using model: gpt-3.5-turbo")  # Log the model being used
 
-            # Use the new OpenAI API method for creating a completion
-            response = openai.Completion.create(
+            # New API method with chat model
+            response = openai.ChatCompletion.create(
                 model="gpt-3.5-turbo",  # Explicitly use gpt-3.5-turbo (or gpt-4 if you have access)
-                prompt=prompt,
+                messages=[{"role": "user", "content": prompt}],
                 max_tokens=150
             )
 
@@ -82,7 +82,7 @@ async def on_message(message):
             print("OpenAI Response:", response)
 
             # Extract and send the generated response from OpenAI
-            bot_response = response.choices[0].text.strip()  # Correct access method for new API
+            bot_response = response['choices'][0]['message']['content']
             await message.channel.send(bot_response)
 
         except Exception as e:
