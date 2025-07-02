@@ -36,10 +36,8 @@ INSTALLED_APPS = [
     'ai_assistant.bots',
     'ai_assistant.payments.apps.PaymentsConfig',
     'ai_assistant.accounts.apps.AccountsConfig',
+    'sslserver',
 ]
-
-if DEBUG:
-    INSTALLED_APPS.append('sslserver')
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
