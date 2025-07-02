@@ -14,4 +14,5 @@ urlpatterns = [
     path('<int:bot_id>/ajax_chat/', views.ajax_chat, name='ajax_chat'),
     path('analytics/', views.analytics_dashboard, name='analytics'),
     path('admin-dashboard/', views.admin_dashboard, name='admin-dashboard'),
+    path('api/bot/<int:bot_id>/chat/', views.api_bot_chat, name='api-bot-chat'),
 ]
