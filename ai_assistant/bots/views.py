@@ -162,7 +162,7 @@ def ajax_chat(request, bot_id):
     profile, _ = UserProfile.objects.get_or_create(user=request.user)
     profile.reset_daily_count()
 
-    if not profile.is_subscribed and profile.daily_message_count >= 10:
+    if not profile.is_subscribed and profile.daily_message_count >= 15:
         return JsonResponse(
             {'response': "⚠️ Daily limit reached. Please subscribe to continue chatting."},
             status=429

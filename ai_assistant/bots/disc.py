@@ -3,6 +3,7 @@ import os
 import openai
 from dotenv import load_dotenv
 import random
+from discord.ext import commands
 
 # Load the token from the .env file
 load_dotenv()
@@ -14,33 +15,29 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 # Set up OpenAI API key
 openai.api_key = OPENAI_API_KEY
 
-# Create an instance of Intents
+# Create an instance of Bot with a command prefix
 intents = discord.Intents.default()
 intents.message_content = True  # Enable the bot to read message content
 
-# Create an instance of the bot with the intents
-client = discord.Client(intents=intents)
+bot = commands.Bot(command_prefix="!", intents=intents)
 
 # Event when the bot has connected to Discord
-@client.event
+@bot.event
 async def on_ready():
-    print(f'Logged in as {client.user}')
+    print(f'Logged in as {bot.user}')
 
 # Event when the bot receives a message
-@client.event
+@bot.event
 async def on_message(message):
-    # Ignore messages from the bot itself
-    if message.author == client.user:
+    if message.author == bot.user:
         return
 
-    print(f"Received message: {message.content}")  # Debugging log
+    print(f"Received message: {message.content}")
 
-    # List of greetings to check
+    # Handle greetings first
     greetings = ['hello', 'hi', 'hey', 'yo', 'hiya', 'greetings']
-
-    # Custom responses for different greetings
     response_dict = {
-        'hello': ["Hello!", "Hi there!", "Hey, how's it going?", "Hello, [user]!"],
+        'hello': ["Hello!", "Hi there!", "Hey, how's it going?", "Hello, {}!"],
         'hi': ["Hi!", "Hey there!", "Hello!"],
         'hey': ["Hey!", "Hi! What's up?", "Hey, how's it going?"],
         'yo': ["Yo!", "What's up?", "Yo, what's good?"],
@@ -48,32 +45,24 @@ async def on_message(message):
         'greetings': ["Greetings!", "Salutations!", "Hello, friend!"]
     }
 
-    # Check if the message content matches any of the greetings exactly
+    # If the message is a greeting, respond and return immediately
     for greeting in greetings:
-        if message.content.lower() == greeting:  # Ensure it's an exact match
-            # Choose a random response from the response_dict
+        if greeting in message.content.lower():  # Substring match for flexibility
             response = random.choice(response_dict[greeting])
-            await message.channel.send(response.replace("[user]", message.author.name))
-            break
+            await message.channel.send(response.format(message.author.name))
+            return  # Stop further processing if it's a greeting
 
-    # Respond to '!hello'
-    if message.content.startswith('!hello'):
-        await message.channel.send('Hello from the bot!')
+    # Handle bot commands (e.g., !hello, !ping)
+    await bot.process_commands(message)
 
-    # Respond to '!ping'
-    elif message.content.startswith('!ping'):
-        await message.channel.send('Pong!')
+    # If the message doesn't start with a command and isn't a greeting, call OpenAI
+    if not message.content.startswith("!"):
+        prompt = f"The user said: '{message.content}'. Please provide a friendly, helpful, and context-aware response."
 
-    # Use OpenAI to respond to any other message
-    else:
-        prompt = f"The user said: {message.content}. Respond like a helpful assistant."
         try:
-            # Log the model being used
-            print("Using model: gpt-3.5-turbo")  # Log the model being used
-
-            # New API method with chat model
+            # Make OpenAI API call using the ChatCompletion endpoint
             response = openai.ChatCompletion.create(
-                model="gpt-3.5-turbo",  # Explicitly use gpt-3.5-turbo (or gpt-4 if you have access)
+                model="gpt-3.5-turbo",  # Specify the model (GPT-3.5 or GPT-4 if available)
                 messages=[{"role": "user", "content": prompt}],
                 max_tokens=150
             )
@@ -81,14 +70,29 @@ async def on_message(message):
             # Log the full OpenAI API response for debugging
             print("OpenAI Response:", response)
 
-            # Extract and send the generated response from OpenAI
+            # Extract the response from OpenAI's API response
             bot_response = response['choices'][0]['message']['content']
             await message.channel.send(bot_response)
 
+        except openai.error.OpenAIError as e:
+            # Handle OpenAI-specific errors
+            await message.channel.send("Sorry, I encountered an issue with OpenAI. Please try again later.")
+            print(f"OpenAI API error: {e}")
+
         except Exception as e:
-            # Catch any other unexpected errors and log them
-            await message.channel.send("Sorry, I couldn't process that request.")
-            print(f"General Error: {e}")
+            # Handle any other unexpected errors
+            await message.channel.send("An unexpected error occurred. Please try again.")
+            print(f"General error: {e}")
+
+# Respond to '!hello' using the commands extension
+@bot.command()
+async def hello(ctx):
+    await ctx.send("Hello from the bot!")
+
+# Respond to '!ping' using the commands extension
+@bot.command()
+async def ping(ctx):
+    await ctx.send("Pong!")
 
 # Run the bot using the token from .env
-client.run(TOKEN)
+bot.run(TOKEN)
