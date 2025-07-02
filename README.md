@@ -389,3 +389,226 @@ Read Messages
 
 Send Messages
 6️⃣ Generate the URL and invite the bot to your server.
+
+🤖 Discord Bot Development in VS Code
+Build and run your Discord bot locally with full OpenAI integration, using VS Code!
+
+✅ Step 1: Create Your Bot in the Discord Developer Portal
+
+1️⃣ Go to 👉 Discord Developer Portal.
+2️⃣ Click "New Application" and give it a name.
+3️⃣ In the sidebar, click Bot and choose "Add Bot".
+4️⃣ Click Reset Token or Copy Token to get your bot's secret token.
+
+⚠️ Keep this token safe! Never commit it to Git.
+5️⃣ Go to OAuth2 > URL Generator.
+
+Select bot as scope.
+
+Set Bot Permissions:
+
+✅ Read Messages
+
+✅ Send Messages
+6️⃣ Copy the generated invite URL.
+7️⃣ Invite your bot to your server.
+
+🖼️ You can add screenshots here:
+
+css
+Kopiera
+Redigera
+![Discord Developer Portal](link-to-your-image)
+![Add Bot](link-to-your-image)
+![Copy Token](link-to-your-image)
+✅ Step 2: Clone This Repository in VS Code
+
+1️⃣ Open VS Code.
+2️⃣ Clone your repo or open the project folder.
+
+bash
+Kopiera
+Redigera
+git clone https://github.com/yourusername/your-repo.git
+cd your-repo
+🖼️ Optional screenshot of VS Code with project open:
+
+css
+Kopiera
+Redigera
+![VS Code Project](link-to-your-image)
+✅ Step 3: Create and Activate a Virtual Environment
+
+1️⃣ In VS Code Terminal:
+
+Create:
+
+bash
+Kopiera
+Redigera
+python -m venv venv
+Activate:
+
+Windows PowerShell:
+
+powershell
+Kopiera
+Redigera
+venv\Scripts\Activate
+macOS / Linux:
+
+bash
+Kopiera
+Redigera
+source venv/bin/activate
+✅ You’ll see (venv) in your terminal prompt.
+
+🖼️ Example:
+
+css
+Kopiera
+Redigera
+![VS Code Terminal with venv activated](link-to-your-image)
+✅ Step 4: Install Dependencies
+
+Install all required packages from requirements.txt:
+
+bash
+Kopiera
+Redigera
+pip install -r requirements.txt
+Includes:
+
+discord.py
+
+openai
+
+python-dotenv
+
+Other project dependencies
+
+🖼️ Example:
+
+css
+Kopiera
+Redigera
+![pip install screenshot](link-to-your-image)
+✅ Step 5: Add Your Secrets to .env
+
+Create a .env file in the project root:
+
+ini
+Kopiera
+Redigera
+DISCORD_TOKEN=your-discord-bot-token
+OPENAI_API_KEY=your-openai-api-key
+⚠️ Important:
+✅ NEVER commit this file to Git.
+✅ Use .gitignore to exclude .env.
+
+🖼️ Example:
+
+arduino
+Kopiera
+Redigera
+![VS Code .env File](link-to-your-image)
+✅ Step 6: Review or Edit the Bot Code
+
+Open discord_bot.py in VS Code:
+
+Customize:
+
+Bot command prefix (default: !)
+
+Greeting messages
+
+OpenAI model (e.g. gpt-3.5-turbo)
+
+Example section in code:
+
+python
+Kopiera
+Redigera
+bot = commands.Bot(command_prefix="!", intents=intents)
+🖼️ Example:
+
+pgsql
+Kopiera
+Redigera
+![VS Code with discord_bot.py open](link-to-your-image)
+✅ Step 7: Run the Bot Locally in VS Code
+
+In your activated virtual environment:
+
+bash
+Kopiera
+Redigera
+python discord_bot.py
+✅ Terminal output:
+
+pgsql
+Kopiera
+Redigera
+Logged in as YourBotName
+🖼️ Example:
+
+arduino
+Kopiera
+Redigera
+![Bot running in terminal](link-to-your-image)
+✅ Step 8: Test Your Bot in Discord
+
+1️⃣ Go to your Discord server.
+2️⃣ Send your bot a message or use commands:
+
+diff
+Kopiera
+Redigera
+!hello
+!ping
+✅ Your bot will:
+
+Respond with friendly greetings
+
+Use OpenAI to answer questions intelligently
+
+🖼️ Example:
+
+css
+Kopiera
+Redigera
+![Discord chat with bot](link-to-your-image)
+✅ Files Involved
+discord_bot.py → Main bot logic and OpenAI integration.
+
+.env → Your Discord Token and OpenAI API key (excluded from Git).
+
+requirements.txt → All Python dependencies.
+
+✅ Example Commands
+yaml
+Kopiera
+Redigera
+!hello    → Bot replies: "Hello from the bot!"
+!ping     → Bot replies: "Pong!"
+Any text  → Bot replies via OpenAI ChatCompletion
+✅ Notes
+
+Works in VS Code terminal with virtual environments.
+
+Designed for local development, but can be deployed to a server.
+
+Make sure your bot has permissions in your Discord server.
+
+🖼️ Suggested Screenshots to Add
+✅ Developer Portal setup
+✅ .env file in VS Code
+✅ VS Code terminal running bot
+✅ Chat example in Discord
+
+📌 Related Links
+Discord Developer Portal
+
+discord.py documentation
+
+OpenAI Python Library
