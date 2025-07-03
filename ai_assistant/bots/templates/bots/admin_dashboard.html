@@ -72,12 +72,8 @@
           <div class="msg-header">
             <strong>{{ msg.user.username }}</strong> → <em>{{ msg.bot.name }}</em>
           </div>
-          <div class="msg-body">
-            {{ msg.message|truncatechars:120 }}
-          </div>
-          <div class="msg-footer">
-            <small>{{ msg.timestamp }}</small>
-          </div>
+          <div class="msg-body">{{ msg.message|truncatechars:120 }}</div>
+          <div class="msg-footer"><small>{{ msg.timestamp }}</small></div>
         </li>
         {% empty %}
         <li>No messages available.</li>
@@ -88,46 +84,59 @@
 </section>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- ✅ This script tag is a safe JSON dump of chart data -->
+<script id="chart-data" type="application/json">
+{
+  "labels": {{ chart_labels|safe }},
+  "data": {{ chart_data|safe }}
+}
+</script>
+
 <script>
-  const ctx = document.getElementById('usageChart').getContext('2d');
-  new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels: {{ chart_labels| safe }},
-    datasets: [{
-      label: 'Bot Logs per Day',
-      data: {{ chart_data| safe }},
-    borderColor: 'var(--accent-color, #0d6efd)',
-    backgroundColor: 'rgba(13, 110, 253, 0.1)',
-    tension: 0.4,
-    fill: true,
-    pointBackgroundColor: 'var(--accent-color, #0d6efd)',
-      }]
-    },
-    options: {
-    responsive: true,
-    plugins: {
-      legend: { display: false },
-      tooltip: {
-        backgroundColor: 'var(--nav-bg)',
-        titleColor: 'var(--accent-color)',
-        bodyColor: 'var(--text-color)',
-        borderColor: 'var(--accent-color)',
-        borderWidth: 1
-      }
-    },
-    scales: {
-      y: {
-        beginAtZero: true,
-        ticks: { color: 'var(--text-color)' },
-        grid: { color: 'rgba(255,255,255,0.05)' }
+  document.addEventListener('DOMContentLoaded', function () {
+    const chartData = JSON.parse(document.getElementById('chart-data').textContent);
+    const ctx = document.getElementById('usageChart').getContext('2d');
+
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: chartData.labels,
+        datasets: [{
+          label: 'Bot Logs per Day',
+          data: chartData.data,
+          borderColor: 'var(--accent-color, #0d6efd)',
+          backgroundColor: 'rgba(13, 110, 253, 0.1)',
+          tension: 0.4,
+          fill: true,
+          pointBackgroundColor: 'var(--accent-color, #0d6efd)'
+        }]
       },
-      x: {
-        ticks: { color: 'var(--text-color)' },
-        grid: { color: 'rgba(255,255,255,0.05)' }
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: 'var(--nav-bg)',
+            titleColor: 'var(--accent-color)',
+            bodyColor: 'var(--text-color)',
+            borderColor: 'var(--accent-color)',
+            borderWidth: 1
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: { color: 'var(--text-color)' },
+            grid: { color: 'rgba(255,255,255,0.05)' }
+          },
+          x: {
+            ticks: { color: 'var(--text-color)' },
+            grid: { color: 'rgba(255,255,255,0.05)' }
+          }
+        }
       }
-    }
-  }
+    });
   });
 </script>
 

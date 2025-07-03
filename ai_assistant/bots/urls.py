@@ -27,4 +27,5 @@ urlpatterns = [
     path('api/bots/<int:pk>/', BotDetailAPIView.as_view(), name='bot-detail'),
     path('api/token/', views.get_user_token, name='get-user-token'),
     path('api/bot/<int:bot_id>/chat/', api_bot_chat, name='api-bot-chat'),
+    path("<int:pk>/discord/", views.discord_connect, name="discord-connect"),
 ]

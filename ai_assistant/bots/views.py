@@ -30,6 +30,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.authtoken.models import Token
 
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
@@ -352,3 +353,26 @@ def get_user_token(request):
     from rest_framework.authtoken.models import Token
     token, _ = Token.objects.get_or_create(user=request.user)
     return Response({'token': token.key})
+
+@login_required
+def discord_connect(request, pk):
+    bot = get_object_or_404(Bot, pk=pk, owner=request.user)
+
+    token, _ = Token.objects.get_or_create(user=request.user)
+
+    example_env = (
+        "DISCORD_TOKEN=   # <-- paste your Discord bot token here\n"
+        f"DJANGO_API_TOKEN={token.key}\n"
+        f"DJANGO_BOT_ID={bot.id}\n"
+    )
+
+    return render(
+        request,
+        "bots/discord_connect.html",
+        {
+            "bot": bot,
+            "api_token": token.key,
+            "example_env": example_env,
+            "invite_link": f"https://discord.com/oauth2/authorize?client_id=YOUR_DISCORD_CLIENT_ID&scope=bot&permissions=0",
+        },
+    )

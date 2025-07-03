@@ -19,6 +19,10 @@
             <a href="{% url 'bots:playground' bot.id %}" class="btn">Chat / Upload</a>
             <a href="{% url 'bots:edit' bot.id %}" class="btn">Edit</a>
             <a href="{% url 'bots:delete' bot.id %}" class="btn btn-danger">Delete</a>
+            <a href="{% url 'bots:discord-connect' bot.id %}" class="btn btn-success" style="margin-left: .25rem;">
+                Connect&nbsp;to&nbsp;Discord
+            </a>
+
         </div>
     </li>
     {% endfor %}
