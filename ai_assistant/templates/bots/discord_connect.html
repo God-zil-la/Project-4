@@ -1,37 +1,159 @@
 {% extends "base.html" %}
 {% load static %}
+
 {% block title %}Connect {{ bot.name }} to Discord{% endblock %}
+
 {% block content %}
-<h1>🤖 Connect <em>{{ bot.name }}</em> to Discord</h1>
+<div class="connect-wrapper">
+    <h1>🤖 Connect <em>{{ bot.name }}</em> to Discord</h1>
+    <ol class="connect-steps">
+        <li>
+            <strong>Create a Discord bot token</strong><br>
+            <small>(Developer Portal → <em>Bot</em> → “Copy token”)</small>
+        </li>
 
-<ol>
-    <li><strong>Create a Discord bot token</strong><br>
-        <small>(Developer Portal → <em>Bot</em> → “Copy token”)</small>
-    </li>
+        <li>
+            <strong>Invite our service bot</strong> to your server:<br>
+            <a class="invite-btn" href="{{ invite_link }}" target="_blank">Invite to Discord</a>
+        </li>
 
-    <li><strong>Invite our service bot</strong> to your server:<br>
-        <a class="btn btn-primary" href="{{ invite_link }}" target="_blank">Invite to Discord</a>
-    </li>
+        <li>
+            <strong>Download the bridge bundle</strong><br>
+            <div class="download-group">
+                <a class="download-btn" download href="{% static 'discord_bridge/bridge.py' %}">bridge.py</a>
+                <a class="download-btn" download href="{% static 'discord_bridge/env.example' %}">env.example</a>
+                <a class="download-btn" download
+                    href="{% static 'discord_bridge/requirements.txt' %}">requirements.txt</a>
+            </div>
+        </li>
 
-    <li><strong>Download the bridge bundle:</strong><br>
-        <a class="btn" download href="{% static 'discord_bridge/bridge.py' %}">bridge.py</a>
-        <a class="btn" download href="{% static 'discord_bridge/.env.example' %}">.env</a>
-        <a class="btn" download href="{% static 'discord_bridge/requirements.txt' %}">requirements.txt</a>
-    </li>
+        <li>
+            <strong>Edit <code>.env</code> — paste your secrets:</strong>
+            <pre class="example-env">{{ example_env }}</pre>
+        </li>
 
-    <li><strong>Edit <code>.env</code></strong> — paste your secrets:
-        <pre>{{ example_env }}</pre>
-    </li>
-
-    <li><strong>Run locally</strong> (copy-&-paste):
-        <pre>
+        <li>
+            <strong>Run locally</strong> (copy & paste):
+            <pre class="shell-steps">
 python -m venv venv
 source venv/bin/activate   # or venv\Scripts\activate on Windows
 pip install -r requirements.txt
 python bridge.py
 </pre>
-    </li>
+        </li>
 
-    <li>Leave that terminal open — your bot is live 🎉</li>
-</ol>
+        <li>
+            Leave that terminal open — your bot is live 🎉
+        </li>
+    </ol>
+</div>
+
+<style>
+    .connect-wrapper {
+        max-width: 780px;
+        margin: 3rem auto;
+        padding: 2rem 2rem;
+        background: var(--nav-bg, #111);
+        border-radius: 18px;
+        box-shadow: 0 10px 35px rgba(0, 0, 0, 0.5);
+    }
+
+    .connect-wrapper h1 {
+        text-align: center;
+        margin-bottom: 2rem;
+        color: var(--accent-color, #0af);
+        font-size: 2.1rem;
+    }
+
+    .connect-steps {
+        counter-reset: step;
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .connect-steps li {
+        position: relative;
+        margin-bottom: 1.8rem;
+        padding: 1.4rem 1.8rem 1.4rem 3.2rem;
+        /* More left padding for text! */
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.025);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        line-height: 1.7;
+        transition: background 0.25s ease, border-color 0.25s ease, transform 0.2s ease;
+    }
+
+
+    .connect-steps li:hover {
+        background: rgba(0, 170, 255, 0.08);
+        border-color: var(--accent-color, #0af);
+        transform: translateY(-2px);
+    }
+
+    .connect-steps li::before {
+        counter-increment: step;
+        content: counter(step) ".";
+        position: absolute;
+        left: 1.3rem;
+        top: 1.3rem;
+        font-weight: 700;
+        font-size: 1.25rem;
+        color: var(--accent-color, #0af);
+    }
+
+    .connect-steps strong {
+        color: var(--accent-color, #0af);
+    }
+
+    .btn,
+    .invite-btn,
+    .download-btn {
+        display: inline-block;
+        margin-top: 0.6rem;
+        padding: 0.5rem 1.2rem;
+        border-radius: 8px;
+        background: var(--accent-color, #0af);
+        color: #fff;
+        text-decoration: none;
+        font-weight: 600;
+        transition: background 0.3s ease, transform 0.2s ease;
+    }
+
+    .btn:hover,
+    .invite-btn:hover,
+    .download-btn:hover {
+        background: #0088cc;
+        transform: scale(1.02);
+    }
+
+    .download-group {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.6rem;
+        margin-top: 0.7rem;
+    }
+
+    pre.example-env,
+    pre.shell-steps {
+        background: #0c0c0c;
+        padding: 0.85rem 1rem;
+        border-radius: 8px;
+        overflow-x: auto;
+        font-size: 0.9rem;
+        line-height: 1.55;
+        margin-top: 0.75rem;
+        color: #ccc;
+    }
+
+    @media (max-width: 600px) {
+        .connect-wrapper {
+            padding: 1.5rem;
+        }
+
+        .connect-steps li {
+            padding: 1.2rem 1.5rem;
+        }
+    }
+</style>
 {% endblock %}
