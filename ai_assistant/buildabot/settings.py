@@ -5,15 +5,15 @@ import ssl
 import certifi
 from pathlib import Path
 from dotenv import load_dotenv
-from django.core.mail.backends.smtp import EmailBackend
 
-# Load .env
+# Define BASE_DIR first!
+BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv()
 
-# SSL fix for Python 3.13+
-ssl._create_default_https_context = ssl.create_default_context(cafile=certifi.where())
+print("SENDGRID_API_KEY =", os.environ.get("SENDGRID_API_KEY"))  
 
-BASE_DIR = Path(__file__).resolve().parent.parent
+# SSL fix for Python 3.13+
+ssl._create_default_https_context = lambda: ssl.create_default_context(cafile=certifi.where())
 
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "django-insecure-placeholder")
 DEBUG = os.getenv("DJANGO_DEBUG", "False").lower() in ("true", "1")
@@ -142,17 +142,10 @@ LOGIN_URL = '/accounts/login/'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
 
-class PatchedEmailBackend(EmailBackend):
-    def __init__(self, *args, **kwargs):
-        self.ssl_context = ssl.create_default_context(cafile=certifi.where())
-        super().__init__(*args, **kwargs)
 
-EMAIL_BACKEND = 'ai_assistant.buildabot.settings.PatchedEmailBackend'
-EMAIL_HOST = 'smtp.sendgrid.net'
-EMAIL_PORT = 587
-EMAIL_HOST_USER = 'apikey'
-EMAIL_HOST_PASSWORD = os.getenv('SENDGRID_API_KEY')
-EMAIL_USE_TLS = True
+EMAIL_BACKEND = "sgbackend.mail.SendGridBackend"
+SENDGRID_API_KEY = os.environ.get("SENDGRID_API_KEY")
+SENDGRID_SANDBOX_MODE_IN_DEBUG = False
 DEFAULT_FROM_EMAIL = 'aibotassistants@gmail.com'
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
