@@ -358,12 +358,11 @@ def get_user_token(request):
 def discord_connect(request, pk):
     bot = get_object_or_404(Bot, pk=pk, owner=request.user)
 
-    token, _ = Token.objects.get_or_create(user=request.user)
-
+    # Show example .env contents with placeholders (not real secrets!)
     example_env = (
-        "DISCORD_TOKEN=   # <-- paste your Discord bot token here\n"
-        f"DJANGO_API_TOKEN={token.key}\n"
-        f"DJANGO_BOT_ID={bot.id}\n"
+        "DISCORD_TOKEN=your_discord_token_here\n"
+        "DJANGO_API_TOKEN=your_django_api_token_here\n"
+        "DJANGO_BOT_ID=your_bot_id_here"
     )
 
     return render(
@@ -371,8 +370,8 @@ def discord_connect(request, pk):
         "bots/discord_connect.html",
         {
             "bot": bot,
-            "api_token": token.key,
+            "api_token": "your_django_api_token_here",
             "example_env": example_env,
-            "invite_link": f"https://discord.com/oauth2/authorize?client_id=YOUR_DISCORD_CLIENT_ID&scope=bot&permissions=0",
+            "invite_link": "https://discord.com/oauth2/authorize?client_id=YOUR_DISCORD_CLIENT_ID&scope=bot&permissions=0",
         },
     )

@@ -9,7 +9,7 @@
     <ol class="connect-steps">
         <li>
             <strong>Create a Discord bot token</strong><br>
-            <small>(Developer Portal → <em>Bot</em> → “Copy token”)</small>
+            <small>(Go to the Discord Developer Portal → <em>Bot</em> → “Copy token”)</small>
         </li>
 
         <li>
@@ -33,22 +33,39 @@
         </li>
 
         <li>
-            <strong>Run locally</strong> (copy & paste):
+            <strong>Run locally</strong><br>
+            <small>(copy & paste the right version for your system)</small>
+            <small>This sets up your Python environment so the bridge can run on your computer.</small>
+            <br><br>
+
+            <strong>💻 For macOS / Linux:</strong>
             <pre class="shell-steps">
-python -m venv venv
-source venv/bin/activate   # or venv\Scripts\activate on Windows
+python3 -m venv venv
+source venv/bin/activate
 pip install -r requirements.txt
 python bridge.py
-</pre>
+            </pre>
+
+            <strong>💻 For Windows (PowerShell or CMD):</strong>
+            <pre class="shell-steps">
+python -m venv venv
+venv\Scripts\activate
+pip install -r requirements.txt
+python bridge.py
+            </pre>
         </li>
 
         <li>
-            Leave that terminal open — your bot is live 🎉
+            <strong>Leave that terminal open — your bot is live 🎉</strong>
         </li>
     </ol>
 </div>
 
 <style>
+    :root {
+        --accent-color: #0af;
+    }
+
     .connect-wrapper {
         max-width: 780px;
         margin: 3rem auto;
@@ -76,14 +93,13 @@ python bridge.py
         position: relative;
         margin-bottom: 1.8rem;
         padding: 1.4rem 1.8rem 1.4rem 3.2rem;
-        /* More left padding for text! */
         border-radius: 14px;
         background: rgba(255, 255, 255, 0.025);
         border: 1px solid rgba(255, 255, 255, 0.08);
         line-height: 1.7;
         transition: background 0.25s ease, border-color 0.25s ease, transform 0.2s ease;
+        color: inherit;
     }
-
 
     .connect-steps li:hover {
         background: rgba(0, 170, 255, 0.08);
@@ -104,6 +120,17 @@ python bridge.py
 
     .connect-steps strong {
         color: var(--accent-color, #0af);
+    }
+
+    .connect-steps li small {
+        display: block;
+        margin-top: 0.3rem;
+        font-size: 0.85rem;
+    }
+
+    /* 👇 ONLY in light mode, set small text to #333 */
+    html:not(.dark) .connect-steps li small {
+        color: #333;
     }
 
     .btn,
@@ -140,10 +167,12 @@ python bridge.py
         padding: 0.85rem 1rem;
         border-radius: 8px;
         overflow-x: auto;
-        font-size: 0.9rem;
-        line-height: 1.55;
+        font-size: 0.85rem;
+        line-height: 1.6;
         margin-top: 0.75rem;
         color: #ccc;
+        white-space: pre-wrap;
+        word-break: break-word;
     }
 
     @media (max-width: 600px) {
@@ -152,7 +181,16 @@ python bridge.py
         }
 
         .connect-steps li {
-            padding: 1.2rem 1.5rem;
+            padding: 1.2rem 1.5rem 1.2rem 2.6rem;
+        }
+    }
+
+    @media (max-width: 400px) {
+
+        pre.example-env,
+        pre.shell-steps {
+            font-size: 0.78rem;
+            line-height: 1.65;
         }
     }
 </style>
