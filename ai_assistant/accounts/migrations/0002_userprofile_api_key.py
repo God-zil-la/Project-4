@@ -2,11 +2,10 @@
 
 from django.db import migrations, models
 
-
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('ai_accounts', '0001_initial'),
+        ('accounts', '0001_initial'),
     ]
 
     operations = [

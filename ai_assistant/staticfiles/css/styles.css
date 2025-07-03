@@ -1,0 +1,551 @@
+/* ================= BASE RESET ================= */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* ================= THEME VARIABLES ================= */
+/* Light (default) theme: warm beige style */
+:root {
+  --bg-color: #f6f2eb;
+  --text-color: #3a3228;
+  --nav-bg: #ebe4d8;
+  --button-bg: #e9dfcf;
+  --button-text: #3a3228;
+  --button-hover: #d8cdbb;
+  --footer-bg: #ebe4d8;
+  --accent-color: #3a3228;
+  --button-border: #281a08;
+  --button-shadow: 0 4px 12px rgba(120, 100, 80, 0.15);
+  --bot-message-bg: #e8e0d0;
+  --bot-message-text: #3a3228;
+}
+
+/* Dark theme overrides */
+html.dark {
+  --bg-color: #0a0f1f;
+  --text-color: #e0e6f0;
+  --nav-bg: linear-gradient(135deg, #0b1b3f, #0a1026);
+  --button-bg: #162447;
+  --button-text: #ffffff;
+  --button-hover: #1f3268;
+  --footer-bg: linear-gradient(135deg, #0b1b3f, #0a1026);
+  --accent-color: #15839d;
+  --button-border: rgb(106 176 193);
+  --button-shadow: none;
+  --bot-message-bg: #1b2436;
+  --bot-message-text: #e0e6f0;
+}
+
+h1 {
+  margin-bottom: 1rem;
+}
+
+/* ================= LAYOUT BASICS ================= */
+html, body {
+  height: 100%;
+  width: 100%;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  line-height: 1.6;
+  transition: background-color 0.4s ease, color 0.4s ease;
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+}
+
+body {
+  min-height: 100vh;
+  flex: 1 0 auto;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ================= NAVIGATION ================= */
+nav {
+  width: 100%;
+  background: var(--nav-bg);
+  padding: 1.5rem 1rem;
+  flex-shrink: 0;
+  box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
+}
+
+nav ul {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 1.5rem;
+  list-style: none;
+  width: 100%;
+}
+
+/* ================= MAIN CONTENT AREA ================= */
+main {
+  flex: 1 0 auto;
+  width: 100%;
+  max-width: 900px;
+  margin: 2rem auto;
+  padding: 1.5rem 2rem;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 16px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
+  transition: all 0.4s ease;
+}
+
+/* Large screen offset only on desktop */
+@media (min-width: 901px) {
+  main.sidebar-layout {
+    padding-left: 10rem;
+    padding-right: 2rem;
+  }
+}
+
+/* ================= NAV LINKS / BUTTONS ================= */
+nav a,
+.nav-btn,
+#toggleTheme,
+button,
+.bot-actions a,
+.chat-playground button,
+.subscribe-button {
+  background: var(--button-bg);
+  color: var(--button-text);
+  border: 1px solid var(--button-border);
+  padding: 0.7rem 1.5rem;
+  border-radius: 0px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  backdrop-filter: blur(4px);
+  box-shadow: var(--button-shadow);
+  transition: all 0.3s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
+  margin: 0.4rem 0;
+  width: auto;
+  max-width: 100%;
+  text-align: center;
+}
+
+nav a:hover,
+.nav-btn:hover,
+#toggleTheme:hover,
+button:hover,
+.bot-actions a:hover,
+.chat-playground button:hover,
+.subscribe-button:hover {
+  background: var(--button-hover);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
+  transform: scale(1.05);
+}
+
+/* ================= RESPONSIVE NAVIGATION ================= */
+@media (max-width: 550px) {
+  nav ul {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+    padding: 0.5rem;
+    justify-items: center;
+  }
+
+  nav a,
+  .nav-btn,
+  #toggleTheme {
+    width: 100%;
+    text-align: center;
+    font-size: 0.85rem;
+    margin: 0;
+  }
+
+  main {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+}
+
+/* ================= TABLET: 551–900px ================= */
+@media (min-width: 551px) and (max-width: 900px) {
+  nav ul {
+    gap: 1rem;
+  }
+
+  nav a,
+  .nav-btn,
+  #toggleTheme {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+    margin: 0.4rem 0;
+  }
+}
+
+/* ================= DANGER BUTTON ================= */
+.btn-danger,
+.bot-actions .btn-danger {
+  background: linear-gradient(145deg, #8b0000, #5a0000);
+  color: #fff;
+  border: none;
+  box-shadow: 0 4px 12px rgba(255, 0, 0, 0.3);
+  transition: all 0.3s ease;
+}
+
+.btn-danger:hover,
+.bot-actions .btn-danger:hover {
+  background: linear-gradient(145deg, #a80000, #6b0000);
+  box-shadow: 0 6px 18px rgba(255, 0, 0, 0.4);
+  transform: scale(1.05);
+}
+
+/* ==== DARK MODE: Make btn-danger text white ==== */
+html.dark .btn-danger,
+html.dark .bot-actions .btn-danger {
+  color: #ffffff;
+}
+
+/* ================= FOOTER ================= */
+footer {
+  width: 100%;
+  background: var(--footer-bg);
+  padding: 2rem 1rem;
+  text-align: center;
+  font-size: 1rem;
+  font-weight: bold;
+  color: var(--button-text);
+  box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.05);
+  flex-shrink: 0;
+  border-top: 1px solid var(--button-border);
+}
+
+/* ================= FORMS ================= */
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-top: 1rem;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"],
+textarea {
+  padding: 0.8rem;
+  border: 1px solid var(--button-border);
+  border-radius: 12px;
+  background-color: rgba(255, 255, 255, 0.02);
+  color: var(--text-color);
+  transition: border 0.3s ease, background-color 0.3s ease;
+}
+
+input:focus,
+textarea:focus {
+  border-color: var(--accent-color);
+  outline: none;
+  background-color: rgba(0, 0, 0, 0.02);
+}
+
+/* ================= SUBSCRIPTION CARD ================= */
+.subscription-card {
+  background: var(--nav-bg);
+  border: 1px solid var(--button-border);
+  border-radius: 16px;
+  padding: 2rem;
+  color: var(--text-color);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s ease, box-shadow 0.3s ease;
+  text-align: center;
+  margin: 2rem auto;
+  max-width: 600px;
+}
+
+.subscription-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.1);
+}
+
+.subscription-card h2 {
+  font-size: 1.8rem;
+  margin-bottom: 0.5rem;
+  color: var(--accent-color);
+}
+
+.subscription-card .price {
+  font-size: 1.4rem;
+  color: var(--accent-color);
+  margin-bottom: 1rem;
+}
+
+.subscription-card p {
+  margin: 0.3rem 0;
+  color: #555;
+}
+
+.subscribe-button {
+  background: var(--button-bg);
+  color: var(--button-text);
+  border: 1px solid var(--button-border);
+  border-radius: 14px;
+  font-weight: bold;
+  box-shadow: var(--button-shadow);
+  transition: all 0.3s ease;
+}
+
+.subscribe-button:hover {
+  background: var(--button-hover);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
+  transform: scale(1.05);
+}
+
+/* ================= CHAT PLAYGROUND ================= */
+.chat-playground {
+  width: 100%;
+  max-width: 420px;
+  margin: 2rem auto;
+  padding: 1.5rem;
+  background-color: rgba(255, 255, 255, 0.02);
+  border-radius: 14px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
+  backdrop-filter: blur(10px);
+}
+
+.chat-playground h2 {
+  font-size: 1.4rem;
+  margin-bottom: 0.5rem;
+  color: var(--accent-color);
+}
+
+.chat-playground p {
+  font-size: 0.85rem;
+  margin-bottom: 1rem;
+  font-style: italic;
+  color: var(--text-color);
+}
+
+.chat-playground .messages {
+  max-height: 300px;
+  overflow-y: auto;
+  margin-bottom: 1rem;
+  border: 1px solid var(--button-border);
+  padding: 0.5rem;
+  border-radius: 10px;
+  background-color: rgba(255, 255, 255, 0.02);
+}
+
+.chat-playground .message {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  padding: 0.4rem 0.6rem;
+  word-wrap: break-word;
+  white-space: normal;
+}
+
+.chat-playground form {
+  display: flex;
+  gap: 0.7rem;
+}
+
+.chat-playground input[type="text"] {
+  flex-grow: 1;
+  padding: 0.7rem;
+  font-size: 0.95rem;
+  border: 1px solid var(--button-border);
+  border-radius: 10px;
+  background-color: rgba(255, 255, 255, 0.02);
+  color: var(--text-color);
+}
+
+/* ================= BOT ACTIONS ================= */
+.bot-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 2.5rem;
+}
+
+.bot-actions a {
+  flex: 1 1 160px;
+  max-width: 240px;
+}
+
+/* ================= FORGOT PASSWORD LINK ================= */
+p a[href$="password-reset/"] {
+  color: var(--accent-color);
+  font-weight: bold;
+  text-decoration: underline;
+}
+
+/* ========== STYLING FOR MY BOTS PAGE ========== */
+
+.content {
+  max-width: 900px;
+  margin: 2rem auto;
+  padding: 1.5rem 2rem;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 16px;
+  box-shadow: 0 0 20px rgba(0,0,0,0.05);
+  backdrop-filter: blur(10px);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: var(--text-color);
+}
+
+.content h1 {
+  font-size: 2rem;
+  margin-bottom: 1.5rem;
+  color: var(--accent-color);
+  text-align: center;
+}
+
+.bot-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.bot-card {
+  background: var(--nav-bg);
+  border-radius: 12px;
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.bot-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.12);
+}
+
+.bot-card h3 {
+  margin-bottom: 0.3rem;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--accent-color);
+  letter-spacing: 0.03em;
+}
+
+.bot-card p {
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+  color: var(--text-color);
+  opacity: 0.85;
+  line-height: 1.4;
+}
+
+.bot-card small {
+  font-size: 0.8rem;
+  color: var(--button-border);
+  font-style: italic;
+}
+
+.bot-card > div {
+  margin-top: 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+}
+
+.btn {
+  background: var(--button-bg);
+  color: var(--button-text);
+  border: 1px solid var(--button-border);
+  padding: 0.6rem 1.2rem;
+  border-radius: 10px;
+  font-weight: 600;
+  text-decoration: none;
+  box-shadow: var(--button-shadow);
+  transition: all 0.3s ease;
+  cursor: pointer;
+  white-space: nowrap;
+  user-select: none;
+  text-align: center;
+}
+
+.btn:hover {
+  background: var(--button-hover);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.1);
+  transform: scale(1.05);
+}
+
+.btn-primary {
+  background: var(--accent-color);
+  color: #fff;
+  border: none;
+  box-shadow: 0 4px 12px rgba(167, 111, 47, 0.4);
+}
+
+.btn-primary:hover {
+  background: #8b5d00;
+  box-shadow: 0 6px 18px rgba(167, 111, 47, 0.6);
+  transform: scale(1.05);
+}
+
+.btn-danger {
+  background: linear-gradient(145deg, #8b0000, #5a0000);
+  color: #fff;
+  border: none;
+  box-shadow: 0 4px 12px rgba(255, 0, 0, 0.3);
+  font-weight: 700;
+  transition: all 0.3s ease;
+}
+
+.btn-danger:hover {
+  background: linear-gradient(145deg, #a80000, #6b0000);
+  box-shadow: 0 6px 18px rgba(255, 0, 0, 0.4);
+  transform: scale(1.05);
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+  .bot-card > div {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .btn {
+    width: 100%;
+    text-align: center;
+  }
+}
+
+/* ==== DARK MODE: Make btn-danger text white ==== */
+html.dark .btn-danger {
+  color: #ffffff;
+}
+
+/* ================= BOT MESSAGE BUBBLES ================= */
+.chat-message.bot {
+  background-color: var(--bot-message-bg);
+  color: var(--bot-message-text);
+  text-align: left;
+  margin: 5px 0;
+  font-weight: bold;
+  font-size: 1.1rem;
+  padding: 10px 15px;
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  max-width: 80%;
+  word-wrap: break-word;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* ================= USER MESSAGE BUBBLES ================= */
+.chat-message.user {
+  text-align: right;
+  color: var(--text-color);
+  margin: 5px 0;
+  font-weight: bold;
+  font-size: 1.1rem;
+  background-color: var(--button-bg);
+  padding: 10px 15px;
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  max-width: 80%;
+  word-wrap: break-word;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}

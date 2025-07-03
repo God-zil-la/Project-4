@@ -3,7 +3,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from ai_assistant.accounts.models import UserProfile
 from ai_assistant.bots.models import Bot, BotUsageLog
-from ai_assistant.bots.openai_client import call_openai  # Adjust this import to your existing GPT call
+from ai_assistant.bots.openai_client import call_openai  # Your GPT call
 from django.core.exceptions import ObjectDoesNotExist
 
 class PublicChatAPIView(APIView):
@@ -18,7 +18,6 @@ class PublicChatAPIView(APIView):
         except UserProfile.DoesNotExist:
             return Response({'error': 'Invalid API key'}, status=401)
 
-        # Example usage limit check (customize as needed)
         if not profile.is_subscribed and profile.daily_message_count >= 5:
             return Response({'error': 'Daily free limit exceeded'}, status=403)
 
@@ -33,12 +32,15 @@ class PublicChatAPIView(APIView):
         except ObjectDoesNotExist:
             return Response({'error': 'Bot not found or unauthorized'}, status=404)
 
-        response_text = call_openai(bot, message)
+        try:
+            response_text = call_openai(bot, message)
+        except Exception as e:
+            return Response({'error': 'OpenAI API error', 'details': str(e)}, status=500)
 
         BotUsageLog.objects.create(
             user=user,
             bot=bot,
-            tokens_used=len(message + response_text)  # Approximate token count
+            tokens_used=len(message) + len(response_text)  # Approximate token count
         )
         profile.increment_message_count()
 

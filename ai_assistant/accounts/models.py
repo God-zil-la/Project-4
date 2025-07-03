@@ -8,7 +8,7 @@ class UserProfile(models.Model):
     is_subscribed = models.BooleanField(default=False)
     daily_message_count = models.IntegerField(default=0)
     last_reset = models.DateField(default=date.today)
-    api_key = models.CharField(max_length=64, unique=True)
+    api_key = models.CharField(max_length=64, unique=True, blank=True)
 
     def reset_daily_count(self):
         if self.last_reset != date.today():

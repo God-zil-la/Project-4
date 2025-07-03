@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('ai_accounts', '0002_userprofile_api_key'),
+        ('accounts', '0002_userprofile_api_key'),
     ]
 
     operations = [

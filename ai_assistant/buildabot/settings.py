@@ -1,3 +1,5 @@
+#D:\shan\OneDrive\Desktop\vs code projekt\ai-assistant\ai_assistant\buildabot\settings.py
+
 import os
 import ssl
 import certifi
@@ -16,12 +18,19 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "django-insecure-placeholder")
 DEBUG = os.getenv("DJANGO_DEBUG", "False").lower() in ("true", "1")
 
+DEBUG = True  # must be True during local dev to allow ngrok host
+
 ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+
+if DEBUG:
+    ALLOWED_HOSTS.append('.ngrok-free.app')  # <-- allows all ngrok subdomains
+
 if not DEBUG:
     ALLOWED_HOSTS += [
         'ai-assistants.herokuapp.com',
         'ai-assistants-8c06fcfeab86.herokuapp.com',
     ]
+
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -54,6 +63,7 @@ MIDDLEWARE = [
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.TokenAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
     ],
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
