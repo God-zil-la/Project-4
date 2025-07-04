@@ -18,9 +18,13 @@ ssl._create_default_https_context = lambda: ssl.create_default_context(cafile=ce
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "django-insecure-placeholder")
 DEBUG = os.getenv("DJANGO_DEBUG", "False").lower() in ("true", "1")
 
-DEBUG = True # must be True during local dev to allow ngrok host
+DEBUG = False # must be True during local dev to allow ngrok host
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+ALLOWED_HOSTS = [
+    'localhost',
+    '127.0.0.1',
+    'ai-assistants-8c06fcfeab86.herokuapp.com',
+]
 
 if DEBUG:
     ALLOWED_HOSTS.append('.ngrok-free.app')  # <-- allows all ngrok subdomains
