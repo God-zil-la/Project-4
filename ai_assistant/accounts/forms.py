@@ -7,8 +7,7 @@ from django.core.mail import EmailMultiAlternatives
 from django.conf import settings
 from django.contrib.sites.shortcuts import get_current_site
 
-
-# ✅ RegisterForm with password confirmation (fixed)
+# ✅ RegisterForm with password confirmation
 class RegisterForm(forms.ModelForm):
     password1 = forms.CharField(
         label="Password",
@@ -40,23 +39,10 @@ class RegisterForm(forms.ModelForm):
         return user
 
 
-# ✅ CustomPasswordResetForm for sending styled password reset emails
+# ✅ CustomPasswordResetForm with request-based domain fix
 class CustomPasswordResetForm(PasswordResetForm):
     def send_mail(self, subject_template_name, email_template_name,
                   context, from_email, to_email, html_email_template_name=None):
-        request = context.get('request')
-        if request:
-            current_site = get_current_site(request)
-            domain = current_site.domain
-            protocol = 'https' if request.is_secure() else 'http'
-        else:
-            domain = getattr(settings, 'DEFAULT_DOMAIN', 'example.com')
-            protocol = getattr(settings, 'DEFAULT_PROTOCOL', 'https')
-
-        context['domain'] = domain
-        context['protocol'] = protocol
-        context['site_name'] = domain
-
         subject = render_to_string(subject_template_name, context).strip()
         body = render_to_string(email_template_name, context)
 
@@ -78,14 +64,22 @@ class CustomPasswordResetForm(PasswordResetForm):
         from django.utils.encoding import force_bytes
         from django.contrib.auth import get_user_model
 
-        email = self.cleaned_data["email"]
         UserModel = get_user_model()
+        email = self.cleaned_data["email"]
         active_users = UserModel._default_manager.filter(email__iexact=email, is_active=True)
+
         for user in active_users:
+            if not domain_override and request:
+                current_site = get_current_site(request)
+                site_name = current_site.name
+                domain = current_site.domain
+            else:
+                site_name = domain = domain_override or getattr(settings, 'DEFAULT_DOMAIN', 'example.com')
+
             context = {
                 'email': email,
-                'domain': domain_override or getattr(settings, 'DEFAULT_DOMAIN'),
-                'site_name': domain_override or getattr(settings, 'DEFAULT_DOMAIN'),
+                'domain': domain,
+                'site_name': site_name,
                 'uid': urlsafe_base64_encode(force_bytes(user.pk)),
                 'user': user,
                 'token': (token_generator or default_token_generator).make_token(user),

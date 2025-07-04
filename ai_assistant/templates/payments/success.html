@@ -3,7 +3,42 @@
 {% block title %}Payment Successful{% endblock %}
 
 {% block content %}
-<h1>✅ Payment Successful</h1>
-<p>Thank you for subscribing to the Pro Bot Plan!</p>
-<a href="/">Return to Dashboard</a>
+<div class="payment-success-container"
+    style="max-width: 600px; margin: 4rem auto; padding: 2rem; background-color: rgba(0,0,0,0.2); border-radius: 12px; text-align: center;">
+    <h1 style="color: #4CAF50; font-size: 2rem; margin-bottom: 1rem;">✅ Payment Successful</h1>
+    <p style="color: #ccc; font-size: 1.1rem; margin-bottom: 2rem;">
+        Thank you for subscribing to the Pro Bot Plan!
+    </p>
+    <a href="/" class="btn-return-dashboard">Return to Dashboard</a>
+</div>
+
+<style>
+    .btn-return-dashboard {
+        display: inline-block;
+        padding: 0.75rem 1.5rem;
+        background-color: #0af;
+        color: #ffffff;
+        text-decoration: none;
+        font-weight: 600;
+        border-radius: 8px;
+        border: 1px solid #0af;
+        transition: background 0.3s ease, transform 0.2s ease;
+    }
+
+    .btn-return-dashboard:hover {
+        background-color: #0088cc;
+        border-color: #0088cc;
+        transform: scale(1.02);
+    }
+
+    @media (prefers-color-scheme: light) {
+        .payment-success-container {
+            background-color: #f9f9f9;
+        }
+
+        .payment-success-container p {
+            color: #333;
+        }
+    }
+</style>
 {% endblock %}

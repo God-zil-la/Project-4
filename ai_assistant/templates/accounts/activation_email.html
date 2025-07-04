@@ -1,19 +1,47 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
+    <meta charset="UTF-8" />
     <title>Activate Your Account</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 </head>
 
-<body>
-    <p>Hi {{ user.username }},</p>
-    <p>Thanks for registering at AI Assistant! Please click the link below to activate your account:</p>
-    <p>
-        <a href="http://{{ domain }}{% url 'accounts:activate' uidb64=uid token=token %}">
-            Activate your account
-        </a>
-    </p>
-    <p>If you didn't sign up for this account, please ignore this email.</p>
+<body style="margin:0; padding:20px; background-color:#f7f7f7; font-family:Arial,sans-serif;">
+    <div
+        style="max-width:600px; margin:auto; background:#ffffff; padding:30px; border-radius:8px; box-shadow:0 4px 12px rgba(0,0,0,0.1);">
+        <h2 style="color:#333333; text-align:center;">
+            Welcome to <span style="color:#28a745;">AI Assistant</span>, {{ user.username }}!
+        </h2>
+
+        <p style="color:#555555; line-height:1.6;">
+            Thank you for registering. To complete your sign-up and activate your account, please click the button
+            below:
+        </p>
+
+        <p style="text-align:center; margin:30px 0;">
+            <a href="{{ activation_link }}"
+                style="background-color:#28a745; color:#ffffff; padding:14px 28px; text-decoration:none; border-radius:4px; display:inline-block;">
+                Activate Your Account
+            </a>
+        </p>
+
+        <p style="color:#555555; line-height:1.6;">
+            If the button above doesn't work, copy and paste this link into your browser:
+        </p>
+        <p style="background-color:#f0f0f0; padding:10px; word-break:break-all; border-radius:4px; font-size:0.95em;">
+            {{ activation_link }}
+        </p>
+
+        <p style="color:#999999; font-size:0.9em;">
+            If you didn’t register for an AI Assistant account, you can safely ignore this email.
+        </p>
+
+        <hr style="border:none; border-top:1px solid #eeeeee; margin:30px 0;">
+        <p style="text-align:center; color:#bbbbbb; font-size:0.85em;">
+            &copy; {{ domain }} – All rights reserved.
+        </p>
+    </div>
 </body>
 
 </html>
