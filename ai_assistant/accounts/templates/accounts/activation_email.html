@@ -6,66 +6,68 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Welcome to AI Assistant</title>
     <style>
-        /* Reset & Base */
+        /* Base Reset */
         body,
         html {
             margin: 0;
             padding: 0;
             height: 100%;
             width: 100%;
-            background-color: #f9fafb;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            color: #333;
+            background-color: #000;
+            font-family: Arial, sans-serif;
+            color: #f0f0f0;
         }
 
         a {
-            color: #28a745;
-            text-decoration: none;
+            color: #FFD700;
+            text-decoration: underline;
+            transition: color 0.3s ease;
         }
 
         a:hover {
-            text-decoration: underline;
+            color: #e6c200;
         }
 
         /* Container */
         .container {
             max-width: 600px;
             margin: 40px auto;
-            background: #ffffff;
+            background: #111;
             border-radius: 12px;
-            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6);
             padding: 40px 30px;
             animation: fadeInUp 0.8s ease forwards;
+            text-align: center;
         }
 
         /* Header */
         h1 {
-            font-size: 2.4em;
-            margin-bottom: 10px;
-            color: #28a745;
-            text-align: center;
+            font-size: 2rem;
+            margin-bottom: 16px;
+            color: #FFD700;
             letter-spacing: 1px;
         }
 
         .highlight {
-            color: #1e7e34;
+            color: #FFD700;
+            font-weight: bold;
         }
 
         /* Paragraph */
         p {
-            font-size: 1.1em;
+            font-size: 1rem;
             line-height: 1.6;
-            margin: 20px 0;
-            text-align: center;
-            color: #555;
+            margin: 16px 0;
+            color: #bbb;
         }
 
         /* Footer */
         .footer {
             margin-top: 30px;
-            font-size: 0.9em;
-            text-align: center;
-            color: #999;
+            font-size: 0.85rem;
+            color: #777;
+            border-top: 1px solid #222;
+            padding-top: 12px;
         }
 
         /* Responsive */
@@ -76,11 +78,11 @@
             }
 
             h1 {
-                font-size: 2em;
+                font-size: 1.75rem;
             }
 
             p {
-                font-size: 1em;
+                font-size: 0.95rem;
             }
         }
 
@@ -103,10 +105,11 @@
     <div class="container" role="main" aria-label="Welcome message">
         <h1>Welcome to <span class="highlight">AI Assistant</span>, {{ user.username }}!</h1>
         <p>We're thrilled to have you on board. Your account is now fully active and ready to explore.</p>
-        <p>Get started by logging in and discovering how AI can assist you every step of the way.</p>
+        <p>Get started by <a href="{{ login_url }}">logging in</a> and discovering how AI can assist you every step of
+            the way.</p>
         <p>If you did not create this account, you can safely ignore this email.</p>
         <div class="footer">
-            <p>© {{ domain }} — All rights reserved.</p>
+            <p>&copy; {{ domain }} 2025 — All rights reserved.</p>
         </div>
     </div>
 </body>

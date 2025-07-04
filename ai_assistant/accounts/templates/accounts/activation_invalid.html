@@ -2,6 +2,52 @@
 {% block title %}Invalid Activation{% endblock %}
 
 {% block content %}
+<style>
+    .activation-invalid {
+        max-width: 600px;
+        margin: 3rem auto;
+        padding: 2rem;
+        background-color: #111;
+        border-radius: 12px;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6);
+        color: #f0f0f0;
+        font-family: Arial, sans-serif;
+    }
+
+    .activation-invalid h2 {
+        color: #FFD700;
+        text-align: center;
+        margin-bottom: 1rem;
+        font-size: 1.8rem;
+    }
+
+    .activation-invalid p {
+        color: #bbb;
+        font-size: 1rem;
+        line-height: 1.5;
+        margin: 1rem 0;
+        text-align: center;
+    }
+
+    .activation-invalid ul {
+        list-style: disc inside;
+        padding-left: 1rem;
+        margin: 1rem 0;
+        color: #ccc;
+        font-size: 0.95rem;
+    }
+
+    .activation-invalid a {
+        color: #FFD700;
+        text-decoration: underline;
+        transition: color 0.3s ease;
+    }
+
+    .activation-invalid a:hover {
+        color: #e6c200;
+    }
+</style>
+
 <div class="activation-invalid">
     <h2>⚠️ Activation Link Invalid or Expired</h2>
     <p>Sorry, the activation link you used is no longer valid.</p>

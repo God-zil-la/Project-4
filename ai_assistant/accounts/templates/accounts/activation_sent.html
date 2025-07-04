@@ -5,32 +5,51 @@
 {% block content %}
 <style>
     .notification-container {
-        max-width: 600px;
-        margin: 60px auto;
-        background: #f0f9f4;
-        border: 2px solid #28a745;
+        max-width: 480px;
+        margin: 3rem auto;
+        background: #111;
         border-radius: 12px;
-        padding: 30px 40px;
-        box-shadow: 0 6px 20px rgba(40, 167, 69, 0.25);
-        animation: fadeInScale 0.8s ease forwards;
+        padding: 2rem;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6);
+        color: #f0f0f0;
+        font-family: Arial, sans-serif;
         text-align: center;
+        animation: fadeInScale 0.8s ease forwards;
     }
 
     .notification-container h2 {
-        color: #19692c;
-        font-size: 2.2rem;
-        margin-bottom: 16px;
+        color: #FFD700;
+        font-size: 1.75rem;
+        margin-bottom: 1rem;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .notification-container h2 .icon {
+        font-size: 1.75rem;
     }
 
     .notification-container p {
-        color: #2f4f3f;
-        font-size: 1.1rem;
-        line-height: 1.6;
-        margin-bottom: 12px;
+        color: #bbb;
+        font-size: 1rem;
+        line-height: 1.5;
+        margin: 0.75rem 0;
+    }
+
+    .notification-container a {
+        color: #FFD700;
+        text-decoration: underline;
+        transition: color 0.3s ease;
+    }
+
+    .notification-container a:hover {
+        color: #e6c200;
     }
 
     .notification-container strong {
-        color: #14521f;
+        color: #FFD700;
     }
 
     @keyframes fadeInScale {
@@ -47,10 +66,9 @@
 </style>
 
 <div class="notification-container" role="alert" aria-live="polite" aria-atomic="true">
-    <h2>✅ Registration Successful</h2>
-    <p>Thank you for creating your account with AI Assistant.</p>
+    <h2><span class="icon">✅</span> Registration Successful</h2>
+    <p>Thank you for creating your account with <strong>AI Assistant</strong>.</p>
     <p>You can now <a href="{% url 'accounts:login' %}">log in</a> and start exploring the platform.</p>
-    <p><strong>Tip:</strong> If you experience any issues, feel free to contact
-        support</a>.</p>
+    <p><strong>Tip:</strong> If you experience any issues, feel free to contact support.</p>
 </div>
 {% endblock %}
