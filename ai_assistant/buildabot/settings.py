@@ -18,7 +18,7 @@ ssl._create_default_https_context = lambda: ssl.create_default_context(cafile=ce
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "django-insecure-placeholder")
 DEBUG = os.getenv("DJANGO_DEBUG", "False").lower() in ("true", "1")
 
-DEBUG = False # must be True during local dev to allow ngrok host
+DEBUG = True # must be True during local dev to allow ngrok host
 
 ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 
@@ -187,3 +187,6 @@ DEFAULT_DOMAIN = os.getenv("DEFAULT_DOMAIN", "ai-assistants-8c06fcfeab86.herokua
 DEFAULT_PROTOCOL = os.getenv("DEFAULT_PROTOCOL", "https")
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+FREE_PLAN_DAILY_LIMIT = 15
+
