@@ -1,5 +1,6 @@
 # D:\shan\OneDrive\Desktop\vs code projekt\ai-assistant\ai_assistant\bots\views.py
 
+from django.conf import settings
 import os
 import json
 import time
@@ -167,7 +168,7 @@ def ajax_chat(request, bot_id):
     profile, _ = UserProfile.objects.get_or_create(user=request.user)
     profile.reset_daily_count()
 
-    if not profile.is_subscribed and profile.daily_message_count >= 15:
+    if not profile.is_subscribed and profile.daily_message_count >= settings.FREE_PLAN_DAILY_LIMIT:
         return JsonResponse(
             {'response': "⚠️ Daily limit reached. Please subscribe to continue chatting."},
             status=429
