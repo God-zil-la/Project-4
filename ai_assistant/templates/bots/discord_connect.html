@@ -22,7 +22,8 @@
                 <ul class="sub-steps">
                     <li>Log in to the <a href="https://discord.com/developers/applications" target="_blank"
                             rel="noopener">Discord Developer Portal</a> and locate your bot.</li>
-                    <li>Copy your bot’s <strong>Client ID</strong> (also called <em>Application ID</em>).</li>
+                    <li>Copy your bot’s <strong>Client ID</strong> (also called <em>Application ID</em>). You can find
+                        it under the <strong>General Information</strong> tab.</li>
                     <li>Paste your Client ID in the field below.</li>
                     <li>Click <strong>Generate Invite Link</strong> to create a personalized authorization link.</li>
                     <li>Click the generated link to invite <strong>your bot</strong> to <strong>your Discord
@@ -32,6 +33,16 @@
 
                 <label for="clientIdInput">Your Bot Client ID:</label><br>
                 <input type="text" id="clientIdInput" placeholder="Paste your bot's Client ID here">
+
+                <label for="permissionsInput">Bot Permissions:</label>
+                <select id="permissionsInput">
+                    <option value="0">None</option>
+                    <option value="2048">Send Messages</option>
+                    <option value="8192">Administrator</option>
+                    <option value="1610612736">Manage Channels</option>
+                    <option value="33554432">Manage Messages</option>
+                </select>
+
                 <button type="button" class="btn" onclick="generateInviteLink()">Generate Invite Link</button>
 
                 <div id="result" style="margin-top: 1em;"></div>
@@ -76,6 +87,17 @@ python bridge.py
 
         <li>
             <strong>Leave that terminal open — your bot is live 🎉</strong>
+        </li>
+
+        <li>
+            <strong>Extra Help & Documentation</strong><br>
+            <small>Need more help? Download our detailed guides below.</small>
+            <div class="download-group">
+                <a class="download-btn" download href="{% static 'discord_bridge/Setup_Guide.pdf' %}">📄 Full Setup
+                    Guide (PDF)</a>
+                <a class="download-btn" download href="{% static 'discord_bridge/Commands_Guide.pdf' %}">🤖 Commands
+                    Guide (PDF)</a>
+            </div>
         </li>
     </ol>
 </div>
@@ -190,9 +212,6 @@ python bridge.py
         transform: scale(1.02);
     }
 
-
-
-
     .download-group {
         display: flex;
         flex-wrap: wrap;
@@ -270,16 +289,21 @@ python bridge.py
 <script>
     function generateInviteLink() {
         const clientId = document.getElementById('clientIdInput').value.trim();
+        const permissions = document.getElementById('permissionsInput').value;
         const resultDiv = document.getElementById('result');
+
         if (!clientId) {
             resultDiv.innerHTML = "<span style='color:red;'>⚠️ Please enter a valid Client ID.</span>";
             return;
         }
-        const inviteURL = `https://discord.com/oauth2/authorize?client_id=${encodeURIComponent(clientId)}&scope=bot&permissions=0`;
+
+        const inviteURL = `https://discord.com/oauth2/authorize?client_id=${encodeURIComponent(clientId)}&scope=bot&permissions=${permissions}`;
+
         resultDiv.innerHTML = `
       ✅ Your personalized invite link:<br>
       <a href="${inviteURL}" target="_blank" rel="noopener">${inviteURL}</a>
     `;
     }
 </script>
+
 {% endblock %}

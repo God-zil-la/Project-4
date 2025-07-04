@@ -66,102 +66,108 @@ The AI Assistant Platform is a full-stack Django web application where users can
 
 ## 🤖 Discord Connection
 
-Easily connect your AI Assistant bot to **Discord** without writing any code!
+Easily connect **your own Discord bot** to our AI Assistant platform.
 
 ---
 
 ### ✅ What It Does
-- Lets users chat with their AI bot directly in their own Discord server.
-- No programming knowledge required.
-- Simple, step-by-step instructions built into the platform.
+- Lets users chat with **their own Discord bot** in their server.
+- Bring Your Own Bot (BYOB) model: you own and control your bot.
+- No shared service bot — full privacy and control.
+- Works on Windows, macOS, and Linux.
 
 ---
 
-### ⚙️ Installation Requirements
+### ⚙️ Requirements
 - **Python 3.8+** installed on your computer.
 - A **Discord account** with permission to add bots to your server.
-- Access to the **Discord Developer Portal** to create your bot and get its token.
-- An internet connection to communicate with the AI Assistant server.
+- Access to the [Discord Developer Portal](https://discord.com/developers/applications) to create your bot.
+- An internet connection to communicate with our AI Assistant service.
 
 ---
 
 ### 📦 What's Included in the Bridge Bundle
-- **`bridge.py`** – The ready-to-run Python script for your Discord bot.
-- **`env.example`** – A sample environment file showing what secrets you need to provide.
-- **`requirements.txt`** – A list of Python packages to install for the bot to work.
+- **`bridge.py`** – Ready-to-run Python script to link your Discord bot to our platform.
+- **`env.example`** – Example environment file showing what secrets to set.
+- **`requirements.txt`** – Python dependencies for easy setup.
+- **`Setup_Guide.pdf`** – Full step-by-step install guide.
+- **`Commands_Guide.pdf`** – How to use and customize bot commands.
+
+✅ All available for download on the **Connect to Discord** page.
 
 ---
 
-### 🛠️ How to Set It Up
+### 🛠️ User Onboarding Steps
 
-#### 1️⃣ **Create a Discord Bot Token**
+#### 1️⃣ **Create Your Discord Bot**
 - Go to the [Discord Developer Portal](https://discord.com/developers/applications).
-- Create a new application and give it a name.
-- Navigate to the **Bot** tab and click **Add Bot**.
-- Click **Copy Token**. **⚠️ Keep this token safe and do not share it!**
+- Create a new application and add a Bot.
+- Click **Copy Token** and **save it** securely.
 
-#### 2️⃣ **Invite Our Service Bot**
-- Click the **Invite to Discord** button in the app.
-- Choose your server and authorize with permissions:
-  - ✅ Read Messages
-  - ✅ Send Messages
+#### 2️⃣ **Get Your Bot's Client ID**
+- Found under **General Information** → **Application ID**.
+- This is required to generate your invite link.
 
-#### 3️⃣ **Download the Bridge Bundle**
-- Contains `bridge.py`, `env.example`, and `requirements.txt`.
-- Provided via download links on the **Connect to Discord** page.
+#### 3️⃣ **Generate Invite Link**
+- Use our **Invite Link Generator** on the site.
+- Paste your **Client ID**.
+- Select permissions (e.g. *Send Messages*).
+- Click **Generate Invite Link**.
+- Authorize **your own bot** in **your server**.
 
-#### 4️⃣ **Edit Your `.env` File**
-- Copy `env.example` to a new file named `.env`.
+✅ The bot will now appear in your server’s member list.
+
+---
+
+#### 4️⃣ **Download the Bridge Bundle**
+- Contains `bridge.py`, `env.example`, `requirements.txt`, `Setup_Guide.pdf`, and `Commands_Guide.pdf`.
+
+---
+
+#### 5️⃣ **Edit Your `.env` File**
+- Duplicate `env.example` as `.env`.
 - Paste your secrets:
 
 ```ini
 DISCORD_TOKEN=your-discord-bot-token
 DJANGO_API_TOKEN=your-django-api-token
 DJANGO_BOT_ID=your-bot-id
-⚠️ Important:
 
-Never commit your .env file to GitHub.
+---
 
-Use .gitignore to exclude it.
+6️⃣ Install Requirements
 
-5️⃣ Run the Bot on Your Computer
 For Windows (PowerShell or CMD):
-bash
-Kopiera
-Redigera
 python -m venv venv
 venv\Scripts\activate
 pip install -r requirements.txt
 python bridge.py
+
 For macOS / Linux:
-bash
-Kopiera
-Redigera
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
 python bridge.py
-✅ That’s it!
+✅ Leave the terminal open.
+✅ Your bot is now live and connected to your AI Assistant.
 
-Leave the terminal open.
+📥 Extra Help & Documentation
+Need more help? Download our detailed guides below:
 
-Your Discord bot is now live and connected to your AI Assistant.
+📄 Setup_Guide.pdf — Step-by-step install instructions
 
-🎨 Theme Support
-Light Mode: Under-instruction text is easy-to-read gray (#333) for clarity.
-
-Dark Mode: Retains your original dark theme styling.
+🤖 Commands_Guide.pdf — Detailed usage and customization of bot commands
 
 ✅ Why This Is Great
-No coding knowledge needed.
+Bring Your Own Bot: total ownership and privacy.
 
-Users can connect their AI bot to Discord in minutes.
+No coding knowledge needed: simple instructions and pre-built bridge.
 
-Fully guided setup built into your platform.
+Cross-platform: Works on Windows, macOS, and Linux.
 
-Works on Windows, macOS, and Linux.
+Fully guided onboarding experience.
 
-Users maintain local control of their bot.
+Free and Paid Plans: Free tier for testing, paid tier for full features.
 
 ---
 
@@ -219,8 +225,6 @@ All bot interactions are logged and can be reviewed by staff through the Django 
 - **Styled Forms:** Clear, accessible registration, login, bot creation, and knowledge upload forms.
 - **Dynamic Feedback:** Django messages show success/error/info notifications consistently.
 - **Accessible Design:** ARIA labels, keyboard focus support on buttons and forms.
-
----
 
 ---
 
@@ -320,7 +324,7 @@ The AI Assistant Platform uses a relational database with Django´s ORM. The des
 ---
 
 ## 📁 Project Structure
-```bash
+
 ai-assistant/
 ├── ai_assistant/        # Project settings
 ├── accounts/            # Authentication system
