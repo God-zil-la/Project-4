@@ -1,12 +1,56 @@
 {% extends "base.html" %}
 
-{% block title %}Activation Sent{% endblock %}
+{% block title %}Registration Complete{% endblock %}
 
 {% block content %}
-<div class="activation-message">
-    <h2>✅ Activation Email Sent</h2>
-    <p>We've sent a confirmation email to the address you provided.</p>
-    <p>Please check your inbox and click the activation link to complete your registration.</p>
-    <p><strong>Tip:</strong> If you don’t see the email, check your <em>spam</em> or <em>junk</em> folder.</p>
+<style>
+    .notification-container {
+        max-width: 600px;
+        margin: 60px auto;
+        background: #f0f9f4;
+        border: 2px solid #28a745;
+        border-radius: 12px;
+        padding: 30px 40px;
+        box-shadow: 0 6px 20px rgba(40, 167, 69, 0.25);
+        animation: fadeInScale 0.8s ease forwards;
+        text-align: center;
+    }
+
+    .notification-container h2 {
+        color: #19692c;
+        font-size: 2.2rem;
+        margin-bottom: 16px;
+    }
+
+    .notification-container p {
+        color: #2f4f3f;
+        font-size: 1.1rem;
+        line-height: 1.6;
+        margin-bottom: 12px;
+    }
+
+    .notification-container strong {
+        color: #14521f;
+    }
+
+    @keyframes fadeInScale {
+        0% {
+            opacity: 0;
+            transform: scale(0.95);
+        }
+
+        100% {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+</style>
+
+<div class="notification-container" role="alert" aria-live="polite" aria-atomic="true">
+    <h2>✅ Registration Successful</h2>
+    <p>Thank you for creating your account with AI Assistant.</p>
+    <p>You can now <a href="{% url 'accounts:login' %}">log in</a> and start exploring the platform.</p>
+    <p><strong>Tip:</strong> If you experience any issues, feel free to contact
+        support</a>.</p>
 </div>
 {% endblock %}

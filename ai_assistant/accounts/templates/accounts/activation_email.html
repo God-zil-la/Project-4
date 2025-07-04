@@ -3,44 +3,111 @@
 
 <head>
     <meta charset="UTF-8" />
-    <title>Activate Your Account</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Welcome to AI Assistant</title>
+    <style>
+        /* Reset & Base */
+        body,
+        html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            width: 100%;
+            background-color: #f9fafb;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #333;
+        }
+
+        a {
+            color: #28a745;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        /* Container */
+        .container {
+            max-width: 600px;
+            margin: 40px auto;
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
+            padding: 40px 30px;
+            animation: fadeInUp 0.8s ease forwards;
+        }
+
+        /* Header */
+        h1 {
+            font-size: 2.4em;
+            margin-bottom: 10px;
+            color: #28a745;
+            text-align: center;
+            letter-spacing: 1px;
+        }
+
+        .highlight {
+            color: #1e7e34;
+        }
+
+        /* Paragraph */
+        p {
+            font-size: 1.1em;
+            line-height: 1.6;
+            margin: 20px 0;
+            text-align: center;
+            color: #555;
+        }
+
+        /* Footer */
+        .footer {
+            margin-top: 30px;
+            font-size: 0.9em;
+            text-align: center;
+            color: #999;
+        }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            .container {
+                padding: 30px 20px;
+                margin: 20px 10px;
+            }
+
+            h1 {
+                font-size: 2em;
+            }
+
+            p {
+                font-size: 1em;
+            }
+        }
+
+        /* Animation */
+        @keyframes fadeInUp {
+            0% {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
 </head>
 
-<body style="margin: 0; padding: 20px; background-color: #f7f7f7; font-family: Arial, sans-serif;">
-    <div
-        style="max-width: 600px; margin: auto; background: #ffffff; padding: 30px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
-        <h2 style="color: #333333; text-align: center;">Welcome to <span style="color: #28a745;">AI Assistant</span>, {{
-            user.username }}!</h2>
-
-        <p style="color: #555555; line-height: 1.6;">
-            Thank you for registering. To complete your sign-up and activate your account, please click the button
-            below:
-        </p>
-
-        <p style="text-align: center; margin: 30px 0;">
-            <a href="{{ activation_link }}"
-                style="background-color: #28a745; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 4px; display: inline-block;">
-                Activate Your Account
-            </a>
-        </p>
-
-        <p style="color: #555555; line-height: 1.6;">
-            If the button above doesn't work, copy and paste this link into your browser:
-        </p>
-        <p
-            style="background-color: #f0f0f0; padding: 10px; word-break: break-all; border-radius: 4px; font-size: 0.95em;">
-            {{ activation_link }}
-        </p>
-
-        <p style="color: #999999; font-size: 0.9em;">
-            If you didn’t register for an AI Assistant account, you can safely ignore this email.
-        </p>
-
-        <hr style="border: none; border-top: 1px solid #eeeeee; margin: 30px 0;">
-        <p style="text-align: center; color: #bbbbbb; font-size: 0.85em;">
-            © {{ domain }} – All rights reserved.
-        </p>
+<body>
+    <div class="container" role="main" aria-label="Welcome message">
+        <h1>Welcome to <span class="highlight">AI Assistant</span>, {{ user.username }}!</h1>
+        <p>We're thrilled to have you on board. Your account is now fully active and ready to explore.</p>
+        <p>Get started by logging in and discovering how AI can assist you every step of the way.</p>
+        <p>If you did not create this account, you can safely ignore this email.</p>
+        <div class="footer">
+            <p>© {{ domain }} — All rights reserved.</p>
+        </div>
     </div>
 </body>
 

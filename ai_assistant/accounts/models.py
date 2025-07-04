@@ -14,15 +14,15 @@ class UserProfile(models.Model):
         if self.last_reset != date.today():
             self.daily_message_count = 0
             self.last_reset = date.today()
-            self.save()
+            self.save(update_fields=['daily_message_count', 'last_reset'])
 
     def increment_message_count(self):
         self.daily_message_count += 1
-        self.save()
+        self.save(update_fields=['daily_message_count'])
 
     def generate_api_key(self):
         self.api_key = secrets.token_hex(32)
-        self.save()
+        self.save(update_fields=['api_key'])
 
     def __str__(self):
         return f"{self.user.username} Profile"
