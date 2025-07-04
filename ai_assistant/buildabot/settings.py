@@ -23,6 +23,7 @@ DEBUG = False # must be True during local dev to allow ngrok host
 ALLOWED_HOSTS = [
     'localhost',
     '127.0.0.1',
+    '.ngrok-free.app',
     'ai-assistants-8c06fcfeab86.herokuapp.com',
 ]
 
