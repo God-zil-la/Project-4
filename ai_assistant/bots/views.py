@@ -50,15 +50,28 @@ def my_bots(request):
 
 @login_required
 def create_bot(request):
+    try:
+        user_profile = request.user.profile
+    except UserProfile.DoesNotExist:
+        user_profile = None
+
+    bot_count = Bot.objects.filter(owner=request.user).count()
+
+    if (not user_profile or not user_profile.is_subscribed) and bot_count >= 3:
+        messages.error(request, "Free plan allows up to 3 bots. Upgrade to Premium for more.")
+        return redirect('bots:my-bots')
+
     if request.method == 'POST':
         form = BotForm(request.POST)
         if form.is_valid():
             bot = form.save(commit=False)
             bot.owner = request.user
             bot.save()
+            messages.success(request, "Bot created successfully!")
             return redirect('bots:my-bots')
     else:
         form = BotForm()
+
     return render(request, 'bots/create_bot.html', {'form': form})
 
 @login_required
@@ -359,7 +372,7 @@ def get_user_token(request):
 def discord_connect(request, pk):
     bot = get_object_or_404(Bot, pk=pk, owner=request.user)
 
-    # Show example .env contents with placeholders (not real secrets!)
+    
     example_env = (
         "DISCORD_TOKEN=your_discord_token_here\n"
         "DJANGO_API_TOKEN=your_django_api_token_here\n"
