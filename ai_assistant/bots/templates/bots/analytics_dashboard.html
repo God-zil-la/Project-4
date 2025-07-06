@@ -23,8 +23,9 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    const botData = JSON.parse('{{ bot_data|escapejs }}');
-    const userData = JSON.parse('{{ user_data|escapejs }}');
+    // Safely parse data or use empty fallback
+    const botData = JSON.parse('{{ bot_data|default:"{}"|escapejs }}');
+    const userData = JSON.parse('{{ user_data|default:"{}"|escapejs }}');
 
     const chartOptions = {
         responsive: true,
@@ -44,22 +45,22 @@
         scales: {
             y: {
                 beginAtZero: true,
-                ticks: { stepSize: 1, color: '#FFFFFF' },
+                ticks: { stepSize: 1, color: getComputedStyle(document.documentElement).getPropertyValue('--text-color') },
                 grid: { color: 'rgba(255,255,255,0.1)' },
                 title: {
                     display: true,
                     text: 'Messages Count',
-                    color: '#CCCCCC',
+                    color: getComputedStyle(document.documentElement).getPropertyValue('--text-color-muted'),
                     font: { weight: '600' }
                 }
             },
             x: {
-                ticks: { color: '#FFFFFF', maxRotation: 45, minRotation: 30 },
+                ticks: { color: getComputedStyle(document.documentElement).getPropertyValue('--text-color'), maxRotation: 45, minRotation: 30 },
                 grid: { display: false },
                 title: {
                     display: true,
                     text: 'Name',
-                    color: '#CCCCCC',
+                    color: getComputedStyle(document.documentElement).getPropertyValue('--text-color-muted'),
                     font: { weight: '600' }
                 }
             }
@@ -69,10 +70,10 @@
     new Chart(document.getElementById('botUsageChart'), {
         type: 'bar',
         data: {
-            labels: botData.labels,
+            labels: botData.labels || [],
             datasets: [{
                 label: 'Messages by Bot',
-                data: botData.counts,
+                data: botData.counts || [],
                 backgroundColor: 'rgba(240, 165, 0, 0.85)',
                 borderColor: 'rgba(240, 165, 0, 1)',
                 borderWidth: 1,
@@ -87,10 +88,10 @@
     new Chart(document.getElementById('userUsageChart'), {
         type: 'bar',
         data: {
-            labels: userData.labels,
+            labels: userData.labels || [],
             datasets: [{
                 label: 'Messages by User',
-                data: userData.counts,
+                data: userData.counts || [],
                 backgroundColor: 'rgba(54, 162, 235, 0.85)',
                 borderColor: 'rgba(54, 162, 235, 1)',
                 borderWidth: 1,
@@ -104,6 +105,18 @@
 </script>
 
 <style>
+    :root {
+        --text-color: #222;
+        --text-color-muted: #555;
+        --chart-bg: #f8f8f8;
+    }
+
+    .dark {
+        --text-color: #EEE;
+        --text-color-muted: #CCC;
+        --chart-bg: #1E1E1E;
+    }
+
     .container {
         max-width: 900px;
         margin: 2rem auto 4rem;
@@ -118,28 +131,20 @@
     .dashboard-header h1,
     .dashboard-intro,
     .chart-title {
-        color: #333;
+        color: var(--text-color);
         transition: color 0.3s ease;
     }
 
-    @media (prefers-color-scheme: dark) {
-
-        .dashboard-header h1,
-        .dashboard-intro,
-        .chart-title {
-            color: #EEE;
-        }
+    .dashboard-intro {
+        font-size: 1.1rem;
+        font-weight: 500;
+        color: var(--text-color-muted);
     }
 
     .dashboard-header h1 {
         font-size: 2.5rem;
         font-weight: 800;
         margin-bottom: 0.25rem;
-    }
-
-    .dashboard-intro {
-        font-size: 1.1rem;
-        font-weight: 500;
     }
 
     .chart-section {
@@ -153,9 +158,9 @@
     }
 
     canvas {
-        background: #1E1E1E;
+        background: var(--chart-bg);
         border-radius: 16px;
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
         padding: 1rem;
     }
 

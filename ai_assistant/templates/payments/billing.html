@@ -22,11 +22,20 @@
   </ul>
 
   <!-- 3. Pricing Box -->
-  <div
-    style="border: 2px solid #fff; padding: 1rem; text-align: center; margin-top: 1rem; background-color: #000000; color: #ffffff;">
-    <h2 style="margin: 0;">$15/month</h2>
-    <p style="margin: 0;">Cancel anytime</p>
+  <div style="
+    border: 2px solid #fff;
+    padding: 1.25rem;
+    text-align: center;
+    margin-top: 1.5rem;
+    background-color: #111;
+    color: #fff;
+    border-radius: 12px;
+    box-shadow: 0 6px 20px rgba(255,255,255,0.1);
+  ">
+    <h2 style="margin: 0; font-size: 2rem;">$15/month</h2>
+    <p style="margin: 0.5rem 0 0; color: #ccc;">Cancel anytime</p>
   </div>
+
 
   <!-- 4. Stripe Payment Form -->
   <form action="{% url 'payments:create_checkout_session' %}" method="POST" id="payment-form"

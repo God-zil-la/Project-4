@@ -6,7 +6,7 @@
     .success-wrapper {
         max-width: 480px;
         margin: 3rem auto;
-        padding: 2rem;
+        padding: 2rem 1rem;
         border-radius: 12px;
         background-color: #111;
         box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6);
@@ -16,26 +16,41 @@
     }
 
     .success-wrapper h2 {
-        color: #FFD700;
+        color: #fff;
         margin-bottom: 1rem;
         font-size: 1.75rem;
+        font-weight: 600;
     }
 
     .success-wrapper p {
-        color: #bbb;
+        color: #ccc;
         font-size: 1rem;
         line-height: 1.5;
         margin: 0.75rem 0;
     }
 
     .success-wrapper a {
-        color: #FFD700;
-        text-decoration: underline;
+        display: inline-block;
+        margin-top: 1rem;
+        padding: 0.5rem 1rem;
+        background-color: #000;
+        color: #fff;
+        border: 2px solid #fff;
+        border-radius: 6px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .success-wrapper a:hover {
+        background-color: #111;
+        border-color: #ccc;
+        color: #ccc;
     }
 
     .success-wrapper .icon {
         font-size: 2rem;
-        color: #FFD700;
+        color: #fff;
         margin-bottom: 0.5rem;
     }
 
@@ -44,13 +59,27 @@
         color: #888;
         margin-top: 1rem;
     }
+
+    @media (max-width: 400px) {
+        .success-wrapper {
+            padding: 1.5rem 0.75rem;
+        }
+
+        .success-wrapper h2 {
+            font-size: 1.5rem;
+        }
+
+        .success-wrapper a {
+            font-size: 0.95rem;
+        }
+    }
 </style>
 
 <div class="success-wrapper">
     <div class="icon">✅</div>
     <h2>Registration Successful</h2>
     <p>Thank you for creating your account with <strong>{{ site_name }}</strong>.</p>
-    <p>You can now <a href="{% url 'accounts:login' %}">log in</a> and start exploring the platform.</p>
+    <a href="{% url 'accounts:login' %}">Log in and Start Exploring</a>
     <p class="tip"><strong>Tip:</strong> If you experience any issues, feel free to contact support.</p>
 </div>
 {% endblock %}

@@ -108,10 +108,19 @@
             </div>
         </div>
 
-        <div style="margin-top: 2rem;">
+        <div style="
+        margin-top: 2rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+        width: 100%;
+        max-width: 300px;
+">
             <a href="{% url 'bots:create' %}" class="nav-btn">Get Started Free</a>
-            <a href="{% url 'payments:billing' %}" class="nav-btn" style="margin-left: 1rem;">Upgrade to Premium</a>
+            <a href="{% url 'payments:billing' %}" class="nav-btn btn-premium">Upgrade to Premium</a>
         </div>
+
     </div>
 </section>
 

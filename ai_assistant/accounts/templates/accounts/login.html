@@ -1,26 +1,157 @@
 {% extends "base.html" %}
+{% block title %}Login{% endblock %}
+
 {% block content %}
-<h2>Login</h2>
+<section class="form-section">
+    <div class="form-wrapper">
+        <h2>Login</h2>
 
-<form method="post" action="{% url 'accounts:login' %}">
-    {% csrf_token %}
+        {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+            <li{% if message.tags %} class="{{ message.tags }}" {% endif %}>{{ message }}</li>
+                {% endfor %}
+        </ul>
+        {% endif %}
 
-    <label for="id_username">Username:</label>
-    <input type="text" name="username" id="id_username" required>
+        <form method="post" action="{% url 'accounts:login' %}">
+            {% csrf_token %}
 
-    <label for="id_password">Password:</label>
-    <input type="password" name="password" id="id_password" required>
+            <div class="form-group">
+                <label for="id_username">Username:</label>
+                <input type="text" name="username" id="id_username" required autocomplete="username">
+            </div>
 
-    <button type="submit">Log in</button>
-</form>
+            <div class="form-group">
+                <label for="id_password">Password:</label>
+                <input type="password" name="password" id="id_password" required autocomplete="current-password">
+            </div>
 
-<p><a href="{% url 'accounts:password_reset' %}">Forgot Password?</a></p>
+            <button type="submit" class="nav-btn">Log in</button>
+        </form>
 
-{% if form.errors %}
-<p style="color:red;">❌ {{ form.errors }}</p>
-{% endif %}
+        <p class="link-helper">
+            <a href="{% url 'accounts:password_reset' %}">Forgot Password?</a>
+        </p>
 
-{% if user.is_authenticated %}
-<p style="color:green;">✅ Logged in as {{ user.username }}</p>
-{% endif %}
+        {% if form.errors %}
+        <div class="form-error">
+            ❌ {{ form.errors }}
+        </div>
+        {% endif %}
+
+        {% if user.is_authenticated %}
+        <div class="form-success">
+            ✅ Logged in as {{ user.username }}
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+<style>
+    .form-section {
+        display: flex;
+        justify-content: center;
+        padding: 2rem 1rem;
+    }
+
+    .form-wrapper {
+        max-width: 400px;
+        width: 100%;
+        background: var(--nav-bg);
+        padding: 2rem;
+        border-radius: 16px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+        color: var(--text-color);
+    }
+
+    .form-wrapper h2 {
+        text-align: center;
+        margin-bottom: 1.5rem;
+        color: var(--accent-color);
+    }
+
+    .form-group {
+        margin-bottom: 1.25rem;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .form-group label {
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+    }
+
+    .form-group input {
+        padding: 0.5rem;
+        border-radius: 6px;
+        border: 1px solid var(--button-border, #ccc);
+        background: var(--input-bg, #fff);
+        color: var(--text-color);
+    }
+
+    .form-group input:focus {
+        outline: none;
+        border-color: var(--accent-color);
+        box-shadow: 0 0 0 2px rgba(240, 165, 0, 0.3);
+    }
+
+    .nav-btn {
+        background: var(--accent-color);
+        color: #fff;
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        width: 100%;
+        font-weight: 600;
+        transition: background 0.3s ease;
+    }
+
+    .nav-btn:hover {
+        background: var(--button-hover);
+    }
+
+    .link-helper {
+        margin-top: 1rem;
+        text-align: center;
+    }
+
+    .link-helper a {
+        color: var(--accent-color);
+        text-decoration: none;
+        font-weight: 600;
+    }
+
+    .link-helper a:hover {
+        text-decoration: underline;
+    }
+
+    .messages {
+        list-style: none;
+        padding: 0;
+        margin-bottom: 1.5rem;
+    }
+
+    .messages li {
+        background: rgba(240, 165, 0, 0.2);
+        padding: 0.75rem;
+        border-radius: 6px;
+        margin-bottom: 0.5rem;
+    }
+
+    .form-error {
+        margin-top: 1rem;
+        color: #ff4c4c;
+        font-weight: 600;
+        text-align: center;
+    }
+
+    .form-success {
+        margin-top: 1rem;
+        color: #4caf50;
+        font-weight: 600;
+        text-align: center;
+    }
+</style>
 {% endblock %}
