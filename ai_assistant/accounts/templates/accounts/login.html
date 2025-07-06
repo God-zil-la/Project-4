@@ -58,17 +58,17 @@
     .form-wrapper {
         max-width: 400px;
         width: 100%;
-        background: var(--nav-bg);
+        background: #111;
         padding: 2rem;
         border-radius: 16px;
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
-        color: var(--text-color);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+        color: #f0f0f0;
     }
 
     .form-wrapper h2 {
         text-align: center;
         margin-bottom: 1.5rem;
-        color: var(--accent-color);
+        color: #00bcd4;
     }
 
     .form-group {
@@ -80,24 +80,30 @@
     .form-group label {
         margin-bottom: 0.5rem;
         font-weight: 600;
+        color: #ccc;
     }
 
     .form-group input {
-        padding: 0.5rem;
+        padding: 0.6rem;
         border-radius: 6px;
-        border: 1px solid var(--button-border, #ccc);
-        background: var(--input-bg, #fff);
-        color: var(--text-color);
+        border: 1px solid #333;
+        background: #222;
+        color: #f0f0f0;
+        font-size: 1rem;
+    }
+
+    .form-group input::placeholder {
+        color: #888;
     }
 
     .form-group input:focus {
         outline: none;
-        border-color: var(--accent-color);
-        box-shadow: 0 0 0 2px rgba(240, 165, 0, 0.3);
+        border-color: #00bcd4;
+        box-shadow: 0 0 0 2px rgba(0, 188, 212, 0.3);
     }
 
     .nav-btn {
-        background: var(--accent-color);
+        background: #00bcd4;
         color: #fff;
         padding: 0.75rem 1.5rem;
         border: none;
@@ -109,7 +115,7 @@
     }
 
     .nav-btn:hover {
-        background: var(--button-hover);
+        background: #0097a7;
     }
 
     .link-helper {
@@ -118,7 +124,7 @@
     }
 
     .link-helper a {
-        color: var(--accent-color);
+        color: #00bcd4;
         text-decoration: none;
         font-weight: 600;
     }
@@ -134,7 +140,7 @@
     }
 
     .messages li {
-        background: rgba(240, 165, 0, 0.2);
+        background: rgba(0, 188, 212, 0.15);
         padding: 0.75rem;
         border-radius: 6px;
         margin-bottom: 0.5rem;
