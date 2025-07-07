@@ -1,6 +1,4 @@
-# D:\shan\OneDrive\Desktop\vs code projekt\ai-assistant\ai_assistant\bots\views.py
-
-from django.conf import settings
+# Standard library imports
 import os
 import json
 import time
@@ -8,30 +6,34 @@ import logging
 import traceback
 from datetime import timedelta
 
-import openai  
-
-from django.shortcuts import render, redirect, get_object_or_404
-from django.http import JsonResponse, HttpResponseNotAllowed
+# Django imports
+from django.conf import settings
+from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
 from django.views.decorators.csrf import csrf_protect
 from django.utils import timezone
 from django.db.models import Count
 from django.db.models.functions import TruncDate
-from django.contrib import messages  
+from django.contrib import messages
+from django.shortcuts import render, redirect, get_object_or_404
+from django.http import JsonResponse, HttpResponseNotAllowed
 
-from ai_assistant.accounts.models import UserProfile
-from ai_assistant.dashboard.models import BotUsageLog
-from .models import Bot, ChatMessage, KnowledgeBase
-from .forms import BotForm, KnowledgeBaseForm
-from .utils import generate_embedding, search_relevant_chunks, extract_text, chunk_text
-
-# DRF imports
+# Third-party imports
+import openai
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.authtoken.models import Token
+
+# Local app imports
+from ai_assistant.accounts.models import UserProfile
+from ai_assistant.dashboard.models import BotUsageLog
+from .models import Bot, ChatMessage, KnowledgeBase, KnowledgeChunk
+from .forms import BotForm, KnowledgeBaseForm
+from .utils import generate_embedding, search_relevant_chunks, extract_text, chunk_text
+
 
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
@@ -107,7 +109,6 @@ def delete_bot(request, bot_id):
 @csrf_protect
 def bot_chat_playground(request, bot_id):
     bot = get_object_or_404(Bot, id=bot_id, owner=request.user)
-    from .models import KnowledgeChunk
 
     knowledge_form = KnowledgeBaseForm()
 
@@ -316,7 +317,6 @@ def analytics_dashboard(request):
 
 @staff_member_required
 def admin_dashboard(request):
-    from django.contrib.auth.models import User
     users = User.objects.all()
     bots = Bot.objects.all()
     messages = ChatMessage.objects.order_by('-timestamp')[:50]
@@ -364,7 +364,6 @@ def admin_dashboard(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_user_token(request):
-    from rest_framework.authtoken.models import Token
     token, _ = Token.objects.get_or_create(user=request.user)
     return Response({'token': token.key})
 
@@ -372,7 +371,6 @@ def get_user_token(request):
 def discord_connect(request, pk):
     bot = get_object_or_404(Bot, pk=pk, owner=request.user)
 
-    
     example_env = (
         "DISCORD_TOKEN=your_discord_token_here\n"
         "DJANGO_API_TOKEN=your_django_api_token_here\n"
