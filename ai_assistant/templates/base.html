@@ -29,8 +29,21 @@
       {% if user.is_staff %}
       <li><a href="{% url 'bots:analytics' %}">Analytics Dashboard</a></li>
       {% endif %}
-      <li>
-        <a href="#" onclick="document.getElementById('logout-form').submit(); return false;" class="nav-btn">Logout</a>
+      <li style="position: relative;">
+        <a href="#" onclick="document.getElementById('logout-form').submit(); return false;" class="nav-btn">
+          Logout
+          {% if messages %}
+          <span style="
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            background-color: #ff5c5c;
+            border-radius: 50%;
+            margin-left: 6px;
+            vertical-align: middle;
+          "></span>
+          {% endif %}
+        </a>
         <form id="logout-form" method="POST" action="{% url 'accounts:logout' %}" style="display: none;">
           {% csrf_token %}
         </form>
@@ -41,6 +54,31 @@
       {% endif %}
     </ul>
   </nav>
+
+  <!-- Global Messages Banner -->
+  {% if messages %}
+  <div style="
+      max-width: 600px;
+      margin: 2rem auto;
+      padding: 1rem 1.5rem;
+      text-align: center;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+      background-color: #ffdddd;
+      border: 1px solid #ff5c5c;
+      color: #a40000;
+      font-size: 1rem;
+      font-weight: 500;
+    ">
+    {% for message in messages %}
+    <div style="
+        margin: 0.5rem 0;
+      ">
+      {{ message }}
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
 
   <button id="toggleTheme" class="toggle-theme" aria-label="Toggle theme">
     <span id="theme-icon">🌙</span>

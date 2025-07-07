@@ -1,4 +1,6 @@
 {% extends "base.html" %}
+{% load static %}
+
 {% block title %}My Bots{% endblock %}
 
 {% block content %}
@@ -21,10 +23,19 @@
 </div>
 {% endif %}
 
+<!-- TOP BUTTONS -->
 <div style="margin-bottom: 1.5rem;">
-    <a href="{% url 'bots:create' %}" class="btn btn-primary">+ Create a Bot</a>
+    <a href="{% url 'bots:create' %}" class="btn btn-primary"
+        style="display: block; width: 100%; text-align: center; margin-bottom: 0.75rem;">
+        + Create a Bot
+    </a>
+    <a href="{% static 'pdf/ai_bot_information_guide.pdf' %}" download class="btn btn-secondary"
+        style="display: block; width: 100%; text-align: center;">
+        📘 Information Guide (PDF)
+    </a>
 </div>
 
+<!-- Bot list -->
 {% if bots %}
 <ul class="bot-list">
     {% for bot in bots %}
