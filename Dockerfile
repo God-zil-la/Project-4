@@ -17,10 +17,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy app code
 COPY . .
 
-# Expose port
+# Expose port (Heroku ignores this, but good practice)
 EXPOSE 8000
 
-# Start app
-CMD ["gunicorn", "ai_assistant.buildabot.wsgi:application", "--bind", "0.0.0.0:8000"]
-
-
+# Start app using Heroku-provided $PORT
+CMD ["sh", "-c", "gunicorn ai_assistant.buildabot.wsgi:application --bind 0.0.0.0:$PORT"]

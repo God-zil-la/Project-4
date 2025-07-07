@@ -18,7 +18,7 @@ ssl._create_default_https_context = lambda: ssl.create_default_context(cafile=ce
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "django-insecure-placeholder")
 DEBUG = os.getenv("DJANGO_DEBUG", "False").lower() in ("true", "1")
 
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = [
     'localhost',
