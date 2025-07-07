@@ -8,7 +8,6 @@ from django.conf import settings
 from django.contrib.sites.shortcuts import get_current_site
 from django.urls import reverse
 
-# ✅ RegisterForm with password confirmation
 class RegisterForm(forms.ModelForm):
     password1 = forms.CharField(
         label="Password",
@@ -40,7 +39,7 @@ class RegisterForm(forms.ModelForm):
         return user
 
 
-# ✅ CustomPasswordResetForm with reset_url pre-rendered
+
 class CustomPasswordResetForm(PasswordResetForm):
     def send_mail(self, subject_template_name, email_template_name,
                   context, from_email, to_email, html_email_template_name=None):
@@ -80,7 +79,7 @@ class CustomPasswordResetForm(PasswordResetForm):
             else:
                 site_name = domain = domain_override or getattr(settings, 'DEFAULT_DOMAIN', 'example.com')
 
-            # ✅ Build the full reset URL here
+            
             uidb64 = urlsafe_base64_encode(force_bytes(user.pk))
             token = (token_generator or default_token_generator).make_token(user)
             reset_path = reverse('accounts:password_reset_confirm', kwargs={'uidb64': uidb64, 'token': token})

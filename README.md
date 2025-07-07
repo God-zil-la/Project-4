@@ -23,7 +23,9 @@ Live Demo: [https://ai-assistant.herokuapp.com](https://ai-assistant.herokuapp.c
 - [✅ Project Requirements Accomplished](#-project-requirements-accomplished)
 - [🧪 Testing & Validation](#-testing--validation)
 - [🌍 Deployment](#-deployment)
+- [🗑️ Removed and Ignored Files](#-removed-and-ignored-files)
 - [🚀 Future Enhancements](#-future-enhancements)
+- [🖼️ Screenshots & Validation Results](#️-screenshots--validation-results)
 - [🙏 Credits](#-credits)
 - [👤 Author](#-author)
 
@@ -352,8 +354,7 @@ Below is a clear mapping of **how this project meets or exceeds all mandatory cr
 ✅ Relational Database: PostgreSQL in production (SQLite locally for dev).  
 ✅ Stripe Payments integration.  
 ✅ Additional Libraries/APIs: OpenAI API, discord.py for bot connections, Django REST Framework, Python-dotenv.
-
-✅ **More than required**: Includes advanced integrations like Discord bot bridge and AI embeddings search.
+✅ Includes advanced integrations like Discord bot bridge and AI embeddings search.
 
 ---
 
@@ -361,8 +362,7 @@ Below is a clear mapping of **how this project meets or exceeds all mandatory cr
 ✅ Fully built with Django’s MVT architecture.  
 ✅ Backend relational database with multiple related models.  
 ✅ Users can create, store, manipulate records about AI assistant bots.
-
-✅ **More than required**: Includes user-uploaded knowledge base with text processing and embeddings.
+✅ Includes user-uploaded knowledge base with text processing and embeddings.
 
 ---
 
@@ -372,8 +372,7 @@ Below is a clear mapping of **how this project meets or exceeds all mandatory cr
 - **bots:** Bot management, chat, Discord integration.  
 - **payments:** Stripe checkout, webhooks.  
 - **dashboard:** Homepage, user analytics.
-
-✅ **More than required**: 4 separate apps, demonstrating solid Django project design.
+✅ 4 separate apps, demonstrating solid Django project design.
 
 ---
 
@@ -385,9 +384,7 @@ Below is a clear mapping of **how this project meets or exceeds all mandatory cr
 - **KnowledgeChunk** — split text chunks with embeddings.  
 - **BotUsageLog** — records usage and token counts.  
 - **UserProfile** — tracks subscription, message limits.
-
-✅ **Exceeds requirement**: 5+ custom models beyond built-in User.
-
+✅ 5+ custom models beyond built-in User.
 ✅ Complex, meaningful relationships designed for real-world usage.
 
 ---
@@ -401,8 +398,7 @@ Below is a clear mapping of **how this project meets or exceeds all mandatory cr
 - Chat with bots.  
 - Upload knowledge.  
 - Access payment/subscription features.
-
-✅ **More than required**: Includes subscription gating for premium bots, per-user ownership checks, CSRF protection everywhere.
+✅ Includes subscription gating for premium bots, per-user ownership checks, CSRF protection everywhere.
 
 ---
 
@@ -413,8 +409,7 @@ Below is a clear mapping of **how this project meets or exceeds all mandatory cr
 - Knowledge upload.  
 ✅ Real-time AJAX chat with validation.  
 ✅ CSRF protection on all POST forms.
-
-✅ **More than required**: Live AJAX chat system with real-time feedback and saved conversation history.
+✅ Live AJAX chat system with real-time feedback and saved conversation history.
 
 ---
 
@@ -424,8 +419,8 @@ Below is a clear mapping of **how this project meets or exceeds all mandatory cr
 ✅ Subscription required for premium bots.  
 ✅ Webhook endpoint in payments app.  
 ✅ User’s premium status enforced in views.
-
-✅ **More than required**: Multi-tier access control system using Stripe integration.
+✅ Multi-tier access control system using Stripe integration.
+✅ Test payments via Stripe Test Mode (card: 4242 4242 4242 4242).
 
 ---
 
@@ -434,8 +429,7 @@ Below is a clear mapping of **how this project meets or exceeds all mandatory cr
 ✅ Responsive layout using CSS Flexbox.  
 ✅ Mobile-first design.  
 ✅ Dark/light theme toggle, saved in localStorage.
-
-✅ **More than required**: Fully responsive dark/light mode site-wide with consistent styling.
+✅ Fully responsive dark/light mode site-wide with consistent styling.
 
 ---
 
@@ -444,8 +438,7 @@ Below is a clear mapping of **how this project meets or exceeds all mandatory cr
 - Real-time AJAX chat.  
 - Theme toggling and storage.  
 ✅ User-friendly dynamic interactions throughout.
-
-✅ **More than required**: Full chat playground with AJAX, dynamic message rendering, usage limits.
+✅ Full chat playground with AJAX, dynamic message rendering, usage limits.
 
 ---
 
@@ -460,8 +453,7 @@ Below is a clear mapping of **how this project meets or exceeds all mandatory cr
 - Discord bot connection.  
 - Deployment details.  
 - Credits and attributions.
-
-✅ **More than required**: Step-by-step Discord setup instructions, user onboarding, screenshots suggested.
+✅ Step-by-step Discord setup instructions, user onboarding, screenshots suggested.
 
 ---
 
@@ -470,8 +462,7 @@ Below is a clear mapping of **how this project meets or exceeds all mandatory cr
 ✅ Clean, structured commit history.  
 ✅ Hosted on GitHub.  
 ✅ Clear attribution of third-party libraries.
-
-✅ **More than required**: Detailed commits documenting feature additions, fixes, design improvements.
+✅ Detailed commits documenting feature additions, fixes, design improvements.
 
 ---
 
@@ -492,99 +483,7 @@ Below is a clear mapping of **how this project meets or exceeds all mandatory cr
 ✅ Whitenoise for static files.  
 ✅ ENV variables securely managed.  
 ✅ Django `DEBUG=False` in production.
-
-✅ **More than required**: Includes Heroku-ready Procfile, runtime.txt, documented deployment steps.
-
----
-
-### ✔️ Security
-✅ Secrets (API keys, tokens) stored in `.env`, excluded via `.gitignore`.  
-✅ Django `DEBUG=False` in production.  
-✅ CSRF protection enforced on all forms.  
-✅ User authentication required for all sensitive views.  
-✅ Ownership validation to prevent unauthorized edits/deletes.  
-✅ Stripe webhooks verified.
-
-✅ **More than required**: Token-based API auth for Discord bridge, per-user message limits, daily usage tracking.
-
----
-
-### ✔️ Use of Stripe
-✅ Stripe test mode fully integrated.  
-✅ Checkout session flow with Stripe.js.  
-✅ Subscription required for premium bots.  
-✅ Webhook endpoint in payments app.  
-✅ User’s premium status enforced in views.
-
-✅ **More than required**: Multi-tier access control system using Stripe integration.
-
----
-
-### ✔️ Structure and Navigation
-✅ Main navigation bar with conditional rendering (authenticated/unauthenticated).  
-✅ Responsive layout using CSS Flexbox.  
-✅ Mobile-first design.  
-✅ Dark/light theme toggle, saved in localStorage.
-
-✅ **More than required**: Fully responsive dark/light mode site-wide with consistent styling.
-
----
-
-### ✔️ Use of JavaScript
-✅ Custom JavaScript for:  
-- Real-time AJAX chat.  
-- Theme toggling and storage.  
-✅ User-friendly dynamic interactions throughout.
-
-✅ **More than required**: Full chat playground with AJAX, dynamic message rendering, usage limits.
-
----
-
-### ✔️ Documentation
-✅ Comprehensive **README.md** explaining:  
-- What the project does.  
-- Key features and value.  
-- Setup instructions.  
-- CRUD operations.  
-- Database models.  
-- Stripe payment integration.  
-- Discord bot connection.  
-- Deployment details.  
-- Credits and attributions.
-
-✅ **More than required**: Step-by-step Discord setup instructions, user onboarding, screenshots suggested.
-
----
-
-### ✔️ Version Control
-✅ Entire project tracked in Git.  
-✅ Clean, structured commit history.  
-✅ Hosted on GitHub.  
-✅ Clear attribution of third-party libraries.
-
-✅ **More than required**: Detailed commits documenting feature additions, fixes, design improvements.
-
----
-
-### ✔️ Attribution
-✅ Third-party libraries documented in requirements.txt.  
-✅ Inline code comments credit any external sources.  
-✅ Major libraries credited in README:  
-- Stripe  
-- OpenAI  
-- Django  
-- Discord.py
-
----
-
-### ✔️ Deployment
-✅ Deployed on Heroku.  
-✅ Production database: PostgreSQL.  
-✅ Whitenoise for static files.  
-✅ ENV variables securely managed.  
-✅ Django `DEBUG=False` in production.
-
-✅ **More than required**: Includes Heroku-ready Procfile, runtime.txt, documented deployment steps.
+✅ Includes Heroku-ready Procfile, runtime.txt, documented deployment steps.
 
 ---
 
@@ -595,8 +494,7 @@ Below is a clear mapping of **how this project meets or exceeds all mandatory cr
 ✅ User authentication required for all sensitive views.  
 ✅ Ownership validation to prevent unauthorized edits/deletes.  
 ✅ Stripe webhooks verified.
-
-✅ **More than required**: Token-based API auth for Discord bridge, per-user message limits, daily usage tracking.
+✅ Token-based API auth for Discord bridge, per-user message limits, daily usage tracking.
 
 ---
 
@@ -605,26 +503,56 @@ This project **fully satisfies** all mandatory requirements and **exceeds them i
 
 ---
 
-## 🧪 Testing & Validation
+🧪 Testing & Validation
+✅ Manual Testing
 
-✅ **Manual Testing**
-| Feature                  | Test Description                        | Status |
-| ------------------------ | --------------------------------------- | ------ |
-| Register/Login Forms     | Valid + invalid inputs                  | ✅     |
-| Bot CRUD                 | Permissions, validation, ownership      | ✅     |
-| Chat Playground          | Real-time interaction + scroll          | ✅     |
-| Stripe Payment Flow      | Success and cancel flows                | ✅     |
-| Access Control           | Premium-only bots require subscription  | ✅     |
-| Theme Toggle             | Dark/light transitions on all pages     | ✅     |
-| Footer/Nav               | Layout consistent across screen sizes   | ✅     |
-| Monitor Logs & Analytics | Logs saved and appear in admin          | ✅     |
-| CSV Export               | Downloads filtered logs                 | ✅     |
-| Staff-only Admin Access  | Admin panel restricted to staff users   | ✅     |
+Feature	                                        Test Description	                                     Status
 
-✅ **Validation**
-- HTML & CSS: W3C validators passed
-- JavaScript: JSHint with no critical errors
-- Python: Flake8 + Black (PEP8 compliant)
+- Register/Login Forms	                          Valid + invalid inputs	                                 ✅
+- Password Reset	                                Email flow, invalid token handling	                     ✅
+- Bot CRUD	                                      Permissions, validation, ownership	                     ✅
+- Chat Playground	                                Real-time interaction + scroll	                         ✅
+- Stripe Payment Flow	                            Success and cancel flows	                               ✅
+- Access Control	                                Premium-only bots require subscription	                 ✅
+- Theme Toggle	                                  Dark/light transitions on all pages	                     ✅
+- Footer/Nav	                                    Layout consistent across screen sizes	                   ✅
+- Monitor Logs & Analytics	                      Logs saved and appear in admin	                         ✅
+- CSV Export	                                    Downloads filtered logs	                                 ✅
+- Staff-only Admin Access                       	Admin panel restricted to staff users	                   ✅
+- Knowledge Upload	                              File validation, chunk splitting, database save	         ✅
+- AJAX CSRF Protection	                          All POST forms protected, CSRF errors handled          	 ✅
+- Error Pages	                                    Custom 404/500 pages render correctly	                   ✅
+- Mobile Responsiveness	                          UI adapts on small screens, navigation stays accessible	 ✅
+- User Profile Limits	                            Daily message count enforced	                           ✅
+- Discord Bridge API Token Check	                Ensures only valid tokens accepted	                     ✅
+
+✅ Validation
+
+✅ W3C validators passed for all pages
+
+✅ JSHint with no critical errors
+
+✅ Flake8 + Black (PEP8 compliant)
+
+✅ Lighthouse scores: Performance, Accessibility, Best Practices, SEO all above 90
+
+✅ ARIA labels, color contrast, keyboard navigation verified
+
+✅ Fully responsive layout on iOS, Android, and desktop
+
+✅ Tested in Chrome, Firefox, Safari, and Edge
+
+✅ Forms: Client-side and server-side validation enforced
+
+✅ Stripe Webhook: Verified signatures in production
+
+✅ ENV Management: Secrets excluded via .gitignore
+
+✅ HTTPS enforced in production (Heroku SSL)
+
+✅ Django DEBUG=False in production
+
+✅ Database Migrations: Verified with makemigrations and migrate
 
 ---
 
@@ -634,40 +562,82 @@ This project **fully satisfies** all mandatory requirements and **exceeds them i
 - **Static Files:** Whitenoise
 - **ENV variables:** Managed with Python-decouple, never committed to repo
 
-### **Deployment Steps**
+### Deployment Steps
 ```bash
 heroku create
 # Set environment variables (STRIPE keys, SECRET_KEY, etc.)
 git push heroku main
 heroku run python manage.py migrate
 heroku open
-🚀 Future Enhancements
-Bot avatars and image uploads
+```
 
-Bot cloning/sharing
+---
 
-OAuth2 login (Google/GitHub)
+## 🗑️ Removed and Ignored Files
+To keep this repository clean, secure, and production-ready, certain files and folders have been removed from version control and are excluded via \`.gitignore\`:
 
-Chat analytics/dashboard per user
+- **Sensitive / Private Files:**
+  - \`.env\` — contains secret keys and environment variables.
+  - \`*.crt\`, \`*.key\` — SSL certificates and private keys.
 
-Monthly usage tracking
+- **Local Development Files:**
+  - \`venv/\` — local Python virtual environment.
+  - \`db.sqlite3\` — local development database.
+  - \`.vscode/\`, \`.idea/\` — personal IDE/editor settings.
 
-Email verification on registration
+- **Generated / Compiled Files:**
+  - \`__pycache__/\`, \`*.pyc\` — Python bytecode caches.
+  - \`staticfiles/\` — Django´s \`collectstatic\` output.
+  - \`media/\` — user-uploaded/generated content.
 
-Premium tier with monthly token limits
+- **Personal Notes and Local-Only Files:**
+  - \`test_test.txt\`
+  - \`structure.tx\` *(typo or obsolete)*
 
-🙏 Credits
-Stripe Docs
+These files are:
+- Generated automatically during development or deployment.
+- Contain local configuration/secrets unsuitable for public repositories.
+- Personal notes unrelated to core project functionality.
 
-OpenAI Docs
+The \`.gitignore\` file is carefully configured to prevent these files from being committed again, ensuring the repository remains clean, secure, and easy for others to clone and deploy.
 
-Django Docs
+---
 
-discord.py documentation
+## 🚀 Future Enhancements
+- Bot avatars and image uploads
+- Bot cloning/sharing
+- OAuth2 login (Google/GitHub)
+- Chat analytics/dashboard per user
+- Monthly usage tracking
+- Email verification on registration
+- Premium tier with monthly token limits
 
-👤 Author
-👨‍💻 Hussein Elali
-GitHub: @god-zil-la
+---
+
+## 🖼️ Screenshots & Validation Results
+All images supporting validation, Lighthouse scores, ERD diagrams, and other documentation are located in the readme-img/ folder in this repository.
+✅ e.g.:
+- Lighthouse report screenshots (Performance, Accessibility, Best Practices, SEO)
+- W3C validation results
+- CSS validation
+- ERD diagram (entity-relationship)
+- Manual testing screenshots
+- Admin dashboard previews
+- Stripe test checkout flow
+- etc.
+
+---
+
+## 🙏 Credits
+- Stripe Docs
+- OpenAI Docs
+- Django Docs
+- discord.py documentation
+
+---
+
+## 👤 Author
+👨‍💻 Hussein Elali  
+GitHub: [@god-zil-la](https://github.com/god-zil-la)
 
 Built from scratch with ❤️ — Designed, developed, styled, tested, and deployed by Hussein.
-

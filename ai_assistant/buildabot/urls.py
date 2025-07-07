@@ -8,7 +8,7 @@ from ai_assistant.dashboard import views as dashboard_views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', dashboard_views.home, name='home'),  # Root URL serves dashboard home
+    path('', dashboard_views.home, name='home'),  
     path('dashboard/', include(('ai_assistant.dashboard.urls', 'dashboard'), namespace='dashboard')),
     path('accounts/', include(('ai_assistant.accounts.urls', 'accounts'), namespace='accounts')),
     path('bots/', include(('ai_assistant.bots.urls', 'bots'), namespace='bots')),
@@ -16,6 +16,6 @@ urlpatterns = [
 ]
 
 if settings.DEBUG:
-    # Serve static and media files in development only
+    
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

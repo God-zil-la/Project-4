@@ -5,9 +5,7 @@ import logging
 from dotenv import load_dotenv
 from discord.ext import commands
 
-# --------------------------------------------------------
-# Load environment variables from .env
-# --------------------------------------------------------
+
 load_dotenv()
 
 DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
@@ -16,33 +14,23 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 if not DISCORD_TOKEN or not OPENAI_API_KEY:
     raise ValueError("Error: Missing DISCORD_TOKEN or OPENAI_API_KEY in .env file.")
 
-# --------------------------------------------------------
-# Configure OpenAI
-# --------------------------------------------------------
+
 openai.api_key = OPENAI_API_KEY
 
-# --------------------------------------------------------
-# Setup logging
-# --------------------------------------------------------
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# --------------------------------------------------------
-# Setup Discord Bot
-# --------------------------------------------------------
+
 intents = discord.Intents.default()
 intents.message_content = True
 
 bot = commands.Bot(command_prefix="!", intents=intents)
 
-# --------------------------------------------------------
-# Per-user conversation memory
-# --------------------------------------------------------
+
 user_conversations = {}
 
-# --------------------------------------------------------
-# Events
-# --------------------------------------------------------
+
 @bot.event
 async def on_ready():
     logger.info(f"✅ Logged in as {bot.user}")
@@ -53,10 +41,10 @@ async def on_message(message):
     if message.author == bot.user:
         return
 
-    # Log received message
+    
     logger.info(f"📥 Message from {message.author}: {message.content}")
 
-    # Check if it's a command (needed so @bot.command() works)
+    
     await bot.process_commands(message)
 
     # Free-form chat: respond to any message
@@ -86,9 +74,7 @@ async def on_message(message):
         logger.error(f"General error: {e}")
         await message.channel.send("⚠️ An unexpected error occurred. Please try again.")
 
-# --------------------------------------------------------
-# Commands
-# --------------------------------------------------------
+
 @bot.command()
 async def ping(ctx):
     """Check if the bot is online."""
@@ -99,7 +85,5 @@ async def hello(ctx):
     """Simple friendly greeting."""
     await ctx.send(f"👋 Hello, {ctx.author.display_name}!")
 
-# --------------------------------------------------------
-# Run the bot
-# --------------------------------------------------------
+
 bot.run(DISCORD_TOKEN)

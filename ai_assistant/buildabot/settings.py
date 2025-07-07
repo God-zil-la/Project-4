@@ -6,19 +6,19 @@ import certifi
 from pathlib import Path
 from dotenv import load_dotenv
 
-# Define BASE_DIR first!
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv()
 
 print("SENDGRID_API_KEY =", os.environ.get("SENDGRID_API_KEY"))  
 
-# SSL fix for Python 3.13+
+
 ssl._create_default_https_context = lambda: ssl.create_default_context(cafile=certifi.where())
 
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "django-insecure-placeholder")
 DEBUG = os.getenv("DJANGO_DEBUG", "False").lower() in ("true", "1")
 
-DEBUG = False # must be True during local dev to allow ngrok host
+DEBUG = False
 
 ALLOWED_HOSTS = [
     'localhost',
@@ -28,7 +28,7 @@ ALLOWED_HOSTS = [
 ]
 
 if DEBUG:
-    ALLOWED_HOSTS.append('.ngrok-free.app')  # <-- allows all ngrok subdomains
+    ALLOWED_HOSTS.append('.ngrok-free.app')  
 
 if not DEBUG:
     ALLOWED_HOSTS += [

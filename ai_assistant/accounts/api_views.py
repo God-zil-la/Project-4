@@ -3,7 +3,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from ai_assistant.accounts.models import UserProfile
 from ai_assistant.bots.models import Bot, BotUsageLog
-from ai_assistant.bots.openai_client import call_openai  # Your GPT call
+from ai_assistant.bots.openai_client import call_openai
 from django.core.exceptions import ObjectDoesNotExist
 
 class PublicChatAPIView(APIView):
@@ -40,7 +40,7 @@ class PublicChatAPIView(APIView):
         BotUsageLog.objects.create(
             user=user,
             bot=bot,
-            tokens_used=len(message) + len(response_text)  # Approximate token count
+            tokens_used=len(message) + len(response_text)
         )
         profile.increment_message_count()
 

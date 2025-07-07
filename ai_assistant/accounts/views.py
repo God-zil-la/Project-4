@@ -43,12 +43,12 @@ def register(request):
             messages.error(request, "Username already exists. Please choose another.")
             return render(request, 'accounts/register.html', {'username': username, 'email': email})
 
-        # Create and activate user immediately
+        
         user = User.objects.create_user(username=username, email=email, password=password)
         user.is_active = True
         user.save()
 
-        # Send notification email (no activation link)
+        
         context = {
             'user': user,
             'domain': get_current_site(request).domain,
@@ -80,7 +80,7 @@ def activate(request, uidb64, token):
             login(request, user)
             return render(request, 'accounts/activation_success.html')
         else:
-            # User already activated
+            
             return render(request, 'accounts/activation_already_active.html')
     else:
         return render(request, 'accounts/activation_invalid.html')

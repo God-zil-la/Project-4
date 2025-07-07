@@ -7,4 +7,4 @@ class DashboardAdminConfig(AdminConfig):
 class DashboardConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
     name = 'ai_assistant.dashboard'
-    label = 'ai_dashboard'  # Unique label to avoid conflicts
+    label = 'ai_dashboard' 

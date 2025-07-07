@@ -3,7 +3,7 @@ import openai
 from django.shortcuts import render
 from dotenv import load_dotenv
 
-# Load environment variables from .env
+
 load_dotenv()
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
@@ -22,7 +22,7 @@ def home(request):
                         {"role": "user", "content": user_message},
                     ]
                 )
-                # Corrected way to access the response content
+                
                 bot_response = response['choices'][0]['message']['content'].strip()
             except Exception as e:
                 bot_response = f"⚠️ Error: {str(e)}"
