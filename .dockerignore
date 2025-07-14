@@ -1,0 +1,56 @@
+# Byte-compiled / cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environments
+.env
+.venv/
+venv/
+env/
+ENV/
+
+# IDE/editor
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+
+# Git
+.git
+.gitignore
+
+# Logs and databases
+*.log
+*.sqlite3
+db.sqlite3
+
+# Build artifacts
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Python wheels
+*.whl
+
+# Docker
+Dockerfile.*
+docker-compose*.yml
+
+# Misc
+*.bak
+*.tmp
+*.swp
+*.DS_Store
+Thumbs.db
