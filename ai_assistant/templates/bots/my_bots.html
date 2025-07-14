@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}My Bots{% endblock %}
+
+{% block content %}
+<h1>My Bots</h1>
+
+<div style="margin-bottom: 1.5rem;">
+    <a href="{% url 'bots:create' %}" class="btn btn-primary">+ Create a Bot</a>
+</div>
+
+{% if bots %}
+<ul class="bot-list">
+    {% for bot in bots %}
+    <li class="bot-card">
+        <h3>{{ bot.name }}</h3>
+        <p>{{ bot.description }}</p>
+        <small>Created on {{ bot.created_at|date:"F j, Y" }}</small>
+        <div style="margin-top: 1rem;">
+            <a href="{% url 'bots:playground' bot.id %}" class="btn">Chat / Upload</a>
+            <a href="{% url 'bots:edit' bot.id %}" class="btn">Edit</a>
+            <a href="{% url 'bots:delete' bot.id %}" class="btn btn-danger">Delete</a>
+            <a href="{% url 'bots:discord-connect' bot.id %}" class="btn btn-success" style="margin-left: .25rem;">
+                Connect&nbsp;to&nbsp;Discord
+            </a>
+
+        </div>
+    </li>
+    {% endfor %}
+</ul>
+{% else %}
+<p>You don't have any bots yet.</p>
+{% endif %}
+{% endblock %}

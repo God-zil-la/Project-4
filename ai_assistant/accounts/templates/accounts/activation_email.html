@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Welcome to AI Assistant</title>
+    <style>
+        /* Base Reset */
+        body,
+        html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            width: 100%;
+            background-color: #000;
+            font-family: Arial, sans-serif;
+            color: #f0f0f0;
+        }
+
+        a {
+            color: #f0f0f0;
+            text-decoration: underline;
+            transition: color 0.3s ease;
+        }
+
+        a:hover {
+            color: #ccc;
+        }
+
+        /* Container */
+        .container {
+            max-width: 600px;
+            margin: 40px auto;
+            background: #111;
+            border-radius: 12px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6);
+            padding: 40px 30px;
+            animation: fadeInUp 0.8s ease forwards;
+            text-align: center;
+        }
+
+        /* Header */
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 16px;
+            color: #fff;
+            letter-spacing: 1px;
+            font-weight: bold;
+        }
+
+        .highlight {
+            color: #fff;
+            font-weight: bold;
+        }
+
+        /* Paragraph */
+        p {
+            font-size: 1rem;
+            line-height: 1.6;
+            margin: 16px 0;
+            color: #bbb;
+        }
+
+        /* Footer */
+        .footer {
+            margin-top: 30px;
+            font-size: 0.85rem;
+            color: #777;
+            border-top: 1px solid #222;
+            padding-top: 12px;
+        }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            .container {
+                padding: 30px 20px;
+                margin: 20px 10px;
+            }
+
+            h1 {
+                font-size: 1.75rem;
+            }
+
+            p {
+                font-size: 0.95rem;
+            }
+        }
+
+        /* Animation */
+        @keyframes fadeInUp {
+            0% {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container" role="main" aria-label="Welcome message">
+        <h1>Welcome to <span class="highlight">AI Assistant</span>, {{ user.username }}!</h1>
+        <p>We're thrilled to have you on board. Your account is now fully active and ready to explore.</p>
+        <p>Get started by <a href="{{ login_url }}">logging in</a> and discovering how AI can assist you every step of
+            the way.</p>
+        <p>If you did not create this account, you can safely ignore this email.</p>
+        <div class="footer">
+            <p>&copy; {{ domain }} 2025 — All rights reserved.</p>
+        </div>
+    </div>
+</body>
+
+</html>

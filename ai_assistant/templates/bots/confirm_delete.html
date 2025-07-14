@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block title %}Delete Bot - AI Assistant{% endblock %}
+
+{% block content %}
+<section class="content">
+    <h2>Delete Bot</h2>
+    <p>Are you sure you want to delete <strong>{{ bot.name }}</strong>?</p>
+
+    <form method="post" style="margin-top: 1rem;">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Confirm Delete</button>
+        <a href="{% url 'bots:list' %}" class="btn btn-secondary">Cancel</a>
+    </form>
+</section>
+{% endblock %}

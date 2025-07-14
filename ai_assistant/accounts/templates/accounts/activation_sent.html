@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block title %}Registration Complete{% endblock %}
+
+{% block content %}
+<style>
+    .notification-container {
+        max-width: 480px;
+        margin: 3rem auto;
+        background: #111;
+        border-radius: 12px;
+        padding: 2rem 1rem;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6);
+        color: #f0f0f0;
+        font-family: Arial, sans-serif;
+        text-align: center;
+        animation: fadeInScale 0.8s ease forwards;
+    }
+
+    .notification-container h2 {
+        color: #fff;
+        font-size: 1.75rem;
+        margin-bottom: 1rem;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 0.5rem;
+        font-weight: 600;
+    }
+
+    .notification-container h2 .icon {
+        font-size: 1.75rem;
+        color: #fff;
+    }
+
+    .notification-container p {
+        color: #ccc;
+        font-size: 1rem;
+        line-height: 1.5;
+        margin: 0.75rem 0;
+    }
+
+    .notification-container a {
+        display: inline-block;
+        margin-top: 1rem;
+        padding: 0.5rem 1rem;
+        background-color: #000;
+        color: #fff;
+        border: 2px solid #fff;
+        border-radius: 6px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .notification-container a:hover {
+        background-color: #111;
+        border-color: #ccc;
+        color: #ccc;
+    }
+
+    .notification-container strong {
+        color: #f0f0f0;
+        font-weight: 600;
+    }
+
+    @keyframes fadeInScale {
+        0% {
+            opacity: 0;
+            transform: scale(0.95);
+        }
+
+        100% {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+
+    @media (max-width: 400px) {
+        .notification-container {
+            padding: 1.5rem 0.75rem;
+        }
+
+        .notification-container h2 {
+            font-size: 1.5rem;
+        }
+
+        .notification-container a {
+            font-size: 0.95rem;
+        }
+    }
+</style>
+
+<div class="notification-container" role="alert" aria-live="polite" aria-atomic="true">
+    <h2><span class="icon">✅</span> Registration Successful</h2>
+    <p>Thank you for creating your account with <strong>AI Assistant</strong>.</p>
+    <a href="{% url 'accounts:login' %}">Log in and Start Exploring</a>
+    <p><strong>Tip:</strong> If you experience any issues, feel free to contact support.</p>
+</div>
+{% endblock %}

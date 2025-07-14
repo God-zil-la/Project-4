@@ -1,0 +1,7 @@
+Welcome to AI Assistant, {{ user.username }}!
+
+Thanks for registering with us. Your account is now active.
+
+If you didn’t register for an AI Assistant account, you can safely ignore this email.
+
+© {{ domain }} - All rights reserved.

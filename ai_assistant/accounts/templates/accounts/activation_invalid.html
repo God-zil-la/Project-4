@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block title %}Invalid Activation{% endblock %}
+
+{% block content %}
+<style>
+    .activation-invalid {
+        max-width: 600px;
+        margin: 3rem auto;
+        padding: 2rem 1rem;
+        background-color: #111;
+        border-radius: 12px;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6);
+        color: #f0f0f0;
+        font-family: Arial, sans-serif;
+    }
+
+    .activation-invalid h2 {
+        color: #fff;
+        text-align: center;
+        margin-bottom: 1rem;
+        font-size: 1.8rem;
+        font-weight: 600;
+    }
+
+    .activation-invalid p {
+        color: #ccc;
+        font-size: 1rem;
+        line-height: 1.5;
+        margin: 1rem 0;
+        text-align: center;
+    }
+
+    .activation-invalid ul {
+        list-style: disc inside;
+        padding-left: 1rem;
+        margin: 1rem 0;
+        color: #ccc;
+        font-size: 0.95rem;
+    }
+
+    .activation-invalid a {
+        display: inline-block;
+        margin-top: 0.5rem;
+        padding: 0.5rem 1rem;
+        background-color: #000;
+        color: #fff;
+        border: 2px solid #fff;
+        border-radius: 6px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .activation-invalid a:hover {
+        background-color: #111;
+        border-color: #ccc;
+        color: #ccc;
+        text-decoration: none;
+    }
+
+    @media (max-width: 400px) {
+        .activation-invalid {
+            padding: 1.5rem 0.75rem;
+        }
+
+        .activation-invalid h2 {
+            font-size: 1.5rem;
+        }
+
+        .activation-invalid a {
+            font-size: 0.95rem;
+        }
+    }
+</style>
+
+<div class="activation-invalid" role="alert" aria-live="polite">
+    <h2>⚠️ Activation Link Invalid or Expired</h2>
+    <p>Sorry, the activation link you used is no longer valid.</p>
+    <p>This may happen if:</p>
+    <ul>
+        <li>The link has already been used</li>
+        <li>It expired after a certain time</li>
+        <li>The account has already been activated</li>
+    </ul>
+    <p>
+        You can <a href="{% url 'accounts:register' %}">Register Again</a> or
+        <a href="mailto:support@yourdomain.com">Contact Support</a> if you believe this is a mistake.
+    </p>
+</div>
+{% endblock %}

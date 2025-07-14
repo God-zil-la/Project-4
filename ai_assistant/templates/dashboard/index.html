@@ -1,0 +1,149 @@
+{% extends 'base.html' %}
+
+{% block title %}Home - AI Assistant{% endblock %}
+
+{% block content %}
+<section style="
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem 1rem;
+  text-align: center;
+">
+    <div style="
+      background: var(--nav-bg);
+      padding: 1.5rem;
+      border-radius: 16px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+      max-width: 800px;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+  ">
+        <h1 style="margin-bottom: 1rem; color: var(--accent-color);">
+            Welcome to AI Assistant
+        </h1>
+        <p style="max-width: 700px; margin: 0 auto; font-weight: 600;">
+            Your all-in-one platform to build, train, and deploy smart AI bots. Simple to use, with powerful
+            capabilities.
+        </p>
+
+        <div style="margin-top: 2rem; width: 100%;">
+            <h2 style="margin-bottom: 1rem; color: var(--accent-color);">What You Can Do</h2>
+            <ul style="
+          list-style: none;
+          padding: 0;
+          max-width: 700px;
+          margin: 0 auto;
+          text-align: left;
+      ">
+                <li style="margin-bottom: 1.5rem;">
+                    🌸 <strong>Create</strong> AI bots tailored for your business or hobby
+                    <p style="margin: 0.5rem 0 0; font-weight: 600;">
+                        Build bots with personalized features. Get started quickly with easy-to-use templates.
+                    </p>
+                </li>
+                <li style="margin-bottom: 1.5rem;">
+                    📚 <strong>Train</strong> them with custom knowledge
+                    <p style="margin: 0.5rem 0 0; font-weight: 600;">
+                        Upload documents or data to give your bot domain-specific knowledge for more accurate responses.
+                    </p>
+                </li>
+                <li style="margin-bottom: 1.5rem;">
+                    ⚙️ <strong>Deploy</strong> your AI bots on Discord
+                    <p style="margin: 0.5rem 0 0; font-weight: 600;">
+                        Easily deploy to Discord with minimal setup and customizable settings.
+                    </p>
+                </li>
+                <li style="margin-bottom: 1.5rem;">
+                    📊 <strong>Monitor</strong> performance and chat logs
+                    <p style="margin: 0.5rem 0 0; font-weight: 600;">
+                        Track interactions, analyze usage, and use feedback to improve your bot over time.
+                    </p>
+                </li>
+            </ul>
+        </div>
+
+        <div style="margin-top: 3rem; width: 100%;">
+            <h2 style="margin-bottom: 1rem; color: var(--accent-color);">Plans & Limits</h2>
+            <div style="
+          display: flex;
+          flex-direction: column;
+          gap: 1.5rem;
+          text-align: left;
+          max-width: 700px;
+          margin: 0 auto;
+      ">
+                <div style="
+            border: 2px solid var(--accent-color);
+            border-radius: 12px;
+            padding: 1rem;
+            background: var(--nav-bg);
+        ">
+                    <h3>🆓 Free Plan</h3>
+                    <ul style="margin: 0; padding-left: 1.2rem;">
+                        <li>✔️ Up to 3 bots</li>
+                        <li>✔️ 15 messages per day</li>
+                        <li>✔️ Upload knowledge (limited)</li>
+                    </ul>
+                </div>
+
+                <div style="
+            border: 2px solid var(--accent-color);
+            border-radius: 12px;
+            padding: 1rem;
+            background: var(--nav-bg);
+        ">
+                    <h3>💎 Premium Plan ($15/month)</h3>
+                    <ul style="margin: 0; padding-left: 1.2rem;">
+                        <li>✔️ Unlimited bots</li>
+                        <li>✔️ Unlimited daily messages</li>
+                        <li>✔️ Advanced knowledge uploads</li>
+                        <li>✔️ Discord deployment</li>
+                        <li>✔️ Priority support</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div style="
+        margin-top: 2rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+        width: 100%;
+        max-width: 300px;
+">
+            <a href="{% url 'bots:create' %}" class="nav-btn">Get Started Free</a>
+            <a href="{% url 'payments:billing' %}" class="nav-btn btn-premium">Upgrade to Premium</a>
+        </div>
+
+    </div>
+</section>
+
+<style>
+    ul li:hover {
+        transform: scale(1.02);
+        transition: transform 0.3s ease;
+    }
+
+    a.nav-btn {
+        background-color: var(--button-bg);
+        color: var(--button-text);
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        text-decoration: none;
+        display: inline-block;
+        margin-top: 0.5rem;
+        transition: all 0.3s ease;
+    }
+
+    a.nav-btn:hover {
+        background: var(--button-hover);
+        transform: scale(1.05);
+    }
+</style>
+{% endblock %}
