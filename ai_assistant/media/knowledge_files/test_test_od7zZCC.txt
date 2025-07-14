@@ -1,7 +1,0 @@
-This is a test document.
-
-It contains simple text to verify the upload and chunk extraction process.
-
-Each chunk should be about 500 characters max, but since this is short, it will be one chunk.
-
-Thank you!
