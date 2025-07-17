@@ -1,4 +1,4 @@
-#D:\shan\OneDrive\Desktop\vs code projekt\ai-assistant\ai_assistant\buildabot\settings.py
+# settings.py for ai_assistant project
 
 import os
 import ssl
@@ -6,14 +6,14 @@ import certifi
 from pathlib import Path
 from dotenv import load_dotenv
 
-
 BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv()
 
-print("SENDGRID_API_KEY =", os.environ.get("SENDGRID_API_KEY"))  
+print("SENDGRID_API_KEY =", os.environ.get("SENDGRID_API_KEY"))
 
-
-ssl._create_default_https_context = lambda: ssl.create_default_context(cafile=certifi.where())
+ssl._create_default_https_context = (
+    lambda: ssl.create_default_context(cafile=certifi.where())
+)
 
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "django-insecure-placeholder")
 DEBUG = os.getenv("DJANGO_DEBUG", "False").lower() in ("true", "1")
@@ -28,14 +28,13 @@ ALLOWED_HOSTS = [
 ]
 
 if DEBUG:
-    ALLOWED_HOSTS.append('.ngrok-free.app')  
+    ALLOWED_HOSTS.append('.ngrok-free.app')
 
 if not DEBUG:
     ALLOWED_HOSTS += [
         'ai-assistants.herokuapp.com',
         'ai-assistants-8c06fcfeab86.herokuapp.com',
     ]
-
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -75,7 +74,6 @@ REST_FRAMEWORK = {
     ],
 }
 
-
 ROOT_URLCONF = 'ai_assistant.buildabot.urls'
 
 TEMPLATES = [
@@ -104,10 +102,30 @@ DATABASES = {
 }
 
 AUTH_PASSWORD_VALIDATORS = [
-    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
+    {
+        'NAME': (
+            'django.contrib.auth.password_validation.'
+            'UserAttributeSimilarityValidator'
+        )
+    },
+    {
+        'NAME': (
+            'django.contrib.auth.password_validation.'
+            'MinimumLengthValidator'
+        )
+    },
+    {
+        'NAME': (
+            'django.contrib.auth.password_validation.'
+            'CommonPasswordValidator'
+        )
+    },
+    {
+        'NAME': (
+            'django.contrib.auth.password_validation.'
+            'NumericPasswordValidator'
+        )
+    },
 ]
 
 LANGUAGE_CODE = 'en-us'
@@ -123,10 +141,14 @@ if (BASE_DIR / 'static').exists():
     STATICFILES_DIRS.append(BASE_DIR / 'static')
 
 if DEBUG:
-    STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
+    STATICFILES_STORAGE = (
+        'django.contrib.staticfiles.storage.StaticFilesStorage'
+    )
     print('⚠️ DEVELOPMENT: Using StaticFilesStorage (no manifest)')
 else:
-    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+    STATICFILES_STORAGE = (
+        'whitenoise.storage.CompressedManifestStaticFilesStorage'
+    )
     print('⚡️ PRODUCTION: Using CompressedManifestStaticFilesStorage')
 
 MEDIA_URL = '/media/'
@@ -147,15 +169,15 @@ LOGIN_URL = '/accounts/login/'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
 
-
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'aibotassistants@gmail.com'
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
-DEFAULT_FROM_EMAIL = 'AI Bot Assistants <aibotassistants@gmail.com>'
-
+DEFAULT_FROM_EMAIL = (
+    'AI Bot Assistants <aibotassistants@gmail.com>'
+)
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 STRIPE_PUBLIC_KEY = os.getenv("STRIPE_PUBLIC_KEY")
@@ -192,10 +214,15 @@ LOGGING = {
 
 SITE_ID = 1
 PASSWORD_RESET_TIMEOUT = 60 * 60 * 24 * 7
-DEFAULT_DOMAIN = os.getenv("DEFAULT_DOMAIN", "ai-assistants-8c06fcfeab86.herokuapp.com")
-DEFAULT_PROTOCOL = os.getenv("DEFAULT_PROTOCOL", "https")
+DEFAULT_DOMAIN = os.getenv(
+    "DEFAULT_DOMAIN",
+    "ai-assistants-8c06fcfeab86.herokuapp.com"
+)
+DEFAULT_PROTOCOL = os.getenv(
+    "DEFAULT_PROTOCOL",
+    "https"
+)
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 FREE_PLAN_DAILY_LIMIT = 15
-
