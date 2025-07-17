@@ -8,6 +8,7 @@ from django.conf import settings
 from django.contrib.sites.shortcuts import get_current_site
 from django.urls import reverse
 
+
 class RegisterForm(forms.ModelForm):
     password1 = forms.CharField(
         label="Password",
@@ -39,26 +40,40 @@ class RegisterForm(forms.ModelForm):
         return user
 
 
-
 class CustomPasswordResetForm(PasswordResetForm):
-    def send_mail(self, subject_template_name, email_template_name,
-                  context, from_email, to_email, html_email_template_name=None):
+    def send_mail(
+        self,
+        subject_template_name,
+        email_template_name,
+        context,
+        from_email,
+        to_email,
+        html_email_template_name=None
+    ):
         subject = render_to_string(subject_template_name, context).strip()
         body = render_to_string(email_template_name, context)
 
-        email_message = EmailMultiAlternatives(subject, body, from_email, [to_email])
+        email_message = EmailMultiAlternatives(
+            subject, body, from_email, [to_email]
+        )
         if html_email_template_name:
             html_email = render_to_string(html_email_template_name, context)
             email_message.attach_alternative(html_email, 'text/html')
 
         email_message.send()
 
-    def save(self, domain_override=None,
-             subject_template_name='accounts/password_reset_subject.txt',
-             email_template_name='accounts/password_reset_email.txt',
-             use_https=False, token_generator=None,
-             from_email=None, request=None, html_email_template_name='accounts/password_reset_email.html',
-             extra_email_context=None):
+    def save(
+        self,
+        domain_override=None,
+        subject_template_name='accounts/password_reset_subject.txt',
+        email_template_name='accounts/password_reset_email.txt',
+        use_https=False,
+        token_generator=None,
+        from_email=None,
+        request=None,
+        html_email_template_name='accounts/password_reset_email.html',
+        extra_email_context=None
+    ):
         from django.contrib.auth.tokens import default_token_generator
         from django.utils.http import urlsafe_base64_encode
         from django.utils.encoding import force_bytes
@@ -66,7 +81,10 @@ class CustomPasswordResetForm(PasswordResetForm):
 
         UserModel = get_user_model()
         email = self.cleaned_data["email"]
-        active_users = UserModel._default_manager.filter(email__iexact=email, is_active=True)
+        active_users = UserModel._default_manager.filter(
+            email__iexact=email,
+            is_active=True
+        )
 
         if not active_users:
             return
@@ -77,13 +95,23 @@ class CustomPasswordResetForm(PasswordResetForm):
                 site_name = current_site.name
                 domain = current_site.domain
             else:
-                site_name = domain = domain_override or getattr(settings, 'DEFAULT_DOMAIN', 'example.com')
+                site_name = domain = (
+                    domain_override or getattr(
+                        settings, 'DEFAULT_DOMAIN', 'example.com'
+                    )
+                )
 
-            
             uidb64 = urlsafe_base64_encode(force_bytes(user.pk))
-            token = (token_generator or default_token_generator).make_token(user)
-            reset_path = reverse('accounts:password_reset_confirm', kwargs={'uidb64': uidb64, 'token': token})
-            reset_url = f"{'https' if use_https else 'http'}://{domain}{reset_path}"
+            token = (
+                token_generator or default_token_generator
+            ).make_token(user)
+            reset_path = reverse(
+                'accounts:password_reset_confirm',
+                kwargs={'uidb64': uidb64, 'token': token}
+            )
+            reset_url = (
+                f"{'https' if use_https else 'http'}://{domain}{reset_path}"
+            )
 
             context = {
                 'email': email,
@@ -99,7 +127,10 @@ class CustomPasswordResetForm(PasswordResetForm):
                 context.update(extra_email_context)
 
             self.send_mail(
-                subject_template_name, email_template_name, context,
-                from_email or settings.DEFAULT_FROM_EMAIL, email,
+                subject_template_name,
+                email_template_name,
+                context,
+                from_email or settings.DEFAULT_FROM_EMAIL,
+                email,
                 html_email_template_name=html_email_template_name
             )
