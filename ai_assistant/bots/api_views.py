@@ -154,3 +154,11 @@ def api_bot_chat(request, bot_id):
     )
 
     return Response({"response": bot_response})
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def get_user_token(request):
+    from rest_framework.authtoken.models import Token
+    token, _ = Token.objects.get_or_create(user=request.user)
+    return Response({'token': token.key})

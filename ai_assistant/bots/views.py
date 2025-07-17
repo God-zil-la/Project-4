@@ -11,7 +11,7 @@ from django.conf import settings
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
-from django.views.decorators.csrf import csrf_protect
+from django.views.decorators.csrf import csrf_protect, csrf_exempt
 from django.utils import timezone
 from django.db.models import Count
 from django.db.models.functions import TruncDate
@@ -34,7 +34,6 @@ from .models import Bot, ChatMessage, KnowledgeBase, KnowledgeChunk
 from .forms import BotForm, KnowledgeBaseForm
 from .utils import generate_embedding, search_relevant_chunks
 from .utils import extract_text, chunk_text
-
 
 openai.api_key = os.getenv("OPENAI_API_KEY")
 logger = logging.getLogger(__name__)
@@ -88,8 +87,7 @@ def bot_chat_api(request, bot_id):
     bot = get_object_or_404(Bot, id=bot_id, owner=request.user)
     if request.method == 'GET':
         chat_messages = ChatMessage.objects.filter(
-            bot=bot,
-            user=request.user
+            bot=bot, user=request.user
         ).order_by('timestamp')
         data = [
             {'sender': m.sender, 'message': m.message}
@@ -140,13 +138,9 @@ def bot_chat_playground(request, bot_id):
             knowledge.save()
 
             try:
-                if manual_text:
-                    text = manual_text
-                else:
-                    text = extract_text(
-                        knowledge.file.path,
-                        knowledge.file.name
-                    )
+                text = manual_text if manual_text else extract_text(
+                    knowledge.file.path, knowledge.file.name
+                )
 
                 KnowledgeChunk.objects.filter(
                     knowledge_file=knowledge
@@ -185,8 +179,7 @@ def bot_chat_playground(request, bot_id):
             )
 
     chat_messages = ChatMessage.objects.filter(
-        bot=bot,
-        user=request.user
+        bot=bot, user=request.user
     ).order_by('timestamp')
 
     return render(request, 'bots/playground.html', {
@@ -194,3 +187,125 @@ def bot_chat_playground(request, bot_id):
         'chat_messages': chat_messages,
         'knowledge_form': knowledge_form,
     })
+
+
+@login_required
+@csrf_exempt
+def ajax_chat(request, bot_id):
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Invalid request method.'}, status=405)
+
+    try:
+        bot = Bot.objects.get(id=bot_id, owner=request.user)
+    except Bot.DoesNotExist:
+        return JsonResponse(
+            {'error': 'Bot not found or unauthorized.'}, status=404
+        )
+
+    try:
+        data = json.loads(request.body.decode('utf-8'))
+        user_input = data.get('message')
+
+        if not user_input:
+            return JsonResponse(
+                {'error': 'No message provided.'}, status=400
+            )
+
+        ChatMessage.objects.create(
+            bot=bot, user=request.user, sender='user', message=user_input
+        )
+
+        messages_qs = ChatMessage.objects.filter(
+            bot=bot, user=request.user
+        ).order_by('timestamp')
+
+        history = [{'role': 'system', 'content': bot.personality}]
+        for m in messages_qs:
+            history.append({
+                'role': 'user' if m.sender == 'user' else 'assistant',
+                'content': m.message
+            })
+
+        response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=history
+        )
+
+        reply = response.choices[0].message['content']
+
+        ChatMessage.objects.create(
+            bot=bot, user=request.user, sender='assistant', message=reply
+        )
+
+        return JsonResponse({'reply': reply})
+
+    except Exception:
+        logger.error(f"ajax_chat error: {traceback.format_exc()}")
+        return JsonResponse({'error': 'An error occurred.'}, status=500)
+
+
+@login_required
+def analytics_dashboard(request):
+    # Get only the bots owned by the current user
+    bots = Bot.objects.filter(owner=request.user)
+
+    # Prepare bot message count data
+    bot_data = {'labels': [], 'counts': []}
+    for bot in bots:
+        bot_data['labels'].append(bot.name)
+        bot_data['counts'].append(
+            ChatMessage.objects.filter(bot=bot, user=request.user).count()
+        )
+
+    # Prepare user message count data (only for current user)
+    user_data = {'labels': [], 'counts': []}
+    user_data['labels'].append(request.user.username)
+    user_data['counts'].append(
+        ChatMessage.objects.filter(user=request.user).count()
+    )
+
+    return render(request, 'bots/analytics_dashboard.html', {
+        'bot_data': json.dumps(bot_data),
+        'user_data': json.dumps(user_data),
+    })
+
+
+@staff_member_required
+def admin_dashboard(request):
+    bots = Bot.objects.all()
+    users = User.objects.all()
+
+    bot_data = {'labels': [], 'counts': []}
+    for bot in bots:
+        bot_data['labels'].append(bot.name)
+        bot_data['counts'].append(
+            ChatMessage.objects.filter(bot=bot).count()
+        )
+
+    user_data = {'labels': [], 'counts': []}
+    for user in users:
+        user_data['labels'].append(user.username)
+        user_data['counts'].append(
+            ChatMessage.objects.filter(user=user).count()
+        )
+
+    return render(request, 'bots/analytics_dashboard.html', {
+        'bot_data': json.dumps(bot_data),
+        'user_data': json.dumps(user_data),
+    })
+
+
+@login_required
+def discord_connect(request, pk):
+    if request.method == 'GET':
+        token = request.GET.get("token")
+        if not token:
+            return JsonResponse({"error": "Missing bot token."}, status=400)
+        return JsonResponse(
+            {
+                "message": "Bot connection request received.",
+                "bot_id": pk,
+                "token": token,
+            }
+        )
+    return JsonResponse({"error": "Only GET requests allowed."}, status=405)
