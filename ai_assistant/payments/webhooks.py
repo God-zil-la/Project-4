@@ -6,15 +6,20 @@ from django.contrib.auth.models import User
 from django.conf import settings
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
-endpoint_secret = settings.STRIPE_WEBHOOK_SECRET  
+endpoint_secret = settings.STRIPE_WEBHOOK_SECRET
+
 
 @csrf_exempt
 def stripe_webhook(request):
     payload = request.body
     sig_header = request.META.get('HTTP_STRIPE_SIGNATURE', '')
-    
+
     try:
-        event = stripe.Webhook.construct_event(payload, sig_header, endpoint_secret)
+        event = stripe.Webhook.construct_event(
+            payload,
+            sig_header,
+            endpoint_secret
+        )
     except (ValueError, stripe.error.SignatureVerificationError):
         return HttpResponse(status=400)
 
