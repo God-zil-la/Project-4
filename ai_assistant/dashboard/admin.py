@@ -9,6 +9,7 @@ try:
 except admin.sites.NotRegistered:
     pass
 
+
 @admin.register(BotUsageLog)
 class BotUsageLogAdmin(admin.ModelAdmin):
     list_display = ('user', 'bot', 'tokens_used', 'timestamp')
@@ -23,7 +24,9 @@ class BotUsageLogAdmin(admin.ModelAdmin):
     @admin.action(description="Export selected logs as CSV")
     def export_as_csv(self, request, queryset):
         response = HttpResponse(content_type='text/csv')
-        response['Content-Disposition'] = 'attachment; filename="bot_usage_logs.csv"'
+        response['Content-Disposition'] = (
+            'attachment; filename="bot_usage_logs.csv"'
+        )
 
         writer = csv.writer(response)
         writer.writerow(['User', 'Bot', 'Tokens Used', 'Timestamp'])
