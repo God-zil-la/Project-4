@@ -1,6 +1,7 @@
 import secrets
 from .models import UserProfile
 
+
 def generate_unique_api_key():
     while True:
         key = secrets.token_hex(16)

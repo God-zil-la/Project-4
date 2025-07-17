@@ -6,18 +6,14 @@ import openai
 
 
 load_dotenv()
-
-
 openai.api_key = os.getenv("OPENAI_API_KEY")
-
-
 
 
 def extract_text_from_pdf(file_path):
     """
     Extracts text from a PDF file using PyMuPDF.
     """
-    import fitz  
+    import fitz
     text = ""
     try:
         with fitz.open(file_path) as doc:
@@ -69,14 +65,11 @@ def extract_text(file_path, filename):
         raise ValueError(f"Unsupported file type: {filename}")
 
 
-
-
 def chunk_text(text, max_length=500, overlap=100):
     """
     Splits text into chunks of up to max_length characters,
     with optional overlap and sentence-aware boundaries.
     """
-    
     sentences = re.split(r'(?<=[.!?])\s+', text)
     chunks = []
     current_chunk = ""
@@ -87,7 +80,7 @@ def chunk_text(text, max_length=500, overlap=100):
         else:
             if current_chunk:
                 chunks.append(current_chunk.strip())
-            
+
             if overlap > 0 and chunks:
                 overlap_text = chunks[-1][-overlap:]
                 current_chunk = overlap_text + " " + sentence
@@ -100,8 +93,6 @@ def chunk_text(text, max_length=500, overlap=100):
     return chunks
 
 
-
-
 def generate_embedding(text):
     """
     Calls OpenAI to generate an embedding for a text chunk.
@@ -109,14 +100,12 @@ def generate_embedding(text):
     try:
         response = openai.Embedding.create(
             input=text,
-            model="text-embedding-ada-002"  
+            model="text-embedding-ada-002"
         )
         return response['data'][0]['embedding']
     except Exception as e:
         print(f"[ERROR] Embedding generation failed: {e}")
         return None
-
-
 
 
 def cosine_similarity(vec1, vec2):
@@ -132,8 +121,6 @@ def cosine_similarity(vec1, vec2):
     return np.dot(vec1, vec2) / (norm1 * norm2)
 
 
-
-
 def search_relevant_chunks(bot, query_embedding, top_k=5):
     """
     Retrieves the top_k most relevant KnowledgeChunks for a bot
@@ -144,7 +131,6 @@ def search_relevant_chunks(bot, query_embedding, top_k=5):
     if query_embedding is None:
         return []
 
-    
     chunks = KnowledgeChunk.objects.filter(
         knowledge_file__bot=bot,
         embedding__isnull=False
@@ -155,7 +141,6 @@ def search_relevant_chunks(bot, query_embedding, top_k=5):
         sim = cosine_similarity(query_embedding, chunk.embedding)
         similarities.append((sim, chunk))
 
-    
     similarities.sort(key=lambda x: x[0], reverse=True)
 
     return [chunk for _, chunk in similarities[:top_k]]

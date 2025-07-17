@@ -1,23 +1,42 @@
 from django.db import models
 from django.contrib.auth.models import User
 
+
 class KnowledgeBase(models.Model):
-    bot = models.ForeignKey('Bot', on_delete=models.CASCADE, related_name='knowledge_files')
+    bot = models.ForeignKey(
+        'Bot',
+        on_delete=models.CASCADE,
+        related_name='knowledge_files'
+    )
     file = models.FileField(upload_to='knowledge_files/')
-    uploaded_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    uploaded_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
+    )
     uploaded_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"{self.bot.name} - {self.file.name}"
 
+
 class KnowledgeChunk(models.Model):
-    knowledge_file = models.ForeignKey(KnowledgeBase, on_delete=models.CASCADE, related_name='chunks')
+    knowledge_file = models.ForeignKey(
+        KnowledgeBase,
+        on_delete=models.CASCADE,
+        related_name='chunks'
+    )
     text = models.TextField()
     embedding = models.JSONField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"Chunk of {self.knowledge_file.file.name[:30]} ({len(self.text)} chars)"
+        return (
+            f"Chunk of {self.knowledge_file.file.name[:30]} "
+            f"({len(self.text)} chars)"
+        )
+
 
 class Bot(models.Model):
     CATEGORY_CHOICES = [
@@ -85,37 +104,69 @@ class Bot(models.Model):
     description = models.TextField(blank=True)
     owner = models.ForeignKey(User, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
-    personality = models.TextField(default="I am a helpful and friendly assistant.")
-    category = models.CharField(max_length=23, choices=CATEGORY_CHOICES, default='general')
+    personality = models.TextField(
+        default="I am a helpful and friendly assistant."
+    )
+    category = models.CharField(
+        max_length=23,
+        choices=CATEGORY_CHOICES,
+        default='general'
+    )
 
     def __str__(self):
         return self.name
 
+
 class ChatMessage(models.Model):
-    bot = models.ForeignKey(Bot, on_delete=models.CASCADE, related_name='chat_messages')
+    bot = models.ForeignKey(
+        Bot,
+        on_delete=models.CASCADE,
+        related_name='chat_messages'
+    )
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     message = models.TextField()
-    sender = models.CharField(max_length=10, choices=[('user', 'User'), ('bot', 'Bot')])
+    sender = models.CharField(
+        max_length=10,
+        choices=[('user', 'User'), ('bot', 'Bot')]
+    )
     timestamp = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"{self.sender}: {self.message[:50]}"
 
+
 class BotTemplate(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True)
-    personality = models.TextField(default="I am a helpful and friendly assistant.")
-    category = models.CharField(max_length=23, choices=Bot.CATEGORY_CHOICES, default='general')
+    personality = models.TextField(
+        default="I am a helpful and friendly assistant."
+    )
+    category = models.CharField(
+        max_length=23,
+        choices=Bot.CATEGORY_CHOICES,
+        default='general'
+    )
 
     def __str__(self):
         return self.name
 
+
 class BotUsageLog(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='bots_bot_usage_logs')
-    bot = models.ForeignKey(Bot, on_delete=models.CASCADE, related_name='bots_bot_usage_logs')
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='bots_bot_usage_logs'
+    )
+    bot = models.ForeignKey(
+        Bot,
+        on_delete=models.CASCADE,
+        related_name='bots_bot_usage_logs'
+    )
     tokens_used = models.IntegerField()
     timestamp = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.user.username} used {self.tokens_used} tokens on {self.timestamp}"
-
+        return (
+            f"{self.user.username} used {self.tokens_used} "
+            f"tokens on {self.timestamp}"
+        )
