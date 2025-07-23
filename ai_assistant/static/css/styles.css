@@ -583,3 +583,43 @@ ul.errorlist {
   margin-bottom: 1rem;
   padding-left: 0;
 }
+
+/* ================= ALERT MESSAGES ================= */
+.alert {
+  padding: 1rem 1.25rem;
+  border-radius: 10px;
+  margin: 1rem 0;
+  font-weight: 600;
+  font-size: 1rem;
+  border: 1px solid transparent;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+/* Success: Green */
+.alert-success {
+  background-color: #d4edda;
+  border-color: #c3e6cb;
+  color: #155724;
+}
+
+/* Error: Red */
+.alert-danger {
+  background-color: #f8d7da;
+  border-color: #f5c6cb;
+  color: #721c24;
+}
+
+/* Info: Blue */
+.alert-info {
+  background-color: #d1ecf1;
+  border-color: #bee5eb;
+  color: #0c5460;
+}
+
+/* Warning: Yellow */
+.alert-warning {
+  background-color: #fff3cd;
+  border-color: #ffeeba;
+  color: #856404;
+}
