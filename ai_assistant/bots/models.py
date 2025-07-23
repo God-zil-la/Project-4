@@ -113,6 +113,14 @@ class Bot(models.Model):
         default='general'
     )
 
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['owner', 'name'],
+                name='unique_bot_per_user'
+            )
+        ]
+
     def __str__(self):
         return self.name
 
