@@ -833,6 +833,8 @@ Special thanks to the following platforms and tools:
 
 🧑‍💻 Stack Overflow & GitHub Discussions – For solutions to specific coding errors and best practices.
 
+🎓 Code Institute – For providing the structured curriculum, mentorship, and guidance throughout the development journey.
+
 These platforms helped me understand everything from API requests to secure deployments and responsive design. The openness of the dev community made building this full-stack platform possible.
 
 ⭐ General Support
