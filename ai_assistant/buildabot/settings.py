@@ -223,6 +223,17 @@ DEFAULT_PROTOCOL = os.getenv(
     "https"
 )
 
+from django.contrib.messages import constants as messages
+
+MESSAGE_TAGS = {
+    messages.DEBUG: 'info',
+    messages.INFO: 'info',
+    messages.SUCCESS: 'success',
+    messages.WARNING: 'warning',
+    messages.ERROR: 'danger',  # "error" will now use .alert-danger
+}
+
+
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 FREE_PLAN_DAILY_LIMIT = 15
