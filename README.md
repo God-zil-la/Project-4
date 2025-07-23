@@ -596,24 +596,25 @@ Extensive manual testing was performed to verify that all features meet requirem
 
 ✅ Below is a summary of key tests, expected outcomes, and results:
 
-Test Label	Test Action	Expected Outcome	Result	Notes
-Register/Login Forms	Valid and invalid data on registration/login forms	Forms validate correctly: user can register/login/logout	✅	All validations handled properly
-Password Reset	Use email reset flow with invalid and valid tokens	Reset emails sent: invalid tokens rejected	✅	Secure and reliable reset flow
-Bot CRUD	Create, update, delete bots with/without ownership	Only owners can edit/delete: bots saved/updated	✅	Permissions enforced
-Chat Playground	Send messages and receive AI responses	Real-time chat replies appear; chat history saved	✅	Responsive and fast interaction
-Stripe Payment Flow	Complete checkout and cancel flows	Payments processed; premium access granted/revoked	✅	Stripe test cards used
-Access Control	Attempt premium bot access without subscription	Access denied with error message	✅	Subscription gating enforced
-Theme Toggle	Switch between dark and light mode	UI changes immediately and persists	✅	Uses localStorage for persistence
-Footer/Nav	Check layout on various screen sizes	Footer and navbar remain consistent and accessible	✅	Mobile-first responsive design
-Monitor Logs & Analytics	Check bot usage logs and export CSV	Logs saved correctly; CSV export works	✅	Staff-only access enforced
-CSV Export	Export filtered bot usage logs	CSV file downloads with correct data	✅	Tested in multiple browsers
-Staff-only Admin Access	Access admin dashboard as staff and non-staff	Only staff can access; non-staff redirected	✅	Secure access controls
-Knowledge Upload	Upload valid and invalid knowledge files	Files processed or rejected with clear errors	✅	Chunk splitting and embeddings tested
-AJAX CSRF Protection	Submit chat and forms with/without CSRF tokens	CSRF tokens required; errors handled gracefully	✅	Secure POST endpoints
-Error Pages	Trigger 404 and 500 errors	Custom error pages displayed	✅	Friendly user experience
-Mobile Responsiveness	Test on iPhone 5, tablets, and desktops	Layout adapts properly; no overflow or broken elements	✅	Tested on real devices and emulators
-User Profile Limits	Exceed daily message limits	Access blocked with appropriate message	✅	Enforced per user subscription
-Discord Bridge API Token Check	Use valid and invalid tokens for bot bridge	Only valid tokens accepted; invalid rejected	✅	Secure API access
+| **Test Label**           | **Test Action**                                    | **Expected Outcome**                                     | **Result** | **Notes**                             |
+| ------------------------ | -------------------------------------------------- | -------------------------------------------------------- | ---------- | ------------------------------------- |
+| Register/Login Forms     | Valid and invalid data on registration/login forms | Forms validate correctly; user can register/login/logout | ✅          | All validations handled properly      |
+| Password Reset           | Use email reset flow with valid and invalid tokens | Reset emails sent; invalid tokens rejected               | ✅          | Secure and reliable reset flow        |
+| Bot CRUD                 | Create, update, delete bots with/without ownership | Only owners can edit/delete; bots saved correctly        | ✅          | Permissions enforced                  |
+| Chat Playground          | Send messages and receive AI responses             | Real-time replies appear; chat history saved             | ✅          | Responsive and fast interaction       |
+| Stripe Payment Flow      | Complete checkout and cancel flows                 | Payments processed; premium access granted/revoked       | ✅          | Stripe test cards used                |
+| Access Control           | Access premium bot without subscription            | Access denied with error message                         | ✅          | Subscription gating enforced          |
+| Theme Toggle             | Switch between dark and light mode                 | UI changes immediately and persists                      | ✅          | Uses localStorage for persistence     |
+| Footer/Nav               | Check layout on various screen sizes               | Footer and navbar remain consistent and accessible       | ✅          | Mobile-first responsive design        |
+| Monitor Logs & Analytics | Check bot usage logs and export CSV                | Logs saved correctly; CSV export works                   | ✅          | Staff-only access enforced            |
+| CSV Export               | Export filtered bot usage logs                     | CSV downloads with correct data                          | ✅          | Tested in multiple browsers           |
+| Staff-only Admin Access  | Access admin dashboard as staff/non-staff          | Only staff can access; non-staff redirected              | ✅          | Secure access controls                |
+| Knowledge Upload         | Upload valid/invalid knowledge files               | Files processed or rejected with clear errors            | ✅          | Chunk splitting and embeddings tested |
+| AJAX CSRF Protection     | Submit chat/forms with and without CSRF            | CSRF tokens required; errors handled gracefully          | ✅          | Secure POST endpoints                 |
+| Error Pages              | Trigger 404 and 500 errors                         | Custom error pages displayed                             | ✅          | Friendly user experience              |
+| Mobile Responsiveness    | Test on iPhone 5, tablets, desktops                | Layout adapts properly; no overflow                      | ✅          | Tested on real devices and emulators  |
+| User Profile Limits      | Exceed daily message limits                        | Access blocked with proper message                       | ✅          | Enforced per subscription             |
+| Discord Bridge API Token | Use valid/invalid tokens for bridge                | Only valid tokens accepted; invalid rejected             | ✅          | Secure API access                     |
 
 
 ✅ Validation Results
