@@ -59,12 +59,24 @@
   {% if messages %}
   <div style="max-width: 800px; margin: 2rem auto; padding: 0 1rem;">
     {% for message in messages %}
-    {% if message.tags %}
-    <div class="alert alert-{{ message.tags|default:'info' }}">
+    {% if message.tags == "success" %}
+    <div class="alert alert-success" style="background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb;">
+      {{ message }}
+    </div>
+    {% elif message.tags == "info" %}
+    <div class="alert alert-info" style="background-color: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb;">
+      {{ message }}
+    </div>
+    {% elif message.tags == "warning" %}
+    <div class="alert alert-warning" style="background-color: #fff3cd; color: #856404; border: 1px solid #ffeeba;">
+      {{ message }}
+    </div>
+    {% elif message.tags == "danger" or message.tags == "error" %}
+    <div class="alert alert-danger" style="background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb;">
       {{ message }}
     </div>
     {% else %}
-    <div class="alert alert-info">
+    <div class="alert alert-info" style="background-color: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb;">
       {{ message }}
     </div>
     {% endif %}
