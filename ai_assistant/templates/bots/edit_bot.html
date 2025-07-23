@@ -8,7 +8,14 @@
 
   <form method="post" class="bot-form">
     {% csrf_token %}
-    {{ form.non_field_errors }}
+
+    {% if form.non_field_errors %}
+    <ul class="errorlist">
+      {% for error in form.non_field_errors %}
+      <li>{{ error }}</li>
+      {% endfor %}
+    </ul>
+    {% endif %}
 
     <div class="form-group">
       <label for="{{ form.name.id_for_label }}">Bot Name</label>
