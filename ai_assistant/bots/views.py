@@ -71,11 +71,25 @@ def create_bot(request):
     if request.method == 'POST':
         form = BotForm(request.POST)
         if form.is_valid():
+            # Check for duplicate bot name
+            duplicate_exists = Bot.objects.filter(
+                owner=request.user,
+                name=form.cleaned_data['name']
+            ).exists()
+            if duplicate_exists:
+                messages.error(
+                    request,
+                    "You already have a bot with this name. Please choose a different name."
+                )
+                return render(request, 'bots/create_bot.html', {'form': form})
+
             bot = form.save(commit=False)
             bot.owner = request.user
             bot.save()
             messages.success(request, "Bot created successfully!")
             return redirect('bots:my-bots')
+        else:
+            messages.error(request, "Please correct the errors below.")
     else:
         form = BotForm()
 
