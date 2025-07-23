@@ -159,18 +159,24 @@ DJANGO_BOT_ID=your-bot-id
 
 6️⃣ Install Requirements
 
-For Windows (PowerShell or CMD):
+✅ For Windows (PowerShell or CMD):
+```ini
 python -m venv venv
 venv\Scripts\activate
 pip install -r requirements.txt
 python bridge.py
+```
 
-For macOS / Linux:
+✅ For macOS / Linux:
+```ini
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
 python bridge.py
+```
+
 ✅ Leave the terminal open.
+
 ✅ Your bot is now live and connected to your AI Assistant.
 
 📥 Extra Help & Documentation
@@ -590,56 +596,25 @@ Extensive manual testing was performed to verify that all features meet requirem
 
 ✅ Below is a summary of key tests, expected outcomes, and results:
 
-Test Label	                  Test Action	                    Expected Outcome	                   Result	         Notes
-                                                          
-- Register/Login Forms	      Valid and invalid data on       Forms validate correctly:               ✅           All validations handled properly
-                              registration/login forms	      user can register/login/logout
+Test Label	Test Action	Expected Outcome	Result	Notes
+Register/Login Forms	Valid and invalid data on registration/login forms	Forms validate correctly: user can register/login/logout	✅	All validations handled properly
+Password Reset	Use email reset flow with invalid and valid tokens	Reset emails sent: invalid tokens rejected	✅	Secure and reliable reset flow
+Bot CRUD	Create, update, delete bots with/without ownership	Only owners can edit/delete: bots saved/updated	✅	Permissions enforced
+Chat Playground	Send messages and receive AI responses	Real-time chat replies appear; chat history saved	✅	Responsive and fast interaction
+Stripe Payment Flow	Complete checkout and cancel flows	Payments processed; premium access granted/revoked	✅	Stripe test cards used
+Access Control	Attempt premium bot access without subscription	Access denied with error message	✅	Subscription gating enforced
+Theme Toggle	Switch between dark and light mode	UI changes immediately and persists	✅	Uses localStorage for persistence
+Footer/Nav	Check layout on various screen sizes	Footer and navbar remain consistent and accessible	✅	Mobile-first responsive design
+Monitor Logs & Analytics	Check bot usage logs and export CSV	Logs saved correctly; CSV export works	✅	Staff-only access enforced
+CSV Export	Export filtered bot usage logs	CSV file downloads with correct data	✅	Tested in multiple browsers
+Staff-only Admin Access	Access admin dashboard as staff and non-staff	Only staff can access; non-staff redirected	✅	Secure access controls
+Knowledge Upload	Upload valid and invalid knowledge files	Files processed or rejected with clear errors	✅	Chunk splitting and embeddings tested
+AJAX CSRF Protection	Submit chat and forms with/without CSRF tokens	CSRF tokens required; errors handled gracefully	✅	Secure POST endpoints
+Error Pages	Trigger 404 and 500 errors	Custom error pages displayed	✅	Friendly user experience
+Mobile Responsiveness	Test on iPhone 5, tablets, and desktops	Layout adapts properly; no overflow or broken elements	✅	Tested on real devices and emulators
+User Profile Limits	Exceed daily message limits	Access blocked with appropriate message	✅	Enforced per user subscription
+Discord Bridge API Token Check	Use valid and invalid tokens for bot bridge	Only valid tokens accepted; invalid rejected	✅	Secure API access
 
-- Password Reset	            Use email reset flow with       Reset emails sent:                      ✅	          Secure and reliable reset flow
-                              invalid and valid tokens	      invalid tokens rejected	
-
-- Bot CRUD	                  Create, update, delete bots     Only owners can edit/delete:            ✅	          Permissions enforced
-                              with/without ownership	        bots saved and updated correctly	
-
-- Chat Playground	            Send messages and receive       Real-time chat replies appear: 	        ✅	          Responsive and fast interaction
-                              AI responses	                  chat history saved
-
-- Stripe Payment Flow	        Complete checkout and           Payments processed: 	                  ✅	          Stripe test cards used
-                              cancel flows	                  premium access granted/revoked
-
-- Access Control	            Attempt premium bot access      Access denied with error message	      ✅	          Subscription gating enforced
-                              without subscription	
-
-- Theme Toggle	              Switch between dark 	         UI changes immediately and persists      ✅	          Uses localStorage for persistence
-                              and light mode
-
-- Footer/Nav	                Check layout on various        Footer and navbar remain	                ✅	          Mobile-first responsive design
-                              screen sizes	                 consistent and accessible
-
-- Monitor Logs & Analytics	  Check bot usage logs           Logs saved correctly:                    ✅	          Staff-only access enforced
-                              and export CSV	               CSV export works	
-
-- CSV Export	                Export filtered bot            CSV file downloads with correct data	    ✅           Tested in multiple browsers
-                              usage logs	
-
-- Staff-only Admin Access	    Access admin dashboard         Only staff can access: 	                ✅	          Secure access controls
-                              as staff and non-staff	       non-staff redirected
-
-- Knowledge Upload	          Upload valid and invalid       Files processed or rejected 	            ✅	          Chunk splitting and embeddings 
-                              knowledge files	               with clear errors                                      tested
-
-- AJAX CSRF Protection	      Submit chat and forms 	       CSRF tokens required: 	                  ✅	          Secure POST endpoints
-                              with/without CSRF tokens       errors handled gracefully
-
-- Error Pages	                Trigger 404 and 500 errors	   Custom error pages displayed	            ✅	          Friendly user experience
-
-- Mobile Responsiveness	      Test on iPhone 5, tablets,     Layout adapts properly:                  ✅	          Tested on real devices and 
-                              and desktops	                 no overflow or broken elements	                        emulators
-
-- User Profile Limits	        Exceed daily message limits	   Access blocked with appropriate message	✅	          Enforced per user subscription
-
-- Discord Bridge API          Use valid and invalid 	       Only valid tokens accepted: 	            ✅	          Secure API access
-Token Check	                  tokens for bot bridge          invalid rejected
 
 ✅ Validation Results
 
