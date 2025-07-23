@@ -231,6 +231,31 @@ form {
   margin-top: 1rem;
 }
 
+.bot-form label {
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.bot-form input,
+.bot-form select,
+.bot-form textarea {
+  width: 100%;
+  display: block;
+  margin-bottom: 1rem;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"],
+textarea {
+  padding: 0.8rem;
+  border: 1px solid var(--button-border);
+  border-radius: 12px;
+  background-color: rgba(255, 255, 255, 0.02);
+  color: var(--text-color);
+  transition: border 0.3s ease, background-color 0.3s ease;
+}
+
 input[type="text"],
 input[type="email"],
 input[type="password"],
