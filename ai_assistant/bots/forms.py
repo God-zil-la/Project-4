@@ -36,8 +36,7 @@ class KnowledgeBaseForm(forms.ModelForm):
                 )
             if not file.name.endswith(('.txt', '.pdf', '.docx')):
                 raise forms.ValidationError(
-                    "Invalid file type. Only .txt, .pdf, and .docx files "
-                    "are allowed."
+                    "Invalid file type. Only .txt, .pdf, and .docx files are allowed."
                 )
         return file
 
@@ -54,10 +53,7 @@ class BotForm(forms.ModelForm):
             'category': forms.Select(attrs={'class': 'category-select'})
         }
 
-    def clean_name(self):
-        name = self.cleaned_data.get('name')
-        if Bot.objects.filter(name=name).exists():
-            raise forms.ValidationError(
-                "A bot with this name already exists."
-            )
-        return name
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user', None)
+        super(BotForm, self).__init__(*args, **kwargs)
+
