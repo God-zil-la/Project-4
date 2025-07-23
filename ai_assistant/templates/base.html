@@ -34,14 +34,14 @@
           Logout
           {% if messages %}
           <span style="
-            display: inline-block;
-            width: 10px;
-            height: 10px;
-            background-color: #ff5c5c;
-            border-radius: 50%;
-            margin-left: 6px;
-            vertical-align: middle;
-          "></span>
+                display: inline-block;
+                width: 10px;
+                height: 10px;
+                background-color: #ff5c5c;
+                border-radius: 50%;
+                margin-left: 6px;
+                vertical-align: middle;
+              "></span>
           {% endif %}
         </a>
         <form id="logout-form" method="POST" action="{% url 'accounts:logout' %}" style="display: none;">
@@ -55,13 +55,19 @@
     </ul>
   </nav>
 
-  <!-- ✅ Updated Alert Block -->
+  <!-- ✅ ALERT MESSAGES -->
   {% if messages %}
-  <div style="max-width: 600px; margin: 2rem auto;">
+  <div style="max-width: 800px; margin: 2rem auto; padding: 0 1rem;">
     {% for message in messages %}
-    <div class="alert alert-{{ message.tags }}">
+    {% if message.tags %}
+    <div class="alert alert-{{ message.tags|default:'info' }}">
       {{ message }}
     </div>
+    {% else %}
+    <div class="alert alert-info">
+      {{ message }}
+    </div>
+    {% endif %}
     {% endfor %}
   </div>
   {% endif %}
