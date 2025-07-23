@@ -764,7 +764,7 @@ The \`.gitignore\` file is carefully configured to prevent these files from bein
 
 ---
 
-## 🚀 Future Enhancements
+## 🚀 Future Features & Enhancements
 - Bot avatars and image uploads
 - Bot cloning/sharing
 - OAuth2 login (Google/GitHub)
