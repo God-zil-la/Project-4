@@ -574,3 +574,12 @@ html.dark .btn-danger {
   word-wrap: break-word;
   transition: background-color 0.3s ease, color 0.3s ease;
 }
+
+ul.errorlist {
+  color: red;
+  font-weight: bold;
+  list-style-type: none;
+  margin-top: 0.25rem;
+  margin-bottom: 1rem;
+  padding-left: 0;
+}
