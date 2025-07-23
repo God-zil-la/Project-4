@@ -100,14 +100,22 @@ def bot_chat_api(request, bot_id):
 @login_required
 def edit_bot(request, bot_id):
     bot = get_object_or_404(Bot, id=bot_id, owner=request.user)
+
     if request.method == 'POST':
         form = BotForm(request.POST, instance=bot)
         if form.is_valid():
-            form.save()
+            edited_bot = form.save(commit=False)
+            edited_bot.owner = request.user
+            edited_bot.save()
+            messages.success(request, "Bot updated successfully!")
             return redirect('bots:list')
+        else:
+            messages.error(request, "Please fix the errors below.")
     else:
         form = BotForm(instance=bot)
+
     return render(request, 'bots/edit_bot.html', {'form': form})
+
 
 
 @login_required
