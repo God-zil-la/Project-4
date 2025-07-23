@@ -767,7 +767,7 @@ The \`.gitignore\` file is carefully configured to prevent these files from bein
 ## 🚀 Future Features & Enhancements
 - Bot avatars and image uploads
 - Bot cloning/sharing
-- OAuth2 login (Google/GitHub)
+- OAuth2 login
 - Chat analytics/dashboard per user
 - Monthly usage tracking
 - Email verification on registration
