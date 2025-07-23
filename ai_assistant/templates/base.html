@@ -55,25 +55,11 @@
     </ul>
   </nav>
 
-  <!-- Global Messages Banner -->
+  <!-- ✅ Updated Alert Block -->
   {% if messages %}
-  <div style="
-      max-width: 600px;
-      margin: 2rem auto;
-      padding: 1rem 1.5rem;
-      text-align: center;
-      border-radius: 8px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-      background-color: #ffdddd;
-      border: 1px solid #ff5c5c;
-      color: #a40000;
-      font-size: 1rem;
-      font-weight: 500;
-    ">
+  <div style="max-width: 600px; margin: 2rem auto;">
     {% for message in messages %}
-    <div style="
-        margin: 0.5rem 0;
-      ">
+    <div class="alert alert-{{ message.tags }}">
       {{ message }}
     </div>
     {% endfor %}
