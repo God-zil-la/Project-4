@@ -16,16 +16,65 @@ from .tokens import account_activation_token
 
 User = get_user_model()
 
-
-@login_required
-def index(request):
-    return render(request, 'accounts/index.html')
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from ai_assistant.bots.models import Bot
+from ai_assistant.bots.forms import BotForm
 
 
 @login_required
 def bot_list(request):
-    user_bots = Bot.objects.filter(owner=request.user)
-    return render(request, 'bots/bot_list.html', {'bots': user_bots})
+    bots = Bot.objects.filter(owner=request.user)
+    return render(request, 'bots/bot_list.html', {'bots': bots})
+
+
+@login_required
+def create_bot(request):
+    if request.method == 'POST':
+        form = BotForm(request.POST, user=request.user)
+        if form.is_valid():
+            name = form.cleaned_data['name']
+            if Bot.objects.filter(name__iexact=name, owner=request.user).exists():
+                form.add_error('name', "A bot with this name already exists.")
+            else:
+                bot = form.save(commit=False)
+                bot.owner = request.user
+                bot.save()
+                messages.success(request, "Bot created successfully!")
+                return redirect('bots:list')
+        else:
+            messages.error(request, "Please fix the errors below.")
+    else:
+        form = BotForm(user=request.user)
+    return render(request, 'bots/create_bot.html', {'form': form})
+
+
+@login_required
+def edit_bot(request, bot_id):
+    bot = get_object_or_404(Bot, id=bot_id, owner=request.user)
+    if request.method == 'POST':
+        form = BotForm(request.POST, instance=bot, user=request.user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Bot updated successfully!")
+            return redirect('bots:list')
+        else:
+            messages.error(request, "Please fix the errors below.")
+    else:
+        form = BotForm(instance=bot, user=request.user)
+    return render(request, 'bots/edit_bot.html', {'form': form})
+
+
+@login_required
+def delete_bot(request, bot_id):
+    bot = get_object_or_404(Bot, id=bot_id, owner=request.user)
+    if request.method == 'POST':
+        bot.delete()
+        messages.success(request, "Bot deleted successfully.")
+        return redirect('bots:list')
+    return render(request, 'bots/confirm_delete.html', {'bot': bot})
+
 
 
 def register(request):
