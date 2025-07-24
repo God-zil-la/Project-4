@@ -668,6 +668,10 @@ This guide is designed for anyone maintaining or updating the AI Assistant Platf
 - heroku config:set STRIPE_PUBLIC_KEY='your-public-key'
 - heroku config:set STRIPE_SECRET_KEY='your-secret-key'
 - heroku config:set OPENAI_API_KEY='your-openai-key'
+- heroku config:set DJANGO_SECRET_KEY='your-secret-key'
+- heroku config:set SENDGRID_API_KEY='your-sendgrid-api-key'
+- heroku config:set DEFAULT_DOMAIN='your-app.herokuapp.com'
+- heroku config:set DEFAULT_PROTOCOL='https'
 # ...other env vars
 
 3. Provision add-ons
@@ -677,6 +681,20 @@ This guide is designed for anyone maintaining or updating the AI Assistant Platf
 
 4. Set up local environment
 - Clone the repo and create a .env file with the same environment variables for local development.
+- Create a .env file with all the required environment variables:
+
+env
+
+- DJANGO_SECRET_KEY=...
+
+- STRIPE_PUBLIC_KEY=...
+
+- STRIPE_SECRET_KEY=...
+
+- OPENAI_API_KEY=...
+
+- SENDGRID_API_KEY=...
+
 
 B. Getting the Code and Making Updates
  You can get the code either by cloning or forking:
@@ -688,8 +706,13 @@ Create branches for your changes. Push changes to the remote and create pull req
 
 - Forking
 Fork the repo on GitHub to your own account.
+
 Clone your forked repo.
-You can pull in upstream changes later from the original repo.
+git clone https://github.com/yourusername/ai-assistant.git
+
+Later, pull in upstream changes:
+git remote add upstream https://github.com/originaluser/ai-assistant.git
+git pull upstream main
 
 C. Pushing Updates and Redeploying
 
@@ -700,12 +723,57 @@ git commit -m "Describe your change"
 - Push to the main branch (or another branch as per workflow):
 git push origin main
 
-- Heroku is configured to automatically redeploy the app when changes are pushed to the main branch.
+🚀 How to Set Up the App on Heroku (Step-by-Step)
 
-- If needed, manually run database migrations after deployment:
+1. 🔧 Install the Heroku CLI
+If you haven’t already, download and install the Heroku CLI:
+👉 https://devcenter.heroku.com/articles/heroku-cli
+
+2. 🌀 Login to Heroku
+heroku login
+
+3. 🗂 Navigate to your project folder
+cd ai-assistant
+
+4. 🌐 Create the Heroku app
+heroku create your-app-name
+
+5. 📦 Add PostgreSQL Add-on
+heroku addons:create heroku-postgresql:hobby-dev
+
+6. 🛠 Set environment variables
+Set required keys and secrets:
+
+- heroku config:set DJANGO_SECRET_KEY="your-secret-key"
+
+- heroku config:set STRIPE_PUBLIC_KEY="your-stripe-public-key"
+
+- heroku config:set STRIPE_SECRET_KEY="your-stripe-secret-key"
+
+- heroku config:set OPENAI_API_KEY="your-openai-api-key"
+
+- heroku config:set SENDGRID_API_KEY="your-sendgrid-api-key"
+
+- heroku config:set DEFAULT_DOMAIN="your-app.herokuapp.com"
+
+- heroku config:set DEFAULT_PROTOCOL="https"
+
+💡 Pro tip: Store these in a local .env file using python-decouple
+
+7. ⚙️ Set the buildpacks (optional but recommended)
+heroku buildpacks:add heroku/python
+
+8. ⬆️ Push the code to Heroku
+Make sure all changes are committed first:
+git push heroku main
+
+9. 🗃 Run migrations
 heroku run python manage.py migrate
 
-- Open the live app to test your changes:
+10. 🧪 (Optional) Create a superuser
+heroku run python manage.py createsuperuser
+
+11. 🎉 Open the app
 heroku open
 
 ---
