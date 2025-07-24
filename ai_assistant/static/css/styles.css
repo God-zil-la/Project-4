@@ -124,7 +124,7 @@ button,
   cursor: pointer;
   text-decoration: none;
   backdrop-filter: blur(4px);
-  box-shadow: var(--button-shadow);
+  box-shadow: 0 4px 12px rgba(120, 100, 80, 0.15); /* fallback */
   transition: all 0.3s ease;
   white-space: nowrap;
   flex-shrink: 0;
@@ -132,6 +132,19 @@ button,
   width: auto;
   max-width: 100%;
   text-align: center;
+}
+
+@supports (--css: variables) {
+  nav a,
+  .nav-btn,
+  #toggleTheme,
+  button,
+  .bot-actions a,
+  .chat-playground button,
+  .subscribe-button {
+    box-shadow: 0 4px 12px rgba(120, 100, 80, 0.15);
+
+  }
 }
 
 nav a:hover,
@@ -317,8 +330,15 @@ textarea:focus {
   border: 1px solid var(--button-border);
   border-radius: 14px;
   font-weight: bold;
-  box-shadow: var(--button-shadow);
+  box-shadow: 0 4px 12px rgba(120, 100, 80, 0.15); /* fallback */
   transition: all 0.3s ease;
+}
+
+@supports (--css: variables) {
+  .subscribe-button {
+    box-shadow: 0 4px 12px rgba(120, 100, 80, 0.15);
+
+  }
 }
 
 .subscribe-button:hover {
@@ -483,12 +503,18 @@ p a[href$="password-reset/"] {
   border-radius: 10px;
   font-weight: 600;
   text-decoration: none;
-  box-shadow: var(--button-shadow);
+  box-shadow: 0 4px 12px rgba(120, 100, 80, 0.15); /* fallback for validator */
   transition: all 0.3s ease;
   cursor: pointer;
   white-space: nowrap;
   user-select: none;
   text-align: center;
+}
+
+@supports (--css: variables) {
+  .btn {
+    box-shadow: 0 4px 12px rgba(120, 100, 80, 0.15);
+  }
 }
 
 .btn:hover {
