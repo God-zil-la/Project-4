@@ -361,16 +361,27 @@ The AI Assistant Platform uses a relational database with Django´s ORM. The des
 ## 📁 Project Structure
 
 ai-assistant/
+
 ├── ai_assistant/        # Project settings
+
 ├── accounts/            # Authentication system
+
 ├── bots/                # Bot models and views
+
 ├── dashboard/           # Homepage and analytics
+
 ├── payments/            # Stripe integration
+
 ├── templates/           # HTML templates
+
 ├── static/              # CSS, JS, images
+
 ├── .env                 # Environment variables
+
 ├── Procfile             # Heroku runtime config
+
 ├── runtime.txt          # Python version
+
 └── requirements.txt     # Dependencies
 
 ---
