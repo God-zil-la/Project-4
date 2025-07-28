@@ -15,7 +15,6 @@
     {% endfor %}
 </div>
 
-<!-- Chat form -->
 <form id="chat-form" method="post" autocomplete="off" style="display:flex; gap: 10px; margin-bottom: 1rem;">
     {% csrf_token %}
     <input id="chat-input" type="text" name="message" placeholder="Type your message..."
@@ -23,7 +22,6 @@
     <button type="submit" style="padding: 8px 15px;">Send</button>
 </form>
 
-<!-- Upload knowledge form -->
 <h2 style="text-align:center; margin-bottom: 1rem;">Upload Knowledge File for {{ bot.name }}</h2>
 
 <form method="post" enctype="multipart/form-data" class="upload-knowledge-container">
@@ -65,20 +63,7 @@
         word-wrap: break-word;
     }
 
-    .chat-message.bot {
-        text-align: left;
-        color: #4A4A4A;
-        margin: 5px 0;
-        font-weight: bold;
-        font-size: 1.1rem;
-        background-color: #f0f0f0;
-        padding: 10px 15px;
-        border-radius: 12px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        max-width: 80%;
-        word-wrap: break-word;
-    }
-
+    .chat-message.bot,
     .chat-message.assistant {
         text-align: left;
         color: #4A4A4A;
@@ -92,7 +77,6 @@
         max-width: 80%;
         word-wrap: break-word;
     }
-
 
     .upload-knowledge-container {
         background: var(--nav-bg);
