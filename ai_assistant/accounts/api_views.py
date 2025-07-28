@@ -6,8 +6,12 @@ from ai_assistant.bots.models import Bot, BotUsageLog
 from ai_assistant.bots.openai_client import call_openai
 from django.core.exceptions import ObjectDoesNotExist
 
+
 class PublicChatAPIView(APIView):
+    """Public API endpoint for sending messages to a bot using an API key."""
+
     def post(self, request, *args, **kwargs):
+        """Handle POST request to process a message and return AI response."""
         api_key = request.headers.get('X-API-KEY')
         if not api_key:
             return Response({'error': 'API key required'}, status=401)
