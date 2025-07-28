@@ -10,6 +10,8 @@ from django.urls import reverse
 
 
 class RegisterForm(forms.ModelForm):
+    """User registration form with password confirmation and validation."""
+
     password1 = forms.CharField(
         label="Password",
         strip=False,
@@ -26,6 +28,7 @@ class RegisterForm(forms.ModelForm):
         fields = ['username', 'email']
 
     def clean_password2(self):
+        """Validate that the two password fields match."""
         password1 = self.cleaned_data.get("password1")
         password2 = self.cleaned_data.get("password2")
         if password1 and password2 and password1 != password2:
@@ -33,6 +36,7 @@ class RegisterForm(forms.ModelForm):
         return password2
 
     def save(self, commit=True):
+        """Save the user with a hashed password."""
         user = super().save(commit=False)
         user.set_password(self.cleaned_data["password1"])
         if commit:
@@ -41,6 +45,8 @@ class RegisterForm(forms.ModelForm):
 
 
 class CustomPasswordResetForm(PasswordResetForm):
+    """Custom password reset form with HTML email support and reset URL injection."""
+
     def send_mail(
         self,
         subject_template_name,
@@ -50,6 +56,7 @@ class CustomPasswordResetForm(PasswordResetForm):
         to_email,
         html_email_template_name=None
     ):
+        """Send a password reset email using text and optional HTML templates."""
         subject = render_to_string(subject_template_name, context).strip()
         body = render_to_string(email_template_name, context)
 
@@ -74,6 +81,7 @@ class CustomPasswordResetForm(PasswordResetForm):
         html_email_template_name='accounts/password_reset_email.html',
         extra_email_context=None
     ):
+        """Generate password reset email with a custom reset URL."""
         from django.contrib.auth.tokens import default_token_generator
         from django.utils.http import urlsafe_base64_encode
         from django.utils.encoding import force_bytes
