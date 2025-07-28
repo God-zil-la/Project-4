@@ -3,6 +3,7 @@ import re
 import numpy as np
 from dotenv import load_dotenv
 import openai
+from django.template.loader import render_to_string
 
 
 load_dotenv()
@@ -38,17 +39,30 @@ def extract_text_from_docx(file_path):
     return text
 
 
-def extract_text_from_txt(file_path):
+def extract_text_from_txt(file_obj):
     """
-    Reads text from a plain TXT file.
+    Reads text from a plain TXT file. Supports file paths and InMemoryUploadedFile.
     """
     try:
-        with open(file_path, "r", encoding="utf-8") as f:
-            return f.read()
+        if hasattr(file_obj, 'read'):
+            return file_obj.read().decode('utf-8')
+        else:
+            with open(file_obj, "r", encoding="utf-8") as f:
+                return f.read()
     except Exception as e:
         print(f"[ERROR] Failed to read TXT file: {e}")
         return ""
 
+
+def render_system_message(bot, knowledge_text):
+    """
+    Renders the system message using the bot's personality and relevant knowledge.
+    """
+    return render_to_string("system_message_template.txt", {
+        "bot": bot,
+        "knowledge": knowledge_text
+    })
+    
 
 def extract_text(file_path, filename):
     """
