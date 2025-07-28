@@ -8,9 +8,13 @@ from django.utils.decorators import method_decorator
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
+
 @method_decorator(login_required, name='dispatch')
 class CreateCheckoutSessionView(View):
+    """Create a Stripe checkout session for the Pro Bot Plan."""
+
     def post(self, request, *args, **kwargs):
+        """Handle POST request to initiate a Stripe checkout session."""
         try:
             checkout_session = stripe.checkout.Session.create(
                 payment_method_types=['card'],
@@ -34,14 +38,20 @@ class CreateCheckoutSessionView(View):
         except Exception as e:
             return JsonResponse({'error': str(e)})
 
+
 @login_required
 def billing(request):
+    """Render the billing page with the Stripe public key."""
     return render(request, 'payments/billing.html', {
         'STRIPE_PUBLIC_KEY': settings.STRIPE_PUBLIC_KEY
     })
 
+
 def payment_success(request):
+    """Render the payment success page."""
     return render(request, 'payments/success.html')
 
+
 def payment_cancel(request):
+    """Render the payment cancellation page."""
     return render(request, 'payments/cancel.html')
