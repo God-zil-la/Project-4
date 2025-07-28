@@ -74,7 +74,6 @@ def create_bot(request):
     if request.method == 'POST':
         form = BotForm(request.POST)
         if form.is_valid():
-            # Check for duplicate bot name
             duplicate_exists = Bot.objects.filter(
                 owner=request.user,
                 name=form.cleaned_data['name']
@@ -107,10 +106,7 @@ def bot_chat_api(request, bot_id):
         chat_messages = ChatMessage.objects.filter(
             bot=bot, user=request.user
         ).order_by('timestamp')
-        data = [
-            {'sender': m.sender, 'message': m.message}
-            for m in chat_messages
-        ]
+        data = [{'sender': m.sender, 'message': m.message} for m in chat_messages]
         return JsonResponse({'messages': data})
     return HttpResponseNotAllowed(['GET'])
 
@@ -134,7 +130,6 @@ def edit_bot(request, bot_id):
         form = BotForm(instance=bot)
 
     return render(request, 'bots/edit_bot.html', {'form': form})
-
 
 
 @login_required
@@ -171,9 +166,7 @@ def bot_chat_playground(request, bot_id):
                     knowledge.file.path, knowledge.file.name
                 )
 
-                KnowledgeChunk.objects.filter(
-                    knowledge_file=knowledge
-                ).delete()
+                KnowledgeChunk.objects.filter(knowledge_file=knowledge).delete()
 
                 chunks = chunk_text(text)
                 for chunk_text_part in chunks:
@@ -185,27 +178,16 @@ def bot_chat_playground(request, bot_id):
                     chunk.embedding = embedding
                     chunk.save(update_fields=['embedding'])
 
-                logger.info(
-                    "Uploaded and processed {} chunks.".format(len(chunks))
-                )
-                messages.success(
-                    request,
-                    "✅ Your knowledge was uploaded and processed successfully!"
-                )
+                logger.info(f"Uploaded and processed {len(chunks)} chunks.")
+                messages.success(request, "✅ Your knowledge was uploaded and processed successfully!")
 
             except Exception as e:
                 logger.error(f"Error processing uploaded knowledge: {e}")
-                messages.error(
-                    request,
-                    "⚠️ There was an error processing your input."
-                )
+                messages.error(request, "⚠️ There was an error processing your input.")
 
             return redirect('bots:playground', bot_id=bot.id)
         else:
-            messages.error(
-                request,
-                "⚠️ Please correct the errors below."
-            )
+            messages.error(request, "⚠️ Please correct the errors below.")
 
     chat_messages = ChatMessage.objects.filter(
         bot=bot, user=request.user
@@ -228,26 +210,20 @@ def ajax_chat(request, bot_id):
     try:
         bot = Bot.objects.get(id=bot_id, owner=request.user)
     except Bot.DoesNotExist:
-        return JsonResponse(
-            {'error': 'Bot not found or unauthorized.'}, status=404
-        )
+        return JsonResponse({'error': 'Bot not found or unauthorized.'}, status=404)
 
     try:
         data = json.loads(request.body.decode('utf-8'))
         user_input = data.get('message')
 
         if not user_input:
-            return JsonResponse(
-                {'error': 'No message provided.'}, status=400
-            )
+            return JsonResponse({'error': 'No message provided.'}, status=400)
 
         ChatMessage.objects.create(
             bot=bot, user=request.user, sender='user', message=user_input
         )
 
-        messages_qs = ChatMessage.objects.filter(
-            bot=bot, user=request.user
-        ).order_by('timestamp')
+        messages_qs = ChatMessage.objects.filter(bot=bot, user=request.user).order_by('timestamp')
 
         history = [{'role': 'system', 'content': bot.personality}]
         for m in messages_qs:
@@ -276,23 +252,17 @@ def ajax_chat(request, bot_id):
 
 @login_required
 def analytics_dashboard(request):
-   """Display usage analytics for the current user's bots."""
+    """Display usage analytics for the current user's bots."""
     bots = Bot.objects.filter(owner=request.user)
 
-    # Prepare bot message count data
     bot_data = {'labels': [], 'counts': []}
     for bot in bots:
         bot_data['labels'].append(bot.name)
-        bot_data['counts'].append(
-            ChatMessage.objects.filter(bot=bot, user=request.user).count()
-        )
+        bot_data['counts'].append(ChatMessage.objects.filter(bot=bot, user=request.user).count())
 
-    # Prepare user message count data (only for current user)
     user_data = {'labels': [], 'counts': []}
     user_data['labels'].append(request.user.username)
-    user_data['counts'].append(
-        ChatMessage.objects.filter(user=request.user).count()
-    )
+    user_data['counts'].append(ChatMessage.objects.filter(user=request.user).count())
 
     return render(request, 'bots/analytics_dashboard.html', {
         'bot_data': json.dumps(bot_data),
@@ -302,23 +272,19 @@ def analytics_dashboard(request):
 
 @staff_member_required
 def admin_dashboard(request):
-     """Admin-only dashboard showing all users and bots activity."""
+    """Admin-only dashboard showing all users and bots activity."""
     bots = Bot.objects.all()
     users = User.objects.all()
 
     bot_data = {'labels': [], 'counts': []}
     for bot in bots:
         bot_data['labels'].append(bot.name)
-        bot_data['counts'].append(
-            ChatMessage.objects.filter(bot=bot).count()
-        )
+        bot_data['counts'].append(ChatMessage.objects.filter(bot=bot).count())
 
     user_data = {'labels': [], 'counts': []}
     for user in users:
         user_data['labels'].append(user.username)
-        user_data['counts'].append(
-            ChatMessage.objects.filter(user=user).count()
-        )
+        user_data['counts'].append(ChatMessage.objects.filter(user=user).count())
 
     return render(request, 'bots/analytics_dashboard.html', {
         'bot_data': json.dumps(bot_data),
@@ -333,11 +299,9 @@ def discord_connect(request, pk):
         token = request.GET.get("token")
         if not token:
             return JsonResponse({"error": "Missing bot token."}, status=400)
-        return JsonResponse(
-            {
-                "message": "Bot connection request received.",
-                "bot_id": pk,
-                "token": token,
-            }
-        )
+        return JsonResponse({
+            "message": "Bot connection request received.",
+            "bot_id": pk,
+            "token": token,
+        })
     return JsonResponse({"error": "Only GET requests allowed."}, status=405)
