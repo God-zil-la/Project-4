@@ -10,28 +10,32 @@
         <ul class="messages">
             {% for message in messages %}
             <li{% if message.tags %} class="{{ message.tags }}" {% endif %}>{{ message }}</li>
-            {% endfor %}
+                {% endfor %}
         </ul>
         {% endif %}
 
         {% if form.non_field_errors %}
         <div class="form-error">
-            {% for error in form.non_field_errors %}
-                ❌ {{ error }}<br>
-            {% endfor %}
+            ❌ Username or password is incorrect.<br>
+            👉 If you don’t have an account, <a href="{% url 'accounts:register' %}" style="color:#00e6e6;">register
+                here</a>.<br>
+            🔐 Already have an account but forgot your password? <a href="{% url 'accounts:password_reset' %}"
+                style="color:#00e6e6;">Reset it</a>.
         </div>
         {% endif %}
+
 
         <form method="post" action="{% url 'accounts:login' %}">
             {% csrf_token %}
 
             <div class="form-group">
                 <label for="id_username">Username:</label>
-                <input type="text" name="username" id="id_username" required autocomplete="username" value="{{ form.username.value|default:'' }}">
+                <input type="text" name="username" id="id_username" required autocomplete="username"
+                    value="{{ form.username.value|default:'' }}">
                 {% if form.username.errors %}
                 <div class="form-error">
                     {% for error in form.username.errors %}
-                        ❌ {{ error }}
+                    ❌ {{ error }}
                     {% endfor %}
                 </div>
                 {% endif %}
@@ -43,7 +47,7 @@
                 {% if form.password.errors %}
                 <div class="form-error">
                     {% for error in form.password.errors %}
-                        ❌ {{ error }}
+                    ❌ {{ error }}
                     {% endfor %}
                 </div>
                 {% endif %}
