@@ -11,7 +11,7 @@ from django.conf import settings
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
-from django.views.decorators.csrf import csrf_protect, csrf_exempt
+from django.views.decorators.csrf import csrf_protect
 from django.utils import timezone
 from django.db.models import Count
 from django.db.models.functions import TruncDate
@@ -32,16 +32,15 @@ from ai_assistant.accounts.models import UserProfile
 from ai_assistant.dashboard.models import BotUsageLog
 from .models import Bot, ChatMessage, KnowledgeBase, KnowledgeChunk
 from .forms import BotForm, KnowledgeBaseForm
-from .utils import generate_embedding, search_relevant_chunks
 from .utils import extract_text, chunk_text
+from .knowledge_utils import generate_embedding, search_relevant_chunks, render_system_message
 
-openai.api_key = os.getenv("OPENAI_API_KEY")
+# Setup
 logger = logging.getLogger(__name__)
 
 
 @login_required
 def bot_list(request):
-    """Display a list of bots owned by the current user."""
     logger.info("bot_list view called")
     bots = Bot.objects.filter(owner=request.user)
     return render(request, 'bots/bot_list.html', {'bots': bots})
@@ -49,14 +48,12 @@ def bot_list(request):
 
 @login_required
 def my_bots(request):
-    """Render the user's personal bot collection."""
     user_bots = Bot.objects.filter(owner=request.user)
     return render(request, 'bots/my_bots.html', {'bots': user_bots})
 
 
 @login_required
 def create_bot(request):
-    """Handle bot creation form and limit based on subscription."""
     try:
         user_profile = request.user.profile
     except UserProfile.DoesNotExist:
@@ -100,7 +97,6 @@ def create_bot(request):
 
 @login_required
 def bot_chat_api(request, bot_id):
-    """Return chat history for a given bot via JSON."""
     bot = get_object_or_404(Bot, id=bot_id, owner=request.user)
     if request.method == 'GET':
         chat_messages = ChatMessage.objects.filter(
@@ -113,7 +109,6 @@ def bot_chat_api(request, bot_id):
 
 @login_required
 def edit_bot(request, bot_id):
-    """Allow a user to edit a bot they own."""
     bot = get_object_or_404(Bot, id=bot_id, owner=request.user)
 
     if request.method == 'POST':
@@ -134,7 +129,6 @@ def edit_bot(request, bot_id):
 
 @login_required
 def delete_bot(request, bot_id):
-    """Delete a bot after confirmation."""
     bot = get_object_or_404(Bot, id=bot_id, owner=request.user)
     if request.method == 'POST':
         bot.delete()
@@ -144,75 +138,12 @@ def delete_bot(request, bot_id):
 
 @login_required
 @csrf_protect
-def bot_chat_playground(request, bot_id):
-    """Handle bot knowledge uploads and render chat playground."""
-    bot = get_object_or_404(Bot, id=bot_id, owner=request.user)
-    knowledge_form = KnowledgeBaseForm()
-
-    if request.method == 'POST':
-        knowledge_form = KnowledgeBaseForm(request.POST, request.FILES)
-        if knowledge_form.is_valid():
-            manual_text = knowledge_form.cleaned_data.get('manual_text')
-            file = knowledge_form.cleaned_data.get('file')
-            knowledge = KnowledgeBase(
-                bot=bot,
-                uploaded_by=request.user,
-                file=file if file else None
-            )
-            knowledge.save()
-
-            try:
-                text = manual_text if manual_text else extract_text(
-                    knowledge.file.path, knowledge.file.name
-                )
-
-                KnowledgeChunk.objects.filter(knowledge_file=knowledge).delete()
-
-                chunks = chunk_text(text)
-                for chunk_text_part in chunks:
-                    chunk = KnowledgeChunk.objects.create(
-                        knowledge_file=knowledge,
-                        text=chunk_text_part
-                    )
-                    embedding = generate_embedding(chunk.text)
-                    chunk.embedding = embedding
-                    chunk.save(update_fields=['embedding'])
-
-                logger.info(f"Uploaded and processed {len(chunks)} chunks.")
-                messages.success(request, "✅ Your knowledge was uploaded and processed successfully!")
-
-            except Exception as e:
-                logger.error(f"Error processing uploaded knowledge: {e}")
-                messages.error(request, "⚠️ There was an error processing your input.")
-
-            return redirect('bots:playground', bot_id=bot.id)
-        else:
-            messages.error(request, "⚠️ Please correct the errors below.")
-
-    chat_messages = ChatMessage.objects.filter(
-        bot=bot, user=request.user
-    ).order_by('timestamp')
-
-    return render(request, 'bots/playground.html', {
-        'bot': bot,
-        'chat_messages': chat_messages,
-        'knowledge_form': knowledge_form,
-    })
-
-
-@login_required
-@csrf_exempt
 def ajax_chat(request, bot_id):
-    """Process chat message, generate OpenAI reply, and return via AJAX."""
     if request.method != 'POST':
         return JsonResponse({'error': 'Invalid request method.'}, status=405)
 
     try:
-        bot = Bot.objects.get(id=bot_id, owner=request.user)
-    except Bot.DoesNotExist:
-        return JsonResponse({'error': 'Bot not found or unauthorized.'}, status=404)
-
-    try:
+        bot = get_object_or_404(Bot, id=bot_id, owner=request.user)
         data = json.loads(request.body.decode('utf-8'))
         user_input = data.get('message')
 
@@ -225,19 +156,29 @@ def ajax_chat(request, bot_id):
 
         messages_qs = ChatMessage.objects.filter(bot=bot, user=request.user).order_by('timestamp')
 
-        history = [{'role': 'system', 'content': bot.personality}]
+        try:
+            relevant_chunks = search_relevant_chunks(bot, user_input)
+            knowledge_text = "\n\n".join(relevant_chunks) if relevant_chunks else ""
+            system_message = render_system_message(bot, knowledge_text)
+        except Exception as e:
+            logger.error(f"Knowledge search/render failed: {traceback.format_exc()}")
+            system_message = render_system_message(bot, "")
+            knowledge_text = ""
+
+        # Build full chat history
+        history = [{'role': 'system', 'content': system_message}]
         for m in messages_qs:
             history.append({
                 'role': 'user' if m.sender == 'user' else 'assistant',
                 'content': m.message
             })
 
+        openai.api_key = os.getenv("OPENAI_API_KEY")
         response = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
             messages=history
         )
-
-        reply = response.choices[0].message['content']
+        reply = response.choices[0].message['content'].strip()
 
         ChatMessage.objects.create(
             bot=bot, user=request.user, sender='assistant', message=reply
@@ -252,7 +193,6 @@ def ajax_chat(request, bot_id):
 
 @login_required
 def analytics_dashboard(request):
-    """Display usage analytics for the current user's bots."""
     bots = Bot.objects.filter(owner=request.user)
 
     bot_data = {'labels': [], 'counts': []}
@@ -272,7 +212,6 @@ def analytics_dashboard(request):
 
 @staff_member_required
 def admin_dashboard(request):
-    """Admin-only dashboard showing all users and bots activity."""
     bots = Bot.objects.all()
     users = User.objects.all()
 
@@ -294,7 +233,6 @@ def admin_dashboard(request):
 
 @login_required
 def discord_connect(request, pk):
-    """Handle GET requests for connecting a Discord bot."""
     if request.method == 'GET':
         token = request.GET.get("token")
         if not token:
@@ -305,3 +243,67 @@ def discord_connect(request, pk):
             "token": token,
         })
     return JsonResponse({"error": "Only GET requests allowed."}, status=405)
+
+
+@login_required
+@csrf_protect
+def bot_chat_playground(request, bot_id):
+    bot = get_object_or_404(Bot, id=bot_id, owner=request.user)
+    chat_messages = ChatMessage.objects.filter(bot=bot, user=request.user).order_by('timestamp')
+
+    if request.method == 'POST':
+        knowledge_form = KnowledgeBaseForm(request.POST, request.FILES)
+
+        if knowledge_form.is_valid():
+            file = request.FILES.get('file')
+            manual_text = knowledge_form.cleaned_data.get('manual_text')
+            source_text = ""
+            filename = ""
+
+            try:
+                if file:
+                    filename = file.name
+                    file.seek(0)  # 🧠 Ensure file pointer is reset
+                    source_text = extract_text(file, filename)
+
+                elif manual_text:
+                    filename = "manual_input.txt"
+                    source_text = manual_text
+
+                if not source_text.strip():
+                    messages.error(request, "❌ No valid content extracted from input.")
+                    return redirect('bots:playground', bot_id=bot.id)
+
+                chunks = chunk_text(source_text)
+                kb = KnowledgeBase.objects.create(
+                    bot=bot,
+                    file=file if file else None,
+                    uploaded_by=request.user
+                )
+
+                for chunk in chunks:
+                    embedding = generate_embedding(chunk)
+                    if embedding:
+                        KnowledgeChunk.objects.create(
+                            knowledge_file=kb,
+                            text=chunk,
+                            embedding=embedding
+                        )
+
+                messages.success(request, "✅ Knowledge uploaded and processed successfully!")
+                return redirect('bots:playground', bot_id=bot.id)
+
+            except Exception as e:
+                logger.error(f"Knowledge upload error: {str(e)}")
+                messages.error(request, f"❌ Failed to process file: {str(e)}")
+
+        else:
+            messages.error(request, "❌ Invalid submission. Please upload a file or paste some text.")
+    else:
+        knowledge_form = KnowledgeBaseForm()
+
+    return render(request, 'bots/playground.html', {
+        'bot': bot,
+        'chat_messages': chat_messages,
+        'knowledge_form': knowledge_form,
+    })
