@@ -4,6 +4,8 @@ from .models import UserProfile
 
 @admin.register(UserProfile)
 class UserProfileAdmin(admin.ModelAdmin):
+    """Admin interface customization for the UserProfile model."""
+
     list_display = (
         'user',
         'api_key',
