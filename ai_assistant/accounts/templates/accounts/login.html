@@ -10,8 +10,16 @@
         <ul class="messages">
             {% for message in messages %}
             <li{% if message.tags %} class="{{ message.tags }}" {% endif %}>{{ message }}</li>
-                {% endfor %}
+            {% endfor %}
         </ul>
+        {% endif %}
+
+        {% if form.non_field_errors %}
+        <div class="form-error">
+            {% for error in form.non_field_errors %}
+                ❌ {{ error }}<br>
+            {% endfor %}
+        </div>
         {% endif %}
 
         <form method="post" action="{% url 'accounts:login' %}">
@@ -19,12 +27,26 @@
 
             <div class="form-group">
                 <label for="id_username">Username:</label>
-                <input type="text" name="username" id="id_username" required autocomplete="username">
+                <input type="text" name="username" id="id_username" required autocomplete="username" value="{{ form.username.value|default:'' }}">
+                {% if form.username.errors %}
+                <div class="form-error">
+                    {% for error in form.username.errors %}
+                        ❌ {{ error }}
+                    {% endfor %}
+                </div>
+                {% endif %}
             </div>
 
             <div class="form-group">
                 <label for="id_password">Password:</label>
                 <input type="password" name="password" id="id_password" required autocomplete="current-password">
+                {% if form.password.errors %}
+                <div class="form-error">
+                    {% for error in form.password.errors %}
+                        ❌ {{ error }}
+                    {% endfor %}
+                </div>
+                {% endif %}
             </div>
 
             <button type="submit" class="nav-btn">Log in</button>
@@ -33,12 +55,6 @@
         <p class="link-helper">
             <a href="{% url 'accounts:password_reset' %}">Forgot Password?</a>
         </p>
-
-        {% if form.errors %}
-        <div class="form-error">
-            ❌ {{ form.errors }}
-        </div>
-        {% endif %}
 
         {% if user.is_authenticated %}
         <div class="form-success">
@@ -147,10 +163,10 @@
     }
 
     .form-error {
-        margin-top: 1rem;
+        margin-top: 0.5rem;
         color: #ff4c4c;
         font-weight: 600;
-        text-align: center;
+        text-align: left;
     }
 
     .form-success {
