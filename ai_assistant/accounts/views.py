@@ -25,12 +25,14 @@ from ai_assistant.bots.forms import BotForm
 
 @login_required
 def bot_list(request):
+    """Display a list of bots owned by the logged-in user."""
     bots = Bot.objects.filter(owner=request.user)
     return render(request, 'bots/bot_list.html', {'bots': bots})
 
 
 @login_required
 def create_bot(request):
+    """Handle bot creation form for the logged-in user."""
     if request.method == 'POST':
         form = BotForm(request.POST, user=request.user)
         if form.is_valid():
@@ -52,6 +54,7 @@ def create_bot(request):
 
 @login_required
 def edit_bot(request, bot_id):
+    """Allow editing of an existing bot owned by the user."""
     bot = get_object_or_404(Bot, id=bot_id, owner=request.user)
     if request.method == 'POST':
         form = BotForm(request.POST, instance=bot, user=request.user)
@@ -68,6 +71,7 @@ def edit_bot(request, bot_id):
 
 @login_required
 def delete_bot(request, bot_id):
+    """Confirm and process bot deletion for the logged-in user."""
     bot = get_object_or_404(Bot, id=bot_id, owner=request.user)
     if request.method == 'POST':
         bot.delete()
@@ -78,6 +82,7 @@ def delete_bot(request, bot_id):
 
 
 def register(request):
+    """Handle user registration, validation, and welcome email."""
     if request.method == 'POST':
         username = request.POST.get('username', '').strip()
         email = request.POST.get('email', '').strip()
@@ -155,6 +160,7 @@ def register(request):
 
 
 def activate(request, uidb64, token):
+    """Activate user account via email confirmation link."""
     try:
         uid = force_str(urlsafe_base64_decode(uidb64))
         user = User.objects.get(pk=uid)
