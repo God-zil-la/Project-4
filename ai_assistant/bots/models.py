@@ -26,6 +26,7 @@ class KnowledgeBase(models.Model):
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
+        related_name='uploaded_files',
         help_text="User who uploaded the file (can be null if user is deleted)."
     )
     uploaded_at = models.DateTimeField(
@@ -35,6 +36,9 @@ class KnowledgeBase(models.Model):
 
     def __str__(self):
         return f"{self.bot.name} - {self.file.name}"
+
+    def get_chunks(self):
+        return self.chunks.all()
 
 
 class KnowledgeChunk(models.Model):
