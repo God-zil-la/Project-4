@@ -41,6 +41,7 @@ logger = logging.getLogger(__name__)
 
 @login_required
 def bot_list(request):
+    """Display a list of bots owned by the current user."""
     logger.info("bot_list view called")
     bots = Bot.objects.filter(owner=request.user)
     return render(request, 'bots/bot_list.html', {'bots': bots})
@@ -48,12 +49,14 @@ def bot_list(request):
 
 @login_required
 def my_bots(request):
+    """Render the user's personal bot collection."""
     user_bots = Bot.objects.filter(owner=request.user)
     return render(request, 'bots/my_bots.html', {'bots': user_bots})
 
 
 @login_required
 def create_bot(request):
+    """Handle bot creation form and limit based on subscription."""
     try:
         user_profile = request.user.profile
     except UserProfile.DoesNotExist:
@@ -98,6 +101,7 @@ def create_bot(request):
 
 @login_required
 def bot_chat_api(request, bot_id):
+    """Return chat history for a given bot via JSON."""
     bot = get_object_or_404(Bot, id=bot_id, owner=request.user)
     if request.method == 'GET':
         chat_messages = ChatMessage.objects.filter(
@@ -113,6 +117,7 @@ def bot_chat_api(request, bot_id):
 
 @login_required
 def edit_bot(request, bot_id):
+    """Allow a user to edit a bot they own."""
     bot = get_object_or_404(Bot, id=bot_id, owner=request.user)
 
     if request.method == 'POST':
@@ -134,6 +139,7 @@ def edit_bot(request, bot_id):
 
 @login_required
 def delete_bot(request, bot_id):
+    """Delete a bot after confirmation."""
     bot = get_object_or_404(Bot, id=bot_id, owner=request.user)
     if request.method == 'POST':
         bot.delete()
@@ -144,6 +150,7 @@ def delete_bot(request, bot_id):
 @login_required
 @csrf_protect
 def bot_chat_playground(request, bot_id):
+    """Handle bot knowledge uploads and render chat playground."""
     bot = get_object_or_404(Bot, id=bot_id, owner=request.user)
     knowledge_form = KnowledgeBaseForm()
 
@@ -214,6 +221,7 @@ def bot_chat_playground(request, bot_id):
 @login_required
 @csrf_exempt
 def ajax_chat(request, bot_id):
+    """Process chat message, generate OpenAI reply, and return via AJAX."""
     if request.method != 'POST':
         return JsonResponse({'error': 'Invalid request method.'}, status=405)
 
@@ -268,7 +276,7 @@ def ajax_chat(request, bot_id):
 
 @login_required
 def analytics_dashboard(request):
-    # Get only the bots owned by the current user
+   """Display usage analytics for the current user's bots."""
     bots = Bot.objects.filter(owner=request.user)
 
     # Prepare bot message count data
@@ -294,6 +302,7 @@ def analytics_dashboard(request):
 
 @staff_member_required
 def admin_dashboard(request):
+     """Admin-only dashboard showing all users and bots activity."""
     bots = Bot.objects.all()
     users = User.objects.all()
 
@@ -319,6 +328,7 @@ def admin_dashboard(request):
 
 @login_required
 def discord_connect(request, pk):
+    """Handle GET requests for connecting a Discord bot."""
     if request.method == 'GET':
         token = request.GET.get("token")
         if not token:
