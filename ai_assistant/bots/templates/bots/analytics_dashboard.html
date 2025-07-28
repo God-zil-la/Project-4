@@ -23,87 +23,115 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    // Safely parse data or use empty fallback
-    const botData = JSON.parse('{{ bot_data|default:"{}"|escapejs }}');
-    const userData = JSON.parse('{{ user_data|default:"{}"|escapejs }}');
+    document.addEventListener('DOMContentLoaded', function () {
+        const root = document.documentElement;
+        const isDark = root.classList.contains('dark');
 
-    const chartOptions = {
-        responsive: true,
-        plugins: {
-            legend: { display: false },
-            tooltip: {
-                mode: 'index',
-                intersect: false,
-                backgroundColor: 'rgba(0,0,0,0.85)',
-                titleColor: '#FFD700',
-                bodyColor: '#FFFFFF',
-                borderColor: '#FFD700',
-                borderWidth: 1,
-                caretSize: 6,
-            },
-        },
-        scales: {
-            y: {
-                beginAtZero: true,
-                ticks: { stepSize: 1, color: getComputedStyle(document.documentElement).getPropertyValue('--text-color') },
-                grid: { color: 'rgba(255,255,255,0.1)' },
-                title: {
-                    display: true,
-                    text: 'Messages Count',
-                    color: getComputedStyle(document.documentElement).getPropertyValue('--text-color-muted'),
-                    font: { weight: '600' }
+        const bgColor = isDark ? '#1e1e1e' : '#ffffff';
+        const textColor = isDark ? '#eeeeee' : '#222222';
+        const mutedColor = isDark ? '#cccccc' : '#555555';
+        const gridColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)';
+        const gridSubColor = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)';
+        const tooltipBg = isDark ? '#2a2a2a' : '#ffffff';
+
+        const chartOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            backgroundColor: bgColor,
+            plugins: {
+                legend: {
+                    labels: {
+                        color: textColor
+                    }
+                },
+                tooltip: {
+                    mode: 'index',
+                    intersect: false,
+                    backgroundColor: tooltipBg,
+                    titleColor: textColor,
+                    bodyColor: textColor,
+                    borderColor: isDark ? '#888' : '#000',
+                    borderWidth: 1,
+                    caretSize: 6,
+                    titleFont: { weight: 'bold', size: 14 },
+                    bodyFont: { size: 13 },
+                    padding: 10
                 }
             },
-            x: {
-                ticks: { color: getComputedStyle(document.documentElement).getPropertyValue('--text-color'), maxRotation: 45, minRotation: 30 },
-                grid: { display: false },
-                title: {
-                    display: true,
-                    text: 'Name',
-                    color: getComputedStyle(document.documentElement).getPropertyValue('--text-color-muted'),
-                    font: { weight: '600' }
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1,
+                        color: textColor
+                    },
+                    grid: {
+                        color: gridColor
+                    },
+                    title: {
+                        display: true,
+                        text: 'Message Count',
+                        color: mutedColor,
+                        font: { weight: '600' }
+                    }
+                },
+                x: {
+                    ticks: {
+                        color: textColor,
+                        maxRotation: 45,
+                        minRotation: 30
+                    },
+                    grid: {
+                        color: gridSubColor
+                    },
+                    title: {
+                        display: true,
+                        text: 'Name',
+                        color: mutedColor,
+                        font: { weight: '600' }
+                    }
                 }
             }
+        };
+
+        const botData = JSON.parse(`{{ bot_data|default:"{}"|escapejs }}`);
+        const userData = JSON.parse(`{{ user_data|default:"{}"|escapejs }}`);
+
+        function createChart(canvasId, label, data, color) {
+            const ctx = document.getElementById(canvasId).getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: data.labels || [],
+                    datasets: [{
+                        label: label,
+                        data: data.counts || [],
+                        backgroundColor: color,
+                        borderColor: color,
+                        borderWidth: 1,
+                        borderRadius: 6,
+                        barPercentage: 0.6,
+                        categoryPercentage: 0.5
+                    }]
+                },
+                options: chartOptions,
+                plugins: [{
+                    id: 'customBackground',
+                    beforeDraw: chart => {
+                        const ctx = chart.canvas.getContext('2d');
+                        ctx.save();
+                        ctx.fillStyle = bgColor;
+                        ctx.fillRect(0, 0, chart.width, chart.height);
+                        ctx.restore();
+                    }
+                }]
+            });
         }
-    };
 
-    new Chart(document.getElementById('botUsageChart'), {
-        type: 'bar',
-        data: {
-            labels: botData.labels || [],
-            datasets: [{
-                label: 'Messages by Bot',
-                data: botData.counts || [],
-                backgroundColor: 'rgba(240, 165, 0, 0.85)',
-                borderColor: 'rgba(240, 165, 0, 1)',
-                borderWidth: 1,
-                borderRadius: 6,
-                barPercentage: 0.6,
-                categoryPercentage: 0.5,
-            }]
-        },
-        options: chartOptions
-    });
-
-    new Chart(document.getElementById('userUsageChart'), {
-        type: 'bar',
-        data: {
-            labels: userData.labels || [],
-            datasets: [{
-                label: 'Messages by User',
-                data: userData.counts || [],
-                backgroundColor: 'rgba(54, 162, 235, 0.85)',
-                borderColor: 'rgba(54, 162, 235, 1)',
-                borderWidth: 1,
-                borderRadius: 6,
-                barPercentage: 0.6,
-                categoryPercentage: 0.5,
-            }]
-        },
-        options: chartOptions
+        createChart('botUsageChart', 'Messages by Bot', botData, 'rgba(240, 165, 0, 0.85)');
+        createChart('userUsageChart', 'Messages by User', userData, 'rgba(54, 162, 235, 0.85)');
     });
 </script>
-
 <style>
     :root {
         --text-color: #222;
@@ -114,7 +142,7 @@
     .dark {
         --text-color: #EEE;
         --text-color-muted: #CCC;
-        --chart-bg: #1E1E1E;
+        --chart-bg: #1e1e1e;
     }
 
     .container {
@@ -158,10 +186,12 @@
     }
 
     canvas {
-        background: var(--chart-bg);
+        width: 100% !important;
+        height: 400px !important;
         border-radius: 16px;
         box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
         padding: 1rem;
+        background-color: var(--chart-bg);
     }
 
     @media (max-width: 600px) {
