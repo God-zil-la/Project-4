@@ -8,12 +8,6 @@ openai.api_key = os.getenv("OPENAI_API_KEY")
 
 
 def home(request):
-    """
-    Render the homepage and handle user chat input to GPT.
-
-    If the request is POST and includes a message, sends it to OpenAI's ChatCompletion API
-    and returns the assistant's reply. Otherwise, shows the homepage with no response.
-    """
     bot_response = None
 
     if request.method == "POST":
@@ -37,3 +31,17 @@ def home(request):
     return render(request, 'dashboard/index.html', {
         'bot_response': bot_response
     })
+
+
+# 👇 Add custom error triggers
+from django.core.exceptions import PermissionDenied
+from django.http import HttpResponseBadRequest
+
+def trigger_400(request):
+    raise ValueError("Manually triggered 400")
+
+def trigger_403(request):
+    raise PermissionDenied("Manually triggered 403")
+
+def trigger_500(request):
+    raise Exception("Manually triggered 500")
