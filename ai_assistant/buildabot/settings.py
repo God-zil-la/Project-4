@@ -37,8 +37,6 @@ DEBUG = False  # Always override here for local dev
 ALLOWED_HOSTS = [
     'localhost',
     '127.0.0.1',
-    '.ngrok-free.app',
-    'ai-assistants-8c06fcfeab86.herokuapp.com',
 ]
 
 if DEBUG:
@@ -47,8 +45,12 @@ else:
     ALLOWED_HOSTS += [
         'ai-assistants.herokuapp.com',
         'ai-assistants-8c06fcfeab86.herokuapp.com',
+        'ai-assistants-8c06fcfeab86-6fbe77963620.herokuapp.com',
     ]
 
+CSRF_TRUSTED_ORIGINS = [
+    'https://ai-assistants-8c06fcfeab86-6fbe77963620.herokuapp.com',
+]
 # ─────────────────────────────────────────────────────────────────────────────
 # Installed Apps
 # ─────────────────────────────────────────────────────────────────────────────
