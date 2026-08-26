@@ -19,7 +19,7 @@ if not TOKEN or not DJANGO_TOKEN or not BOT_ID:
 # ------------------------------------
 # Django API endpoint
 # ------------------------------------
-BACKEND  = "https://ai-assistants-8c06fcfeab86.herokuapp.com"
+BACKEND = "https://ai-assistants-8c06fcfeab86-6fbe77963620.herokuapp.com"
 API_URL  = f"{BACKEND}/bots/api/bot/{BOT_ID}/chat/"
 
 # ------------------------------------

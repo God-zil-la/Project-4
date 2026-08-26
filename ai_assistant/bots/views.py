@@ -232,20 +232,6 @@ def admin_dashboard(request):
 
 
 @login_required
-def discord_connect(request, pk):
-    if request.method == 'GET':
-        token = request.GET.get("token")
-        if not token:
-            return JsonResponse({"error": "Missing bot token."}, status=400)
-        return JsonResponse({
-            "message": "Bot connection request received.",
-            "bot_id": pk,
-            "token": token,
-        })
-    return JsonResponse({"error": "Only GET requests allowed."}, status=405)
-
-
-@login_required
 @csrf_protect
 def bot_chat_playground(request, bot_id):
     bot = get_object_or_404(Bot, id=bot_id, owner=request.user)
@@ -307,3 +293,23 @@ def bot_chat_playground(request, bot_id):
         'chat_messages': chat_messages,
         'knowledge_form': knowledge_form,
     })
+
+
+@login_required
+def discord_setup(request, bot_id):
+    bot = get_object_or_404(
+        Bot,
+        id=bot_id,
+        owner=request.user,
+    )
+
+    token, created = Token.objects.get_or_create(user=request.user)
+
+    return render(
+        request,
+        "bots/discord/setup.html",
+        {
+            "bot": bot,
+            "api_token": token.key,
+        },
+    )

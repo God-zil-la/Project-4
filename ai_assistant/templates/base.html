@@ -3,6 +3,7 @@
 <html lang="en">
 
 <head>
+
   <script>
     if (
       localStorage.getItem("theme") === "dark" ||
@@ -12,105 +13,213 @@
       document.documentElement.classList.add("dark");
     }
   </script>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <title>{% block title %}AI Assistant{% endblock %}</title>
-  <link rel="stylesheet" href="{% static 'css/styles.css' %}?v=2" />
-  <link rel="icon" href="{% static 'images/favicon.ico' %}" />
+
+  <link rel="stylesheet" href="{% static 'css/styles.css' %}?v=2">
+  <link rel="icon" href="{% static 'images/favicon.ico' %}">
+
+  {% block extra_css %}{% endblock %}
+
 </head>
 
 <body>
+
   <nav>
+
     <ul>
-      <li><a href="/">Home</a></li>
+
+      <li>
+        <a href="/">Home</a>
+      </li>
+
       {% if user.is_authenticated %}
-      <li><a href="/bots/">My Bots</a></li>
-      <li><a href="/payments/">Billing</a></li>
+
+      <li>
+        <a href="/bots/">My Bots</a>
+      </li>
+
+      <li>
+        <a href="/payments/">Billing</a>
+      </li>
+
       {% if user.is_staff %}
-      <li><a href="{% url 'bots:analytics' %}">Analytics Dashboard</a></li>
+      <li>
+        <a href="{% url 'bots:analytics' %}">
+          Analytics Dashboard
+        </a>
+      </li>
       {% endif %}
-      <li style="position: relative;">
-        <a href="#" onclick="document.getElementById('logout-form').submit(); return false;" class="nav-btn">
+
+      <li style="position:relative;">
+
+        <a href="#" class="nav-btn" onclick="document.getElementById('logout-form').submit(); return false;">
           Logout
+
           {% if messages %}
           <span style="
-                display: inline-block;
-                width: 10px;
-                height: 10px;
-                background-color: #ff5c5c;
-                border-radius: 50%;
-                margin-left: 6px;
-                vertical-align: middle;
-              "></span>
+              display:inline-block;
+              width:10px;
+              height:10px;
+              background:#ff5c5c;
+              border-radius:50%;
+              margin-left:6px;
+              vertical-align:middle;
+            ">
+          </span>
           {% endif %}
+
         </a>
-        <form id="logout-form" method="POST" action="{% url 'accounts:logout' %}" style="display: none;">
+
+        <form id="logout-form" method="POST" action="{% url 'accounts:logout' %}" style="display:none;">
+
           {% csrf_token %}
+
         </form>
+
       </li>
+
       {% else %}
-      <li><a href="/accounts/login/">Login</a></li>
-      <li><a href="/accounts/register/">Register</a></li>
+
+      <li>
+        <a href="/accounts/login/">Login</a>
+      </li>
+
+      <li>
+        <a href="/accounts/register/">Register</a>
+      </li>
+
       {% endif %}
+
     </ul>
+
   </nav>
 
-  <!-- ✅ ALERT MESSAGES -->
+  <!-- Messages -->
+
   {% if messages %}
-  <div style="max-width: 800px; margin: 2rem auto; padding: 0 1rem;">
+
+  <div style="
+      max-width:800px;
+      margin:2rem auto;
+      padding:0 1rem;
+    ">
+
     {% for message in messages %}
+
     {% if message.tags == "success" %}
-    <div class="alert alert-success" style="background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb;">
+
+    <div class="alert alert-success" style="
+          background:#d4edda;
+          color:#155724;
+          border:1px solid #c3e6cb;
+        ">
       {{ message }}
     </div>
+
     {% elif message.tags == "info" %}
-    <div class="alert alert-info" style="background-color: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb;">
+
+    <div class="alert alert-info" style="
+          background:#d1ecf1;
+          color:#0c5460;
+          border:1px solid #bee5eb;
+        ">
       {{ message }}
     </div>
+
     {% elif message.tags == "warning" %}
-    <div class="alert alert-warning" style="background-color: #fff3cd; color: #856404; border: 1px solid #ffeeba;">
+
+    <div class="alert alert-warning" style="
+          background:#fff3cd;
+          color:#856404;
+          border:1px solid #ffeeba;
+        ">
       {{ message }}
     </div>
+
     {% elif message.tags == "danger" or message.tags == "error" %}
-    <div class="alert alert-danger" style="background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb;">
+
+    <div class="alert alert-danger" style="
+          background:#f8d7da;
+          color:#721c24;
+          border:1px solid #f5c6cb;
+        ">
       {{ message }}
     </div>
+
     {% else %}
-    <div class="alert alert-info" style="background-color: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb;">
+
+    <div class="alert alert-info" style="
+          background:#d1ecf1;
+          color:#0c5460;
+          border:1px solid #bee5eb;
+        ">
       {{ message }}
     </div>
+
     {% endif %}
+
     {% endfor %}
+
   </div>
+
   {% endif %}
 
   <button id="toggleTheme" class="toggle-theme" aria-label="Toggle theme">
     <span id="theme-icon">🌙</span>
   </button>
 
-  <main>{% block content %}{% endblock %}</main>
+  <main>
+
+    {% block content %}{% endblock %}
+
+  </main>
 
   <footer>
-    <p>&copy; 2025 AI Assistant. Developed By Mr.Husse</p>
+
+    <p>
+      &copy; 2025 AI Assistant. Developed By Mr.Husse
+    </p>
+
   </footer>
 
   <script>
+
     const toggleButton = document.getElementById("toggleTheme");
     const icon = document.getElementById("theme-icon");
     const html = document.documentElement;
 
     function updateIcon() {
-      icon.textContent = html.classList.contains("dark") ? "🌙" : "🌞";
+
+      icon.textContent =
+        html.classList.contains("dark")
+          ? "🌙"
+          : "🌞";
+
     }
 
     updateIcon();
 
     toggleButton?.addEventListener("click", () => {
+
       const isDark = html.classList.toggle("dark");
-      localStorage.setItem("theme", isDark ? "dark" : "light");
+
+      localStorage.setItem(
+        "theme",
+        isDark ? "dark" : "light"
+      );
+
       updateIcon();
+
     });
+
   </script>
+
+  {% block extra_js %}{% endblock %}
+
 </body>
 
 </html>

@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Discord Setup{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/discord.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<div class="discord-page">
+
+    <section class="discord-hero">
+
+        <h1>🚀 Deploy "{{ bot.name }}" to Discord</h1>
+
+        <p>
+            Deploy your AI Assistant to Discord in just a few minutes.
+        </p>
+
+    </section>
+
+    <section class="wizard">
+
+        <!-- STEP 1 -->
+        <div class="step">
+
+            <div class="number">1</div>
+
+            <h2>Create a Discord Application</h2>
+
+            <p>
+                Create a new application in the Discord Developer Portal.
+            </p>
+
+            <a href="https://discord.com/developers/applications" target="_blank" class="btn">
+                Open Discord Portal
+            </a>
+
+        </div>
+
+        <!-- STEP 2 -->
+        <div class="step">
+
+            <div class="number">2</div>
+
+            <h2>Configure your Discord Bot</h2>
+
+            <ul class="checklist">
+
+                <li>✅ Create your Discord Bot</li>
+
+                <li>✅ Enable <strong>Message Content Intent</strong></li>
+
+                <li>✅ Copy your Discord Bot Token</li>
+
+            </ul>
+
+        </div>
+
+        <!-- STEP 3 -->
+        <div class="step">
+
+            <div class="number">3</div>
+
+            <h2>Connect your AI Assistant</h2>
+
+            <div class="form-group">
+
+                <label for="botid">
+
+                    Bot ID
+
+                </label>
+
+                <div class="input-row">
+
+                    <input id="botid" type="text" value="{{ bot.id }}" readonly>
+
+                    <button type="button" class="btn secondary-btn" onclick="copyBotId()">
+                        📋 Copy
+                    </button>
+
+                </div>
+
+            </div>
+
+            <form method="post" action="{% url 'bots:discord-download' bot.id %}">
+
+                {% csrf_token %}
+
+                <div class="form-group">
+
+                    <label for="discord_token">
+
+                        Discord Bot Token
+
+                    </label>
+
+                    <input id="discord_token" type="password" name="discord_token" class="token-input"
+                        placeholder="Paste your Discord Bot Token..." required>
+
+                </div>
+
+                <button class="btn download-btn" type="submit">
+                    ⬇ Download Ready-to-Run Discord Bridge
+                </button>
+
+            </form>
+
+        </div>
+
+        <!-- STEP 4 -->
+        <div class="step">
+
+            <div class="number">4</div>
+
+            <h2>Documentation</h2>
+
+            <p>
+                Need help? Follow the guides below.
+            </p>
+
+            <div class="guide-buttons">
+
+                <a href="{% static 'discord_bridge/Setup_Guide.pdf' %}" target="_blank" class="btn">
+                    📖 Setup Guide
+                </a>
+
+                <a href="{% static 'discord_bridge/Commands_Guide.pdf' %}" target="_blank" class="btn">
+                    💬 Commands Guide
+                </a>
+
+            </div>
+
+        </div>
+
+    </section>
+
+</div>
+
+<script src="{% static 'js/discord.js' %}"></script>
+
+{% endblock %}

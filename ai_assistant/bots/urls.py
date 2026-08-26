@@ -6,6 +6,7 @@ from .api_views import (
     api_bot_chat,
 )
 from rest_framework.authtoken.views import obtain_auth_token
+from .discord_download import download_discord_bridge
 
 app_name = 'bots'
 
@@ -58,14 +59,19 @@ urlpatterns = [
         obtain_auth_token,
         name='get-user-token'
     ),
-    path(
-        'api/bot/<int:bot_id>/chat/',
-        api_bot_chat,
-        name='api-bot-chat'
-    ),
-    path(
-        '<int:pk>/discord/',
-        views.discord_connect,
-        name='discord-connect'
-    ),
+path(
+    'api/bot/<int:bot_id>/chat/',
+    api_bot_chat,
+    name='api-bot-chat'
+),
+path(
+    '<int:bot_id>/discord/setup/',
+    views.discord_setup,
+    name='discord-setup'
+),
+path(
+    "discord/<int:bot_id>/download/",
+    download_discord_bridge,
+    name="discord-download",
+),
 ]
