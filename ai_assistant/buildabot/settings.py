@@ -33,24 +33,24 @@ ssl._create_default_https_context = (
 
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "django-insecure-placeholder")
 DEBUG = os.getenv("DJANGO_DEBUG", "False").lower() in ("true", "1")
-DEBUG = True # Always override here for local dev
 
 ALLOWED_HOSTS = [
-    'localhost',
-    '127.0.0.1',
+    "localhost",
+    "127.0.0.1",
+    ".ngrok-free.app",
+    ".herokuapp.com",
 ]
 
-if DEBUG:
-    ALLOWED_HOSTS.append('.ngrok-free.app')
-else:
-    ALLOWED_HOSTS += [
-        'ai-assistants.herokuapp.com',
-        'ai-assistants-8c06fcfeab86.herokuapp.com',
-        'ai-assistants-8c06fcfeab86-6fbe77963620.herokuapp.com',
-    ]
+extra_hosts = os.getenv("ALLOWED_HOSTS", "")
+if extra_hosts:
+    ALLOWED_HOSTS.extend(
+        host.strip()
+        for host in extra_hosts.split(",")
+        if host.strip()
+    )
 
 CSRF_TRUSTED_ORIGINS = [
-    "https://ai-assistants-8c06fcfeab86-6fbe77963620.herokuapp.com",
+    "https://*.herokuapp.com",
 ]
 # ─────────────────────────────────────────────────────────────────────────────
 # Installed Apps
