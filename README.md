@@ -1,6 +1,6 @@
 # 🤖 AI Assistant Platform
 
-Live Demo: [https://ai-assistant.herokuapp.com](https://ai-assistants-8c06fcfeab86.herokuapp.com/)
+Live Demo: [https://ai-assistant.herokuapp.com](https://ai-assistants-8c06fcfeab86-6fbe77963620.herokuapp.com/)
 
 ---
 
