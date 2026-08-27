@@ -1,905 +1,1622 @@
 # 🤖 AI Assistant Platform
 
-Live Demo: [https://ai-assistant.herokuapp.com](https://ai-assistants-8c06fcfeab86-6fbe77963620.herokuapp.com/)
+> A production-ready AI SaaS platform built with **Django**, **OpenAI**, **Stripe**, and **Discord**.
+
+Create intelligent AI assistants, train them with your own knowledge, deploy them to Discord, and manage everything through a modern web dashboard.
 
 ---
 
-## 🧭 Table of Contents
-- [📘 Overview](#overview)
-- [🧑‍💻 Features](#features)
-- [📋 User Stories](#user-stories)
-- [🔐 User Authentication](#user-authentication)
-- [🤖 Bot Management](#bot-management)
-- [🤖 Discord Connection](#discord-connection)
-- [💬 Test Playground](#test-playground)
-- [💳 Stripe Payment Integration](#stripe-payment-integration)
-- [🧠 AI Chat Integration](#ai-chat-integration)
-- [📊 Monitor Logs & Analytics](#monitor-logs--analytics)
-- [🎨 Styling and UX](#styling-and-ux)
-- [🔄 CRUD Operations & Data Flow](#crud-operations--data-flow)
-- [📊 Database Models Overview](#database-models-overview)
-- [🗂️ Database Design & ERD](#database-design--erd)
-- [🛠️ Technologies Used](#technologies-used)
-- [📁 Project Structure](#project-structure)
-- [✅ Project Requirements Accomplished](#project-requirements-accomplished)
-- [🧪 Testing & Validation](#testing--validation)
-- [🌍 Deployment](#deployment)
-- [🗑️ Removed and Ignored Files](#removed-and-ignored-files)
-- [🚀 Future Enhancements](#future-enhancements)
-- [🖼️ Screenshots & Validation Results](#screenshots--validation-results)
-- [🙏 Credits](#credits)
-- [👤 Author](#author)
+## 🌐 Live Demo
+
+### Launch the application
+
+Visit the live application here:
+
+https://ai-assistants-8c06fcfeab86-6fbe77963620.herokuapp.com/
 
 ---
 
-## 📘 Overview
-The AI Assistant Platform is a full-stack Django web application where users can register, create intelligent assistant bots, test them live, and subscribe to premium plans using Stripe. Built from scratch with scalable design, real-time interaction, and a smooth UX, this project demonstrates multi-app integration, API communication, and secure authentication.
+## 🚀 Highlights
+
+- 🤖 AI-powered assistants using OpenAI GPT
+- 📚 Train assistants with your own knowledge base
+- 💬 Real-time AI chat playground
+- 🤖 Bring Your Own Discord Bot (BYOB)
+- 💳 Premium subscriptions with Stripe Checkout
+- 👤 Secure authentication and authorization
+- 📊 Dashboard with analytics and usage tracking
+- 📦 REST API integration
+- 🌙 Dark and Light mode
+- 📱 Fully responsive design
+- ☁️ Cloud deployment on Heroku
 
 ---
 
-## 🧑‍💻 Features
-✅ Key Functionality
-- Multi-app Django architecture
-- User registration and login/logout
-- Bot creation with custom personality and category
-- Real-time chat with OpenAI-powered responses
-- Stripe-based subscription plans
-- Role-based bot access (free/premium)
-- Dashboard and Playground with responsive UI
+## 📸 Preview
+
+![AI Assistant Platform](readme-img-validation/home-darkmode.jpg)
 
 ---
 
-## 📋 User Stories
+# ✨ Features
 
-| User Story ID | Description                                     | How It´s Fulfilled                          |
-|---------------|------------------------------------------------|--------------------------------------------|
-| MS1           | As a user, I want to register and log in so I can access personalized features. | User registration and login/logout views with validation and secure sessions. |
-| MS2           | As a user, I want to create, edit, and delete my own AI assistant bots. | Bot management with forms, permissions, and ownership checks. |
-| MS3           | As a user, I want to chat with my AI bots in real time. | Interactive AJAX chat playground, real-time responses using OpenAI API. |
-| MS4           | As a user, I want to upload knowledge files to improve my bots’ responses. | KnowledgeBase upload with file processing and embedding search integration. |
-| PP4           | As a user, I want to subscribe to premium plans to unlock advanced features. | Stripe payment integration with subscription gating in views. |
-| PP5           | As a staff member, I want to view bot usage analytics and logs. | Admin dashboard with usage logs, charts, and export functionality. |
+AI Assistant Platform combines artificial intelligence, knowledge management, subscription management, and Discord integration into a single production-ready web application.
 
 ---
 
-## 🔐 User Authentication
-- Built with Django's User model
-- Register, login, logout views
-- Secure sessions and CSRF protection
-- Conditional navigation for authenticated users
-- Styled forms: register.html, login.html
+## 🤖 AI Assistants
+
+Create and manage intelligent AI assistants powered by OpenAI.
+
+### Capabilities
+
+- Create custom AI assistants
+- Configure assistant personalities and behaviour
+- Organize assistants by category
+- Real-time AI conversations
+- Context-aware responses
+- Conversation history
+- Daily usage tracking
+- Premium users can create unlimited assistants
 
 ---
 
-## 🤖 Bot Management
-- Create, update, delete AI bots
-- Bots have name, category, personality, creator link
-- Bot list cards show category, ownership, and premium badge
-- Permissions: users can only manage their own bots
-- Template views: list.html, form.html, confirm_delete.html
+## 📚 Knowledge Base
+
+Improve assistant accuracy by training it with your own documents.
+
+### Included Functionality
+
+- Upload TXT knowledge files
+- Automatic text processing
+- Intelligent text chunking
+- Embedding generation
+- Semantic search
+- AI responses based on uploaded knowledge
+- Easy knowledge management
 
 ---
 
-## 🤖 Discord Connection
+## 💬 AI Playground
 
-Easily connect **your own Discord bot** to our AI Assistant platform.
+Test every assistant before deploying it.
 
----
+### Functionality
 
-### ✅ What It Does
-- Lets users chat with **their own Discord bot** in their server.
-- Bring Your Own Bot (BYOB) model: you own and control your bot.
-- No shared service bot — full privacy and control.
-- Works on Windows, macOS, and Linux.
-
----
-
-### ⚙️ Requirements
-- **Python 3.8+** installed on your computer.
-- A **Discord account** with permission to add bots to your server.
-- Access to the [Discord Developer Portal](https://discord.com/developers/applications) to create your bot.
-- An internet connection to communicate with our AI Assistant service.
+- Real-time AJAX chat
+- Instant AI responses
+- Conversation history
+- Fast asynchronous communication
+- Mobile-friendly interface
+- Dark and Light mode support
 
 ---
 
-### 📦 What's Included in the Bridge Bundle
-- **`bridge.py`** – Ready-to-run Python script to link your Discord bot to our platform.
-- **`env.example`** – Example environment file showing what secrets to set.
-- **`requirements.txt`** – Python dependencies for easy setup.
-- **`Setup_Guide.pdf`** – Full step-by-step install guide.
-- **`Commands_Guide.pdf`** – How to use and customize bot commands.
+## 🤖 Discord Integration
 
-✅ All available for download on the **Connect to Discord** page.
+Deploy assistants directly to your own Discord server using the included Bring Your Own Bot (BYOB) solution.
 
----
+### Included Features
 
-### 🛠️ User Onboarding Steps
-
-#### 1️⃣ **Create Your Discord Bot**
-- Go to the [Discord Developer Portal](https://discord.com/developers/applications).
-- Create a new application and add a Bot.
-- Click **Copy Token** and **save it** securely.
-
-#### 2️⃣ **Get Your Bot's Client ID**
-- Found under **General Information** → **Application ID**.
-- This is required to generate your invite link.
-
-#### 3️⃣ **Generate Invite Link**
-- Use our **Invite Link Generator** on the site.
-- Paste your **Client ID**.
-- Select permissions (e.g. *Send Messages*).
-- Click **Generate Invite Link**.
-- Authorize **your own bot** in **your server**.
-
-✅ The bot will now appear in your server’s member list.
+- Bring Your Own Discord Bot
+- Downloadable Discord Bridge package
+- Setup Guide included
+- Commands Guide included
+- Discord Invite Generator
+- Secure API communication
+- Windows support
+- macOS support
+- Linux support
 
 ---
 
-#### 4️⃣ **Download the Bridge Bundle**
-- Contains:
-  - `bridge.py`
-  - `env.example`
-  - `requirements.txt`
-  - `Setup_Guide.pdf`
-  - `Commands_Guide.pdf`
+## 💳 Premium Membership
+
+Unlock advanced platform functionality through Stripe Checkout.
+
+### Features
+
+- Secure Stripe Checkout
+- Premium subscriptions
+- Unlimited AI assistants
+- Premium-only functionality
+- Secure payment processing
 
 ---
 
-#### 5️⃣ **Edit Your `.env` File**
-- Duplicate `env.example` and rename it to `.env`.
-- Open `.env` and paste your secrets in the following format:
+## 📊 Dashboard & Analytics
 
-```ini
-DISCORD_TOKEN=your-discord-bot-token
-DJANGO_API_TOKEN=your-django-api-token
-DJANGO_BOT_ID=your-bot-id
-```
+Monitor platform activity from a centralized dashboard.
 
----
+### Analytics
 
-6️⃣ Install Requirements
-
-✅ For Windows (PowerShell or CMD):
-```ini
-python -m venv venv
-venv\Scripts\activate
-pip install -r requirements.txt
-python bridge.py
-```
-
-✅ For macOS / Linux:
-```ini
-python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-python bridge.py
-```
-
-✅ Leave the terminal open.
-
-✅ Your bot is now live and connected to your AI Assistant.
-
-📥 Extra Help & Documentation
-Need more help? Download our detailed guides below:
-
-📄 Setup_Guide.pdf — Step-by-step install instructions
-
-🤖 Commands_Guide.pdf — Detailed usage and customization of bot commands
-
-✅ Why This Is Great
-Bring Your Own Bot: total ownership and privacy.
-
-No coding knowledge needed: simple instructions and pre-built bridge.
-
-Cross-platform: Works on Windows, macOS, and Linux.
-
-Fully guided onboarding experience.
-
-Free and Paid Plans: Free tier for testing, paid tier for full features.
+- User dashboard
+- Assistant overview
+- Usage statistics
+- Token usage tracking
+- Conversation logs
+- CSV export
+- Staff-only analytics
 
 ---
 
-## 💬 Test Playground
-- Interactive chat interface per bot.
-- Ajax chat submission and real-time reply rendering.
-- Chat history saved per bot per user.
-- Scrollable chat log UI with dark/light theme support.
-- Bot personality passed to OpenAI for customized responses.
+## 👤 User Management
+
+Secure authentication powered by Django.
+
+### Features
+
+- User registration
+- Login and logout
+- Password reset
+- Email notifications
+- Secure sessions
+- Protected routes
+- User profiles
 
 ---
 
-## 💳 Stripe Payment Integration
-- Stripe test mode integrated.
-- Checkout session creation with Stripe.js.
-- Payments required for accessing premium bots.
-- Decorators & middleware restrict access without subscription.
-- Views: checkout, success, cancel, webhook.
-- CSRF protection + Django messages for feedback.
+## 🔌 APIs & Integrations
+
+The platform integrates with several external services.
+
+### Integrations
+
+- OpenAI API
+- Stripe API
+- Discord API
+- Django REST Framework
+- Secure API token authentication
 
 ---
 
-## 🧠 AI Chat Integration
-- OpenAI GPT powers bot responses.
-- API keys managed in .env.
-- Prompt combines user message + bot`s category/personality.
-- Response formatted and displayed with JS.
+## 🎨 User Experience
+
+Designed to provide a modern experience across all devices.
+
+### Features
+
+- Fully responsive layout
+- Dark and Light mode
+- Modern user interface
+- Responsive navigation
+- Accessible forms
+- Custom success messages
+- Custom error messages
 
 ---
 
-## 📊 Monitor Logs & Analytics
-All bot interactions are logged and can be reviewed by staff through the Django Admin interface.
+## 🔒 Security
 
-✅ **Logged Data (via BotUsageLog model):**
-- 👤 User
-- 🤖 Bot
-- 💬 Message
-- 🔢 Token count (OpenAI usage)
-- 🕒 Timestamp
+Security has been considered throughout the application.
 
-✅ **Admin Dashboard Features:**
-- Access via `/admin/` (staff only)
-- Date range filters, search by username, bot name, message
-- Export selected logs as CSV
-- Dark mode and custom branding
-- Staff-only access enforced
+### Features
+
+- CSRF protection
+- Authentication and authorization
+- Ownership validation
+- Protected API endpoints
+- Environment variables
+- HTTPS-ready deployment
+- Secure session handling
 
 ---
 
-## 🎨 Styling and UX
-- **Responsive Design:** Mobile-first CSS Flexbox layout for smooth adaptation to phones, tablets, desktops.
-- **Dark/Light Theme Toggle:** User preference saved in localStorage and applied site-wide.
-- **Consistent UI Elements:** Uniform fonts, colors, spacing across buttons, forms, navbars.
-- **Flexbox Layouts:** Used for navbars, chat boxes, forms for easy alignment.
-- **Styled Forms:** Clear, accessible registration, login, bot creation, and knowledge upload forms.
-- **Dynamic Feedback:** Django messages show success/error/info notifications consistently.
-- **Accessible Design:** ARIA labels, keyboard focus support on buttons and forms.
+# 📸 Application Tour
+
+The following screenshots provide an overview of the application's interface and demonstrate the main features available throughout the platform.
 
 ---
 
-## 🔄 CRUD Operations & Data Flow
+## 🏠 Home Page
 
-### ✅ Bot CRUD Lifecycle
-- **Create:** User fills form (name, category, personality), bot saved with owner.
-- **Read:** User´s bots shown on dashboard with details and badges.
-- **Update:** Edit form accessible to owner only.
-- **Delete:** Confirmation page restricts deletion to owner.
+The landing page introduces the platform, highlights its core features, and provides quick access to user authentication and the dashboard.
+
+![Home - Dark Mode](readme-img-validation/home-darkmode.jpg)
 
 ---
 
-### ✅ Data Flow Diagram
+## ☀️ Light Theme
 
-```mermaid
-flowchart TD
-    A[User] -->|Submit Bot Form| B[Backend Bot Create View]
-    B --> C[Bot Model Instance saved with Owner]
-    A -->|View Bots| D[Bot List View]
-    D --> E[Query bots by User]
-    A -->|Edit/Delete Bot| F[Bot Edit/Delete Views]
-    F --> C
-```
+Users can switch between Dark and Light mode at any time. The selected preference is automatically remembered for future visits.
+
+![Home - Light Mode](readme-img-validation/home-lightmode.jpg)
 
 ---
 
-💬 Chat & Knowledge Upload Flow
-1. User sends message via chat UI
-2. Frontend AJAX sends message to backend
-3. Backend stores message, fetches relevant knowledge chunks with embeddings
-- Combines context + bot personality, sends prompt to OpenAI API
-- AI response stored and returned to frontend
-- Knowledge upload allows file submission processed to enrich bot answers
+## 🤖 Create an AI Assistant
+
+Create fully customized AI assistants by defining their name, category, personality, and behavior.
+
+![Create Bot](readme-img-validation/create-bot.jpg)
 
 ---
 
-📊 Database Models Overview
-1. Model	Purpose	Key Fields
-2. User	Built-in Django user	username, email, password
-- Bot	AI assistant bot	name, category, personality, owner (FK User)
-- ChatMessage	User and bot chat messages	bot (FK), user (FK), message, sender, timestamp
-- KnowledgeBase	Uploaded files for bot knowledge	file, bot (FK), uploaded_by, timestamp
-- KnowledgeChunk	Text chunks with embeddings	knowledge_file (FK), text, embedding (JSONB)
-- BotUsageLog	Logs user-bot interactions	user (FK), bot (FK), message, token_count, timestamp
-- UserProfile	User subscription and limits	daily_message_count, is_subscribed
+## 💬 AI Playground
+
+Each assistant includes its own interactive chat playground where conversations take place in real time using OpenAI.
+
+![AI Playground](readme-img-validation/botrespons-playground.jpg)
 
 ---
 
-## 📊 Database Design & ERD
+## 📚 Knowledge Base
 
-**ERD Overview (Entity-Relationship Diagram):**
-The AI Assistant Platform uses a relational database with Django´s ORM. The design ensures clear relationships and data integrity between all core features.
+Upload your own text files to provide assistants with additional knowledge. Uploaded documents are processed and made available for semantic retrieval.
 
-**Entities & Relationships:**
-- **User** (Django’s built-in user model)
-  - owns → **Bot**
-- **Bot**
-  - has many → **ChatMessage**
-  - has many → **KnowledgeBase**
-  - has many → **BotUsageLog**
-- **KnowledgeBase**
-  - splits into many → **KnowledgeChunk**
-- **ChatMessage**
-  - linked to → **User** and **Bot**
-- **BotUsageLog**
-  - logs interactions between **User** and **Bot**
-
-**Description (for readers without image):**
-- Each user can create multiple bots.
-- Each bot has its own chat history, usage logs, and optional uploaded knowledge base.
-- Knowledge files are processed into text chunks for fast embedding search.
-- Usage logs track which users interacted with which bots, including token counts for billing/limits.
-
-*(Recommended: include a PNG or Mermaid diagram in repo to visualize these relationships.)*
-
-> 🗒️ **Database Development Note**  
-> - During development, only minimal test items were added to the local SQLite3 database—just enough to verify that the models and views work correctly.  
-> - This approach avoids having to delete and recreate large amounts of data if the schema changes.  
-> - For production (PostgreSQL on Heroku), migrations are applied to a fresh, empty database to ensure the schema is clean and consistent.
+![Knowledge Upload](readme-img-validation/answer-upload-knowledge-txt.jpg)
 
 ---
 
-## 🛠️ Technologies Used
-- **Backend:**
-  - Python 3.13
-  - Django 4.2
-  - SQLite (local)
-  - PostgreSQL (production)
-  - Stripe API
-  - OpenAI API
-- **Frontend:**
-  - HTML5, CSS3
-  - Vanilla JavaScript + AJAX
-  - Flexbox layouts
-  - Dark/light mode toggle
-  - Mobile-first responsive design
-- **Deployment:**
-  - Heroku
-  - Gunicorn + Whitenoise
-  - Python Decouple for env variables
-  - Pipenv / requirements.txt
+## ✅ Knowledge Processing Complete
+
+Once processing is complete, the uploaded knowledge becomes immediately available for AI-generated responses.
+
+![Knowledge Upload Confirmation](readme-img-validation/knowledge-upload-confirm.jpg)
 
 ---
 
-## 📁 Project Structure
+## 🤖 Discord Integration
 
+Deploy assistants directly to your own Discord server using the included Bring Your Own Bot (BYOB) bridge.
+
+![Discord Integration](readme-img-validation/discord-bot.jpg)
+
+---
+
+## 💳 Premium Membership
+
+Upgrade to a Premium account to unlock unlimited AI assistants and additional platform features.
+
+![Premium Upgrade](readme-img-validation/premium-upgrade.jpg)
+
+---
+
+## 💳 Secure Stripe Checkout
+
+Premium subscriptions are processed securely through Stripe Checkout.
+
+![Stripe Checkout](readme-img-validation/payment.jpg)
+
+---
+
+## ✅ Successful Payment
+
+Example of a completed payment using Stripe's official test environment.
+
+![Payment Successful](readme-img-validation/payment-successful.jpg)
+
+---
+
+## 📧 User Registration
+
+New users can create an account using the integrated registration system.
+
+![Email Registration](readme-img-validation/email-register.jpg)
+
+---
+
+## 🔐 Password Recovery
+
+Forgotten passwords can be securely reset through the email-based recovery process.
+
+![Password Reset](readme-img-validation/email-reset-password.jpg)
+
+---
+
+## 📨 Email Notifications
+
+Important account events automatically generate email notifications for the user.
+
+![Email Notification](readme-img-validation/email-notification.jpg)
+
+---
+
+## ⚠️ Form Validation
+
+Built-in validation provides clear and user-friendly feedback whenever incorrect or incomplete information is submitted.
+
+![Login Validation](readme-img-validation/login-error.jpg)
+
+---
+
+# 🔄 System Workflows
+
+The following diagrams illustrate the internal architecture of the AI Assistant Platform, showing how data flows through the application and how the different components interact.
+
+---
+
+## 🔁 CRUD Workflow
+
+This diagram illustrates the complete lifecycle of an AI assistant, from creation and management to updating and deletion. It demonstrates how users interact with the application through Django views and how data is stored using the Django ORM.
+
+**Workflow**
+
+- User creates an AI assistant
+- Data is validated
+- Bot information is stored in the database
+- Users can view, edit or delete existing assistants
+- Changes are immediately reflected throughout the application
+
+![CRUD Workflow](readme-img-validation/crud.jpg)
+
+---
+
+## 💬 AJAX Chat Flow
+
+The AI Playground uses asynchronous AJAX requests to provide real-time conversations without requiring page reloads.
+
+Each user message is processed by Django before being forwarded to the OpenAI API. The generated response is then returned to the browser and displayed instantly.
+
+**Workflow**
+
+1. User submits a message
+2. JavaScript sends an AJAX request
+3. Django validates the request
+4. OpenAI generates a response
+5. The response is returned to Django
+6. JavaScript updates the conversation without refreshing the page
+
+![AJAX Chat Flow](readme-img-validation/ajax-chat-Flow-diagram.jpg)
+
+---
+
+## 📚 Knowledge Base Processing
+
+Uploaded knowledge files are automatically processed before becoming available to AI assistants.
+
+The processing pipeline converts raw text into searchable knowledge chunks, enabling semantic retrieval and more accurate AI responses.
+
+**Workflow**
+
+1. User uploads a TXT file
+2. The file is processed
+3. Text is divided into smaller chunks
+4. Embeddings are generated
+5. Knowledge is stored in PostgreSQL
+6. Relevant information is retrieved during AI conversations
+
+![Knowledge Base Processing](readme-img-validation/knowledge-upload-flow-diagram.jpg)
+
+---
+
+## 🗄️ Database Entity Relationship Diagram (ERD)
+
+The Entity Relationship Diagram illustrates how the application's database models are connected.
+
+The platform is built using Django ORM with PostgreSQL in production, allowing relationships between users, AI assistants, conversations, uploaded knowledge, and subscription data.
+
+### Main Relationships
+
+- Users own multiple AI assistants
+- AI assistants contain conversation history
+- AI assistants can have multiple knowledge files
+- Knowledge files are divided into searchable chunks
+- AI assistants generate usage statistics
+- Users have subscription information and premium status
+
+![Database ERD](readme-img-validation/erd.jpg)
+
+---
+
+# ✅ Validation
+
+The AI Assistant Platform has been tested throughout development to ensure code quality, accessibility, responsiveness, and compliance with modern web standards.
+
+The following validation tools were used during development.
+
+---
+
+## 🌐 HTML Validation
+
+HTML pages were validated using the official W3C HTML Validator to ensure semantic structure and standards compliance.
+
+### Validation Goals
+
+- Semantic HTML5
+- No critical validation errors
+- Accessible document structure
+- Standards-compliant markup
+
+![HTML Validation](readme-img-validation/home-valid-html.jpg)
+
+---
+
+## 🎨 CSS Validation
+
+Stylesheets were validated using the W3C CSS Validator to verify syntax correctness and CSS standards compliance.
+
+### Validation Goals
+
+- Valid CSS3
+- No critical errors
+- Consistent styling
+- Cross-browser compatibility
+
+![CSS Validation](readme-img-validation/css-validator.jpg)
+
+---
+
+## 🚀 Lighthouse Audit
+
+Google Lighthouse was used to evaluate the application's overall quality and user experience.
+
+The audit focuses on several important areas of modern web development.
+
+### Areas Tested
+
+- Performance
+- Accessibility
+- Best Practices
+- Search Engine Optimization (SEO)
+
+The application achieved high Lighthouse scores while maintaining responsive layouts and a modern user experience.
+
+![Lighthouse](readme-img-validation/lighthouse.jpg)
+
+---
+
+## 📱 Responsive Testing
+
+The user interface was tested across multiple screen sizes to ensure a consistent experience on different devices.
+
+### Devices Tested
+
+- Desktop
+- Laptop
+- Tablet
+- Mobile
+
+The responsive layout adapts automatically using CSS media queries and flexible layouts.
+
+---
+
+## 🔒 Functional Testing
+
+The platform was manually tested throughout development to verify that all major features operate correctly.
+
+### Features Tested
+
+- User registration
+- Login and logout
+- Password reset
+- AI assistant creation
+- Bot editing and deletion
+- AI Playground conversations
+- Knowledge Base uploads
+- Discord integration
+- Stripe Checkout
+- Premium account restrictions
+- Dashboard functionality
+- Responsive navigation
+
+---
+
+## ✅ Validation Summary
+
+The project was successfully validated using industry-standard tools and manual testing to ensure reliability, accessibility, responsiveness, and production readiness.
+
+---
+
+# 🛠️ Technology Stack
+
+The AI Assistant Platform is built using modern technologies for web development, artificial intelligence, cloud deployment, payment processing, and database management.
+
+---
+
+## 🖥️ Backend
+
+| Technology | Purpose |
+|------------|---------|
+| Python 3.13 | Core programming language |
+| Django 5.2 | Web framework |
+| Django REST Framework | REST API development |
+| Gunicorn | Production WSGI server |
+| WhiteNoise | Static file serving |
+| PostgreSQL | Production database |
+| SQLite | Local development database |
+
+---
+
+## 🎨 Frontend
+
+| Technology | Purpose |
+|------------|---------|
+| HTML5 | Application structure |
+| CSS3 | Styling and responsive layouts |
+| JavaScript (ES6) | Client-side functionality |
+| AJAX | Real-time asynchronous communication |
+
+---
+
+## 🤖 Artificial Intelligence
+
+| Technology | Purpose |
+|------------|---------|
+| OpenAI GPT | AI-generated conversations |
+| OpenAI Embeddings | Semantic knowledge retrieval |
+| Knowledge Chunking | Document processing |
+| Prompt Engineering | Assistant behaviour and context management |
+
+---
+
+## 💳 Payment Processing
+
+| Technology | Purpose |
+|------------|---------|
+| Stripe Checkout | Secure payment processing |
+| Stripe API | Subscription management |
+| Stripe Webhooks | Payment event handling |
+
+---
+
+## 🤖 Discord Integration
+
+| Technology | Purpose |
+|------------|---------|
+| discord.py | Discord bot communication |
+| Discord Developer Portal | Bot management |
+| Bring Your Own Bot (BYOB) | User-owned Discord bots |
+
+---
+
+## 🗄️ Database
+
+| Technology | Purpose |
+|------------|---------|
+| PostgreSQL | Production database |
+| SQLite | Local development |
+| Django ORM | Database abstraction layer |
+
+---
+
+## ☁️ Cloud & Deployment
+
+| Technology | Purpose |
+|------------|---------|
+| Heroku | Cloud hosting platform |
+| PostgreSQL Add-on | Managed production database |
+| Git | Version control |
+| GitHub | Source code hosting |
+
+---
+
+## 🧪 Development Tools
+
+| Tool | Purpose |
+|------|---------|
+| Visual Studio Code | Development environment |
+| GitHub Desktop | Git management |
+| Heroku CLI | Deployment |
+| Postman | API testing |
+| Black | Python code formatting |
+| Flake8 | Python linting |
+| W3C HTML Validator | HTML validation |
+| W3C CSS Validator | CSS validation |
+| Lighthouse | Performance and accessibility auditing |
+
+---
+
+# 📦 Python Packages
+
+The AI Assistant Platform relies on a number of carefully selected Python packages that provide the core functionality for web development, artificial intelligence, database connectivity, payment processing, and deployment.
+
+| Package | Purpose |
+|---------|---------|
+| Django | Core web framework |
+| Django REST Framework | REST API development |
+| OpenAI | AI conversations and embeddings |
+| Stripe | Payment processing and subscriptions |
+| psycopg | PostgreSQL database adapter |
+| Gunicorn | Production WSGI server |
+| WhiteNoise | Static file serving |
+| discord.py | Discord bot communication |
+| Pillow | Image processing |
+| python-dotenv | Environment variable management |
+
+### Why These Packages?
+
+These libraries were selected because they are widely adopted, well documented, and production-ready.
+
+Together they provide:
+
+- Secure authentication and session management
+- AI-powered conversations using OpenAI
+- Knowledge Base processing with embeddings
+- Secure Stripe payment integration
+- PostgreSQL database connectivity
+- Discord bot communication
+- REST API development
+- Reliable production deployment on Heroku
+
+Additional development and dependency packages can be found in the project's `requirements.txt` file.
+
+---
+
+## 🔗 External Services
+
+The application integrates with several third-party services to provide AI functionality, payment processing, cloud hosting, and Discord deployment.
+
+- OpenAI API
+- Stripe API
+- Discord API
+- Heroku
+- PostgreSQL
+
+---
+
+# 📂 Project Structure
+
+The project is organized using Django's multi-app architecture. Each application is responsible for a specific area of functionality, making the codebase modular, maintainable, and easy to extend.
+
+```text
 ai-assistant/
-
-├── ai_assistant/        # Project settings
-
-├── accounts/            # Authentication system
-
-├── bots/                # Bot models and views
-
-├── dashboard/           # Homepage and analytics
-
-├── payments/            # Stripe integration
-
-├── templates/           # HTML templates
-
-├── static/              # CSS, JS, images
-
-├── .env                 # Environment variables
-
-├── Procfile             # Heroku runtime config
-
-├── runtime.txt          # Python version
-
-└── requirements.txt     # Dependencies
-
----
-
-## ✅ Project Requirements Accomplished
-
-Below is a clear mapping of **how this project meets or exceeds all mandatory criteria** (with details on where it goes beyond minimum requirements):
-
----
-
-### ✔️ Main Technologies Used
-✅ HTML, CSS, JavaScript with responsive, accessible design.  
-
-✅ Python + Django (4.2).  
-
-✅ Relational Database: PostgreSQL in production (SQLite locally for dev).  
-
-✅ Stripe Payments integration.  
-
-✅ Additional Libraries/APIs: OpenAI API, discord.py for bot connections, Django REST Framework, Python-dotenv.
-
-✅ Includes advanced integrations like Discord bot bridge and AI embeddings search.
-
----
-
-### ✔️ Django Full Stack Project
-✅ Fully built with Django’s MVT architecture.  
-
-✅ Backend relational database with multiple related models.  
-
-✅ Users can create, store, manipulate records about AI assistant bots.
-
-✅ Includes user-uploaded knowledge base with text processing and embeddings.
-
----
-
-### ✔️ Multiple Apps
-✅ Clean Django project with clear separation of concerns:  
-
-- **accounts:** User registration, login/logout.  
-- **bots:** Bot management, chat, Discord integration.  
-- **payments:** Stripe checkout, webhooks.  
-- **dashboard:** Homepage, user analytics.
-
-✅ 4 separate apps, demonstrating solid Django project design.
+│
+├── accounts/                  # Authentication and user management
+│   ├── migrations/
+│   ├── templates/
+│   ├── forms.py
+│   ├── models.py
+│   ├── urls.py
+│   └── views.py
+│
+├── bots/                      # AI assistants, chat and knowledge base
+│   ├── migrations/
+│   ├── templates/
+│   ├── static/
+│   ├── models.py
+│   ├── urls.py
+│   ├── views.py
+│   ├── utils.py
+│   └── services.py
+│
+├── dashboard/                 # Dashboard and analytics
+│   ├── templates/
+│   ├── urls.py
+│   └── views.py
+│
+├── payments/                  # Stripe integration
+│   ├── templates/
+│   ├── urls.py
+│   ├── views.py
+│   └── webhooks.py
+│
+├── buildabot/                 # Django project configuration
+│   ├── settings.py
+│   ├── urls.py
+│   ├── asgi.py
+│   └── wsgi.py
+│
+├── static/                    # Global static files
+│   ├── css/
+│   ├── js/
+│   ├── images/
+│   └── discord_bridge/
+│
+├── media/                     # Uploaded user files
+│
+├── templates/                 # Shared templates
+│
+├── readme-img-validation/     # README screenshots
+│
+├── requirements.txt
+├── manage.py
+├── Procfile
+├── runtime.txt
+├── .gitignore
+├── .python-version
+└── README.md
+```
 
 ---
 
-### ✔️ Data Modeling
-✅ Thoughtfully designed relational schema with **more than 2 custom models**:  
+## 📦 Application Overview
 
-- **Bot** — with category, personality, ownership.  
-- **ChatMessage** — user/bot conversation logs.  
-- **KnowledgeBase** — uploaded user files.  
-- **KnowledgeChunk** — split text chunks with embeddings.  
-- **BotUsageLog** — records usage and token counts.  
-- **UserProfile** — tracks subscription, message limits.
+### 👤 Accounts
 
-✅ 5+ custom models beyond built-in User.
+Handles user authentication and account management.
 
-✅ Complex, meaningful relationships designed for real-world usage.
+**Responsibilities**
 
----
-
-### ✔️ User Authentication
-✅ Django’s built-in authentication system.  
-
-✅ User registration, login, logout.  
-
-✅ Required for all bot management features.  
-
-✅ Users must log in to:  
-
-- Create/edit/delete bots.  
-- Chat with bots.  
-- Upload knowledge.  
-- Access payment/subscription features.
-
-✅ Includes subscription gating for premium bots, per-user ownership checks, CSRF protection everywhere.
+- User registration
+- Login and logout
+- Password reset
+- Email notifications
+- User profiles
+- Authentication
 
 ---
 
-### ✔️ User Interaction
-✅ Multiple validated forms:  
+### 🤖 Bots
 
-- Registration/login.  
-- Bot creation/editing.  
-- Knowledge upload.  
+Contains the core functionality of the platform.
 
-✅ Real-time AJAX chat with validation.  
+**Responsibilities**
 
-✅ CSRF protection on all POST forms.
-
-✅ Live AJAX chat system with real-time feedback and saved conversation history.
-
----
-
-### ✔️ Use of Stripe
-✅ Stripe test mode fully integrated.  
-
-✅ Checkout session flow with Stripe.js.  
-
-✅ Subscription required for premium bots.  
-
-✅ Webhook endpoint in payments app.  
-
-✅ User’s premium status enforced in views.
-
-✅ Multi-tier access control system using Stripe integration.
-
-✅ Test payments via Stripe Test Mode (card: 4242 4242 4242 4242).
+- AI assistant management
+- Chat Playground
+- Knowledge Base
+- OpenAI integration
+- Discord integration
+- REST API endpoints
 
 ---
 
-### ✔️ Structure and Navigation
-✅ Main navigation bar with conditional rendering (authenticated/unauthenticated).  
+### 📊 Dashboard
 
-✅ Responsive layout using CSS Flexbox.  
+Provides an overview of user activity.
 
-✅ Mobile-first design.  
+**Responsibilities**
 
-✅ Dark/light theme toggle, saved in localStorage.
-
-✅ Fully responsive dark/light mode site-wide with consistent styling.
-
----
-
-### ✔️ Use of JavaScript
-✅ Custom JavaScript for:  
-
-- Real-time AJAX chat.  
-- Theme toggling and storage.  
-
-✅ User-friendly dynamic interactions throughout.
-
-✅ Full chat playground with AJAX, dynamic message rendering, usage limits.
+- Dashboard
+- Analytics
+- Usage statistics
+- Conversation history
+- CSV exports
 
 ---
 
-### ✔️ Documentation
-✅ Comprehensive **README.md** explaining:  
+### 💳 Payments
 
-- What the project does.  
-- Key features and value.  
-- Setup instructions.  
-- CRUD operations.  
-- Database models.  
-- Stripe payment integration.  
-- Discord bot connection.  
-- Deployment details.  
-- Credits and attributions.
+Handles premium subscriptions and billing.
 
-✅ Step-by-step Discord setup instructions, user onboarding, screenshots suggested.
+**Responsibilities**
+
+- Stripe Checkout
+- Premium subscriptions
+- Payment verification
+- Subscription management
 
 ---
 
-### ✔️ Version Control
-✅ Entire project tracked in Git.  
+### ⚙️ Buildabot
 
-✅ Clean, structured commit history.  
+Contains the Django project configuration.
 
-✅ Hosted on GitHub.  
+**Responsibilities**
 
-✅ Clear attribution of third-party libraries.
-
-✅ Detailed commits documenting feature additions, fixes, design improvements.
-
----
-
-### ✔️ Attribution
-✅ Third-party libraries documented in requirements.txt.  
-
-✅ Inline code comments credit any external sources.  
-
-✅ Major libraries credited in README:  
-
-- Stripe  
-- OpenAI  
-- Django  
-- Discord.py
+- Project settings
+- URL routing
+- WSGI configuration
+- ASGI configuration
 
 ---
 
-### ✔️ Deployment
-✅ Deployed on Heroku.  
+## 🎯 Why This Structure?
 
-✅ Production database: PostgreSQL.  
+The project follows a modular architecture where every Django application has a single responsibility.
 
-✅ Whitenoise for static files.  
+This approach provides several advantages:
 
-✅ ENV variables securely managed.  
-
-✅ Django `DEBUG=False` in production.
-
-✅ Includes Heroku-ready Procfile, runtime.txt, documented deployment steps.
-
----
-
-### ✔️ Security
-✅ Secrets (API keys, tokens) stored in `.env`, excluded via `.gitignore`.  
-
-✅ Django `DEBUG=False` in production.  
-
-✅ CSRF protection enforced on all forms.  
-
-✅ User authentication required for all sensitive views.  
-
-✅ Ownership validation to prevent unauthorized edits/deletes.  
-
-✅ Stripe webhooks verified.
-
-✅ Token-based API auth for Discord bridge, per-user message limits, daily usage tracking.
+- Better code organization
+- Easier maintenance
+- Improved scalability
+- Simpler testing
+- Reusable components
+- Clear separation of concerns
 
 ---
 
-✅ **Conclusion:**  
-This project **fully satisfies** all mandatory requirements and **exceeds them in multiple areas** with advanced features, extra apps, sophisticated models, and polished UX design.
+# 🏗️ Architecture
+
+The AI Assistant Platform follows Django's **Model–View–Template (MVT)** architecture and is organized into multiple independent applications.
+
+Each application has a clearly defined responsibility, making the platform modular, scalable, and easier to maintain as new features are added.
 
 ---
 
-🧪 Testing & Validation
-Extensive manual testing was performed to verify that all features meet requirements, work across devices, and provide a secure and responsive user experience.
+## 🧩 High-Level Architecture
 
-✅ Below is a summary of key tests, expected outcomes, and results:
-
-| **Test Label**           | **Test Action**                                    | **Expected Outcome**                                     | **Result** | **Notes**                             |
-| ------------------------ | -------------------------------------------------- | -------------------------------------------------------- | ---------- | ------------------------------------- |
-| Register/Login Forms     | Valid and invalid data on registration/login forms | Forms validate correctly; user can register/login/logout | ✅          | All validations handled properly      |
-| Password Reset           | Use email reset flow with valid and invalid tokens | Reset emails sent; invalid tokens rejected               | ✅          | Secure and reliable reset flow        |
-| Bot CRUD                 | Create, update, delete bots with/without ownership | Only owners can edit/delete; bots saved correctly        | ✅          | Permissions enforced                  |
-| Chat Playground          | Send messages and receive AI responses             | Real-time replies appear; chat history saved             | ✅          | Responsive and fast interaction       |
-| Stripe Payment Flow      | Complete checkout and cancel flows                 | Payments processed; premium access granted/revoked       | ✅          | Stripe test cards used                |
-| Access Control           | Access premium bot without subscription            | Access denied with error message                         | ✅          | Subscription gating enforced          |
-| Theme Toggle             | Switch between dark and light mode                 | UI changes immediately and persists                      | ✅          | Uses localStorage for persistence     |
-| Footer/Nav               | Check layout on various screen sizes               | Footer and navbar remain consistent and accessible       | ✅          | Mobile-first responsive design        |
-| Monitor Logs & Analytics | Check bot usage logs and export CSV                | Logs saved correctly; CSV export works                   | ✅          | Staff-only access enforced            |
-| CSV Export               | Export filtered bot usage logs                     | CSV downloads with correct data                          | ✅          | Tested in multiple browsers           |
-| Staff-only Admin Access  | Access admin dashboard as staff/non-staff          | Only staff can access; non-staff redirected              | ✅          | Secure access controls                |
-| Knowledge Upload         | Upload valid/invalid knowledge files               | Files processed or rejected with clear errors            | ✅          | Chunk splitting and embeddings tested |
-| AJAX CSRF Protection     | Submit chat/forms with and without CSRF            | CSRF tokens required; errors handled gracefully          | ✅          | Secure POST endpoints                 |
-| Error Pages              | Trigger 404 and 500 errors                         | Custom error pages displayed                             | ✅          | Friendly user experience              |
-| Mobile Responsiveness    | Test on iPhone 5, tablets, desktops                | Layout adapts properly; no overflow                      | ✅          | Tested on real devices and emulators  |
-| User Profile Limits      | Exceed daily message limits                        | Access blocked with proper message                       | ✅          | Enforced per subscription             |
-| Discord Bridge API Token | Use valid/invalid tokens for bridge                | Only valid tokens accepted; invalid rejected             | ✅          | Secure API access                     |
-
-
-✅ Validation Results
-
-✅ W3C HTML validation passed for all pages.
-
-✅ JSHint: No critical JavaScript errors.
-
-✅ Flake8 + Black: PEP8-compliant Python code.
-
-✅ Lighthouse scores: Performance, Accessibility, Best Practices, SEO all above 90.
-
-✅ ARIA labels, color contrast, keyboard navigation verified.
-
-✅ Fully responsive layout on iOS, Android, and desktop.
-
-✅ Cross-browser testing: Chrome, Firefox, Safari, Edge.
-
-✅ Forms include both client-side and server-side validation.
-
-✅ Stripe webhook signatures verified in production.
-
-✅ Environment variables excluded via .gitignore and managed securely.
-
-✅ HTTPS enforced in production (Heroku SSL).
-
-✅ Django DEBUG=False in production.
-
-✅ Database migrations verified with makemigrations and migrate.
+```text
+                        Browser
+                           │
+                           ▼
+                    Django URL Router
+                           │
+        ┌──────────────────┼──────────────────┐
+        ▼                  ▼                  ▼
+   Accounts App        Bots App        Payments App
+        │                  │                  │
+        ▼                  ▼                  ▼
+ Authentication       OpenAI API         Stripe API
+        │                  │                  │
+        └──────────────┬───┴──────────────────┘
+                       ▼
+               PostgreSQL Database
+                       ▲
+                       │
+          Knowledge Base & Analytics
+                       │
+                       ▼
+               Discord Bridge API
+```
 
 ---
 
-## 🌍 Deployment
-- **Hosting:** Heroku
-- **Database:** PostgreSQL
-- **Static Files:** Whitenoise
-- **ENV variables:** Managed with Python-decouple, never committed to repo
+## 🧱 Application Architecture
 
-### 🛠️ Deployment Write-up for Maintainers
-This guide is designed for anyone maintaining or updating the AI Assistant Platform, including clients, contractors, or your future self.
+The project is divided into multiple Django applications, each responsible for a specific area of the platform.
 
-#### A. Setting up Cloud Environments
+### 👤 Accounts
 
-1. **Create a Heroku app**  
-   - Use the Heroku CLI:
-   ```bash
-   - heroku create your-app-name
+Manages authentication and user accounts.
 
-2. Configure environment variables (API keys, Stripe keys, Django SECRET_KEY, OpenAI key) securely in Heroku Dashboard or via CLI:
-- heroku config:set SECRET_KEY='your-secret-key'
-- heroku config:set STRIPE_PUBLIC_KEY='your-public-key'
-- heroku config:set STRIPE_SECRET_KEY='your-secret-key'
-- heroku config:set OPENAI_API_KEY='your-openai-key'
-- heroku config:set DJANGO_SECRET_KEY='your-secret-key'
-- heroku config:set SENDGRID_API_KEY='your-sendgrid-api-key'
-- heroku config:set DEFAULT_DOMAIN='your-app.herokuapp.com'
-- heroku config:set DEFAULT_PROTOCOL='https'
-# ...other env vars
+**Responsibilities**
 
-3. Provision add-ons
-- Add PostgreSQL:
-- heroku addons:create heroku-postgresql:hobby-dev
-- Set up other services as needed (e.g., SendGrid for emails).
+- User registration
+- Login and logout
+- Password reset
+- User profiles
+- Email notifications
+- Session management
 
-4. Set up local environment
-- Clone the repo and create a .env file with the same environment variables for local development.
-- Create a .env file with all the required environment variables:
+---
 
-env
+### 🤖 Bots
 
-- DJANGO_SECRET_KEY=...
+The core application responsible for AI functionality.
 
-- STRIPE_PUBLIC_KEY=...
+**Responsibilities**
 
-- STRIPE_SECRET_KEY=...
+- AI assistant CRUD
+- OpenAI integration
+- AI Playground
+- Knowledge Base
+- Discord integration
+- API endpoints
+- Usage tracking
 
-- OPENAI_API_KEY=...
+---
 
-- SENDGRID_API_KEY=...
+### 💳 Payments
 
+Handles subscription management and premium functionality.
 
-B. Getting the Code and Making Updates
- You can get the code either by cloning or forking:
+**Responsibilities**
 
-- Cloning
-Clone the official repo:
-git clone https://github.com/yourusername/ai-assistant.git
-Create branches for your changes. Push changes to the remote and create pull requests if collaborating.
+- Stripe Checkout
+- Premium subscriptions
+- Subscription validation
+- Payment success and cancellation
+- Feature restrictions
 
-- Forking
-Fork the repo on GitHub to your own account.
+---
 
-Clone your forked repo.
-git clone https://github.com/yourusername/ai-assistant.git
+### 📊 Dashboard
 
-Later, pull in upstream changes:
-git remote add upstream https://github.com/originaluser/ai-assistant.git
-git pull upstream main
+Provides insights into user activity.
 
-C. Pushing Updates and Redeploying
+**Responsibilities**
 
-- Commit your changes with clear messages:
-git add .
-git commit -m "Describe your change"
+- Dashboard overview
+- AI assistant management
+- Usage statistics
+- Conversation analytics
+- CSV exports
 
-- Push to the main branch (or another branch as per workflow):
-git push origin main
+---
 
-🚀 How to Set Up the App on Heroku (Step-by-Step)
+## 🗄️ Database Design
 
-1. 🔧 Install the Heroku CLI
-If you haven’t already, download and install the Heroku CLI:
-👉 https://devcenter.heroku.com/articles/heroku-cli
+The application uses **PostgreSQL** in production together with Django ORM.
 
-2. 🌀 Login to Heroku
-heroku login
+The database is designed around relationships between users, assistants, conversations, uploaded knowledge, and subscription information.
 
-3. 🗂 Navigate to your project folder
+### Core Relationships
+
+- One user can own multiple AI assistants.
+- Each AI assistant stores its own conversation history.
+- Each assistant can have multiple uploaded knowledge files.
+- Knowledge files are processed into searchable chunks.
+- Usage logs are linked to individual assistants.
+- Premium status is associated with each user account.
+
+---
+
+## 🔄 Request Lifecycle
+
+The following illustrates a typical request within the platform.
+
+```text
+User
+ │
+ ▼
+Browser
+ │
+ ▼
+Django URL Router
+ │
+ ▼
+View
+ │
+ ▼
+Business Logic
+ │
+ ├───────────────┐
+ ▼               ▼
+Database     External APIs
+ │               │
+ │         ├── OpenAI
+ │         ├── Stripe
+ │         └── Discord
+ │
+ └───────────────┐
+                 ▼
+          HTTP Response
+                 │
+                 ▼
+              Browser
+```
+
+---
+
+## 🔌 External Services
+
+Several third-party services extend the platform's functionality.
+
+| Service | Purpose |
+|---------|---------|
+| OpenAI API | AI-generated conversations |
+| Stripe API | Payment processing |
+| Discord API | Discord bot integration |
+| PostgreSQL | Production database |
+| Heroku | Cloud hosting |
+
+---
+
+## 🎯 Architectural Principles
+
+The application was designed around a number of core software engineering principles.
+
+### Separation of Concerns
+
+Each Django application is responsible for one area of functionality, keeping the codebase organized and maintainable.
+
+### Modularity
+
+Independent applications make it easier to extend or replace functionality without affecting the rest of the project.
+
+### Scalability
+
+The architecture supports future expansion, including additional AI models, new integrations, and enterprise features.
+
+### Security
+
+Authentication, authorization, CSRF protection, secure API communication, and environment variables are integrated throughout the application.
+
+### Maintainability
+
+Reusable components, clear project organization, and Django's MVT architecture simplify future development and long-term maintenance.
+
+---
+
+# 🛣️ Roadmap
+
+The AI Assistant Platform is actively being improved. Below are some of the planned features and future enhancements.
+
+## Completed ✅
+
+- User authentication
+- AI chat powered by OpenAI
+- Knowledge Base uploads
+- Discord Bridge
+- Discord Invite Generator
+- Stripe Checkout
+- Premium accounts
+- REST API
+- Admin analytics
+- CSV exports
+- Dark / Light theme
+- Mobile responsive interface
+
+---
+
+## In Progress 🚧
+
+- Monthly subscription billing
+- Stripe webhooks for automatic subscription updates
+- Improved analytics dashboard
+- Better token usage reporting
+
+---
+
+## Planned 📌
+
+- AI image generation
+- Voice conversations
+- Speech-to-text
+- Text-to-speech
+- AI document analysis
+- Multiple AI models
+- Team workspaces
+- Shared assistants
+- Public assistant marketplace
+- Docker deployment
+- Kubernetes deployment
+- API documentation
+- Multi-language interface
+- Two-factor authentication (2FA)
+- OAuth login (Google, GitHub, Discord)
+- Usage notifications
+- Billing dashboard
+- Custom domains
+- Assistant version history
+
+---
+
+## Long-Term Vision 🚀
+
+The long-term goal is to turn AI Assistant Platform into a complete ecosystem where individuals and businesses can create, train, deploy and manage intelligent AI assistants across multiple platforms including Discord, websites and external applications.
+
+---
+
+# ⭐ Why This Project?
+
+Most AI assistant projects focus only on basic chatbot functionality. This project was designed to provide a complete AI platform where users can create, customize, train, and deploy their own assistants with minimal setup.
+
+Instead of being limited to a simple chat interface, the platform combines multiple modern technologies into one integrated ecosystem.
+
+## What makes this project different?
+
+- 🤖 AI assistants powered by OpenAI
+- 📚 Knowledge Base uploads for custom responses
+- 💬 Real-time conversations
+- 🎮 Discord deployment using a Bring Your Own Bot (BYOB) approach
+- 💳 Premium subscriptions with Stripe Checkout
+- 📊 Usage analytics and logging
+- 🔐 Secure authentication and authorization
+- 🌙 Dark and Light themes
+- 📱 Fully responsive interface
+- ⚡ Modern Django architecture with multiple reusable apps
+
+## Main Goals
+
+The project was created to demonstrate professional full-stack development using Django while solving a real-world problem.
+
+Key goals include:
+
+- Building scalable Django applications
+- Integrating multiple third-party APIs
+- Designing secure authentication systems
+- Implementing subscription-based features
+- Managing AI conversations and knowledge retrieval
+- Providing an intuitive user experience
+- Creating a production-ready deployment
+
+## Target Users
+
+The platform is designed for:
+
+- Developers
+- Small businesses
+- Discord communities
+- AI enthusiasts
+- Content creators
+- Anyone who wants to build and deploy custom AI assistants without creating everything from scratch.
+
+---
+
+# ⚡ Challenges & Lessons Learned
+
+Building the AI Assistant Platform involved solving a number of real-world engineering challenges beyond simply writing application code.
+
+## Major Challenges
+
+### OpenAI Integration
+
+One of the biggest challenges was designing prompts that produced reliable responses while allowing each assistant to maintain its own personality and knowledge.
+
+---
+
+### Knowledge Base Processing
+
+Uploaded documents needed to be:
+
+- processed safely
+- split into meaningful chunks
+- stored efficiently
+- retrieved quickly
+- injected into AI prompts
+
+Designing this workflow required balancing response quality with token usage.
+
+---
+
+### Discord Integration
+
+Instead of creating a shared Discord bot, I chose a Bring Your Own Bot (BYOB) approach.
+
+This required building a secure bridge between:
+
+- Discord
+- Django
+- OpenAI
+
+while keeping user API tokens protected.
+
+---
+
+### Stripe Integration
+
+Implementing secure payments involved:
+
+- Checkout Sessions
+- Premium access validation
+- Subscription restrictions
+- Secure environment variables
+- Production configuration
+
+---
+
+### Deployment
+
+Deploying the project required solving several production issues including:
+
+- Static file handling
+- PostgreSQL configuration
+- Environment variables
+- HTTPS configuration
+- Debug vs Production settings
+
+---
+
+## Lessons Learned
+
+Working on this project significantly improved my understanding of:
+
+- Django architecture
+- REST APIs
+- Authentication & authorization
+- Secure deployment
+- PostgreSQL
+- Stripe payments
+- AI prompt engineering
+- External API integrations
+- Production debugging
+- Large-scale project organization
+
+---
+
+## Biggest Takeaway
+
+The biggest lesson from this project was that building production-ready software is about much more than writing code.
+
+Planning, debugging, deployment, security, scalability, user experience, and maintainability are equally important parts of delivering a complete application.
+
+---
+
+# 💡 Design Decisions
+
+Throughout development, several architectural and technical decisions were made to keep the platform scalable, secure, and easy to maintain.
+
+---
+
+## Django MVT
+
+The project follows Django's Model–View–Template (MVT) architecture.
+
+This separates responsibilities between:
+
+- Models
+- Views
+- Templates
+- Business logic
+
+Using Django's MVT pattern keeps the application organized, maintainable, and easier to extend as new functionality is added.
+
+---
+
+## Multi-App Architecture
+
+Instead of placing the entire application inside a single Django app, the project is divided into multiple independent applications.
+
+Current applications include:
+
+- Accounts
+- Bots
+- Dashboard
+- Payments
+
+This architecture provides several advantages:
+
+- Better code organization
+- Clear separation of responsibilities
+- Easier maintenance
+- Simpler testing
+- Improved scalability
+- Reusable components
+
+---
+
+## PostgreSQL
+
+SQLite is used during local development, while PostgreSQL is used in production.
+
+This approach provides:
+
+- Better scalability
+- Improved performance
+- Production-grade reliability
+- Strong relational data support
+- Excellent compatibility with Django ORM
+
+---
+
+## AJAX Chat
+
+The AI Playground uses asynchronous AJAX requests instead of traditional page reloads.
+
+Benefits include:
+
+- Faster conversations
+- Instant AI responses
+- Improved user experience
+- Reduced bandwidth usage
+- More responsive interface
+
+---
+
+## Knowledge Base
+
+Uploaded knowledge files are processed before being used during AI conversations.
+
+Each document is:
+
+- Uploaded
+- Parsed
+- Split into semantic chunks
+- Converted into embeddings
+- Stored in the database
+- Retrieved when relevant
+
+This approach improves response quality while reducing unnecessary token usage.
+
+---
+
+## Bring Your Own Bot (BYOB)
+
+Instead of hosting a shared Discord bot, users connect their own Discord application.
+
+Advantages include:
+
+- Full ownership
+- Better privacy
+- No shared rate limits
+- Easier customization
+- Better scalability
+- Greater flexibility for server administrators
+
+---
+
+## Stripe Checkout
+
+Stripe Checkout was selected because it provides a secure and production-ready payment solution.
+
+Benefits include:
+
+- Secure payment processing
+- PCI compliance
+- Reliable subscription handling
+- Excellent documentation
+- Simple integration with Django
+
+---
+
+## Environment Variables
+
+Sensitive information is never stored inside the repository.
+
+Configuration values such as API keys, database credentials, and secret keys are managed using environment variables.
+
+Examples include:
+
+- Django Secret Key
+- OpenAI API Key
+- Stripe Keys
+- Database URL
+- Email Credentials
+
+This improves both security and deployment flexibility.
+
+---
+
+## Responsive Design
+
+The interface follows a responsive, mobile-first design philosophy.
+
+The application has been optimized for:
+
+- Desktop
+- Laptop
+- Tablet
+- Mobile devices
+
+Flexible layouts and CSS media queries ensure a consistent experience across different screen sizes.
+
+---
+
+## Focus on Maintainability
+
+Long-term maintainability was a priority throughout development.
+
+Key principles include:
+
+- Readable code
+- Modular architecture
+- Clear folder structure
+- Reusable components
+- Consistent coding standards
+- Separation of concerns
+- Scalable project organization
+
+These decisions make the project easier to understand, maintain, and extend in the future.
+
+---
+
+# 🚀 Installation
+
+Follow the steps below to set up and run the AI Assistant Platform locally.
+
+---
+
+## 📋 Prerequisites
+
+Before getting started, ensure that you have the following installed:
+
+- Python 3.13 or newer
+- Git
+- PostgreSQL (recommended for production)
+- SQLite (used by default for local development)
+- A Stripe account (for payment testing)
+- An OpenAI API key
+- A Discord Developer account (optional, for Discord integration)
+
+---
+
+## 📥 Clone the Repository
+
+Clone the project from GitHub.
+
+```bash
+git clone https://github.com/God-zil-la/ai-assistant.git
+```
+
+Navigate into the project directory.
+
+```bash
 cd ai-assistant
-
-4. 🌐 Create the Heroku app
-heroku create your-app-name
-
-5. 📦 Add PostgreSQL Add-on
-heroku addons:create heroku-postgresql:hobby-dev
-
-6. 🛠 Set environment variables
-Set required keys and secrets:
-
-- heroku config:set DJANGO_SECRET_KEY="your-secret-key"
-
-- heroku config:set STRIPE_PUBLIC_KEY="your-stripe-public-key"
-
-- heroku config:set STRIPE_SECRET_KEY="your-stripe-secret-key"
-
-- heroku config:set OPENAI_API_KEY="your-openai-api-key"
-
-- heroku config:set SENDGRID_API_KEY="your-sendgrid-api-key"
-
-- heroku config:set DEFAULT_DOMAIN="your-app.herokuapp.com"
-
-- heroku config:set DEFAULT_PROTOCOL="https"
-
-💡 Pro tip: Store these in a local .env file using python-decouple
-
-7. ⚙️ Set the buildpacks (optional but recommended)
-heroku buildpacks:add heroku/python
-
-8. ⬆️ Push the code to Heroku
-Make sure all changes are committed first:
-git push heroku main
-
-9. 🗃 Run migrations
-heroku run python manage.py migrate
-
-10. 🧪 (Optional) Create a superuser
-heroku run python manage.py createsuperuser
-
-11. 🎉 Open the app
-heroku open
+```
 
 ---
 
-## 🗑️ Removed and Ignored Files
-To keep this repository clean, secure, and production-ready, certain files and folders have been removed from version control and are excluded via \`.gitignore\`:
+## 🐍 Create a Virtual Environment
 
-- **Sensitive / Private Files:**
-  - \`.env\` — contains secret keys and environment variables.
-  - \`*.crt\`, \`*.key\` — SSL certificates and private keys.
+Create a virtual environment.
 
-- **Local Development Files:**
-  - \`venv/\` — local Python virtual environment.
-  - \`db.sqlite3\` — local development database.
-  - \`.vscode/\`, \`.idea/\` — personal IDE/editor settings.
+### Windows
 
-- **Generated / Compiled Files:**
-  - \`__pycache__/\`, \`*.pyc\` — Python bytecode caches.
-  - \`staticfiles/\` — Django´s \`collectstatic\` output.
-  - \`media/\` — user-uploaded/generated content.
+```bash
+python -m venv .venv
+```
 
-- **Personal Notes and Local-Only Files:**
-  - \`test_test.txt\`
-  - \`structure.tx\` *(typo or obsolete)*
+Activate it.
 
-These files are:
-- Generated automatically during development or deployment.
-- Contain local configuration/secrets unsuitable for public repositories.
-- Personal notes unrelated to core project functionality.
+```bash
+.venv\Scripts\activate
+```
 
-The \`.gitignore\` file is carefully configured to prevent these files from being committed again, ensuring the repository remains clean, secure, and easy for others to clone and deploy.
+### macOS / Linux
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+```
 
 ---
 
-## 🚀 Future Features & Enhancements
-- Bot avatars and image uploads
-- Bot cloning/sharing
-- OAuth2 login
-- Chat analytics/dashboard per user
-- Monthly usage tracking
-- Email verification on registration
-- Premium tier with monthly token limits
-- Docker support for containerized deployments and better environment management (planned)
+## 📦 Install Dependencies
+
+Install all required Python packages.
+
+```bash
+pip install -r requirements.txt
+```
 
 ---
 
-## 🖼️ Screenshots & Validation Results
+## ⚙️ Configure Environment Variables
 
-All images supporting validation, Lighthouse scores, ERD diagrams, and other documentation are located in the [`readme-img/`](readme-img/) folder in this repository.
+Create a `.env` file in the project root.
 
-✅ Examples include:
-- Lighthouse report screenshots (Performance, Accessibility, Best Practices, SEO)
-- W3C validation results
-- CSS validation
-- ERD diagram (Entity Relationship)
-- Manual testing screenshots
-- Admin dashboard previews
-- Stripe test checkout flow
-- Responsive design (dark/light mode on various devices)
+Example:
 
----
+```env
+SECRET_KEY=your-secret-key
 
-## 🙏 Credits
-⭐ Concept & Development
-This project was designed and built by me, Mr. Husse.
-I developed the Django backend, set up user authentication with email confirmation, Stripe payments integration, and the AI bot management system.
-I also managed the Heroku deployment and all production configurations to make this app live for real users.
+DEBUG=True
 
-⭐ UI & Visual Design
-I created the layout and styling from scratch, making sure it works well on mobile and desktop. All design choices were made to keep the interface clear, modern, and accessible. I took inspiration from open-source libraries and best practices to make the app intuitive for users.
+OPENAI_API_KEY=your-openai-key
 
-⭐ Testing & Feedback
-I want to thank my friends and family who tested the app and gave honest feedback that helped me improve it. A special thank you to Kay—your early testing, feedback, and patience while I worked through production changes were incredibly helpful. Your support made this project better.
+DATABASE_URL=your-database-url
 
-⭐ Mentorship
-A heartfelt thank you to Brian, my mentor, for his ongoing guidance and encouragement.
-Your advice, feedback, and the resources you shared helped me learn so much and stay focused on building this project the right way.
+STRIPE_PUBLIC_KEY=pk_test_xxxxxxxxx
 
-⭐ Community & Learning Resources
-I relied heavily on open-source tutorials, official documentation, and developer forums to guide me through every challenge in this project.
+STRIPE_SECRET_KEY=sk_test_xxxxxxxxx
 
-Special thanks to the following platforms and tools:
+STRIPE_WEBHOOK_SECRET=whsec_xxxxxxxxx
 
-🧠 Django – For its excellent official documentation and strong ecosystem.
+EMAIL_HOST_USER=your-email
 
-💳 Stripe – For clear and developer-friendly payment integration docs.
+EMAIL_HOST_PASSWORD=your-email-password
+```
 
-🤖 OpenAI – For powering the AI responses and providing well-documented API references.
+Discord integration is optional.
 
-📬 SendGrid – For enabling email communication with great Django integration guides.
-
-🌐 Google Cloud & OAuth Docs – For insights into user authentication and secure API usage.
-
-💬 Discord Developer Portal – For helping me integrate bots into Discord servers.
-
-💼 Slack Community – For real-time support and feedback from other developers.
-
-🚀 Heroku – For painless deployment and transparent config/documentation.
-
-📚 W3Schools – For consistent reference material on HTML, CSS, and JavaScript.
-
-🧑‍💻 Stack Overflow & GitHub Discussions – For solutions to specific coding errors and best practices.
-
-🎓 Code Institute – For providing the structured curriculum, mentorship, and guidance throughout the development journey.
-
-These platforms helped me understand everything from API requests to secure deployments and responsive design. The openness of the dev community made building this full-stack platform possible.
-
-⭐ General Support
-I’m really grateful to everyone who encouraged me along the way.
-Your questions, feedback, and interest pushed me to keep going and make this project as solid as I could. Thanks to the online communities and mentors who shared their knowledge so freely—it made a huge difference in helping me bring this idea to life.
+If you plan to deploy assistants to Discord, configure your Discord application credentials as described in the included Discord Setup Guide.
 
 ---
 
-## 👤 Author
-👨‍💻 Hussein Elali  
-GitHub: [@god-zil-la](https://github.com/god-zil-la)
+## 🗄️ Apply Database Migrations
 
-Built from scratch with ❤️ — Designed, developed, styled, tested, and deployed by Hussein.
+Create the database schema.
+
+```bash
+python manage.py migrate
+```
+
+---
+
+## 👤 Create an Administrator Account
+
+Create a Django superuser.
+
+```bash
+python manage.py createsuperuser
+```
+
+Follow the prompts to create your administrator account.
+
+---
+
+## 📁 Collect Static Files
+
+For production deployments, collect static assets.
+
+```bash
+python manage.py collectstatic
+```
+
+---
+
+## ▶️ Run the Development Server
+
+Start the Django development server.
+
+```bash
+python manage.py runserver
+```
+
+The application will now be available at:
+
+```
+http://127.0.0.1:8000/
+```
+
+---
+
+## 🔑 Configure OpenAI
+
+Generate an API key from the OpenAI dashboard and add it to your `.env` file.
+
+```env
+OPENAI_API_KEY=your-openai-api-key
+```
+
+Without a valid API key, AI conversations will not function.
+
+---
+
+## 💳 Stripe Test Mode
+
+To test premium subscriptions:
+
+- Create a Stripe account
+- Enable Test Mode
+- Generate API keys
+- Configure the Stripe webhook endpoint
+- Add the keys to your `.env`
+
+The application uses Stripe Checkout for secure payment processing.
+
+---
+
+## 🤖 Discord Integration (Optional)
+
+To deploy assistants to Discord:
+
+1. Create a Discord Application.
+2. Create a Bot.
+3. Enable the required Gateway Intents.
+4. Download the included Discord Bridge package.
+5. Follow the provided Setup Guide.
+6. Invite your bot to your server.
+7. Start the bridge application.
+
+Once configured, your AI assistant can communicate directly inside your own Discord server.
+
+---
+
+## ✅ Verify the Installation
+
+After starting the application, verify that everything works correctly.
+
+You should be able to:
+
+- Register a new account
+- Log in
+- Create an AI assistant
+- Start conversations
+- Upload a knowledge file
+- Access the dashboard
+- Upgrade using Stripe Test Mode
+- Deploy assistants to Discord (optional)
+
+If all of the above work successfully, the installation has been completed correctly.
+
+---
+
+You are now ready to create AI assistants, upload knowledge, integrate Discord bots, and explore the platform's full functionality.
+
+---
+
+# 📄 License
+
+This project is licensed under the MIT License.
+
+You are free to use, modify, and distribute this software in accordance with the terms of the license.
+
+See the LICENSE file for more information.
+
+---
+
+# 🙏 Acknowledgements
+
+This project would not have been possible without the excellent open-source tools and services provided by the following communities and organizations.
+
+Special thanks to:
+
+- Django
+- OpenAI
+- Stripe
+- Discord
+- Heroku
+- PostgreSQL
+- Django REST Framework
+- Code Institute
+- GitHub
+
+Their documentation, tools, and communities played an important role throughout the development of this project.
+
+---
+
+# 👨‍💻 Author
+
+**Hussein Elali**
+
+Full Stack Web Developer
+
+- GitHub: https://github.com/God-zil-la
+- Portfolio: https://god-zil-la.github.io/portfolio/
+- LinkedIn: https://www.linkedin.com/in/hussein-elali/
+
+---
+
+# ⭐ Support
+
+If you found this project useful, consider giving it a ⭐ on GitHub.
+
+Feedback, suggestions, and contributions are always welcome.
+
+---
+
+## Thank you for visiting AI Assistant Platform!
