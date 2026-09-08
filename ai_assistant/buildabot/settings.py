@@ -358,3 +358,18 @@ AI_PLAN_CONFIG = {
         "monthly_cost_limit_usd": None,
     },
 }
+
+AI_MODEL_PRICING = {
+    "gpt-3.5-turbo-0125": {
+        "input_per_million": 0.50,
+        "output_per_million": 1.50,
+    },
+    "gpt-4o-mini-2024-07-18": {
+        "input_per_million": 0.15,
+        "output_per_million": 0.60,
+    },
+    "text-embedding-3-small": {
+        "input_per_million": 0.02,
+        "output_per_million": 0.0,
+    },
+}

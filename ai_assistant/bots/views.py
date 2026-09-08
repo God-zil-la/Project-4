@@ -429,14 +429,35 @@ def ajax_chat(request, bot_id):
 
         latest_messages.reverse()
 
-        # -------------------------------------------------
+               # -------------------------------------------------
         # KNOWLEDGE BASE
         # -------------------------------------------------
         try:
-            relevant_chunks = search_relevant_chunks(
+            knowledge_result = search_relevant_chunks(
                 bot,
                 user_input,
+                include_usage=True,
             )
+
+            relevant_chunks = knowledge_result[
+                "chunks"
+            ]
+
+            if knowledge_result["tokens_used"] > 0:
+                BotUsageLog.objects.create(
+                    user=request.user,
+                    bot=bot,
+                    tokens_used=knowledge_result[
+                        "tokens_used"
+                    ],
+                    input_tokens=knowledge_result[
+                        "input_tokens"
+                    ],
+                    output_tokens=knowledge_result[
+                        "output_tokens"
+                    ],
+                    model=knowledge_result["model"],
+                )
 
             knowledge_text = (
                 "\n\n".join(relevant_chunks)
@@ -461,6 +482,7 @@ def ajax_chat(request, bot_id):
                 bot,
                 "",
             )
+
 
         # -------------------------------------------------
         # BUILD OPENAI CHAT HISTORY
@@ -769,7 +791,7 @@ def bot_chat_playground(request, bot_id):
                     messages.error(
                         request,
                         (
-                            "❌ No valid content "
+                            "No valid content "
                             "extracted from input."
                         ),
                     )
@@ -794,9 +816,14 @@ def bot_chat_playground(request, bot_id):
                 )
 
                 for chunk in chunks:
-                    embedding = generate_embedding(
-                        chunk
+                    embedding_result = generate_embedding(
+                        chunk,
+                        include_usage=True,
                     )
+
+                    embedding = embedding_result[
+                        "embedding"
+                    ]
 
                     if embedding:
                         KnowledgeChunk.objects.create(
@@ -805,10 +832,26 @@ def bot_chat_playground(request, bot_id):
                             embedding=embedding,
                         )
 
+                    if embedding_result["tokens_used"] > 0:
+                        BotUsageLog.objects.create(
+                            user=request.user,
+                            bot=bot,
+                            tokens_used=embedding_result[
+                                "tokens_used"
+                            ],
+                            input_tokens=embedding_result[
+                                "input_tokens"
+                            ],
+                            output_tokens=embedding_result[
+                                "output_tokens"
+                            ],
+                            model=embedding_result["model"],
+                        )
+
                 messages.success(
                     request,
                     (
-                        "✅ Knowledge uploaded and "
+                        "Knowledge uploaded and "
                         "processed successfully!"
                     ),
                 )
@@ -827,7 +870,7 @@ def bot_chat_playground(request, bot_id):
                 messages.error(
                     request,
                     (
-                        "❌ Failed to process file: "
+                        "Failed to process file: "
                         f"{str(error)}"
                     ),
                 )
@@ -836,7 +879,7 @@ def bot_chat_playground(request, bot_id):
             messages.error(
                 request,
                 (
-                    "❌ Invalid submission. "
+                    "Invalid submission. "
                     "Please upload a file or "
                     "paste some text."
                 ),

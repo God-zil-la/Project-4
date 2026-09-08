@@ -10,9 +10,14 @@ from .models import KnowledgeChunk
 EMBEDDING_MODEL = "text-embedding-3-small"
 
 
-def generate_embedding(text):
+def generate_embedding(text, include_usage=False):
     """
     Generate a semantic embedding using OpenAI.
+
+    By default, only the embedding vector is returned.
+
+    When include_usage=True, return both the embedding
+    and the actual token usage reported by OpenAI.
     """
 
     text = str(text).strip()
@@ -36,7 +41,39 @@ def generate_embedding(text):
         input=text,
     )
 
-    return response["data"][0]["embedding"]
+    embedding = response["data"][0]["embedding"]
+
+    if not include_usage:
+        return embedding
+
+    usage = response.get(
+        "usage",
+        {},
+    )
+
+    input_tokens = usage.get(
+        "prompt_tokens",
+        usage.get(
+            "total_tokens",
+            0,
+        ),
+    )
+
+    total_tokens = usage.get(
+        "total_tokens",
+        input_tokens,
+    )
+
+    return {
+        "embedding": embedding,
+        "tokens_used": total_tokens,
+        "input_tokens": input_tokens,
+        "output_tokens": 0,
+        "model": response.get(
+            "model",
+            EMBEDDING_MODEL,
+        ),
+    }
 
 
 def cosine_similarity(a, b):
@@ -61,24 +98,67 @@ def cosine_similarity(a, b):
     )
 
 
-def search_relevant_chunks(bot, query, top_k=3):
+def search_relevant_chunks(
+    bot,
+    query,
+    top_k=3,
+    include_usage=False,
+):
     """
     Find the most semantically relevant knowledge chunks
     for a bot using OpenAI embeddings.
+
+    By default, return only matching chunk text.
+
+    When include_usage=True, also return the embedding
+    token usage so its API cost can be tracked.
     """
 
     query = str(query).strip()
 
     if not query:
+        if include_usage:
+            return {
+                "chunks": [],
+                "tokens_used": 0,
+                "input_tokens": 0,
+                "output_tokens": 0,
+                "model": EMBEDDING_MODEL,
+            }
+
         return []
 
-    query_embedding = generate_embedding(query)
-
-    chunks = (
+    chunks = list(
         KnowledgeChunk.objects
         .filter(knowledge_file__bot=bot)
         .exclude(embedding=None)
     )
+
+    # Avoid an unnecessary OpenAI embedding request
+    # when the bot has no searchable knowledge.
+    if not chunks:
+        if include_usage:
+            return {
+                "chunks": [],
+                "tokens_used": 0,
+                "input_tokens": 0,
+                "output_tokens": 0,
+                "model": EMBEDDING_MODEL,
+            }
+
+        return []
+
+    embedding_result = generate_embedding(
+        query,
+        include_usage=include_usage,
+    )
+
+    if include_usage:
+        query_embedding = embedding_result[
+            "embedding"
+        ]
+    else:
+        query_embedding = embedding_result
 
     scored_chunks = []
 
@@ -87,7 +167,9 @@ def search_relevant_chunks(bot, query, top_k=3):
             embedding = chunk.embedding
 
             if isinstance(embedding, str):
-                embedding = json.loads(embedding)
+                embedding = json.loads(
+                    embedding
+                )
 
             score = cosine_similarity(
                 query_embedding,
@@ -110,11 +192,117 @@ def search_relevant_chunks(bot, query, top_k=3):
         reverse=True,
     )
 
-    return [
+    relevant_chunks = [
         chunk.text
-        for score, chunk in scored_chunks[:top_k]
+        for score, chunk
+        in scored_chunks[:top_k]
         if score >= 0.25
     ]
+
+    if not include_usage:
+        return relevant_chunks
+
+    return {
+        "chunks": relevant_chunks,
+        "tokens_used": embedding_result[
+            "tokens_used"
+        ],
+        "input_tokens": embedding_result[
+            "input_tokens"
+        ],
+        "output_tokens": embedding_result[
+            "output_tokens"
+        ],
+        "model": embedding_result["model"],
+    }
+   
+    query = str(query).strip()
+
+    if not query:
+        if include_usage:
+            return {
+                "chunks": [],
+                "tokens_used": 0,
+                "input_tokens": 0,
+                "output_tokens": 0,
+                "model": EMBEDDING_MODEL,
+            }
+
+        return []
+
+    embedding_result = generate_embedding(
+        query,
+        include_usage=include_usage,
+    )
+
+    if include_usage:
+        query_embedding = embedding_result[
+            "embedding"
+        ]
+    else:
+        query_embedding = embedding_result
+
+    chunks = (
+        KnowledgeChunk.objects
+        .filter(knowledge_file__bot=bot)
+        .exclude(embedding=None)
+    )
+
+    scored_chunks = []
+
+    for chunk in chunks:
+        try:
+            embedding = chunk.embedding
+
+            if isinstance(embedding, str):
+                embedding = json.loads(
+                    embedding
+                )
+
+            score = cosine_similarity(
+                query_embedding,
+                embedding,
+            )
+
+            scored_chunks.append(
+                (score, chunk)
+            )
+
+        except (
+            TypeError,
+            ValueError,
+            json.JSONDecodeError,
+        ):
+            continue
+
+    scored_chunks.sort(
+        key=lambda item: item[0],
+        reverse=True,
+    )
+
+    relevant_chunks = [
+        chunk.text
+        for score, chunk
+        in scored_chunks[:top_k]
+        if score >= 0.25
+    ]
+
+    if not include_usage:
+        return relevant_chunks
+
+    return {
+        "chunks": relevant_chunks,
+        "tokens_used": embedding_result[
+            "tokens_used"
+        ],
+        "input_tokens": embedding_result[
+            "input_tokens"
+        ],
+        "output_tokens": 0,
+        "model": embedding_result[
+            "model"
+        ],
+    }
 
 
 CATEGORY_DOMAIN_RULES = {
@@ -195,14 +383,20 @@ CATEGORY_DOMAIN_RULES = {
         "This category may answer broadly unless another safety or capability "
         "restriction applies."
     ),
-    "hobbies": (
-        "Recreational activities that people actively practice, make, build, "
-        "collect, create, or perform in their free time, such as model building, "
-        "crafts, woodworking, sewing, collecting, RC projects, painting, fishing, "
-        "or similar hands-on leisure activities. Do not treat books, fictional "
-        "characters, general vehicle facts, general technology, movies, news, "
-        "or unrelated interests as hobbies merely because somebody might enjoy them."
-    ),
+   "hobbies": (
+    "Recreational activities that people actively practice, make, build, "
+    "collect, create, repair, modify, operate, or learn about in their free "
+    "time, such as model building, crafts, woodworking, sewing, collecting, "
+    "RC airplanes, RC cars, RC boats, painting, fishing, or similar hands-on "
+    "leisure activities. Questions about the construction, setup, operation, "
+    "maintenance, components, controls, stability, performance, or techniques "
+    "of recognized hobby equipment are in-domain. For example, questions about "
+    "an RC airplane's center of gravity, servos, control surfaces, radio system, "
+    "motor, propeller, or flight setup are Hobbies. Do not treat full-size "
+    "vehicles, general consumer technology, books, fictional characters, movies, "
+    "news, or unrelated interests as hobbies merely because somebody might enjoy "
+    "them."
+),
     "history": (
         "Historical people, periods, civilizations, events, developments, "
         "historical research, and interpretation of the past."

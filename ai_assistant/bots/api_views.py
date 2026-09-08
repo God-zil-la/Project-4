@@ -178,17 +178,21 @@ def api_bot_chat(request, bot_id):
         "tokens_used"
     ]
 
+    classifier_input_tokens = domain_result[
+        "input_tokens"
+    ]
+
+    classifier_output_tokens = domain_result[
+        "output_tokens"
+    ]
+
     if classifier_tokens > 0:
         BotUsageLog.objects.create(
             user=user,
             bot=bot,
             tokens_used=classifier_tokens,
-            input_tokens=domain_result[
-                "input_tokens"
-            ],
-            output_tokens=domain_result[
-                "output_tokens"
-            ],
+            input_tokens=classifier_input_tokens,
+            output_tokens=classifier_output_tokens,
             model=domain_result["model"],
         )
 
@@ -221,12 +225,12 @@ def api_bot_chat(request, bot_id):
                 "response": bot_response,
                 "plan": profile.plan,
                 "tokens_used": classifier_tokens,
-                "input_tokens": domain_result[
-                    "input_tokens"
-                ],
-                "output_tokens": domain_result[
-                    "output_tokens"
-                ],
+                "input_tokens": (
+                    classifier_input_tokens
+                ),
+                "output_tokens": (
+                    classifier_output_tokens
+                ),
                 "model": domain_result["model"],
                 "daily_messages_used": (
                     profile.daily_message_count
@@ -241,10 +245,11 @@ def api_bot_chat(request, bot_id):
         )
 
     try:
-        relevant_chunks = search_relevant_chunks(
+        knowledge_result = search_relevant_chunks(
             bot,
             user_message,
             top_k=3,
+            include_usage=True,
         )
 
     except Exception as error:
@@ -256,6 +261,30 @@ def api_bot_chat(request, bot_id):
                 "details": str(error),
             },
             status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
+
+    relevant_chunks = knowledge_result["chunks"]
+
+    embedding_tokens = knowledge_result[
+        "tokens_used"
+    ]
+
+    embedding_input_tokens = knowledge_result[
+        "input_tokens"
+    ]
+
+    embedding_output_tokens = knowledge_result[
+        "output_tokens"
+    ]
+
+    if embedding_tokens > 0:
+        BotUsageLog.objects.create(
+            user=user,
+            bot=bot,
+            tokens_used=embedding_tokens,
+            input_tokens=embedding_input_tokens,
+            output_tokens=embedding_output_tokens,
+            model=knowledge_result["model"],
         )
 
     knowledge_text = "\n\n".join(
@@ -403,18 +432,17 @@ def api_bot_chat(request, bot_id):
             "plan": profile.plan,
             "tokens_used": (
                 classifier_tokens
+                + embedding_tokens
                 + tokens_used
             ),
             "input_tokens": (
-                domain_result[
-                    "input_tokens"
-                ]
+                classifier_input_tokens
+                + embedding_input_tokens
                 + input_tokens
             ),
             "output_tokens": (
-                domain_result[
-                    "output_tokens"
-                ]
+                classifier_output_tokens
+                + embedding_output_tokens
                 + output_tokens
             ),
             "model": model_name,
