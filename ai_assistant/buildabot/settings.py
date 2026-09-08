@@ -330,3 +330,31 @@ AI_MODEL_PRICING = {
         "output_per_million": 0.60,
     },
 }
+
+# -------------------------------------------------
+# AI PLAN CONFIGURATION
+# -------------------------------------------------
+#
+# Internal AI cost controls.
+#
+# These values are backend safeguards and do not
+# need to be shown directly to users.
+#
+# Monthly budgets will be finalized after model
+# quality and real usage have been benchmarked.
+# -------------------------------------------------
+
+AI_PLAN_CONFIG = {
+    "free": {
+        "daily_message_limit": 15,
+        "monthly_cost_limit_usd": None,
+    },
+    "premium": {
+        "daily_message_limit": None,
+        "monthly_cost_limit_usd": None,
+    },
+    "pro": {
+        "daily_message_limit": None,
+        "monthly_cost_limit_usd": None,
+    },
+}
