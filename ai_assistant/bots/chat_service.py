@@ -1,7 +1,11 @@
 import os
 
 import openai
+from django.conf import settings
+from django.core.cache import cache
 
+from ai_assistant.accounts.models import UserProfile
+from ai_assistant.accounts.plan_utils import get_ai_usage_status
 from ai_assistant.dashboard.models import BotUsageLog
 
 from .knowledge_utils import (
@@ -10,7 +14,6 @@ from .knowledge_utils import (
     search_relevant_chunks,
 )
 from .models import ChatMessage
-from ai_assistant.accounts.plan_utils import get_ai_usage_status
 
 
 CHAT_MODEL = "gpt-4o-mini"
@@ -28,6 +31,14 @@ class ChatUsageLimitError(ChatServiceError):
     def __init__(self, message, usage_status):
         super().__init__(message)
         self.usage_status = usage_status
+
+
+class ChatRateLimitError(ChatServiceError):
+    """Raised when the user sends too many AI requests in a short period."""
+
+    def __init__(self, message, retry_after_seconds):
+        super().__init__(message)
+        self.retry_after_seconds = retry_after_seconds
 
 
 def _log_usage(
@@ -90,6 +101,50 @@ def _build_history(
     return conversation
 
 
+def _check_rate_limit(user, profile):
+    rate_limit = settings.AI_RATE_LIMITS.get(
+        profile.plan,
+        settings.AI_RATE_LIMITS[
+            UserProfile.PLAN_FREE
+        ],
+    )
+
+    if rate_limit is None:
+        return
+
+    cache_key = (
+        f"ai-rate-limit:"
+        f"{user.pk}"
+    )
+
+    added = cache.add(
+        cache_key,
+        1,
+        timeout=60,
+    )
+
+    if added:
+        return
+
+    try:
+        request_count = cache.incr(
+            cache_key
+        )
+    except ValueError:
+        cache.set(
+            cache_key,
+            1,
+            timeout=60,
+        )
+        return
+
+    if request_count > rate_limit:
+        raise ChatRateLimitError(
+            "Too many AI requests. Please try again shortly.",
+            retry_after_seconds=60,
+        )
+
+
 def process_bot_message(
     user,
     bot,
@@ -101,6 +156,7 @@ def process_bot_message(
     The pipeline handles:
 
     - Account usage limits
+    - Short-term rate limiting
     - Category enforcement
     - Knowledge retrieval
     - Conversation history
@@ -127,6 +183,11 @@ def process_bot_message(
         raise ChatServiceError(
             "User profile not found."
         )
+
+    _check_rate_limit(
+        user,
+        profile,
+    )
 
     usage_status = get_ai_usage_status(
         user

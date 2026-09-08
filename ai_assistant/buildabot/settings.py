@@ -331,6 +331,26 @@ AI_MODEL_PRICING = {
     },
 }
 
+REDIS_URL = os.getenv("REDIS_URL")
+
+if REDIS_URL:
+    CACHES = {
+        "default": {
+            "BACKEND": "django_redis.cache.RedisCache",
+            "LOCATION": REDIS_URL,
+            "OPTIONS": {
+                "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            },
+        }
+    }
+else:
+    CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+            "LOCATION": "ai-assistant-local-cache",
+        }
+    }
+
 # -------------------------------------------------
 # AI PLAN CONFIGURATION
 # -------------------------------------------------
@@ -357,6 +377,12 @@ AI_PLAN_CONFIG = {
         "daily_message_limit": None,
         "monthly_cost_limit_usd": None,
     },
+}
+
+AI_RATE_LIMITS = {
+    "free": 20,
+    "premium": 60,
+    "pro": 120,
 }
 
 AI_MODEL_PRICING = {
