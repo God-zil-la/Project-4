@@ -1,13 +1,10 @@
 import os
 import re
-import numpy as np
 from dotenv import load_dotenv
-import openai
 from django.template.loader import render_to_string
 
 
 load_dotenv()
-openai.api_key = os.getenv("OPENAI_API_KEY")
 
 
 def extract_text_from_pdf(file_path):
@@ -107,54 +104,3 @@ def chunk_text(text, max_length=500, overlap=100):
     return chunks
 
 
-def generate_embedding(text):
-    """
-    Calls OpenAI to generate an embedding for a text chunk.
-    """
-    try:
-        response = openai.Embedding.create(
-            input=text,
-            model="text-embedding-ada-002"
-        )
-        return response['data'][0]['embedding']
-    except Exception as e:
-        print(f"[ERROR] Embedding generation failed: {e}")
-        return None
-
-
-def cosine_similarity(vec1, vec2):
-    """
-    Computes cosine similarity between two vectors.
-    """
-    vec1 = np.array(vec1)
-    vec2 = np.array(vec2)
-    norm1 = np.linalg.norm(vec1)
-    norm2 = np.linalg.norm(vec2)
-    if norm1 == 0 or norm2 == 0:
-        return 0.0
-    return np.dot(vec1, vec2) / (norm1 * norm2)
-
-
-def search_relevant_chunks(bot, query_embedding, top_k=5):
-    """
-    Retrieves the top_k most relevant KnowledgeChunks for a bot
-    given a query embedding.
-    """
-    from .models import KnowledgeChunk
-
-    if query_embedding is None:
-        return []
-
-    chunks = KnowledgeChunk.objects.filter(
-        knowledge_file__bot=bot,
-        embedding__isnull=False
-    )
-
-    similarities = []
-    for chunk in chunks:
-        sim = cosine_similarity(query_embedding, chunk.embedding)
-        similarities.append((sim, chunk))
-
-    similarities.sort(key=lambda x: x[0], reverse=True)
-
-    return [chunk for _, chunk in similarities[:top_k]]

@@ -1,55 +1,120 @@
-import numpy as np
 import json
+import os
+
+import numpy as np
+import openai
+
 from .models import KnowledgeChunk
+
+
+EMBEDDING_MODEL = "text-embedding-3-small"
+
 
 def generate_embedding(text):
     """
-    Fake but consistent 1536-d embedding using hash-based seeding.
-    Replace with real OpenAI embeddings in production.
+    Generate a semantic embedding using OpenAI.
     """
-    seed = abs(hash(text.strip().lower())) % (2**32)
-    np.random.seed(seed)
-    return np.random.rand(1536).tolist()
+
+    text = str(text).strip()
+
+    if not text:
+        raise ValueError(
+            "Cannot generate an embedding for empty text."
+        )
+
+    api_key = os.getenv("OPENAI_API_KEY")
+
+    if not api_key:
+        raise RuntimeError(
+            "OPENAI_API_KEY is missing"
+        )
+
+    openai.api_key = api_key
+
+    response = openai.Embedding.create(
+        model=EMBEDDING_MODEL,
+        input=text,
+    )
+
+    return response["data"][0]["embedding"]
 
 
 def cosine_similarity(a, b):
     """
-    Cosine similarity between two numeric vectors.
+    Calculate cosine similarity between two numeric vectors.
     """
-    a, b = np.array(a), np.array(b)
-    if np.linalg.norm(a) == 0 or np.linalg.norm(b) == 0:
+
+    a = np.array(a, dtype=float)
+    b = np.array(b, dtype=float)
+
+    if a.shape != b.shape:
         return 0.0
-    return float(np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b)))
+
+    a_norm = np.linalg.norm(a)
+    b_norm = np.linalg.norm(b)
+
+    if a_norm == 0 or b_norm == 0:
+        return 0.0
+
+    return float(
+        np.dot(a, b) / (a_norm * b_norm)
+    )
 
 
 def search_relevant_chunks(bot, query, top_k=3):
     """
-    Search top_k most relevant chunks for the bot based on cosine similarity.
+    Find the most semantically relevant knowledge chunks
+    for a bot using OpenAI embeddings.
     """
+
+    query = str(query).strip()
+
+    if not query:
+        return []
+
     query_embedding = generate_embedding(query)
-    chunks = KnowledgeChunk.objects.filter(
-        knowledge_file__bot=bot
-    ).exclude(embedding=None)
+
+    chunks = (
+        KnowledgeChunk.objects
+        .filter(knowledge_file__bot=bot)
+        .exclude(embedding=None)
+    )
 
     scored_chunks = []
+
     for chunk in chunks:
         try:
-            # Ensure JSON field is interpreted correctly
             embedding = chunk.embedding
+
             if isinstance(embedding, str):
                 embedding = json.loads(embedding)
 
-            score = cosine_similarity(query_embedding, embedding)
-            scored_chunks.append((score, chunk))
-        except Exception:
-            continue  # skip invalid or broken data
+            score = cosine_similarity(
+                query_embedding,
+                embedding,
+            )
 
-    # Sort by score, descending
-    scored_chunks.sort(key=lambda x: x[0], reverse=True)
+            scored_chunks.append(
+                (score, chunk)
+            )
 
-    # Filter top K with optional score threshold
-    top_chunks = [chunk.text for score, chunk in scored_chunks[:top_k] if score > 0.1]
-    return top_chunks
+        except (
+            TypeError,
+            ValueError,
+            json.JSONDecodeError,
+        ):
+            continue
+
+    scored_chunks.sort(
+        key=lambda item: item[0],
+        reverse=True,
+    )
+
+    return [
+        chunk.text
+        for score, chunk in scored_chunks[:top_k]
+        if score >= 0.25
+    ]
 
 
 CATEGORY_DOMAIN_RULES = {
