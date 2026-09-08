@@ -1,15 +1,15 @@
-from django.core.exceptions import ObjectDoesNotExist
-
-from rest_framework.views import APIView
-from rest_framework.response import Response
+from rest_framework import status
 from rest_framework.permissions import AllowAny
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from ai_assistant.accounts.models import UserProfile
-from ai_assistant.accounts.plan_utils import get_ai_usage_status
+from ai_assistant.bots.chat_service import (
+    ChatServiceError,
+    ChatUsageLimitError,
+    process_bot_message,
+)
 from ai_assistant.bots.models import Bot
-from ai_assistant.bots.openai_client import call_openai
-from ai_assistant.bots.knowledge_utils import check_message_domain
-from ai_assistant.dashboard.models import BotUsageLog
 
 
 class PublicChatAPIView(APIView):
@@ -21,14 +21,16 @@ class PublicChatAPIView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request, *args, **kwargs):
-        api_key = request.headers.get("X-API-KEY")
+        api_key = request.headers.get(
+            "X-API-KEY"
+        )
 
         if not api_key:
             return Response(
                 {
-                    "error": "API key required",
+                    "error": "API key required.",
                 },
-                status=401,
+                status=status.HTTP_401_UNAUTHORIZED,
             )
 
         try:
@@ -40,32 +42,36 @@ class PublicChatAPIView(APIView):
         except UserProfile.DoesNotExist:
             return Response(
                 {
-                    "error": "Invalid API key",
+                    "error": "Invalid API key.",
                 },
-                status=401,
+                status=status.HTTP_401_UNAUTHORIZED,
             )
 
-        bot_id = request.data.get("bot_id")
-        message = request.data.get("message")
+        bot_id = request.data.get(
+            "bot_id"
+        )
 
-        if not bot_id or not message:
+        message = str(
+            request.data.get(
+                "message",
+                "",
+            )
+        ).strip()
+
+        if not bot_id:
             return Response(
                 {
-                    "error": (
-                        "bot_id and message are required"
-                    ),
+                    "error": "bot_id is required.",
                 },
-                status=400,
+                status=status.HTTP_400_BAD_REQUEST,
             )
-
-        message = str(message).strip()
 
         if not message:
             return Response(
                 {
-                    "error": "Message cannot be empty",
+                    "error": "Message cannot be empty.",
                 },
-                status=400,
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         try:
@@ -74,29 +80,36 @@ class PublicChatAPIView(APIView):
                 owner=user,
             )
 
-        except ObjectDoesNotExist:
+        except Bot.DoesNotExist:
             return Response(
                 {
                     "error": (
-                        "Bot not found or unauthorized"
+                        "Bot not found or unauthorized."
                     ),
                 },
-                status=404,
+                status=status.HTTP_404_NOT_FOUND,
             )
 
-        # Check plan limits before processing
-        # another AI request.
-        usage_status = get_ai_usage_status(user)
+        try:
+            result = process_bot_message(
+                user=user,
+                bot=bot,
+                message=message,
+            )
 
-        if not usage_status["allowed"]:
-            if usage_status["daily_limit_reached"]:
-                return Response(
+        except ChatUsageLimitError as error:
+            usage_status = error.usage_status
+
+            response_data = {
+                "error": str(error),
+                "plan": usage_status["plan"],
+            }
+
+            if usage_status[
+                "daily_limit_reached"
+            ]:
+                response_data.update(
                     {
-                        "error": (
-                            "Daily AI message limit "
-                            "reached"
-                        ),
-                        "plan": usage_status["plan"],
                         "daily_messages_used": (
                             usage_status[
                                 "daily_messages_used"
@@ -107,161 +120,32 @@ class PublicChatAPIView(APIView):
                                 "daily_message_limit"
                             ]
                         ),
-                    },
-                    status=403,
-                )
-
-            if usage_status[
-                "monthly_cost_limit_reached"
-            ]:
-                return Response(
-                    {
-                        "error": (
-                            "Monthly AI usage limit "
-                            "reached"
-                        ),
-                        "plan": usage_status["plan"],
-                    },
-                    status=403,
+                    }
                 )
 
             return Response(
-                {
-                    "error": "AI usage is unavailable",
-                },
-                status=403,
+                response_data,
+                status=status.HTTP_403_FORBIDDEN,
             )
 
-        # Run the strict category classifier before
-        # sending the message to the main AI response.
-        try:
-            domain_result = check_message_domain(
-                bot,
-                message,
-            )
-
-        except Exception as exc:
+        except ChatServiceError as error:
             return Response(
                 {
-                    "error": (
-                        "Category validation error"
-                    ),
-                    "details": str(exc),
+                    "error": str(error),
                 },
-                status=500,
+                status=(
+                    status.HTTP_500_INTERNAL_SERVER_ERROR
+                ),
             )
 
-        classifier_tokens = domain_result[
-            "tokens_used"
-        ]
-
-        if classifier_tokens > 0:
-            BotUsageLog.objects.create(
-                user=user,
-                bot=bot,
-                tokens_used=classifier_tokens,
-                input_tokens=domain_result[
-                    "input_tokens"
-                ],
-                output_tokens=domain_result[
-                    "output_tokens"
-                ],
-                model=domain_result["model"],
-            )
-
-        # Stop here if the message is outside
-        # the bot's configured category.
-        if not domain_result["in_domain"]:
-            response_text = (
-                f"I specialize in "
-                f"{bot.get_category_display()}. "
-                f"Please ask me something related "
-                f"to that category."
-            )
-
-            profile.increment_message_count()
-
+        except Exception:
             return Response(
                 {
-                    "response": response_text,
-                    "plan": profile.plan,
-                    "tokens_used": classifier_tokens,
-                    "input_tokens": domain_result[
-                        "input_tokens"
-                    ],
-                    "output_tokens": domain_result[
-                        "output_tokens"
-                    ],
-                    "model": domain_result["model"],
-                    "daily_messages_used": (
-                        profile.daily_message_count
-                    ),
-                    "daily_limit": (
-                        usage_status[
-                            "daily_message_limit"
-                        ]
-                    ),
-                    "in_domain": False,
-                }
-            )
-
-        try:
-            (
-                response_text,
-                tokens_used,
-                input_tokens,
-                output_tokens,
-                model_name,
-            ) = call_openai(
-                bot,
-                message,
-            )
-
-        except Exception as exc:
-            return Response(
-                {
-                    "error": "OpenAI API error",
-                    "details": str(exc),
+                    "error": "AI processing failed.",
                 },
-                status=500,
+                status=(
+                    status.HTTP_500_INTERNAL_SERVER_ERROR
+                ),
             )
 
-        if tokens_used > 0:
-            BotUsageLog.objects.create(
-                user=user,
-                bot=bot,
-                tokens_used=tokens_used,
-                input_tokens=input_tokens,
-                output_tokens=output_tokens,
-                model=model_name,
-            )
-
-        profile.increment_message_count()
-
-        return Response(
-            {
-                "response": response_text,
-                "plan": profile.plan,
-                "tokens_used": (
-                    classifier_tokens + tokens_used
-                ),
-                "input_tokens": (
-                    domain_result["input_tokens"]
-                    + input_tokens
-                ),
-                "output_tokens": (
-                    domain_result["output_tokens"]
-                    + output_tokens
-                ),
-                "model": model_name,
-                "daily_messages_used": (
-                    profile.daily_message_count
-                ),
-                "daily_limit": (
-                    usage_status[
-                        "daily_message_limit"
-                    ]
-                ),
-                "in_domain": True,
-            }
-        )
+        return Response(result)
