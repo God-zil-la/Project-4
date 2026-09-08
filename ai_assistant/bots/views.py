@@ -78,8 +78,9 @@ def create_bot(request):
     bot_count = Bot.objects.filter(owner=request.user).count()
 
     if (
-        not user_profile or not user_profile.is_subscribed
-    ) and bot_count >= 3:
+    not user_profile
+    or not user_profile.has_paid_plan
+) and bot_count >= 3:
         messages.error(
             request,
             "Free plan allows up to 3 bots. Upgrade to Premium for more.",
