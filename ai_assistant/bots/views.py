@@ -31,6 +31,11 @@ from ai_assistant.dashboard.models import BotUsageLog
 from .models import Bot, ChatMessage, KnowledgeBase, KnowledgeChunk
 from .forms import BotForm, KnowledgeBaseForm
 from .utils import extract_text, chunk_text
+from ai_assistant.bots.chat_service import (
+    ChatServiceError,
+    ChatUsageLimitError,
+    process_bot_message,
+)
 from .knowledge_utils import (
     generate_embedding,
     search_relevant_chunks,
@@ -233,6 +238,11 @@ def delete_bot(request, bot_id):
 @login_required
 @csrf_protect
 def ajax_chat(request, bot_id):
+    """
+    Handle web chat messages using the shared
+    AI chat service.
+    """
+
     if request.method != "POST":
         return JsonResponse(
             {
@@ -252,6 +262,7 @@ def ajax_chat(request, bot_id):
             data = json.loads(
                 request.body.decode("utf-8")
             )
+
         except json.JSONDecodeError:
             return JsonResponse(
                 {
@@ -260,9 +271,11 @@ def ajax_chat(request, bot_id):
                 status=400,
             )
 
-        user_input = data.get(
-            "message",
-            "",
+        user_input = str(
+            data.get(
+                "message",
+                "",
+            )
         ).strip()
 
         if not user_input:
@@ -273,22 +286,100 @@ def ajax_chat(request, bot_id):
                 status=400,
             )
 
-        # -------------------------------------------------
-        # AI PLAN USAGE CONTROL
-        # -------------------------------------------------
-        user_profile = getattr(
-            request.user,
-            "profile",
-            None,
-        )
+        try:
+            result = process_bot_message(
+                user=request.user,
+                bot=bot,
+                message=user_input,
+            )
 
-        if not user_profile:
+        except ChatUsageLimitError as error:
+            usage_status = error.usage_status
+
+            response_data = {
+                "error": str(error),
+                "plan": usage_status["plan"],
+            }
+
+            if usage_status[
+                "daily_limit_reached"
+            ]:
+                response_data.update(
+                    {
+                        "daily_messages_used": (
+                            usage_status[
+                                "daily_messages_used"
+                            ]
+                        ),
+                        "daily_limit": (
+                            usage_status[
+                                "daily_message_limit"
+                            ]
+                        ),
+                    }
+                )
+
+            return JsonResponse(
+                response_data,
+                status=403,
+            )
+
+        except ChatServiceError as error:
+            logger.error(
+                "Chat service error: %s",
+                error,
+            )
+
             return JsonResponse(
                 {
-                    "error": "User profile not found.",
+                    "error": "AI service error.",
                 },
                 status=500,
             )
+
+        except Exception:
+            logger.error(
+                "AI processing failed:\n%s",
+                traceback.format_exc(),
+            )
+
+            return JsonResponse(
+                {
+                    "error": "AI processing failed.",
+                },
+                status=500,
+            )
+
+        return JsonResponse(
+            {
+                "reply": result["response"],
+                "plan": result["plan"],
+                "daily_messages_used": (
+                    result[
+                        "daily_messages_used"
+                    ]
+                ),
+                "daily_limit": (
+                    result["daily_limit"]
+                ),
+                "in_domain": (
+                    result["in_domain"]
+                ),
+            }
+        )
+
+    except Exception:
+        logger.error(
+            "ajax_chat error:\n%s",
+            traceback.format_exc(),
+        )
+
+        return JsonResponse(
+            {
+                "error": "An error occurred.",
+            },
+            status=500,
+        )
 
         usage_status = get_ai_usage_status(
             request.user
