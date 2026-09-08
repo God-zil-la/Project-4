@@ -419,27 +419,54 @@ def ajax_chat(request, bot_id):
             .strip()
         )
 
-        # -------------------------------------------------
+                # -------------------------------------------------
         # TOKEN LOGGING
         #
         # Save actual token usage reported by OpenAI.
         # -------------------------------------------------
         try:
-            tokens_used = response["usage"][
-                "total_tokens"
-            ]
+            usage = response["usage"]
+
+            input_tokens = usage.get(
+                "prompt_tokens",
+                0,
+            )
+
+            output_tokens = usage.get(
+                "completion_tokens",
+                0,
+            )
+
+            tokens_used = usage.get(
+                "total_tokens",
+                0,
+            )
+
+            model_name = response.get(
+                "model",
+                "gpt-3.5-turbo",
+            )
 
             BotUsageLog.objects.create(
                 user=request.user,
                 bot=bot,
                 tokens_used=tokens_used,
+                input_tokens=input_tokens,
+                output_tokens=output_tokens,
+                model=model_name,
             )
 
             logger.info(
-                "AI usage - user=%s bot=%s tokens=%s",
+                (
+                    "AI usage - user=%s bot=%s "
+                    "input=%s output=%s total=%s model=%s"
+                ),
                 request.user.id,
                 bot.id,
+                input_tokens,
+                output_tokens,
                 tokens_used,
+                model_name,
             )
 
         except Exception:

@@ -82,10 +82,17 @@ class PublicChatAPIView(APIView):
             )
 
         try:
-            response_text, tokens_used = call_openai(
+            (
+                response_text,
+                tokens_used,
+                input_tokens,
+                output_tokens,
+                model_name,
+            ) = call_openai(
                 bot,
                 message,
             )
+
         except Exception as exc:
             return Response(
                 {
@@ -100,6 +107,9 @@ class PublicChatAPIView(APIView):
                 user=user,
                 bot=bot,
                 tokens_used=tokens_used,
+                input_tokens=input_tokens,
+                output_tokens=output_tokens,
+                model=model_name,
             )
 
         profile.increment_message_count()
@@ -108,6 +118,9 @@ class PublicChatAPIView(APIView):
             {
                 "response": response_text,
                 "tokens_used": tokens_used,
+                "input_tokens": input_tokens,
+                "output_tokens": output_tokens,
+                "model": model_name,
                 "daily_messages_used": profile.daily_message_count,
                 "daily_limit": (
                     None

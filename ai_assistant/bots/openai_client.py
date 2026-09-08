@@ -1,4 +1,5 @@
 import os
+
 import openai
 
 
@@ -6,9 +7,11 @@ def call_openai(bot, message):
     """
     Send a message to OpenAI and return:
     - response text
-    - actual total token usage reported by OpenAI
+    - total token usage
+    - input token usage
+    - output token usage
+    - actual model name
     """
-
     api_key = os.getenv("OPENAI_API_KEY")
 
     if not api_key:
@@ -16,8 +19,10 @@ def call_openai(bot, message):
 
     openai.api_key = api_key
 
+    requested_model = "gpt-4o-mini"
+
     response = openai.ChatCompletion.create(
-        model="gpt-4o-mini",
+        model=requested_model,
         messages=[
             {
                 "role": "system",
@@ -34,11 +39,39 @@ def call_openai(bot, message):
         max_tokens=500,
     )
 
-    response_text = response.choices[0].message["content"].strip()
+    response_text = (
+        response
+        .choices[0]
+        .message["content"]
+        .strip()
+    )
 
-    tokens_used = 0
+    usage = response.get("usage", {})
 
-    if response.get("usage"):
-        tokens_used = response["usage"].get("total_tokens", 0)
+    input_tokens = usage.get(
+        "prompt_tokens",
+        0,
+    )
 
-    return response_text, tokens_used
+    output_tokens = usage.get(
+        "completion_tokens",
+        0,
+    )
+
+    tokens_used = usage.get(
+        "total_tokens",
+        0,
+    )
+
+    model_name = response.get(
+        "model",
+        requested_model,
+    )
+
+    return (
+        response_text,
+        tokens_used,
+        input_tokens,
+        output_tokens,
+        model_name,
+    )
