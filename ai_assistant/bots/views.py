@@ -8,7 +8,6 @@ import traceback
 
 # Django imports
 
-from django.conf import settings
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
@@ -27,6 +26,7 @@ from rest_framework.authtoken.models import Token
 # Local app imports
 
 from ai_assistant.accounts.models import UserProfile
+from ai_assistant.accounts.plan_utils import get_ai_usage_status
 from ai_assistant.dashboard.models import BotUsageLog
 from .models import Bot, ChatMessage, KnowledgeBase, KnowledgeChunk
 from .forms import BotForm, KnowledgeBaseForm
@@ -35,6 +35,7 @@ from .knowledge_utils import (
     generate_embedding,
     search_relevant_chunks,
     render_system_message,
+    check_message_domain,
 )
 
 
@@ -258,7 +259,10 @@ def ajax_chat(request, bot_id):
                 status=400,
             )
 
-        user_input = data.get("message", "").strip()
+        user_input = data.get(
+            "message",
+            "",
+        ).strip()
 
         if not user_input:
             return JsonResponse(
@@ -269,11 +273,7 @@ def ajax_chat(request, bot_id):
             )
 
         # -------------------------------------------------
-        # DAILY FREE PLAN LIMIT
-        #
-        # Web chat and API use the same UserProfile counter.
-        # This prevents free users from bypassing the daily
-        # limit by switching between clients.
+        # AI PLAN USAGE CONTROL
         # -------------------------------------------------
         user_profile = getattr(
             request.user,
@@ -281,28 +281,132 @@ def ajax_chat(request, bot_id):
             None,
         )
 
-        if user_profile:
-            user_profile.reset_daily_count()
+        if not user_profile:
+            return JsonResponse(
+                {
+                    "error": "User profile not found.",
+                },
+                status=500,
+            )
 
-            if (
-                not user_profile.is_subscribed
-                and user_profile.daily_message_count
-                >= settings.FREE_PLAN_DAILY_LIMIT
-            ):
+        usage_status = get_ai_usage_status(
+            request.user
+        )
+
+        if not usage_status["allowed"]:
+            if usage_status[
+                "daily_limit_reached"
+            ]:
                 return JsonResponse(
                     {
-                        "error": "Daily free limit exceeded",
+                        "error": (
+                            "Daily AI message limit "
+                            "reached"
+                        ),
+                        "plan": usage_status["plan"],
                         "daily_messages_used": (
-                            user_profile.daily_message_count
+                            usage_status[
+                                "daily_messages_used"
+                            ]
                         ),
                         "daily_limit": (
-                            settings.FREE_PLAN_DAILY_LIMIT
+                            usage_status[
+                                "daily_message_limit"
+                            ]
                         ),
                     },
                     status=403,
                 )
 
-        # Save user's new message.
+            if usage_status[
+                "monthly_cost_limit_reached"
+            ]:
+                return JsonResponse(
+                    {
+                        "error": (
+                            "Monthly AI usage limit "
+                            "reached"
+                        ),
+                        "plan": usage_status["plan"],
+                    },
+                    status=403,
+                )
+
+            return JsonResponse(
+                {
+                    "error": "AI usage is unavailable.",
+                },
+                status=403,
+            )
+
+        # -------------------------------------------------
+        # CATEGORY DOMAIN CHECK
+        # -------------------------------------------------
+        domain_check = check_message_domain(
+            bot,
+            user_input,
+        )
+
+        if domain_check["tokens_used"] > 0:
+            BotUsageLog.objects.create(
+                user=request.user,
+                bot=bot,
+                tokens_used=domain_check[
+                    "tokens_used"
+                ],
+                input_tokens=domain_check[
+                    "input_tokens"
+                ],
+                output_tokens=domain_check[
+                    "output_tokens"
+                ],
+                model=domain_check[
+                    "model"
+                ],
+            )
+
+        if not domain_check["in_domain"]:
+            reply = (
+                f"I specialize in "
+                f"{bot.get_category_display()}. "
+                f"Please ask me something related "
+                f"to that category."
+            )
+
+            ChatMessage.objects.create(
+                bot=bot,
+                user=request.user,
+                sender="user",
+                message=user_input,
+            )
+
+            ChatMessage.objects.create(
+                bot=bot,
+                user=request.user,
+                sender="assistant",
+                message=reply,
+            )
+
+            user_profile.increment_message_count()
+
+            return JsonResponse(
+                {
+                    "reply": reply,
+                    "plan": user_profile.plan,
+                    "daily_messages_used": (
+                        user_profile.daily_message_count
+                    ),
+                    "daily_limit": (
+                        usage_status[
+                            "daily_message_limit"
+                        ]
+                    ),
+                }
+            )
+
+        # -------------------------------------------------
+        # SAVE USER MESSAGE
+        # -------------------------------------------------
         ChatMessage.objects.create(
             bot=bot,
             user=request.user,
@@ -314,8 +418,6 @@ def ajax_chat(request, bot_id):
         # COST CONTROL
         #
         # Only send the latest 20 messages to OpenAI.
-        # This prevents token usage from growing forever
-        # during long conversations.
         # -------------------------------------------------
         latest_messages = list(
             ChatMessage.objects.filter(
@@ -384,10 +486,6 @@ def ajax_chat(request, bot_id):
 
         # -------------------------------------------------
         # OPENAI
-        #
-        # Keep the currently working web model for now.
-        # Model upgrades will be handled separately after
-        # all cost controls have been verified.
         # -------------------------------------------------
         openai.api_key = os.getenv(
             "OPENAI_API_KEY"
@@ -408,7 +506,7 @@ def ajax_chat(request, bot_id):
             )
 
         response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
+            model="gpt-4o-mini",
             messages=history,
         )
 
@@ -419,10 +517,8 @@ def ajax_chat(request, bot_id):
             .strip()
         )
 
-                # -------------------------------------------------
+        # -------------------------------------------------
         # TOKEN LOGGING
-        #
-        # Save actual token usage reported by OpenAI.
         # -------------------------------------------------
         try:
             usage = response["usage"]
@@ -444,7 +540,7 @@ def ajax_chat(request, bot_id):
 
             model_name = response.get(
                 "model",
-                "gpt-3.5-turbo",
+                "gpt-4o-mini",
             )
 
             BotUsageLog.objects.create(
@@ -459,7 +555,8 @@ def ajax_chat(request, bot_id):
             logger.info(
                 (
                     "AI usage - user=%s bot=%s "
-                    "input=%s output=%s total=%s model=%s"
+                    "input=%s output=%s total=%s "
+                    "model=%s"
                 ),
                 request.user.id,
                 bot.id,
@@ -470,14 +567,14 @@ def ajax_chat(request, bot_id):
             )
 
         except Exception:
-            # Token logging must never prevent the user
-            # from receiving the AI response.
             logger.warning(
                 "Could not save BotUsageLog:\n%s",
                 traceback.format_exc(),
             )
 
-        # Save assistant reply.
+        # -------------------------------------------------
+        # SAVE ASSISTANT MESSAGE
+        # -------------------------------------------------
         ChatMessage.objects.create(
             bot=bot,
             user=request.user,
@@ -486,24 +583,19 @@ def ajax_chat(request, bot_id):
         )
 
         # Count only successful AI requests.
-        if user_profile:
-            user_profile.increment_message_count()
+        user_profile.increment_message_count()
 
         return JsonResponse(
             {
                 "reply": reply,
+                "plan": user_profile.plan,
                 "daily_messages_used": (
                     user_profile.daily_message_count
-                    if user_profile
-                    else None
                 ),
                 "daily_limit": (
-                    None
-                    if (
-                        user_profile
-                        and user_profile.is_subscribed
-                    )
-                    else settings.FREE_PLAN_DAILY_LIMIT
+                    usage_status[
+                        "daily_message_limit"
+                    ]
                 ),
             }
         )

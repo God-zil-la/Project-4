@@ -2,8 +2,10 @@ import os
 
 import openai
 
+from .knowledge_utils import render_system_message
 
-def call_openai(bot, message):
+
+def call_openai(bot, message, knowledge_text=""):
     """
     Send a message to OpenAI and return:
     - response text
@@ -21,15 +23,17 @@ def call_openai(bot, message):
 
     requested_model = "gpt-4o-mini"
 
+    system_message = render_system_message(
+        bot,
+        knowledge_text,
+    )
+
     response = openai.ChatCompletion.create(
         model=requested_model,
         messages=[
             {
                 "role": "system",
-                "content": (
-                    f"You are the AI assistant '{bot.name}'. "
-                    f"{bot.personality}"
-                ),
+                "content": system_message,
             },
             {
                 "role": "user",
