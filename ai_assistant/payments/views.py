@@ -7,20 +7,51 @@ from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 
+from ai_assistant.accounts.models import UserProfile
+
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
 
+PLAN_CONFIG = {
+    UserProfile.PLAN_PREMIUM: {
+        "name": "AI Assistant Premium",
+        "price_sek": 12900,
+    },
+    UserProfile.PLAN_PRO: {
+        "name": "AI Assistant Pro",
+        "price_sek": 24900,
+    },
+}
+
+
 @method_decorator(login_required, name="dispatch")
 class CreateCheckoutSessionView(View):
-    """Create a Stripe Checkout session for the Premium monthly plan."""
+    """Create a Stripe Checkout session for a paid monthly plan."""
 
     def post(self, request, *args, **kwargs):
         try:
+            plan = request.POST.get(
+                "plan",
+                UserProfile.PLAN_PREMIUM,
+            )
+
+            plan_config = PLAN_CONFIG.get(plan)
+
+            if not plan_config:
+                return JsonResponse(
+                    {
+                        "error": "Invalid subscription plan.",
+                    },
+                    status=400,
+                )
+
             checkout_session = stripe.checkout.Session.create(
                 mode="subscription",
 
-                client_reference_id=str(request.user.id),
+                client_reference_id=str(
+                    request.user.id
+                ),
 
                 customer_email=request.user.email,
 
@@ -28,17 +59,37 @@ class CreateCheckoutSessionView(View):
                     {
                         "price_data": {
                             "currency": "sek",
-                            "unit_amount": 12900,
+                            "unit_amount": plan_config[
+                                "price_sek"
+                            ],
                             "recurring": {
                                 "interval": "month",
                             },
                             "product_data": {
-                                "name": "AI Assistant Premium",
+                                "name": plan_config[
+                                    "name"
+                                ],
                             },
                         },
                         "quantity": 1,
                     },
                 ],
+
+                subscription_data={
+                    "metadata": {
+                        "plan": plan,
+                        "user_id": str(
+                            request.user.id
+                        ),
+                    },
+                },
+
+                metadata={
+                    "plan": plan,
+                    "user_id": str(
+                        request.user.id
+                    ),
+                },
 
                 success_url=request.build_absolute_uri(
                     "/payments/success/"
@@ -53,6 +104,7 @@ class CreateCheckoutSessionView(View):
             return JsonResponse(
                 {
                     "id": checkout_session.id,
+                    "plan": plan,
                 }
             )
 
@@ -67,13 +119,16 @@ class CreateCheckoutSessionView(View):
 
 @login_required
 def billing(request):
-    """Render the billing page with the Stripe public key."""
-
+    """Render the billing page with Stripe configuration."""
     return render(
         request,
         "payments/billing.html",
         {
-            "STRIPE_PUBLIC_KEY": settings.STRIPE_PUBLIC_KEY,
+            "STRIPE_PUBLIC_KEY": (
+                settings.STRIPE_PUBLIC_KEY
+            ),
+            "premium_price": 129,
+            "pro_price": 249,
         },
     )
 
@@ -81,7 +136,6 @@ def billing(request):
 @login_required
 def payment_success(request):
     """Render the payment success page."""
-
     return render(
         request,
         "payments/success.html",
@@ -91,7 +145,6 @@ def payment_success(request):
 @login_required
 def payment_cancel(request):
     """Render the payment cancellation page."""
-
     return render(
         request,
         "payments/cancel.html",

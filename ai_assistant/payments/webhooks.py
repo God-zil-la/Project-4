@@ -30,11 +30,40 @@ def timestamp_to_datetime(timestamp):
     )
 
 
-def update_profile_from_subscription(profile, subscription):
+def get_plan_from_subscription(subscription):
     """
-    Synchronize Stripe subscription data with UserProfile.
-    """
+    Determine the application plan connected to
+    a Stripe subscription.
 
+    New subscriptions should contain metadata.plan.
+
+    Existing subscriptions created before the plan
+    system default to Premium for backwards
+    compatibility.
+    """
+    metadata = subscription.get("metadata") or {}
+
+    plan = metadata.get("plan")
+
+    if plan == UserProfile.PLAN_PRO:
+        return UserProfile.PLAN_PRO
+
+    if plan == UserProfile.PLAN_PREMIUM:
+        return UserProfile.PLAN_PREMIUM
+
+    # Existing Stripe subscriptions were Premium
+    # before the explicit plan system was added.
+    return UserProfile.PLAN_PREMIUM
+
+
+def update_profile_from_subscription(
+    profile,
+    subscription,
+):
+    """
+    Synchronize Stripe subscription data and plan
+    access with UserProfile.
+    """
     status = subscription.get("status")
     customer_id = subscription.get("customer")
     subscription_id = subscription.get("id")
@@ -42,16 +71,26 @@ def update_profile_from_subscription(profile, subscription):
         "current_period_end"
     )
 
+    subscription_is_active = (
+        status in ACTIVE_SUBSCRIPTION_STATUSES
+    )
+
     profile.stripe_customer_id = customer_id
     profile.stripe_subscription_id = subscription_id
     profile.stripe_subscription_status = status
+
     profile.subscription_current_period_end = (
         timestamp_to_datetime(current_period_end)
     )
 
-    profile.is_subscribed = (
-        status in ACTIVE_SUBSCRIPTION_STATUSES
-    )
+    profile.is_subscribed = subscription_is_active
+
+    if subscription_is_active:
+        profile.plan = get_plan_from_subscription(
+            subscription
+        )
+    else:
+        profile.plan = UserProfile.PLAN_FREE
 
     profile.save(
         update_fields=[
@@ -60,6 +99,7 @@ def update_profile_from_subscription(profile, subscription):
             "stripe_subscription_status",
             "subscription_current_period_end",
             "is_subscribed",
+            "plan",
         ]
     )
 
@@ -91,10 +131,6 @@ def stripe_webhook(request):
 
     # -------------------------------------------------
     # CHECKOUT COMPLETED
-    #
-    # Find the Django user using client_reference_id.
-    # Then retrieve the Stripe subscription and store
-    # its real status and identifiers.
     # -------------------------------------------------
     if event_type == "checkout.session.completed":
         session = event_object
@@ -151,10 +187,6 @@ def stripe_webhook(request):
 
     # -------------------------------------------------
     # SUBSCRIPTION CREATED / UPDATED
-    #
-    # Stripe can update a subscription independently
-    # of Checkout, for example after renewal, payment
-    # problems, trial changes or cancellation changes.
     # -------------------------------------------------
     elif event_type in {
         "customer.subscription.created",
@@ -191,9 +223,6 @@ def stripe_webhook(request):
 
     # -------------------------------------------------
     # SUBSCRIPTION DELETED
-    #
-    # Subscription is finished/cancelled.
-    # Premium access must be removed.
     # -------------------------------------------------
     elif event_type == "customer.subscription.deleted":
         subscription = event_object
@@ -221,8 +250,13 @@ def stripe_webhook(request):
 
         if profile:
             profile.is_subscribed = False
+            profile.plan = UserProfile.PLAN_FREE
+
             profile.stripe_subscription_status = (
-                subscription.get("status", "canceled")
+                subscription.get(
+                    "status",
+                    "canceled",
+                )
             )
 
             profile.subscription_current_period_end = (
@@ -236,6 +270,7 @@ def stripe_webhook(request):
             profile.save(
                 update_fields=[
                     "is_subscribed",
+                    "plan",
                     "stripe_subscription_status",
                     "subscription_current_period_end",
                 ]

@@ -2,73 +2,195 @@
 {% block title %}Billing{% endblock %}
 
 {% block content %}
-<div class="billing-container" style="max-width: 600px; margin: auto; padding: 2rem;">
-  <h1>Upgrade to Premium</h1>
+<div class="billing-container" style="
+    max-width: 900px;
+    margin: auto;
+    padding: 2rem;
+  ">
+  <h1>Choose Your Plan</h1>
 
-  <!-- 1. Headline & Explanation -->
   <p>
-    Take your AI assistant to the next level. With our Premium Plan, you'll unlock unlimited access and advanced
-    features designed for serious creators.
+    Upgrade your AI assistants with more capacity,
+    advanced features, and unlimited bot creation.
   </p>
 
-  <!-- 2. Feature List -->
-  <h3>What's Included:</h3>
-  <ul style="line-height: 1.8;">
-    <li>✔️ Unlimited AI bot creation</li>
-    <li>✔️ Advanced customization and knowledge base uploads</li>
-    <li>✔️ <strong>Deploy</strong> your AI bots on Discord seamlessly</li>
-    <li>✔️ Access to premium NLP tools and templates</li>
-    <li>✔️ Priority customer support</li>
-  </ul>
-
-  <!-- 3. Pricing Box -->
   <div style="
-    border: 2px solid #fff;
-    padding: 1.25rem;
-    text-align: center;
-    margin-top: 1.5rem;
-    background-color: #111;
-    color: #fff;
-    border-radius: 12px;
-    box-shadow: 0 6px 20px rgba(255,255,255,0.1);
-  ">
-    <h2 style="margin: 0; font-size: 2rem;">$15/month</h2>
-    <p style="margin: 0.5rem 0 0; color: #ccc;">Cancel anytime</p>
+      display: grid;
+      grid-template-columns: repeat(
+        auto-fit,
+        minmax(280px, 1fr)
+      );
+      gap: 1.5rem;
+      margin-top: 2rem;
+    ">
+    <!-- Premium -->
+    <div style="
+        border: 2px solid #fff;
+        padding: 1.5rem;
+        background-color: #111;
+        color: #fff;
+        border-radius: 12px;
+        box-shadow: 0 6px 20px
+          rgba(255,255,255,0.1);
+      ">
+      <h2>Premium</h2>
+
+      <div style="
+          font-size: 2rem;
+          font-weight: bold;
+          margin: 1rem 0;
+        ">
+        {{ premium_price }} SEK/month
+      </div>
+
+      <ul style="line-height: 1.8;">
+        <li>✔️ Unlimited AI bot creation</li>
+        <li>✔️ Knowledge base uploads</li>
+        <li>✔️ Advanced bot customization</li>
+        <li>✔️ Discord deployment</li>
+        <li>✔️ Increased AI usage</li>
+      </ul>
+
+      <button type="button" class="checkout-button" data-plan="premium" style="
+          margin-top: 1rem;
+          background-color: #000;
+          color: #fff;
+          padding: 0.75rem 1.5rem;
+          border: 1px solid #fff;
+          border-radius: 5px;
+          cursor: pointer;
+        ">
+        Choose Premium
+      </button>
+    </div>
+
+    <!-- Pro -->
+    <div style="
+        border: 2px solid #fff;
+        padding: 1.5rem;
+        background-color: #111;
+        color: #fff;
+        border-radius: 12px;
+        box-shadow: 0 6px 20px
+          rgba(255,255,255,0.1);
+      ">
+      <h2>Pro</h2>
+
+      <div style="
+          font-size: 2rem;
+          font-weight: bold;
+          margin: 1rem 0;
+        ">
+        {{ pro_price }} SEK/month
+      </div>
+
+      <ul style="line-height: 1.8;">
+        <li>✔️ Everything in Premium</li>
+        <li>✔️ Highest AI usage tier</li>
+        <li>✔️ Priority AI capacity</li>
+        <li>✔️ Unlimited AI bot creation</li>
+        <li>✔️ Priority support</li>
+      </ul>
+
+      <button type="button" class="checkout-button" data-plan="pro" style="
+          margin-top: 1rem;
+          background-color: #000;
+          color: #fff;
+          padding: 0.75rem 1.5rem;
+          border: 1px solid #fff;
+          border-radius: 5px;
+          cursor: pointer;
+        ">
+        Choose Pro
+      </button>
+    </div>
   </div>
 
+  <p style="
+      margin-top: 1.5rem;
+      color: #ccc;
+    ">
+    Cancel anytime.
+  </p>
 
-  <!-- 4. Stripe Payment Form -->
-  <form action="{% url 'payments:create_checkout_session' %}" method="POST" id="payment-form"
-    style="margin-top: 1.5rem;">
-    {% csrf_token %}
-    <button type="submit"
-      style="background-color: #000000; color: #ffffff; padding: 0.75rem 1.5rem; border: 1px solid #ffffff; border-radius: 5px; cursor: pointer;">
-      Subscribe Now
-    </button>
-  </form>
+  <p id="checkout-error" style="
+      margin-top: 1rem;
+    "></p>
 </div>
 
 <script src="https://js.stripe.com/v3/"></script>
+
 <script>
-  const stripe = Stripe("{{ STRIPE_PUBLIC_KEY }}");
+  const stripe = Stripe(
+    "{{ STRIPE_PUBLIC_KEY }}"
+  );
 
-  document.querySelector("#payment-form").addEventListener("submit", function (e) {
-    e.preventDefault();
+  const buttons = document.querySelectorAll(
+    ".checkout-button"
+  );
 
-    fetch("{% url 'payments:create_checkout_session' %}", {
-      method: "POST",
-      headers: {
-        "X-CSRFToken": "{{ csrf_token }}",
-        "Content-Type": "application/json",
-      },
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        return stripe.redirectToCheckout({ sessionId: data.id });
-      })
-      .then((res) => {
-        if (res.error) alert(res.error.message);
-      });
+  const errorElement = document.getElementById(
+    "checkout-error"
+  );
+
+  buttons.forEach((button) => {
+    button.addEventListener(
+      "click",
+      async function () {
+        const plan = this.dataset.plan;
+
+        errorElement.textContent = "";
+
+        buttons.forEach((btn) => {
+          btn.disabled = true;
+        });
+
+        try {
+          const formData = new URLSearchParams();
+          formData.append("plan", plan);
+
+          const response = await fetch(
+            "{% url 'payments:create_checkout_session' %}",
+            {
+              method: "POST",
+              headers: {
+                "X-CSRFToken": "{{ csrf_token }}",
+                "Content-Type":
+                  "application/x-www-form-urlencoded",
+              },
+              body: formData.toString(),
+            }
+          );
+
+          const data = await response.json();
+
+          if (!response.ok) {
+            throw new Error(
+              data.error ||
+              "Could not create checkout session."
+            );
+          }
+
+          const result =
+            await stripe.redirectToCheckout({
+              sessionId: data.id,
+            });
+
+          if (result.error) {
+            throw new Error(
+              result.error.message
+            );
+          }
+        } catch (error) {
+          errorElement.textContent =
+            error.message;
+
+          buttons.forEach((btn) => {
+            btn.disabled = false;
+          });
+        }
+      }
+    );
   });
 </script>
 {% endblock %}
