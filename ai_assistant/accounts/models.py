@@ -6,7 +6,17 @@ from django.contrib.auth.models import User
 
 
 class UserProfile(models.Model):
-    """Extended profile model linked to Django's User with subscription and usage tracking."""
+    """Extended profile model linked to Django's User."""
+
+    PLAN_FREE = "free"
+    PLAN_PREMIUM = "premium"
+    PLAN_PRO = "pro"
+
+    PLAN_CHOICES = [
+        (PLAN_FREE, "Free"),
+        (PLAN_PREMIUM, "Premium"),
+        (PLAN_PRO, "Pro"),
+    ]
 
     user = models.OneToOneField(
         User,
@@ -14,6 +24,14 @@ class UserProfile(models.Model):
         related_name="profile",
     )
 
+    plan = models.CharField(
+        max_length=20,
+        choices=PLAN_CHOICES,
+        default=PLAN_FREE,
+    )
+
+    # Kept for backwards compatibility while the
+    # subscription system is being migrated to plans.
     is_subscribed = models.BooleanField(default=False)
 
     stripe_customer_id = models.CharField(
@@ -48,8 +66,24 @@ class UserProfile(models.Model):
         blank=True,
     )
 
+    @property
+    def has_paid_plan(self):
+        """Return True for Premium or Pro users."""
+        return self.plan in {
+            self.PLAN_PREMIUM,
+            self.PLAN_PRO,
+        }
+
+    @property
+    def is_premium(self):
+        return self.plan == self.PLAN_PREMIUM
+
+    @property
+    def is_pro(self):
+        return self.plan == self.PLAN_PRO
+
     def reset_daily_count(self):
-        """Reset the message count if the last reset was on a previous day."""
+        """Reset the message count when a new day starts."""
         if self.last_reset != date.today():
             self.daily_message_count = 0
             self.last_reset = date.today()
@@ -75,5 +109,4 @@ class UserProfile(models.Model):
         )
 
     def __str__(self):
-        """Return a readable string representation of the profile."""
         return f"{self.user.username} Profile"
