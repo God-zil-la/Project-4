@@ -15,6 +15,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from ai_assistant.bots.chat_service import (
+    ChatRateLimitError,
     ChatServiceError,
     ChatUsageLimitError,
     process_bot_message,
@@ -66,6 +67,12 @@ def api_bot_chat(request, bot_id):
     """
     Send a message to an authenticated user's bot
     using the shared AI chat service.
+
+    A conversation_id can optionally be provided to
+    continue an existing conversation.
+
+    If no conversation_id is provided, the shared
+    chat service resolves or creates a conversation.
     """
 
     user = request.user
@@ -99,11 +106,24 @@ def api_bot_chat(request, bot_id):
             status=status.HTTP_400_BAD_REQUEST,
         )
 
+    conversation_id = request.data.get(
+        "conversation_id"
+    )
+
+    if conversation_id is not None:
+        conversation_id = str(
+            conversation_id
+        ).strip()
+
+        if not conversation_id:
+            conversation_id = None
+
     try:
         result = process_bot_message(
             user=user,
             bot=bot,
             message=user_message,
+            conversation=conversation_id,
         )
 
     except ChatUsageLimitError as error:
@@ -137,28 +157,39 @@ def api_bot_chat(request, bot_id):
             status=status.HTTP_403_FORBIDDEN,
         )
 
+    except ChatRateLimitError as error:
+        return Response(
+            {
+                "error": str(error),
+                "retry_after_seconds": (
+                    error.retry_after_seconds
+                ),
+            },
+            status=status.HTTP_429_TOO_MANY_REQUESTS,
+        )
+
     except ChatServiceError as error:
         return Response(
             {
                 "error": str(error),
             },
-            status=(
-                status.HTTP_500_INTERNAL_SERVER_ERROR
-            ),
+            status=status.HTTP_400_BAD_REQUEST,
         )
 
-    except Exception as error:
+    except Exception:
         return Response(
             {
                 "error": "AI processing failed.",
-                "details": str(error),
             },
             status=(
                 status.HTTP_500_INTERNAL_SERVER_ERROR
             ),
         )
 
-    return Response(result)
+    return Response(
+        result,
+        status=status.HTTP_200_OK,
+    )
 
 
 @api_view(["POST"])

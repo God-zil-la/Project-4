@@ -3,6 +3,8 @@ import os
 import openai
 from django.conf import settings
 from django.core.cache import cache
+from django.core.exceptions import ValidationError
+from django.utils import timezone
 
 from ai_assistant.accounts.models import UserProfile
 from ai_assistant.accounts.plan_utils import get_ai_usage_status
@@ -13,7 +15,7 @@ from .knowledge_utils import (
     render_system_message,
     search_relevant_chunks,
 )
-from .models import ChatMessage
+from .models import ChatMessage, Conversation
 
 
 CHAT_MODEL = "gpt-4o-mini"
@@ -34,7 +36,10 @@ class ChatUsageLimitError(ChatServiceError):
 
 
 class ChatRateLimitError(ChatServiceError):
-    """Raised when the user sends too many AI requests in a short period."""
+    """
+    Raised when the user sends too many AI requests
+    in a short period.
+    """
 
     def __init__(self, message, retry_after_seconds):
         super().__init__(message)
@@ -62,15 +67,125 @@ def _log_usage(
     )
 
 
-def _build_history(
-    bot,
+def _resolve_conversation(
     user,
+    bot,
+    conversation=None,
+):
+    """
+    Resolve the conversation used for the current message.
+
+    Existing callers that do not yet provide a conversation
+    continue using the user's most recent conversation for
+    that bot.
+
+    New API and mobile clients can provide either a
+    Conversation instance or its public UUID.
+    """
+
+    if conversation is None:
+        existing_conversation = (
+            Conversation.objects.filter(
+                user=user,
+                bot=bot,
+            )
+            .order_by("-updated_at", "-created_at")
+            .first()
+        )
+
+        if existing_conversation is not None:
+            return existing_conversation
+
+        return Conversation.objects.create(
+            user=user,
+            bot=bot,
+        )
+
+    if isinstance(conversation, Conversation):
+        resolved_conversation = conversation
+
+    else:
+        try:
+            resolved_conversation = (
+                Conversation.objects.get(
+                    public_id=conversation,
+                )
+            )
+
+        except (
+            Conversation.DoesNotExist,
+            ValidationError,
+            ValueError,
+            TypeError,
+        ) as error:
+            raise ChatServiceError(
+                "Conversation not found."
+            ) from error
+
+    if resolved_conversation.user_id != user.id:
+        raise ChatServiceError(
+            "Conversation does not belong to this user."
+        )
+
+    if resolved_conversation.bot_id != bot.id:
+        raise ChatServiceError(
+            "Conversation does not belong to this bot."
+        )
+
+    return resolved_conversation
+
+
+def _set_conversation_title(
+    conversation,
+    message,
+):
+    """
+    Create a short title from the first user message.
+    """
+
+    if conversation.title:
+        return
+
+    clean_title = " ".join(
+        str(message).split()
+    ).strip()
+
+    if not clean_title:
+        return
+
+    conversation.title = clean_title[:80]
+    conversation.save(
+        update_fields=[
+            "title",
+            "updated_at",
+        ]
+    )
+
+
+def _touch_conversation(conversation):
+    """
+    Update the conversation activity timestamp.
+    """
+
+    Conversation.objects.filter(
+        pk=conversation.pk,
+    ).update(
+        updated_at=timezone.now(),
+    )
+
+
+def _build_history(
+    conversation,
     system_message,
 ):
+    """
+    Build OpenAI conversation history from messages
+    belonging only to the selected conversation.
+    """
+
     previous_messages = list(
         ChatMessage.objects.filter(
-            bot=bot,
-            user=user,
+            conversation=conversation,
         )
         .order_by("-timestamp")[
             :CHAT_HISTORY_LIMIT
@@ -79,7 +194,7 @@ def _build_history(
 
     previous_messages.reverse()
 
-    conversation = [
+    messages = [
         {
             "role": "system",
             "content": system_message,
@@ -87,18 +202,51 @@ def _build_history(
     ]
 
     for previous_message in previous_messages:
-        conversation.append(
+        messages.append(
             {
                 "role": (
                     "user"
-                    if previous_message.sender == "user"
+                    if previous_message.sender
+                    == ChatMessage.SENDER_USER
                     else "assistant"
                 ),
                 "content": previous_message.message,
             }
         )
 
-    return conversation
+    return messages
+
+
+def _save_chat_exchange(
+    conversation,
+    bot,
+    user,
+    user_message,
+    assistant_message,
+):
+    """
+    Save one complete user and assistant exchange.
+    """
+
+    ChatMessage.objects.create(
+        conversation=conversation,
+        bot=bot,
+        user=user,
+        sender=ChatMessage.SENDER_USER,
+        message=user_message,
+    )
+
+    ChatMessage.objects.create(
+        conversation=conversation,
+        bot=bot,
+        user=user,
+        sender=ChatMessage.SENDER_ASSISTANT,
+        message=assistant_message,
+    )
+
+    _touch_conversation(
+        conversation
+    )
 
 
 def _check_rate_limit(user, profile):
@@ -130,6 +278,7 @@ def _check_rate_limit(user, profile):
         request_count = cache.incr(
             cache_key
         )
+
     except ValueError:
         cache.set(
             cache_key,
@@ -140,7 +289,10 @@ def _check_rate_limit(user, profile):
 
     if request_count > rate_limit:
         raise ChatRateLimitError(
-            "Too many AI requests. Please try again shortly.",
+            (
+                "Too many AI requests. "
+                "Please try again shortly."
+            ),
             retry_after_seconds=60,
         )
 
@@ -149,6 +301,7 @@ def process_bot_message(
     user,
     bot,
     message,
+    conversation=None,
 ):
     """
     Process one bot message using the shared AI pipeline.
@@ -157,9 +310,10 @@ def process_bot_message(
 
     - Account usage limits
     - Short-term rate limiting
+    - Conversation resolution
     - Category enforcement
     - Knowledge retrieval
-    - Conversation history
+    - Conversation-specific history
     - OpenAI response generation
     - Token usage logging
     - Chat message persistence
@@ -215,6 +369,19 @@ def process_bot_message(
             usage_status,
         )
 
+    active_conversation = (
+        _resolve_conversation(
+            user=user,
+            bot=bot,
+            conversation=conversation,
+        )
+    )
+
+    _set_conversation_title(
+        active_conversation,
+        message,
+    )
+
     domain_result = check_message_domain(
         bot,
         message,
@@ -249,24 +416,21 @@ def process_bot_message(
             f"to that category."
         )
 
-        ChatMessage.objects.create(
+        _save_chat_exchange(
+            conversation=active_conversation,
             bot=bot,
             user=user,
-            sender="user",
-            message=message,
-        )
-
-        ChatMessage.objects.create(
-            bot=bot,
-            user=user,
-            sender="assistant",
-            message=response_text,
+            user_message=message,
+            assistant_message=response_text,
         )
 
         profile.increment_message_count()
 
         return {
             "response": response_text,
+            "conversation_id": str(
+                active_conversation.public_id
+            ),
             "plan": profile.plan,
             "tokens_used": classifier_tokens,
             "input_tokens": (
@@ -322,13 +486,12 @@ def process_bot_message(
         knowledge_text,
     )
 
-    conversation = _build_history(
-        bot,
-        user,
+    openai_messages = _build_history(
+        active_conversation,
         system_message,
     )
 
-    conversation.append(
+    openai_messages.append(
         {
             "role": "user",
             "content": message,
@@ -348,7 +511,7 @@ def process_bot_message(
 
     response = openai.ChatCompletion.create(
         model=CHAT_MODEL,
-        messages=conversation,
+        messages=openai_messages,
         max_tokens=CHAT_MAX_TOKENS,
     )
 
@@ -393,24 +556,21 @@ def process_bot_message(
         model=model_name,
     )
 
-    ChatMessage.objects.create(
+    _save_chat_exchange(
+        conversation=active_conversation,
         bot=bot,
         user=user,
-        sender="user",
-        message=message,
-    )
-
-    ChatMessage.objects.create(
-        bot=bot,
-        user=user,
-        sender="assistant",
-        message=response_text,
+        user_message=message,
+        assistant_message=response_text,
     )
 
     profile.increment_message_count()
 
     return {
         "response": response_text,
+        "conversation_id": str(
+            active_conversation.public_id
+        ),
         "plan": profile.plan,
         "tokens_used": (
             classifier_tokens

@@ -1,6 +1,5 @@
 # Standard library imports
 
-import os
 import json
 import logging
 import traceback
@@ -19,28 +18,24 @@ from django.http import JsonResponse, HttpResponseNotAllowed
 
 # Third-party imports
 
-import openai
 from rest_framework.authtoken.models import Token
 
 
 # Local app imports
 
 from ai_assistant.accounts.models import UserProfile
-from ai_assistant.accounts.plan_utils import get_ai_usage_status
 from ai_assistant.dashboard.models import BotUsageLog
 from .models import Bot, ChatMessage, KnowledgeBase, KnowledgeChunk
 from .forms import BotForm, KnowledgeBaseForm
 from .utils import extract_text, chunk_text
 from ai_assistant.bots.chat_service import (
+    ChatRateLimitError,
     ChatServiceError,
     ChatUsageLimitError,
     process_bot_message,
 )
 from .knowledge_utils import (
     generate_embedding,
-    search_relevant_chunks,
-    render_system_message,
-    check_message_domain,
 )
 
 
@@ -324,6 +319,17 @@ def ajax_chat(request, bot_id):
                 status=403,
             )
 
+        except ChatRateLimitError as error:
+            return JsonResponse(
+                {
+                    "error": str(error),
+                    "retry_after_seconds": (
+                        error.retry_after_seconds
+                    ),
+                },
+                status=429,
+            )
+
         except ChatServiceError as error:
             logger.error(
                 "Chat service error: %s",
@@ -380,353 +386,6 @@ def ajax_chat(request, bot_id):
             },
             status=500,
         )
-
-        usage_status = get_ai_usage_status(
-            request.user
-        )
-
-        if not usage_status["allowed"]:
-            if usage_status[
-                "daily_limit_reached"
-            ]:
-                return JsonResponse(
-                    {
-                        "error": (
-                            "Daily AI message limit "
-                            "reached"
-                        ),
-                        "plan": usage_status["plan"],
-                        "daily_messages_used": (
-                            usage_status[
-                                "daily_messages_used"
-                            ]
-                        ),
-                        "daily_limit": (
-                            usage_status[
-                                "daily_message_limit"
-                            ]
-                        ),
-                    },
-                    status=403,
-                )
-
-            if usage_status[
-                "monthly_cost_limit_reached"
-            ]:
-                return JsonResponse(
-                    {
-                        "error": (
-                            "Monthly AI usage limit "
-                            "reached"
-                        ),
-                        "plan": usage_status["plan"],
-                    },
-                    status=403,
-                )
-
-            return JsonResponse(
-                {
-                    "error": "AI usage is unavailable.",
-                },
-                status=403,
-            )
-
-        # -------------------------------------------------
-        # CATEGORY DOMAIN CHECK
-        # -------------------------------------------------
-        domain_check = check_message_domain(
-            bot,
-            user_input,
-        )
-
-        if domain_check["tokens_used"] > 0:
-            BotUsageLog.objects.create(
-                user=request.user,
-                bot=bot,
-                tokens_used=domain_check[
-                    "tokens_used"
-                ],
-                input_tokens=domain_check[
-                    "input_tokens"
-                ],
-                output_tokens=domain_check[
-                    "output_tokens"
-                ],
-                model=domain_check[
-                    "model"
-                ],
-            )
-
-        if not domain_check["in_domain"]:
-            reply = (
-                f"I specialize in "
-                f"{bot.get_category_display()}. "
-                f"Please ask me something related "
-                f"to that category."
-            )
-
-            ChatMessage.objects.create(
-                bot=bot,
-                user=request.user,
-                sender="user",
-                message=user_input,
-            )
-
-            ChatMessage.objects.create(
-                bot=bot,
-                user=request.user,
-                sender="assistant",
-                message=reply,
-            )
-
-            user_profile.increment_message_count()
-
-            return JsonResponse(
-                {
-                    "reply": reply,
-                    "plan": user_profile.plan,
-                    "daily_messages_used": (
-                        user_profile.daily_message_count
-                    ),
-                    "daily_limit": (
-                        usage_status[
-                            "daily_message_limit"
-                        ]
-                    ),
-                }
-            )
-
-        # -------------------------------------------------
-        # SAVE USER MESSAGE
-        # -------------------------------------------------
-        ChatMessage.objects.create(
-            bot=bot,
-            user=request.user,
-            sender="user",
-            message=user_input,
-        )
-
-        # -------------------------------------------------
-        # COST CONTROL
-        #
-        # Only send the latest 20 messages to OpenAI.
-        # -------------------------------------------------
-        latest_messages = list(
-            ChatMessage.objects.filter(
-                bot=bot,
-                user=request.user,
-            )
-            .order_by("-timestamp")[:20]
-        )
-
-        latest_messages.reverse()
-
-               # -------------------------------------------------
-        # KNOWLEDGE BASE
-        # -------------------------------------------------
-        try:
-            knowledge_result = search_relevant_chunks(
-                bot,
-                user_input,
-                include_usage=True,
-            )
-
-            relevant_chunks = knowledge_result[
-                "chunks"
-            ]
-
-            if knowledge_result["tokens_used"] > 0:
-                BotUsageLog.objects.create(
-                    user=request.user,
-                    bot=bot,
-                    tokens_used=knowledge_result[
-                        "tokens_used"
-                    ],
-                    input_tokens=knowledge_result[
-                        "input_tokens"
-                    ],
-                    output_tokens=knowledge_result[
-                        "output_tokens"
-                    ],
-                    model=knowledge_result["model"],
-                )
-
-            knowledge_text = (
-                "\n\n".join(relevant_chunks)
-                if relevant_chunks
-                else ""
-            )
-
-            system_message = render_system_message(
-                bot,
-                knowledge_text,
-            )
-
-        except Exception:
-            logger.error(
-                "Knowledge search/render failed:\n%s",
-                traceback.format_exc(),
-            )
-
-            knowledge_text = ""
-
-            system_message = render_system_message(
-                bot,
-                "",
-            )
-
-
-        # -------------------------------------------------
-        # BUILD OPENAI CHAT HISTORY
-        # -------------------------------------------------
-        history = [
-            {
-                "role": "system",
-                "content": system_message,
-            }
-        ]
-
-        for chat_message in latest_messages:
-            history.append(
-                {
-                    "role": (
-                        "user"
-                        if chat_message.sender == "user"
-                        else "assistant"
-                    ),
-                    "content": chat_message.message,
-                }
-            )
-
-        # -------------------------------------------------
-        # OPENAI
-        # -------------------------------------------------
-        openai.api_key = os.getenv(
-            "OPENAI_API_KEY"
-        )
-
-        if not openai.api_key:
-            logger.error(
-                "OPENAI_API_KEY is missing."
-            )
-
-            return JsonResponse(
-                {
-                    "error": (
-                        "AI service is not configured."
-                    ),
-                },
-                status=500,
-            )
-
-        response = openai.ChatCompletion.create(
-            model="gpt-4o-mini",
-            messages=history,
-        )
-
-        reply = (
-            response
-            .choices[0]
-            .message["content"]
-            .strip()
-        )
-
-        # -------------------------------------------------
-        # TOKEN LOGGING
-        # -------------------------------------------------
-        try:
-            usage = response["usage"]
-
-            input_tokens = usage.get(
-                "prompt_tokens",
-                0,
-            )
-
-            output_tokens = usage.get(
-                "completion_tokens",
-                0,
-            )
-
-            tokens_used = usage.get(
-                "total_tokens",
-                0,
-            )
-
-            model_name = response.get(
-                "model",
-                "gpt-4o-mini",
-            )
-
-            BotUsageLog.objects.create(
-                user=request.user,
-                bot=bot,
-                tokens_used=tokens_used,
-                input_tokens=input_tokens,
-                output_tokens=output_tokens,
-                model=model_name,
-            )
-
-            logger.info(
-                (
-                    "AI usage - user=%s bot=%s "
-                    "input=%s output=%s total=%s "
-                    "model=%s"
-                ),
-                request.user.id,
-                bot.id,
-                input_tokens,
-                output_tokens,
-                tokens_used,
-                model_name,
-            )
-
-        except Exception:
-            logger.warning(
-                "Could not save BotUsageLog:\n%s",
-                traceback.format_exc(),
-            )
-
-        # -------------------------------------------------
-        # SAVE ASSISTANT MESSAGE
-        # -------------------------------------------------
-        ChatMessage.objects.create(
-            bot=bot,
-            user=request.user,
-            sender="assistant",
-            message=reply,
-        )
-
-        # Count only successful AI requests.
-        user_profile.increment_message_count()
-
-        return JsonResponse(
-            {
-                "reply": reply,
-                "plan": user_profile.plan,
-                "daily_messages_used": (
-                    user_profile.daily_message_count
-                ),
-                "daily_limit": (
-                    usage_status[
-                        "daily_message_limit"
-                    ]
-                ),
-            }
-        )
-
-    except Exception:
-        logger.error(
-            "ajax_chat error:\n%s",
-            traceback.format_exc(),
-        )
-
-        return JsonResponse(
-            {
-                "error": "An error occurred.",
-            },
-            status=500,
-        )
-
 
 @login_required
 def analytics_dashboard(request):

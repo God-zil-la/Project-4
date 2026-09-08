@@ -5,6 +5,7 @@ from rest_framework.views import APIView
 
 from ai_assistant.accounts.models import UserProfile
 from ai_assistant.bots.chat_service import (
+    ChatRateLimitError,
     ChatServiceError,
     ChatUsageLimitError,
     process_bot_message,
@@ -58,6 +59,18 @@ class PublicChatAPIView(APIView):
             )
         ).strip()
 
+        conversation_id = request.data.get(
+            "conversation_id"
+        )
+
+        if conversation_id is not None:
+            conversation_id = str(
+                conversation_id
+            ).strip()
+
+            if not conversation_id:
+                conversation_id = None
+
         if not bot_id:
             return Response(
                 {
@@ -95,6 +108,7 @@ class PublicChatAPIView(APIView):
                 user=user,
                 bot=bot,
                 message=message,
+                conversation=conversation_id,
             )
 
         except ChatUsageLimitError as error:
@@ -128,14 +142,23 @@ class PublicChatAPIView(APIView):
                 status=status.HTTP_403_FORBIDDEN,
             )
 
+        except ChatRateLimitError as error:
+            return Response(
+                {
+                    "error": str(error),
+                    "retry_after_seconds": (
+                        error.retry_after_seconds
+                    ),
+                },
+                status=status.HTTP_429_TOO_MANY_REQUESTS,
+            )
+
         except ChatServiceError as error:
             return Response(
                 {
                     "error": str(error),
                 },
-                status=(
-                    status.HTTP_500_INTERNAL_SERVER_ERROR
-                ),
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         except Exception:
@@ -148,4 +171,7 @@ class PublicChatAPIView(APIView):
                 ),
             )
 
-        return Response(result)
+        return Response(
+            result,
+            status=status.HTTP_200_OK,
+        )
