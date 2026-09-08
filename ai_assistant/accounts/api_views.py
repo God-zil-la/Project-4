@@ -8,6 +8,7 @@ from ai_assistant.accounts.models import UserProfile
 from ai_assistant.accounts.plan_utils import get_ai_usage_status
 from ai_assistant.bots.models import Bot
 from ai_assistant.bots.openai_client import call_openai
+from ai_assistant.bots.knowledge_utils import check_message_domain
 from ai_assistant.dashboard.models import BotUsageLog
 
 
@@ -44,14 +45,51 @@ class PublicChatAPIView(APIView):
                 status=401,
             )
 
+        bot_id = request.data.get("bot_id")
+        message = request.data.get("message")
+
+        if not bot_id or not message:
+            return Response(
+                {
+                    "error": (
+                        "bot_id and message are required"
+                    ),
+                },
+                status=400,
+            )
+
+        message = str(message).strip()
+
+        if not message:
+            return Response(
+                {
+                    "error": "Message cannot be empty",
+                },
+                status=400,
+            )
+
+        try:
+            bot = Bot.objects.get(
+                id=bot_id,
+                owner=user,
+            )
+
+        except ObjectDoesNotExist:
+            return Response(
+                {
+                    "error": (
+                        "Bot not found or unauthorized"
+                    ),
+                },
+                status=404,
+            )
+
         # Check plan limits before processing
         # another AI request.
         usage_status = get_ai_usage_status(user)
 
         if not usage_status["allowed"]:
-            if usage_status[
-                "daily_limit_reached"
-            ]:
+            if usage_status["daily_limit_reached"]:
                 return Response(
                     {
                         "error": (
@@ -94,43 +132,77 @@ class PublicChatAPIView(APIView):
                 status=403,
             )
 
-        bot_id = request.data.get("bot_id")
-        message = request.data.get("message")
-
-        if not bot_id or not message:
-            return Response(
-                {
-                    "error": (
-                        "bot_id and message are required"
-                    ),
-                },
-                status=400,
-            )
-
-        message = str(message).strip()
-
-        if not message:
-            return Response(
-                {
-                    "error": "Message cannot be empty",
-                },
-                status=400,
-            )
-
+        # Run the strict category classifier before
+        # sending the message to the main AI response.
         try:
-            bot = Bot.objects.get(
-                id=bot_id,
-                owner=user,
+            domain_result = check_message_domain(
+                bot,
+                message,
             )
 
-        except ObjectDoesNotExist:
+        except Exception as exc:
             return Response(
                 {
                     "error": (
-                        "Bot not found or unauthorized"
+                        "Category validation error"
                     ),
+                    "details": str(exc),
                 },
-                status=404,
+                status=500,
+            )
+
+        classifier_tokens = domain_result[
+            "tokens_used"
+        ]
+
+        if classifier_tokens > 0:
+            BotUsageLog.objects.create(
+                user=user,
+                bot=bot,
+                tokens_used=classifier_tokens,
+                input_tokens=domain_result[
+                    "input_tokens"
+                ],
+                output_tokens=domain_result[
+                    "output_tokens"
+                ],
+                model=domain_result["model"],
+            )
+
+        # Stop here if the message is outside
+        # the bot's configured category.
+        if not domain_result["in_domain"]:
+            response_text = (
+                f"I specialize in "
+                f"{bot.get_category_display()}. "
+                f"Please ask me something related "
+                f"to that category."
+            )
+
+            profile.increment_message_count()
+
+            return Response(
+                {
+                    "response": response_text,
+                    "plan": profile.plan,
+                    "tokens_used": classifier_tokens,
+                    "input_tokens": domain_result[
+                        "input_tokens"
+                    ],
+                    "output_tokens": domain_result[
+                        "output_tokens"
+                    ],
+                    "model": domain_result["model"],
+                    "daily_messages_used": (
+                        profile.daily_message_count
+                    ),
+                    "daily_limit": (
+                        usage_status[
+                            "daily_message_limit"
+                        ]
+                    ),
+                    "in_domain": False,
+                }
             )
 
         try:
@@ -170,9 +242,17 @@ class PublicChatAPIView(APIView):
             {
                 "response": response_text,
                 "plan": profile.plan,
-                "tokens_used": tokens_used,
-                "input_tokens": input_tokens,
-                "output_tokens": output_tokens,
+                "tokens_used": (
+                    classifier_tokens + tokens_used
+                ),
+                "input_tokens": (
+                    domain_result["input_tokens"]
+                    + input_tokens
+                ),
+                "output_tokens": (
+                    domain_result["output_tokens"]
+                    + output_tokens
+                ),
                 "model": model_name,
                 "daily_messages_used": (
                     profile.daily_message_count
@@ -182,5 +262,6 @@ class PublicChatAPIView(APIView):
                         "daily_message_limit"
                     ]
                 ),
+                "in_domain": True,
             }
         )
