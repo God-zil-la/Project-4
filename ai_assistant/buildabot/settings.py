@@ -298,5 +298,35 @@ MESSAGE_TAGS = {
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# Custom limit for Free plan (daily token usage)
+# -------------------------------------------------
+# PLAN LIMITS
+# -------------------------------------------------
+
+# Maximum successful AI messages per day for Free users.
+# Web and API clients share the same counter.
 FREE_PLAN_DAILY_LIMIT = 15
+
+
+# -------------------------------------------------
+# AI MODEL PRICING
+# -------------------------------------------------
+#
+# Prices are stored as USD per 1,000,000 tokens.
+# Input and output are tracked separately because
+# OpenAI charges different rates for each.
+#
+# IMPORTANT:
+# Keep this table centralized so model pricing can
+# be updated without changing the chat/API logic.
+# -------------------------------------------------
+
+AI_MODEL_PRICING = {
+    "gpt-3.5-turbo-0125": {
+        "input_per_million": 0.50,
+        "output_per_million": 1.50,
+    },
+    "gpt-4o-mini-2024-07-18": {
+        "input_per_million": 0.15,
+        "output_per_million": 0.60,
+    },
+}
