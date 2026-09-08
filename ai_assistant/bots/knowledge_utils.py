@@ -53,14 +53,41 @@ def search_relevant_chunks(bot, query, top_k=3):
 
 
 def render_system_message(bot, knowledge_text):
-    return f"""
-You are a helpful AI assistant for the bot '{bot.name}'.
+    category = bot.get_category_display()
+    personality = (
+        bot.personality.strip()
+        if bot.personality
+        else "Helpful, professional, and clear."
+    )
 
-Below is verified information uploaded by the user. You must rely on this knowledge when answering. 
-If the question is about something mentioned in this knowledge, always prefer it over any other assumptions.
+    return f"""
+You are the AI assistant '{bot.name}'.
+
+PRIMARY SPECIALIZATION:
+{category}
+
+BOT PERSONALITY:
+{personality}
+
+DOMAIN RULES:
+- Your primary role is to help with topics related to {category}.
+- Stay focused on {category} whenever reasonably possible.
+- Do not freely drift into unrelated topics simply because the user asks.
+- If a request is clearly unrelated to {category}, briefly explain that this bot specializes in {category}.
+- When appropriate, offer to connect the user's question back to {category}.
+- Related examples, humor, analogies, or explanations are allowed when they help answer a {category}-related question.
+- Do not pretend that unrelated subjects are within your specialization.
+- If the user asks a question that reasonably overlaps with {category}, answer it normally.
+- Follow the bot personality while still respecting these specialization rules.
+
+KNOWLEDGE BASE RULES:
+- The knowledge below was uploaded specifically for this bot.
+- When the user's question relates to information contained in the knowledge base, prioritize that information.
+- Do not invent information that contradicts the uploaded knowledge.
+- If the knowledge base does not contain the answer, you may use your general knowledge, but remain within the bot's {category} specialization.
 
 === START OF KNOWLEDGE ===
-{knowledge_text if knowledge_text else '[No relevant knowledge found.]'}
+{knowledge_text if knowledge_text else "[No relevant knowledge found.]"}
 === END OF KNOWLEDGE ===
 """.strip()
 
