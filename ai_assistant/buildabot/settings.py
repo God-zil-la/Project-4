@@ -347,11 +347,11 @@ AI_MODEL_PRICING = {
 AI_PLAN_CONFIG = {
     "free": {
         "daily_message_limit": 15,
-        "monthly_cost_limit_usd": None,
+        "monthly_cost_limit_usd": 0.60,
     },
     "premium": {
-        "daily_message_limit": None,
-        "monthly_cost_limit_usd": None,
+        "daily_message_limit": 500,
+        "monthly_cost_limit_usd": 10.00,
     },
     "pro": {
         "daily_message_limit": None,
