@@ -4,40 +4,48 @@
 {% block title %}Bot Playground - {{ bot.name }}{% endblock %}
 
 {% block content %}
+
 <h1>Chat with {{ bot.name }}</h1>
 
-<div id="chat-box" style="
-        border: 1px solid #ccc;
-        padding: 15px;
-        height: 400px;
-        overflow-y: auto;
-        background: #fff;
-        margin-bottom: 10px;
-    ">
-    {% for message in chat_messages %}
-    <div class="chat-message {{ message.sender }}">
-        <strong>{{ message.sender|capfirst }}:</strong>
-        {{ message.message|linebreaksbr }}
-    </div>
-    {% endfor %}
+<div class="playground-chat-layout">
+
+    <aside class="conversation-sidebar">
+
+        <button id="new-chat-button" type="button" class="new-chat-button">
+            + New Chat
+        </button>
+
+        <div id="conversation-list">
+            <p class="conversation-loading">
+                Loading conversations...
+            </p>
+        </div>
+
+    </aside>
+
+    <section class="conversation-main">
+
+        <div id="conversation-title" class="conversation-title">
+            New Chat
+        </div>
+
+        <div id="chat-box"></div>
+
+        <form id="chat-form" method="post" autocomplete="off">
+            {% csrf_token %}
+
+            <input id="chat-input" type="text" name="message" placeholder="Type your message..." required />
+
+            <button type="submit">
+                Send
+            </button>
+
+        </form>
+
+    </section>
+
 </div>
 
-<form id="chat-form" method="post" autocomplete="off" style="
-        display: flex;
-        gap: 10px;
-        margin-bottom: 1rem;
-    ">
-    {% csrf_token %}
-
-    <input id="chat-input" type="text" name="message" placeholder="Type your message..." style="
-            flex-grow: 1;
-            padding: 8px;
-        " required />
-
-    <button type="submit" style="padding: 8px 15px;">
-        Send
-    </button>
-</form>
 
 <h2 style="text-align: center; margin-bottom: 1rem;">
     Upload Knowledge File for {{ bot.name }}
@@ -57,6 +65,7 @@
     {{ knowledge_form.non_field_errors }}
 
     <div class="form-group">
+
         <label for="{{ knowledge_form.file.id_for_label }}" style="font-weight: bold;">
             Upload File (.txt, .pdf, .docx):
         </label>
@@ -65,17 +74,19 @@
 
         {% for error in knowledge_form.file.errors %}
         <div class="error" style="
-                color: red;
-                margin-top: 5px;
-            ">
+                    color: red;
+                    margin-top: 5px;
+                ">
             {{ error }}
         </div>
         {% endfor %}
+
     </div>
 
     <button type="submit" class="btn btn-primary" style="margin-top: 0.5rem;">
         Upload Knowledge
     </button>
+
 </form>
 
 <style>
@@ -156,6 +167,236 @@
             0 8px 25px rgba(0, 184, 230, 0.8);
         transform: scale(1.05);
     }
+
+    .playground-chat-layout {
+        display: grid;
+        grid-template-columns: 240px minmax(0, 1fr);
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .conversation-sidebar {
+        background: var(--nav-bg);
+        border-radius: 16px;
+        padding: 1rem;
+        min-height: 500px;
+    }
+
+    .new-chat-button {
+        width: 100%;
+        border: none;
+        border-radius: 12px;
+        padding: 0.75rem 1rem;
+        margin-bottom: 1rem;
+        cursor: pointer;
+        font-weight: 700;
+        background: var(--accent-color);
+        color: #fff;
+    }
+
+    .new-chat-button:hover {
+        opacity: 0.9;
+    }
+
+    #conversation-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .conversation-item {
+        width: 100%;
+        text-align: left;
+        padding: 0.7rem;
+        border: 1px solid rgba(128, 128, 128, 0.25);
+        border-radius: 10px;
+        background: transparent;
+        color: var(--text-color);
+        cursor: pointer;
+        overflow: hidden;
+    }
+
+    .conversation-item:hover {
+        background: rgba(128, 128, 128, 0.12);
+    }
+
+    .conversation-item.active {
+        border-color: var(--accent-color);
+        background: rgba(0, 188, 212, 0.15);
+    }
+
+    .conversation-item-title {
+        display: block;
+        font-weight: 700;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .conversation-item-count {
+        display: block;
+        margin-top: 0.25rem;
+        font-size: 0.8rem;
+        opacity: 0.7;
+    }
+
+    .conversation-loading,
+    .conversation-empty {
+        font-size: 0.9rem;
+        opacity: 0.7;
+    }
+
+    .conversation-main {
+        min-width: 0;
+    }
+
+    .conversation-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        margin-bottom: 0.75rem;
+    }
+
+    #chat-box {
+        border: 1px solid #ccc;
+        padding: 15px;
+        height: 400px;
+        overflow-y: auto;
+        background: #fff;
+        margin-bottom: 10px;
+        border-radius: 12px;
+    }
+
+    #chat-form {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 1rem;
+    }
+
+    #chat-input {
+        flex-grow: 1;
+        padding: 8px;
+    }
+
+    #chat-form button {
+        padding: 8px 15px;
+    }
+
+    @media (max-width: 700px) {
+        .playground-chat-layout {
+            grid-template-columns: 1fr;
+        }
+
+        .conversation-sidebar {
+            min-height: auto;
+        }
+
+        #conversation-list {
+            max-height: 180px;
+            overflow-y: auto;
+        }
+    }
+
+    .conversation-item {
+        position: relative;
+        display: flex;
+        align-items: stretch;
+        width: 100%;
+        padding: 0;
+        border: 1px solid rgba(128, 128, 128, 0.25);
+        border-radius: 10px;
+        background: transparent;
+        color: var(--text-color);
+        overflow: visible;
+    }
+
+    .conversation-item:hover {
+        background: rgba(128, 128, 128, 0.12);
+    }
+
+    .conversation-item.active {
+        border-color: var(--accent-color);
+        background: rgba(0, 188, 212, 0.15);
+    }
+
+    .conversation-content {
+        flex: 1;
+        min-width: 0;
+        border: none;
+        background: transparent;
+        color: inherit;
+        text-align: left;
+        padding: 0.7rem;
+        cursor: pointer;
+    }
+
+    .conversation-item-title {
+        display: block;
+        font-weight: 700;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .conversation-item-count {
+        display: block;
+        margin-top: 0.25rem;
+        font-size: 0.8rem;
+        opacity: 0.7;
+    }
+
+    .conversation-menu-button {
+        flex: 0 0 40px;
+        width: 40px;
+        border: none;
+        background: transparent;
+        color: inherit;
+        cursor: pointer;
+        font-size: 1.4rem;
+        border-radius: 8px;
+        z-index: 2;
+    }
+
+    .conversation-menu-button:hover {
+        background: rgba(128, 128, 128, 0.15);
+    }
+
+    .conversation-menu {
+        display: none;
+        position: absolute;
+        top: 45px;
+        right: 5px;
+        z-index: 1000;
+        min-width: 130px;
+        padding: 0.35rem;
+        border-radius: 10px;
+        background: #1b1b1b;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+    }
+
+    .conversation-menu.open {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .conversation-menu button {
+        width: 100%;
+        border: none;
+        background: transparent;
+        color: #fff;
+        text-align: left;
+        padding: 0.6rem 0.75rem;
+        border-radius: 7px;
+        cursor: pointer;
+    }
+
+    .conversation-menu button:hover {
+        background: rgba(255, 255, 255, 0.1);
+    }
+
+    .conversation-menu .conversation-delete-button {
+        color: #ff6b6b;
+    }
 </style>
 
 <script>
@@ -169,7 +410,24 @@
         const chatBox =
             document.getElementById("chat-box");
 
+        const conversationList =
+            document.getElementById(
+                "conversation-list"
+            );
+
+        const conversationTitle =
+            document.getElementById(
+                "conversation-title"
+            );
+
+        const newChatButton =
+            document.getElementById(
+                "new-chat-button"
+            );
+
         const botId = "{{ bot.id }}";
+
+        let currentConversationId = null;
 
         function escapeHtml(text) {
             const div =
@@ -206,14 +464,14 @@
         }
 
         function getSenderLabel(sender) {
-            if (sender === "bot") {
+            if (
+                sender === "bot"
+                || sender === "assistant"
+            ) {
                 return "Assistant";
             }
 
-            return (
-                sender.charAt(0).toUpperCase()
-                + sender.slice(1)
-            );
+            return "User";
         }
 
         function appendMessage(sender, text) {
@@ -251,20 +509,55 @@
                 chatBox.scrollHeight;
         }
 
-        async function loadFullChat() {
+        function setActiveConversationButton() {
+            const buttons =
+                conversationList.querySelectorAll(
+                    ".conversation-item"
+                );
+
+            buttons.forEach((button) => {
+                button.classList.toggle(
+                    "active",
+                    button.dataset.conversationId
+                    === currentConversationId
+                );
+            });
+        }
+
+        async function loadConversation(
+            conversationId
+        ) {
+            if (!conversationId) {
+                currentConversationId = null;
+                conversationTitle.textContent =
+                    "New Chat";
+                chatBox.innerHTML = "";
+                setActiveConversationButton();
+                return;
+            }
+
             try {
                 const response = await fetch(
                     `/bots/${botId}/bot_chat_api/`
+                    + `?conversation_id=${encodeURIComponent(
+                        conversationId
+                    )}`
                 );
 
                 if (!response.ok) {
                     throw new Error(
-                        "Failed to load chat history."
+                        "Failed to load conversation."
                     );
                 }
 
                 const data =
                     await response.json();
+
+                currentConversationId =
+                    data.conversation_id;
+
+                conversationTitle.textContent =
+                    data.title || "New Chat";
 
                 chatBox.innerHTML = "";
 
@@ -277,14 +570,387 @@
                     }
                 );
 
-                chatBox.scrollTop =
-                    chatBox.scrollHeight;
+                setActiveConversationButton();
 
             } catch (error) {
                 console.error(
-                    "Failed to load chat history:",
+                    "Failed to load conversation:",
                     error
                 );
+            }
+        }
+
+        async function loadConversations(
+            preferredConversationId = null
+        ) {
+            try {
+                const response = await fetch(
+                    "/bots/api/conversations/"
+                );
+
+                if (!response.ok) {
+                    throw new Error(
+                        "Failed to load conversations."
+                    );
+                }
+
+                const conversations =
+                    await response.json();
+
+                conversationList.innerHTML = "";
+
+                const botConversations =
+                    conversations.filter(
+                        (conversation) =>
+                            Number(
+                                conversation.bot_id
+                            ) === Number(botId)
+                    );
+
+                if (
+                    botConversations.length === 0
+                ) {
+                    conversationList.innerHTML =
+                        '<p class="conversation-empty">'
+                        + "No conversations yet."
+                        + "</p>";
+
+                    await loadConversation(null);
+                    return;
+                }
+
+                botConversations.forEach((conversation) => {
+                    const item = document.createElement("div");
+                    item.className = "conversation-item";
+
+                    if (
+                        conversation.conversation_id
+                        === currentConversationId
+                    ) {
+                        item.classList.add("active");
+                    }
+
+                    item.dataset.conversationId =
+                        conversation.conversation_id;
+
+                    const content = document.createElement("button");
+                    content.type = "button";
+                    content.className = "conversation-content";
+
+                    const title = document.createElement("span");
+                    title.className = "conversation-item-title";
+                    title.textContent =
+                        conversation.title || "New Chat";
+
+                    const count = document.createElement("span");
+                    count.className = "conversation-item-count";
+                    count.textContent =
+                        `${conversation.message_count} messages`;
+
+                    content.appendChild(title);
+                    content.appendChild(count);
+
+                    content.addEventListener("click", () => {
+                        loadConversation(
+                            conversation.conversation_id
+                        );
+                    });
+
+                    const menuButton =
+                        document.createElement("button");
+
+                    menuButton.type = "button";
+                    menuButton.className =
+                        "conversation-menu-button";
+
+                    menuButton.textContent = "⋮";
+                    menuButton.setAttribute(
+                        "aria-label",
+                        "Conversation options"
+                    );
+
+                    const menu = document.createElement("div");
+                    menu.className = "conversation-menu";
+
+                    const renameButton =
+                        document.createElement("button");
+
+                    renameButton.type = "button";
+                    renameButton.textContent = "Rename";
+
+                    renameButton.addEventListener(
+                        "click",
+                        async (event) => {
+                            event.stopPropagation();
+
+                            menu.classList.remove("open");
+
+                            await renameConversation(
+                                conversation
+                            );
+                        }
+                    );
+
+                    const deleteButton =
+                        document.createElement("button");
+
+                    deleteButton.type = "button";
+                    deleteButton.textContent = "Delete";
+                    deleteButton.className =
+                        "conversation-delete-button";
+
+                    deleteButton.addEventListener(
+                        "click",
+                        async (event) => {
+                            event.stopPropagation();
+
+                            menu.classList.remove("open");
+
+                            await deleteConversation(
+                                conversation
+                            );
+                        }
+                    );
+
+                    menu.appendChild(renameButton);
+                    menu.appendChild(deleteButton);
+
+                    menuButton.addEventListener(
+                        "click",
+                        (event) => {
+                            event.stopPropagation();
+
+                            document
+                                .querySelectorAll(
+                                    ".conversation-menu.open"
+                                )
+                                .forEach((openMenu) => {
+                                    if (openMenu !== menu) {
+                                        openMenu.classList.remove(
+                                            "open"
+                                        );
+                                    }
+                                });
+
+                            menu.classList.toggle("open");
+                        }
+                    );
+
+                    item.appendChild(content);
+                    item.appendChild(menuButton);
+                    item.appendChild(menu);
+
+                    conversationList.appendChild(item);
+                });
+
+                let conversationToLoad =
+                    preferredConversationId;
+
+                if (
+                    !conversationToLoad
+                    || !botConversations.some(
+                        (conversation) =>
+                            conversation
+                                .conversation_id
+                            === conversationToLoad
+                    )
+                ) {
+                    conversationToLoad =
+                        botConversations[0]
+                            .conversation_id;
+                }
+
+                await loadConversation(
+                    conversationToLoad
+                );
+
+            } catch (error) {
+                conversationList.innerHTML =
+                    '<p class="conversation-empty">'
+                    + "Failed to load conversations."
+                    + "</p>";
+
+                console.error(
+                    "Failed to load conversations:",
+                    error
+                );
+            }
+        }
+
+        async function renameConversation(
+            conversation
+        ) {
+            const currentTitle =
+                conversation.title || "";
+
+            const newTitle = window.prompt(
+                "Rename conversation:",
+                currentTitle
+            );
+
+            if (newTitle === null) {
+                return;
+            }
+
+            const cleanTitle =
+                newTitle.trim();
+
+            if (!cleanTitle) {
+                return;
+            }
+
+            try {
+                const response = await fetch(
+                    `/bots/api/conversations/${conversation.conversation_id
+                    }/`,
+                    {
+                        method: "PATCH",
+                        headers: {
+                            "Content-Type":
+                                "application/json",
+                            "X-CSRFToken":
+                                getCookie("csrftoken"),
+                        },
+                        body: JSON.stringify({
+                            title: cleanTitle,
+                        }),
+                    }
+                );
+
+                if (!response.ok) {
+                    throw new Error(
+                        "Failed to rename conversation."
+                    );
+                }
+
+                await loadConversations(
+                    currentConversationId
+                );
+
+            } catch (error) {
+                console.error(
+                    "Failed to rename conversation:",
+                    error
+                );
+            }
+        }
+
+
+        async function deleteConversation(
+            conversation
+        ) {
+            const title =
+                conversation.title || "New Chat";
+
+            const confirmed = window.confirm(
+                `Delete "${title}"?\n\n`
+                + "This will permanently delete "
+                + "the conversation and its messages."
+            );
+
+            if (!confirmed) {
+                return;
+            }
+
+            try {
+                const response = await fetch(
+                    `/bots/api/conversations/${conversation.conversation_id
+                    }/`,
+                    {
+                        method: "DELETE",
+                        headers: {
+                            "X-CSRFToken":
+                                getCookie("csrftoken"),
+                        },
+                    }
+                );
+
+                if (!response.ok) {
+                    throw new Error(
+                        "Failed to delete conversation."
+                    );
+                }
+
+                if (
+                    currentConversationId
+                    === conversation.conversation_id
+                ) {
+                    currentConversationId = null;
+                    chatBox.innerHTML = "";
+                    conversationTitle.textContent =
+                        "New Chat";
+                }
+
+                await loadConversations();
+
+            } catch (error) {
+                console.error(
+                    "Failed to delete conversation:",
+                    error
+                );
+            }
+        }
+
+        async function createConversation() {
+            try {
+                newChatButton.disabled = true;
+
+                const response = await fetch(
+                    "/bots/api/conversations/",
+                    {
+                        method: "POST",
+                        headers: {
+                            "Content-Type":
+                                "application/json",
+                            "X-CSRFToken":
+                                getCookie(
+                                    "csrftoken"
+                                ),
+                        },
+                        body: JSON.stringify({
+                            bot_id: Number(botId),
+                        }),
+                    }
+                );
+
+                if (!response.ok) {
+                    throw new Error(
+                        "Failed to create conversation."
+                    );
+                }
+
+                const conversation =
+                    await response.json();
+
+                currentConversationId =
+                    conversation.conversation_id;
+
+                chatBox.innerHTML = "";
+
+                conversationTitle.textContent =
+                    conversation.title
+                    || "New Chat";
+
+                await loadConversations(
+                    conversation
+                        .conversation_id
+                );
+
+                chatInput.focus();
+
+            } catch (error) {
+                console.error(
+                    "Failed to create conversation:",
+                    error
+                );
+
+                appendMessage(
+                    "assistant",
+                    "Failed to create a new conversation."
+                );
+
+            } finally {
+                newChatButton.disabled = false;
             }
         }
 
@@ -320,24 +986,31 @@
                         body: JSON.stringify({
                             message:
                                 cleanMessage,
+                            conversation_id:
+                                currentConversationId,
                         }),
                     }
                 );
 
-                if (!response.ok) {
-                    const errorData =
-                        await response.json();
+                const data =
+                    await response.json();
 
+                if (!response.ok) {
                     appendMessage(
                         "assistant",
-                        errorData.error
+                        data.error
                         || "An error occurred."
                     );
 
                     return;
                 }
 
-                await loadFullChat();
+                currentConversationId =
+                    data.conversation_id;
+
+                await loadConversations(
+                    currentConversationId
+                );
 
             } catch (error) {
                 appendMessage(
@@ -362,6 +1035,11 @@
                     chatInput.value
                 );
             }
+        );
+
+        newChatButton.addEventListener(
+            "click",
+            createConversation
         );
 
         function getCookie(name) {
@@ -404,7 +1082,7 @@
             return cookieValue;
         }
 
-        loadFullChat();
+        loadConversations();
     });
 </script>
 

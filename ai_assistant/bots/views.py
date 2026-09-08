@@ -25,7 +25,13 @@ from rest_framework.authtoken.models import Token
 
 from ai_assistant.accounts.models import UserProfile
 from ai_assistant.dashboard.models import BotUsageLog
-from .models import Bot, ChatMessage, KnowledgeBase, KnowledgeChunk
+from .models import (
+    Bot,
+    ChatMessage,
+    Conversation,
+    KnowledgeBase,
+    KnowledgeChunk,
+)
 from .forms import BotForm, KnowledgeBaseForm
 from .utils import extract_text, chunk_text
 from ai_assistant.bots.chat_service import (
@@ -139,31 +145,85 @@ def create_bot(request):
 
 @login_required
 def bot_chat_api(request, bot_id):
+    """
+    Return chat history for one conversation
+    belonging to the authenticated user.
+    """
+
     bot = get_object_or_404(
         Bot,
         id=bot_id,
         owner=request.user,
     )
 
-    if request.method == "GET":
-        chat_messages = ChatMessage.objects.filter(
+    if request.method != "GET":
+        return HttpResponseNotAllowed(["GET"])
+
+    conversation_id = str(
+        request.GET.get(
+            "conversation_id",
+            "",
+        )
+    ).strip()
+
+    if conversation_id:
+        conversation = get_object_or_404(
+            Conversation,
+            public_id=conversation_id,
             bot=bot,
             user=request.user,
-        ).order_by("timestamp")
-
-        data = [
-            {
-                "sender": message.sender,
-                "message": message.message,
-            }
-            for message in chat_messages
-        ]
-
-        return JsonResponse(
-            {"messages": data}
+        )
+    else:
+        conversation = (
+            Conversation.objects.filter(
+                bot=bot,
+                user=request.user,
+            )
+            .order_by(
+                "-updated_at",
+                "-created_at",
+            )
+            .first()
         )
 
-    return HttpResponseNotAllowed(["GET"])
+    if conversation is None:
+        return JsonResponse(
+            {
+                "conversation_id": None,
+                "messages": [],
+            }
+        )
+
+    chat_messages = (
+        ChatMessage.objects.filter(
+            conversation=conversation,
+            bot=bot,
+            user=request.user,
+        )
+        .order_by("timestamp")
+    )
+
+    data = [
+        {
+            "id": message.id,
+            "sender": message.sender,
+            "message": message.message,
+            "timestamp": (
+                message.timestamp.isoformat()
+            ),
+        }
+        for message in chat_messages
+    ]
+
+    return JsonResponse(
+        {
+            "conversation_id": str(
+                conversation.public_id
+            ),
+            "title": conversation.title,
+            "messages": data,
+        }
+    )
 
 
 @login_required
@@ -281,11 +341,24 @@ def ajax_chat(request, bot_id):
                 status=400,
             )
 
+        conversation_id = data.get(
+            "conversation_id"
+        )
+
+        if conversation_id is not None:
+            conversation_id = str(
+                conversation_id
+            ).strip()
+
+            if not conversation_id:
+                conversation_id = None
+
         try:
             result = process_bot_message(
                 user=request.user,
                 bot=bot,
                 message=user_input,
+                conversation=conversation_id,
             )
 
         except ChatUsageLimitError as error:
@@ -338,9 +411,9 @@ def ajax_chat(request, bot_id):
 
             return JsonResponse(
                 {
-                    "error": "AI service error.",
+                    "error": str(error),
                 },
-                status=500,
+                status=400,
             )
 
         except Exception:
@@ -359,6 +432,9 @@ def ajax_chat(request, bot_id):
         return JsonResponse(
             {
                 "reply": result["response"],
+                "conversation_id": result[
+                    "conversation_id"
+                ],
                 "plan": result["plan"],
                 "daily_messages_used": (
                     result[
