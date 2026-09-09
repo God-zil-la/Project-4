@@ -10,9 +10,6 @@ from django.utils.decorators import method_decorator
 from ai_assistant.accounts.models import UserProfile
 
 
-stripe.api_key = settings.STRIPE_SECRET_KEY
-
-
 PLAN_CONFIG = {
     UserProfile.PLAN_PREMIUM: {
         "name": "AI Assistant Premium",
@@ -46,14 +43,23 @@ class CreateCheckoutSessionView(View):
                     status=400,
                 )
 
+            if not settings.STRIPE_SECRET_KEY:
+                return JsonResponse({"error": "Billing is temporarily unavailable."}, status=503)
+            profile = request.user.profile
+            if profile.stripe_subscription_id and profile.stripe_subscription_status not in {"canceled", "incomplete_expired"}:
+                return JsonResponse({"error": "Manage your existing subscription before starting another."}, status=409)
+            customer = ({"customer": profile.stripe_customer_id} if profile.stripe_customer_id
+                        else {"customer_email": request.user.email})
             checkout_session = stripe.checkout.Session.create(
+                api_key=settings.STRIPE_SECRET_KEY,
+                **customer,
                 mode="subscription",
 
                 client_reference_id=str(
                     request.user.id
                 ),
 
-                customer_email=request.user.email,
+
 
                 line_items=[
                     {
@@ -108,10 +114,10 @@ class CreateCheckoutSessionView(View):
                 }
             )
 
-        except Exception as error:
+        except Exception:
             return JsonResponse(
                 {
-                    "error": str(error),
+                    "error": "Unable to start checkout. Please try again later.",
                 },
                 status=500,
             )
