@@ -4,3 +4,6 @@ from django.apps import AppConfig
 class BotsConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
     name = 'ai_assistant.bots'
+
+    def ready(self):
+        from . import checks  # noqa: F401

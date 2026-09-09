@@ -333,23 +333,9 @@ AI_MODEL_PRICING = {
 
 REDIS_URL = os.getenv("REDIS_URL")
 
-if REDIS_URL:
-    CACHES = {
-        "default": {
-            "BACKEND": "django_redis.cache.RedisCache",
-            "LOCATION": REDIS_URL,
-            "OPTIONS": {
-                "CLIENT_CLASS": "django_redis.client.DefaultClient",
-            },
-        }
-    }
-else:
-    CACHES = {
-        "default": {
-            "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
-            "LOCATION": "ai-assistant-local-cache",
-        }
-    }
+from .cache_config import build_cache_config
+
+CACHES = build_cache_config(REDIS_URL)
 
 # -------------------------------------------------
 # AI PLAN CONFIGURATION
