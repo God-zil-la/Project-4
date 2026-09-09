@@ -318,17 +318,6 @@ FREE_PLAN_DAILY_LIMIT = 15
 # be updated without changing the chat/API logic.
 # -------------------------------------------------
 
-AI_MODEL_PRICING = {
-    "gpt-3.5-turbo-0125": {
-        "input_per_million": 0.50,
-        "output_per_million": 1.50,
-    },
-    "gpt-4o-mini-2024-07-18": {
-        "input_per_million": 0.15,
-        "output_per_million": 0.60,
-    },
-}
-
 REDIS_URL = os.getenv("REDIS_URL")
 
 from .cache_config import build_cache_config
@@ -383,3 +372,6 @@ AI_MODEL_PRICING = {
         "output_per_million": 0.0,
     },
 }
+
+# Responses may report the requested alias instead of a dated snapshot.
+AI_MODEL_PRICING["gpt-4o-mini"] = AI_MODEL_PRICING["gpt-4o-mini-2024-07-18"]
