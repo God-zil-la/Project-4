@@ -1,4 +1,4 @@
-# D:\shan\OneDrive\Desktop\vs code projekt\ai-assistant\ai_assistant\buildabot\urls.py
+"""Root URL configuration for the AI Assistant project."""
 
 from django.contrib import admin
 from django.urls import path, include

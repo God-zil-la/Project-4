@@ -41,6 +41,7 @@ class StripeTests(TestCase):
                        return_value=SimpleNamespace(id='cs_test')) as create:
                 response = self.client.post(reverse('payments:create_checkout_session'), {'plan': plan})
             self.assertEqual(response.status_code, 200)
+            self.assertEqual(create.call_args.kwargs['locale'], 'en')
             self.assertEqual(create.call_args.kwargs['line_items'][0]['price_data']['unit_amount'], amount)
             self.assertEqual(create.call_args.kwargs['subscription_data']['metadata']['plan'], plan)
             self.assertEqual(self.user.profile.plan, 'free')

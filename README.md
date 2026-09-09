@@ -387,7 +387,7 @@ Create fully customized AI assistants by defining their name, category, personal
 
 Each assistant includes its own interactive chat playground where conversations take place in real time using OpenAI.
 
-![AI Playground](readme-img-validation/botrespons-playground.jpg)
+**Historical screenshot, described in English:** The historical playground showed a conversation with a recipe assistant, a message field, a Send button, and a knowledge upload form. The upload controls are described in English as "Choose file", "No file chosen", and "Upload Knowledge". The original screenshot remains in Git history.
 
 ---
 
@@ -411,7 +411,7 @@ Once processing is complete, the uploaded knowledge becomes immediately availabl
 
 Deploy assistants directly to your own Discord server using the included Bring Your Own Bot (BYOB) bridge.
 
-![Discord Integration](readme-img-validation/discord-bot.jpg)
+**Historical screenshot, described in English:** The historical Discord conversation showed a user asking how to stay comfortable in hot weather and the assistant returning a numbered list of suggestions. The message field is described in English as "Send a message to @AI Assistant". The original screenshot remains in Git history.
 
 ---
 
@@ -427,7 +427,7 @@ Upgrade to a Premium or Pro account to remove the Free plan assistant limit and 
 
 Premium subscriptions are processed securely through Stripe Checkout.
 
-![Stripe Checkout](readme-img-validation/payment.jpg)
+**Historical screenshot, described in English:** The historical Stripe sandbox Checkout showed a Pro Bot Plan priced at USD 15.00, a Pay with Link button, an email field, card details, cardholder name, country or region, and an option to save payment details. The selected country was Sweden. This historical price is not a statement of current subscription pricing. The original screenshot remains in Git history.
 
 ---
 
@@ -609,7 +609,7 @@ Stylesheets were validated using the W3C CSS Validator to verify syntax correctn
 - Consistent styling
 - Cross-browser compatibility
 
-![CSS Validation](readme-img-validation/css-validator.jpg)
+**Historical screenshot, described in English:** The historical W3C CSS validation result reported: "Congratulations! No errors found." It identified the submitted document as CSS Level 3 + SVG and provided validation badges and embedding instructions. This describes the retained historical result; it is not a new validation run. The original screenshot remains in Git history.
 
 ---
 

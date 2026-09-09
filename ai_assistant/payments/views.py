@@ -54,6 +54,7 @@ class CreateCheckoutSessionView(View):
                 api_key=settings.STRIPE_SECRET_KEY,
                 **customer,
                 mode="subscription",
+                locale="en",
 
                 client_reference_id=str(
                     request.user.id
