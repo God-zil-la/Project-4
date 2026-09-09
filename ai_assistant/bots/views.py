@@ -12,6 +12,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
 from django.views.decorators.csrf import csrf_protect
 from django.contrib import messages
+from django.db import transaction
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse, HttpResponseNotAllowed
 
@@ -632,15 +633,10 @@ def bot_chat_playground(request, bot_id):
                     source_text
                 )
 
-                kb = KnowledgeBase.objects.create(
-                    bot=bot,
-                    file=(
-                        file
-                        if file
-                        else None
-                    ),
-                    uploaded_by=request.user,
-                )
+                if not chunks:
+                    raise ValueError("No valid knowledge chunks were generated.")
+
+                prepared_chunks = []
 
                 for chunk in chunks:
                     embedding_result = generate_embedding(
@@ -652,12 +648,10 @@ def bot_chat_playground(request, bot_id):
                         "embedding"
                     ]
 
-                    if embedding:
-                        KnowledgeChunk.objects.create(
-                            knowledge_file=kb,
-                            text=chunk,
-                            embedding=embedding,
-                        )
+                    if not embedding:
+                        raise ValueError("An empty embedding was returned.")
+
+                    prepared_chunks.append((chunk, embedding))
 
                     if embedding_result["tokens_used"] > 0:
                         BotUsageLog.objects.create(
@@ -674,6 +668,36 @@ def bot_chat_playground(request, bot_id):
                             ],
                             model=embedding_result["model"],
                         )
+
+                # Keep API calls outside the knowledge database transaction.
+                # Usage logs remain recorded even if a later upload step fails.
+                kb = KnowledgeBase(
+                    bot=bot,
+                    file=file if file else None,
+                    uploaded_by=request.user,
+                )
+                try:
+                    if file:
+                        file.seek(0)
+                    with transaction.atomic():
+                        kb.save()
+                        for chunk, embedding in prepared_chunks:
+                            KnowledgeChunk.objects.create(
+                                knowledge_file=kb,
+                                text=chunk,
+                                embedding=embedding,
+                            )
+                except Exception:
+                    # File storage does not participate in database rollback.
+                    if kb.file and kb.file._committed:
+                        try:
+                            kb.file.delete(save=False)
+                        except Exception:
+                            logger.exception(
+                                "Failed to clean up knowledge upload file %s",
+                                kb.file.name,
+                            )
+                    raise
 
                 messages.success(
                     request,
