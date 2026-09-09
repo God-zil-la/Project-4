@@ -12,6 +12,16 @@ class RedisTests(SimpleTestCase):
         options = build_cache_config('rediss://localhost:6379/0')['default']['OPTIONS']
         self.assertFalse(options['IGNORE_EXCEPTIONS'])
         self.assertEqual(options['CONNECTION_POOL_KWARGS']['ssl_cert_reqs'], 'required')
+        self.assertTrue(options['CONNECTION_POOL_KWARGS']['ssl_check_hostname'])
+        heroku = build_cache_config('rediss://localhost:6379/0', heroku_kvs=True)['default']
+        self.assertTrue(heroku['LOCATION'].startswith('rediss://'))
+        self.assertFalse(heroku['OPTIONS']['IGNORE_EXCEPTIONS'])
+        self.assertIsNone(heroku['OPTIONS']['CONNECTION_POOL_KWARGS']['ssl_cert_reqs'])
+        self.assertFalse(heroku['OPTIONS']['CONNECTION_POOL_KWARGS']['ssl_check_hostname'])
+        for url in ['', 'redis://localhost', 'https://localhost',
+                    'rediss://localhost?ssl_cert_reqs=none']:
+            with self.assertRaises(ImproperlyConfigured):
+                build_cache_config(url, heroku_kvs=True)
         for url in ['https://localhost', 'redis://', 'rediss://localhost?ssl_cert_reqs=none']:
             with self.assertRaises(ImproperlyConfigured):
                 build_cache_config(url)
