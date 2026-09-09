@@ -397,7 +397,124 @@
     .conversation-menu .conversation-delete-button {
         color: #ff6b6b;
     }
+
+    #conversation-action-dialog {
+        width: min(92vw, 520px);
+        border: none;
+        border-radius: 16px;
+        padding: 0;
+        background: var(--nav-bg);
+        color: var(--text-color);
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
+    }
+
+    #conversation-action-dialog::backdrop {
+        background: rgba(0, 0, 0, 0.65);
+        backdrop-filter: blur(3px);
+    }
+
+    .conversation-dialog-content {
+        padding: 1.5rem;
+    }
+
+    .conversation-dialog-title {
+        margin: 0 0 0.75rem;
+        font-size: 1.3rem;
+        font-weight: 700;
+    }
+
+    .conversation-dialog-message {
+        margin: 0 0 1rem;
+        line-height: 1.5;
+    }
+
+    #conversation-dialog-input {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 0.75rem 0.9rem;
+        border: 1px solid rgba(128, 128, 128, 0.4);
+        border-radius: 10px;
+        background: #ffffff;
+        color: #111111;
+        font-size: 1rem;
+        outline: none;
+    }
+
+    #conversation-dialog-input:focus {
+        border-color: var(--accent-color);
+        box-shadow: 0 0 0 3px rgba(0, 188, 212, 0.18);
+    }
+
+    .conversation-dialog-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.75rem;
+        margin-top: 1.25rem;
+    }
+
+    .conversation-dialog-actions button {
+        border: none;
+        border-radius: 10px;
+        padding: 0.7rem 1rem;
+        cursor: pointer;
+        font-weight: 700;
+    }
+
+    #conversation-dialog-cancel {
+        background: rgba(128, 128, 128, 0.2);
+        color: var(--text-color);
+    }
+
+    #conversation-dialog-confirm {
+        background: var(--accent-color);
+        color: #ffffff;
+    }
+
+    #conversation-dialog-confirm.delete-mode {
+        background: #c62828;
+    }
+
+    @media (max-width: 480px) {
+        #conversation-action-dialog {
+            width: calc(100vw - 24px);
+            max-width: none;
+        }
+
+        .conversation-dialog-content {
+            padding: 1.1rem;
+        }
+
+        .conversation-dialog-actions {
+            flex-direction: column-reverse;
+        }
+
+        .conversation-dialog-actions button {
+            width: 100%;
+        }
+    }
 </style>
+
+<dialog id="conversation-action-dialog">
+    <div class="conversation-dialog-content">
+        <h3 id="conversation-dialog-title" class="conversation-dialog-title">
+            Conversation
+        </h3>
+
+        <p id="conversation-dialog-message" class="conversation-dialog-message"></p>
+
+        <input type="text" id="conversation-dialog-input" maxlength="200" autocomplete="off">
+
+        <div class="conversation-dialog-actions">
+            <button type="button" id="conversation-dialog-cancel">
+                Cancel
+            </button>
+
+            <button type="button" id="conversation-dialog-confirm">
+                Save
+            </button>
+        </div>
+    </div>
+</dialog>
 
 <script>
     document.addEventListener("DOMContentLoaded", () => {
@@ -424,6 +541,39 @@
             document.getElementById(
                 "new-chat-button"
             );
+
+        const conversationDialog =
+            document.getElementById(
+                "conversation-action-dialog"
+            );
+
+        const conversationDialogTitle =
+            document.getElementById(
+                "conversation-dialog-title"
+            );
+
+        const conversationDialogMessage =
+            document.getElementById(
+                "conversation-dialog-message"
+            );
+
+        const conversationDialogInput =
+            document.getElementById(
+                "conversation-dialog-input"
+            );
+
+        const conversationDialogCancel =
+            document.getElementById(
+                "conversation-dialog-cancel"
+            );
+
+        const conversationDialogConfirm =
+            document.getElementById(
+                "conversation-dialog-confirm"
+            );
+
+        let pendingConversationAction = null;
+        let pendingConversation = null;
 
         const botId = "{{ bot.id }}";
 
@@ -522,6 +672,73 @@
                     === currentConversationId
                 );
             });
+        }
+
+        function closeConversationDialog() {
+            conversationDialog.close();
+
+            pendingConversationAction = null;
+            pendingConversation = null;
+
+            conversationDialogInput.value = "";
+            conversationDialogInput.style.display = "block";
+
+            conversationDialogConfirm.classList.remove(
+                "delete-mode"
+            );
+        }
+
+        function openRenameDialog(conversation) {
+            pendingConversationAction = "rename";
+            pendingConversation = conversation;
+
+            conversationDialogTitle.textContent =
+                "Rename conversation";
+
+            conversationDialogMessage.textContent =
+                "Enter a new name for this conversation.";
+
+            conversationDialogInput.style.display = "block";
+            conversationDialogInput.value =
+                conversation.title || "";
+
+            conversationDialogConfirm.textContent =
+                "Save";
+
+            conversationDialogConfirm.classList.remove(
+                "delete-mode"
+            );
+
+            conversationDialog.showModal();
+
+            conversationDialogInput.focus();
+            conversationDialogInput.select();
+        }
+
+        function openDeleteDialog(conversation) {
+            pendingConversationAction = "delete";
+            pendingConversation = conversation;
+
+            const title =
+                conversation.title || "New Chat";
+
+            conversationDialogTitle.textContent =
+                "Delete conversation";
+
+            conversationDialogMessage.textContent =
+                `Delete "${title}"? This action cannot be undone.`;
+
+            conversationDialogInput.style.display =
+                "none";
+
+            conversationDialogConfirm.textContent =
+                "Delete";
+
+            conversationDialogConfirm.classList.add(
+                "delete-mode"
+            );
+
+            conversationDialog.showModal();
         }
 
         async function loadConversation(
@@ -777,119 +994,342 @@
             }
         }
 
-        async function renameConversation(
-            conversation
-        ) {
-            const currentTitle =
-                conversation.title || "";
+        function renameConversation(conversation) {
+            openRenameDialog(conversation);
+        }
 
-            const newTitle = window.prompt(
-                "Rename conversation:",
-                currentTitle
-            );
+        function deleteConversation(conversation) {
+            openDeleteDialog(conversation);
+        }
 
-            if (newTitle === null) {
-                return;
+        conversationDialogCancel.addEventListener(
+            "click",
+            () => {
+                closeConversationDialog();
             }
+        );
 
-            const cleanTitle =
-                newTitle.trim();
 
-            if (!cleanTitle) {
-                return;
+        function deleteConversation(conversation) {
+            openDeleteDialog(conversation);
+        }
+
+        conversationDialogCancel.addEventListener(
+            "click",
+            () => {
+                closeConversationDialog();
             }
+        );
 
+        conversationDialog.addEventListener(
+            "cancel",
+            (event) => {
+                event.preventDefault();
+                closeConversationDialog();
+            }
+        );
+
+        conversationDialogConfirm.addEventListener(
+            "click",
+            async () => {
+                if (!pendingConversation) {
+                    closeConversationDialog();
+                    return;
+                }
+
+                if (pendingConversationAction === "rename") {
+                    const cleanTitle =
+                        conversationDialogInput.value.trim();
+
+                    if (!cleanTitle) {
+                        conversationDialogInput.focus();
+                        return;
+                    }
+
+                    try {
+                        conversationDialogConfirm.disabled = true;
+
+                        const response = await fetch(
+                            `/bots/api/conversations/${pendingConversation.conversation_id}/`,
+                            {
+                                method: "PATCH",
+                                headers: {
+                                    "Content-Type":
+                                        "application/json",
+                                    "X-CSRFToken":
+                                        getCookie("csrftoken"),
+                                },
+                                body: JSON.stringify({
+                                    title: cleanTitle,
+                                }),
+                            }
+                        );
+
+                        if (!response.ok) {
+                            throw new Error(
+                                "Failed to rename conversation."
+                            );
+                        }
+
+                        closeConversationDialog();
+
+                        await loadConversations(
+                            currentConversationId
+                        );
+
+                    } catch (error) {
+                        console.error(
+                            "Failed to rename conversation:",
+                            error
+                        );
+
+                    } finally {
+                        conversationDialogConfirm.disabled = false;
+                    }
+
+                    return;
+                }
+
+                if (pendingConversationAction === "delete") {
+                    try {
+                        conversationDialogConfirm.disabled = true;
+
+                        const conversationId =
+                            pendingConversation.conversation_id;
+
+                        const response = await fetch(
+                            `/bots/api/conversations/${conversationId}/`,
+                            {
+                                method: "DELETE",
+                                headers: {
+                                    "X-CSRFToken":
+                                        getCookie("csrftoken"),
+                                },
+                            }
+                        );
+
+                        if (!response.ok) {
+                            throw new Error(
+                                "Failed to delete conversation."
+                            );
+                        }
+
+                        if (
+                            currentConversationId
+                            === conversationId
+                        ) {
+                            currentConversationId = null;
+                            chatBox.innerHTML = "";
+                            conversationTitle.textContent =
+                                "New Chat";
+                        }
+
+                        closeConversationDialog();
+
+                        await loadConversations();
+
+                    } catch (error) {
+                        console.error(
+                            "Failed to delete conversation:",
+                            error
+                        );
+
+                    } finally {
+                        conversationDialogConfirm.disabled = false;
+                    }
+                }
+            }
+        );
+        async function createConversation() {
             try {
+                newChatButton.disabled = true;
+
                 const response = await fetch(
-                    `/bots/api/conversations/${conversation.conversation_id
-                    }/`,
+                    "/bots/api/conversations/",
                     {
-                        method: "PATCH",
+                        method: "POST",
                         headers: {
                             "Content-Type":
                                 "application/json",
                             "X-CSRFToken":
-                                getCookie("csrftoken"),
+                                getCookie(
+                                    "csrftoken"
+                                ),
                         },
                         body: JSON.stringify({
-                            title: cleanTitle,
+                            bot_id: Number(botId),
                         }),
                     }
                 );
 
                 if (!response.ok) {
                     throw new Error(
-                        "Failed to rename conversation."
+                        "Failed to create conversation."
                     );
                 }
+
+                const conversation =
+                    await response.json();
+
+                currentConversationId =
+                    conversation.conversation_id;
+
+                chatBox.innerHTML = "";
+
+                conversationTitle.textContent =
+                    conversation.title || "New Chat";
+
+                await loadConversations(
+                    conversation.conversation_id
+                );
+
+                chatInput.focus();
+
+            } catch (error) {
+                console.error(
+                    "Failed to create conversation:",
+                    error
+                );
+
+                appendMessage(
+                    "assistant",
+                    "Failed to create a new conversation."
+                );
+
+            } finally {
+                newChatButton.disabled = false;
+            }
+        }
+
+        async function sendMessage(userMessage) {
+            const cleanMessage =
+                String(userMessage).trim();
+
+            if (!cleanMessage) {
+                return;
+            }
+
+            appendMessage(
+                "user",
+                cleanMessage
+            );
+
+            chatInput.value = "";
+            chatInput.disabled = true;
+
+            try {
+                const response = await fetch(
+                    `/bots/${botId}/ajax_chat/`,
+                    {
+                        method: "POST",
+                        headers: {
+                            "Content-Type":
+                                "application/json",
+                            "X-CSRFToken":
+                                getCookie(
+                                    "csrftoken"
+                                ),
+                        },
+                        body: JSON.stringify({
+                            message:
+                                cleanMessage,
+                            conversation_id:
+                                currentConversationId,
+                        }),
+                    }
+                );
+
+                const data =
+                    await response.json();
+
+                if (!response.ok) {
+                    appendMessage(
+                        "assistant",
+                        data.error
+                        || "An error occurred."
+                    );
+
+                    return;
+                }
+
+                currentConversationId =
+                    data.conversation_id;
 
                 await loadConversations(
                     currentConversationId
                 );
 
             } catch (error) {
-                console.error(
-                    "Failed to rename conversation:",
-                    error
+                appendMessage(
+                    "assistant",
+                    "Network error. Please try again."
                 );
+
+                console.error(error);
+
+            } finally {
+                chatInput.disabled = false;
+                chatInput.focus();
             }
         }
 
+        chatForm.addEventListener(
+            "submit",
+            (event) => {
+                event.preventDefault();
 
-        async function deleteConversation(
-            conversation
-        ) {
-            const title =
-                conversation.title || "New Chat";
-
-            const confirmed = window.confirm(
-                `Delete "${title}"?\n\n`
-                + "This will permanently delete "
-                + "the conversation and its messages."
-            );
-
-            if (!confirmed) {
-                return;
-            }
-
-            try {
-                const response = await fetch(
-                    `/bots/api/conversations/${conversation.conversation_id
-                    }/`,
-                    {
-                        method: "DELETE",
-                        headers: {
-                            "X-CSRFToken":
-                                getCookie("csrftoken"),
-                        },
-                    }
+                sendMessage(
+                    chatInput.value
                 );
+            }
+        );
 
-                if (!response.ok) {
-                    throw new Error(
-                        "Failed to delete conversation."
-                    );
-                }
+        newChatButton.addEventListener(
+            "click",
+            createConversation
+        );
 
-                if (
-                    currentConversationId
-                    === conversation.conversation_id
+        function getCookie(name) {
+            let cookieValue = null;
+
+            if (
+                document.cookie
+                && document.cookie !== ""
+            ) {
+                const cookies =
+                    document.cookie.split(";");
+
+                for (
+                    let index = 0;
+                    index < cookies.length;
+                    index += 1
                 ) {
-                    currentConversationId = null;
-                    chatBox.innerHTML = "";
-                    conversationTitle.textContent =
-                        "New Chat";
+                    const cookie =
+                        cookies[index].trim();
+
+                    if (
+                        cookie.substring(
+                            0,
+                            name.length + 1
+                        )
+                        === name + "="
+                    ) {
+                        cookieValue =
+                            decodeURIComponent(
+                                cookie.substring(
+                                    name.length + 1
+                                )
+                            );
+
+                        break;
+                    }
                 }
-
-                await loadConversations();
-
-            } catch (error) {
-                console.error(
-                    "Failed to delete conversation:",
-                    error
-                );
             }
+
+            return cookieValue;
         }
+
+        loadConversations();
 
         async function createConversation() {
             try {
