@@ -13,6 +13,8 @@ Includes endpoints for:
 - Fetching the user's authentication token
 """
 
+from .request_validation import validate_request_object
+
 from rest_framework import generics, permissions, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
@@ -115,6 +117,7 @@ class ConversationListCreateAPIView(APIView):
         )
 
     def post(self, request):
+        validate_request_object(request.data, ("title",))
         bot_id = request.data.get(
             "bot_id"
         )
@@ -261,6 +264,8 @@ class ConversationDetailAPIView(APIView):
                 status=status.HTTP_404_NOT_FOUND,
             )
 
+        validate_request_object(request.data, ("title",))
+
         if "title" not in request.data:
             return Response(
                 {
@@ -343,6 +348,7 @@ def api_bot_chat(request, bot_id):
     chat service resolves or creates a conversation.
     """
 
+    validate_request_object(request.data, ("message", "conversation_id"), ("conversation_id",))
     user = request.user
 
     try:

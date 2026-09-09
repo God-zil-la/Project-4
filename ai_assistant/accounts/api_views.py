@@ -1,3 +1,4 @@
+from ai_assistant.bots.request_validation import validate_request_object
 from rest_framework import status
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
@@ -20,6 +21,7 @@ class PublicChatAPIView(APIView):
     """
 
     permission_classes = [AllowAny]
+    authentication_classes = []
 
     def post(self, request, *args, **kwargs):
         api_key = request.headers.get(
@@ -36,7 +38,7 @@ class PublicChatAPIView(APIView):
 
         try:
             profile = UserProfile.objects.get(
-                api_key=api_key
+                api_key=api_key, user__is_active=True
             )
             user = profile.user
 
@@ -47,6 +49,8 @@ class PublicChatAPIView(APIView):
                 },
                 status=status.HTTP_401_UNAUTHORIZED,
             )
+
+        validate_request_object(request.data, ("message", "conversation_id"), ("conversation_id",))
 
         bot_id = request.data.get(
             "bot_id"
@@ -93,7 +97,7 @@ class PublicChatAPIView(APIView):
                 owner=user,
             )
 
-        except Bot.DoesNotExist:
+        except (Bot.DoesNotExist, ValueError, TypeError):
             return Response(
                 {
                     "error": (
