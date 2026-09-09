@@ -1,5 +1,6 @@
 import os
 
+import logging
 import openai
 from django.conf import settings
 from django.core.cache import cache
@@ -16,6 +17,9 @@ from .knowledge_utils import (
     search_relevant_chunks,
 )
 from .models import ChatMessage, Conversation
+
+
+logger = logging.getLogger(__name__)
 
 
 CHAT_MODEL = "gpt-4o-mini"
@@ -449,24 +453,43 @@ def process_bot_message(
             "in_domain": False,
         }
 
-    knowledge_result = search_relevant_chunks(
-        bot,
-        message,
-        top_k=3,
-        include_usage=True,
-    )
+    try:
+        knowledge_result = search_relevant_chunks(
+            bot,
+            message,
+            top_k=3,
+            include_usage=True,
+        )
+
+    except Exception:
+        logger.exception(
+            "Knowledge retrieval failed for bot %s.",
+            bot.pk,
+        )
+
+        knowledge_result = {
+            "chunks": [],
+            "tokens_used": 0,
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "model": None,
+        }
 
     embedding_tokens = knowledge_result[
         "tokens_used"
     ]
 
-    embedding_input_tokens = (
-        knowledge_result["input_tokens"]
-    )
+    embedding_tokens = knowledge_result[
+        "tokens_used"
+    ]
 
-    embedding_output_tokens = (
-        knowledge_result["output_tokens"]
-    )
+    embedding_input_tokens = knowledge_result[
+        "input_tokens"
+    ]
+
+    embedding_output_tokens = knowledge_result[
+        "output_tokens"
+    ]
 
     _log_usage(
         user=user,

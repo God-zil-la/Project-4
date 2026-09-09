@@ -1,4 +1,4 @@
-import json
+﻿import json
 import os
 
 import numpy as np
@@ -216,93 +216,7 @@ def search_relevant_chunks(
         "model": embedding_result["model"],
     }
    
-    query = str(query).strip()
 
-    if not query:
-        if include_usage:
-            return {
-                "chunks": [],
-                "tokens_used": 0,
-                "input_tokens": 0,
-                "output_tokens": 0,
-                "model": EMBEDDING_MODEL,
-            }
-
-        return []
-
-    embedding_result = generate_embedding(
-        query,
-        include_usage=include_usage,
-    )
-
-    if include_usage:
-        query_embedding = embedding_result[
-            "embedding"
-        ]
-    else:
-        query_embedding = embedding_result
-
-    chunks = (
-        KnowledgeChunk.objects
-        .filter(knowledge_file__bot=bot)
-        .exclude(embedding=None)
-    )
-
-    scored_chunks = []
-
-    for chunk in chunks:
-        try:
-            embedding = chunk.embedding
-
-            if isinstance(embedding, str):
-                embedding = json.loads(
-                    embedding
-                )
-
-            score = cosine_similarity(
-                query_embedding,
-                embedding,
-            )
-
-            scored_chunks.append(
-                (score, chunk)
-            )
-
-        except (
-            TypeError,
-            ValueError,
-            json.JSONDecodeError,
-        ):
-            continue
-
-    scored_chunks.sort(
-        key=lambda item: item[0],
-        reverse=True,
-    )
-
-    relevant_chunks = [
-        chunk.text
-        for score, chunk
-        in scored_chunks[:top_k]
-        if score >= 0.25
-    ]
-
-    if not include_usage:
-        return relevant_chunks
-
-    return {
-        "chunks": relevant_chunks,
-        "tokens_used": embedding_result[
-            "tokens_used"
-        ],
-        "input_tokens": embedding_result[
-            "input_tokens"
-        ],
-        "output_tokens": 0,
-        "model": embedding_result[
-            "model"
-        ],
-    }
 
 
 CATEGORY_DOMAIN_RULES = {
