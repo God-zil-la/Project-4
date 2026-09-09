@@ -28,7 +28,10 @@ def get_plan_from_subscription(subscription):
     price = items[0].get("price", {})
     recurring = price.get("recurring", {})
     if (price.get("currency") != CURRENCY or recurring.get("interval") != "month"
-            or recurring.get("interval_count", 1) != 1):
+            or recurring.get("interval_count", 1) != 1
+            or recurring.get("usage_type", "licensed") != "licensed"
+            or price.get("billing_scheme", "per_unit") != "per_unit"
+            or price.get("transform_quantity")):
         return UserProfile.PLAN_FREE
     return {config["unit_amount"]: plan for plan, config in PLAN_CONFIG.items()}.get(
         price.get("unit_amount"), UserProfile.PLAN_FREE)
@@ -46,10 +49,16 @@ def update_profile_from_subscription(profile, subscription):
     profile.stripe_subscription_id = subscription.get("id")
     profile.stripe_subscription_status = status
     profile.subscription_current_period_end = timestamp_to_datetime(period_end)
+    profile.subscription_cancel_at_period_end = bool(subscription.get("cancel_at_period_end"))
+    # canceled_at is the request time for scheduled cancellations, not access expiry.
+    end = (subscription.get("ended_at") if status == "canceled" else
+           subscription.get("cancel_at") or (period_end if profile.subscription_cancel_at_period_end else None))
+    profile.subscription_ends_at = timestamp_to_datetime(end)
     profile.is_subscribed = active
     profile.plan = plan if active else UserProfile.PLAN_FREE
     profile.save(update_fields=["stripe_customer_id", "stripe_subscription_id",
-        "stripe_subscription_status", "subscription_current_period_end", "is_subscribed", "plan"])
+        "stripe_subscription_status", "subscription_current_period_end", "is_subscribed", "plan",
+        "subscription_cancel_at_period_end", "subscription_ends_at"])
 
 
 @csrf_exempt

@@ -1,140 +1,94 @@
 {% extends "base.html" %}
 {% block title %}Billing{% endblock %}
-
+{% block extra_css %}
+<style>
+html, body { height: auto; overflow-x: clip; }
+.billing-container { max-width: 1040px; width: 100%; margin: auto; padding: clamp(1rem, 4vw, 2.5rem); }
+.billing-container .billing-panel, .billing-container .plan-card { background: linear-gradient(145deg, #102345, #0a1026); border: 1px solid #37617a; border-radius: 18px; padding: clamp(1.2rem, 3vw, 2rem); color: #e0e6f0; }
+.billing-container .billing-panel { margin: 1.5rem 0; }
+.billing-container .plan-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.5rem; }
+.billing-container .plan-card { display: flex; flex-direction: column; gap: 1rem; min-width: 0; }
+.billing-container .plan-card.current { border-color: #50d9f5; box-shadow: 0 0 22px #24c7eb20; }
+.billing-container h2 { color: #79e7ff; margin: 0; }
+.billing-container .price { font-size: clamp(1.3rem, 3vw, 1.8rem); font-weight: 700; }
+.billing-container .muted { color: #b9cce1; }
+.billing-container .badge { color: #7ee9ff; font-size: .85rem; font-weight: 700; }
+.billing-container .billing-button { display: inline-block; width: 100%; padding: .85rem 1.1rem; border: 1px solid #53d8f5; border-radius: 10px; background: #143452; color: #dbfaff; font: inherit; font-weight: 600; cursor: pointer; text-align: center; text-decoration: none; transition: background .15s; }
+.billing-container .billing-button:hover { background: #205171; }
+.billing-container .billing-button:focus-visible, .billing-container a:focus-visible { outline: 3px solid #8feeff; outline-offset: 4px; }
+.billing-container .billing-button:disabled { opacity: .55; cursor: not-allowed; }
+.billing-container .primary { background: #78e4fb; color: #081b30; }
+.billing-container .primary:hover { background: #a8efff; }
+.billing-container .management-actions { display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; margin-top: 1rem; }
+.billing-container .management-actions a { color: #8ceaff; }
+.billing-container .plan-action { margin-top: auto; }
+.billing-container .terms { margin: .9rem 0; font-size: .94rem; }
+.billing-container .status { margin: .7rem 0; }
+@media (max-width: 640px) { .billing-container .plan-grid { grid-template-columns: 1fr; } .billing-container .management-actions > * { width: 100%; } }
+</style>
+{% endblock %}
 {% block content %}
-<div class="billing-container" style="
-    max-width: 900px;
-    margin: auto;
-    padding: 2rem;
-  ">
-  <h1>Choose Your Plan</h1>
-  {% if existing_subscription %}
-  <p>You already have a subscription. Use subscription management before starting another.</p>
-  {% endif %}
-  {% if billing_unavailable_reason %}
-  <p role="status">{{ billing_unavailable_reason }}</p>
-  {% elif not can_checkout and not existing_subscription %}
-  <p role="status">Checkout is unavailable in this environment. Please contact support.</p>
-  {% endif %}
-  {% if show_management %}
-  <form method="post" action="{% url 'payments:create_portal_session' %}">
-    {% csrf_token %}
-    <button type="submit" {% if not can_manage_subscription %}disabled{% endif %}
-      style="padding: 0.75rem 1.5rem; background: #fff; color: #111; border: 2px solid #555; border-radius: 5px;">
-      Manage subscription
-    </button>
-  </form>
-  {% endif %}
-
-  <p>
-    Upgrade your AI assistants with more capacity,
-    advanced features, and unlimited bot creation.
-  </p>
-
-  <div style="
-      display: grid;
-      grid-template-columns: repeat(
-        auto-fit,
-        minmax(280px, 1fr)
-      );
-      gap: 1.5rem;
-      margin-top: 2rem;
-    ">
-    <!-- Premium -->
-    <div style="
-        border: 2px solid #fff;
-        padding: 1.5rem;
-        background-color: #111;
-        color: #fff;
-        border-radius: 12px;
-        box-shadow: 0 6px 20px
-          rgba(255,255,255,0.1);
-      ">
+<div class="billing-container">
+  <h1>Plans &amp; Billing</h1>
+  <p>View your plan, manage billing, and choose the AI usage tier that fits your needs.</p>
+  <section class="billing-panel" aria-labelledby="subscription-heading">
+    <h2 id="subscription-heading">Your subscription</h2>
+    <p class="status">Current plan: <strong>{{ billing_profile.get_plan_display }}</strong></p>
+    {% if billing_profile.stripe_subscription_status == 'canceled' %}
+      <p class="status">Subscription ended{% if billing_profile.subscription_ends_at %} on {{ billing_profile.subscription_ends_at|date:"F j, Y, H:i T" }}{% endif %}. Paid access has ended.</p>
+      {% if not billing_profile.subscription_ends_at %}<p class="muted">The end date is not yet available. Refresh billing status to retrieve it.</p>{% endif %}
+    {% elif billing_profile.subscription_cancel_at_period_end or billing_profile.subscription_ends_at %}
+      {% if billing_profile.is_subscribed %}
+        <p class="status">Cancellation scheduled. {% if billing_profile.subscription_ends_at %}Access through <strong>{{ billing_profile.subscription_ends_at|date:"F j, Y, H:i T" }}</strong>.{% else %}Your access end date is being confirmed. Refresh billing status.{% endif %} Your subscription will not renew.</p>
+      {% else %}<p class="status">Cancellation scheduled. Paid access is currently unavailable. Check your billing status in subscription management.</p>{% endif %}
+    {% elif existing_subscription %}
+      <p class="status">Status: {{ billing_profile.stripe_subscription_status|default:"Awaiting confirmation"|capfirst }}.{% if billing_profile.is_subscribed and billing_profile.subscription_current_period_end %} Next renewal: {{ billing_profile.subscription_current_period_end|date:"F j, Y, H:i T" }}.{% endif %}</p>
+    {% else %}<p class="muted">No active paid subscription.</p>{% endif %}
+    {% if billing_unavailable_reason %}<p role="status">{{ billing_unavailable_reason }}</p>
+    {% elif not can_checkout and not existing_subscription %}<p role="status">Checkout is unavailable in this environment. Please contact support.</p>{% endif %}
+    {% if show_management %}
+      <p class="muted">Open Stripe to view invoices and the payment and cancellation options available for your account.</p>
+      <div class="management-actions">
+        <form method="post" action="{% url 'payments:create_portal_session' %}">
+          {% csrf_token %}<button class="billing-button" type="submit" {% if not can_manage_subscription %}disabled{% endif %}>Manage subscription</button>
+        </form>
+        <a href="{% url 'payments:billing' %}?sync=1">Refresh billing status</a>
+      </div>
+    {% endif %}
+  </section>
+  <div class="plan-grid">
+    <section class="plan-card {% if billing_profile.is_premium %}current{% endif %}">
       <h2>Premium</h2>
-
-      <div style="
-          font-size: 2rem;
-          font-weight: bold;
-          margin: 1rem 0;
-        ">
-        ${{ premium_price|floatformat:"2u" }} USD/month
+      {% if billing_profile.is_premium %}<span class="badge">Current plan</span>{% endif %}
+      <div class="price">${{ premium_price|floatformat:"2u" }} USD/month</div>
+      <p class="muted">A higher AI usage allowance than Free.</p>
+      <div class="plan-action">
+        {% if can_checkout %}<button type="button" class="billing-button checkout-button" data-plan="premium">Choose Premium</button>
+        {% elif billing_profile.is_premium %}<button class="billing-button" disabled>Current plan</button>
+        {% else %}<p class="muted">Use subscription management for available plan options.</p>{% endif %}
       </div>
-
-      <ul style="line-height: 1.8;">
-        <li>✔️ Unlimited AI bot creation</li>
-        <li>✔️ Knowledge base uploads</li>
-        <li>✔️ Advanced bot customization</li>
-        <li>✔️ Discord deployment</li>
-        <li>✔️ Increased AI usage</li>
-      </ul>
-
-      <button type="button" {% if not can_checkout %}disabled{% endif %} class="checkout-button" data-plan="premium" style="
-          margin-top: 1rem;
-          background-color: #000;
-          color: #fff;
-          padding: 0.75rem 1.5rem;
-          border: 1px solid #fff;
-          border-radius: 5px;
-          cursor: pointer;
-        ">
-        Choose Premium
-      </button>
-    </div>
-
-    <!-- Pro -->
-    <div style="
-        border: 2px solid #fff;
-        padding: 1.5rem;
-        background-color: #111;
-        color: #fff;
-        border-radius: 12px;
-        box-shadow: 0 6px 20px
-          rgba(255,255,255,0.1);
-      ">
+    </section>
+    <section class="plan-card {% if billing_profile.is_pro %}current{% endif %}">
       <h2>Pro</h2>
-
-      <div style="
-          font-size: 2rem;
-          font-weight: bold;
-          margin: 1rem 0;
-        ">
-        ${{ pro_price|floatformat:"2u" }} USD/month
+      {% if billing_profile.is_pro %}<span class="badge">Current plan</span>{% endif %}
+      <div class="price">${{ pro_price|floatformat:"2u" }} USD/month</div>
+      <p class="muted">Our highest AI usage allowance.</p>
+      <div class="plan-action">
+        {% if can_upgrade %}
+          <p class="terms" id="upgrade-terms">Upgrade your existing subscription now. Stripe charges the prorated difference for the remaining billing period to your saved payment method. Your renewal date stays the same; future renewals are ${{ pro_price|floatformat:"2u" }} USD/month. Taxes and existing credits may affect the charge. Pro starts only after payment succeeds.</p>
+          {% if billing_profile.subscription_cancel_at_period_end or billing_profile.subscription_ends_at %}<p class="terms">Your scheduled cancellation stays in place. Upgrading does not restart renewal.</p>{% endif %}
+          <form method="post" action="{% url 'payments:upgrade_subscription' %}">
+            {% csrf_token %}<input type="hidden" name="upgrade_token" value="{{ upgrade_token }}">
+            <button class="billing-button primary" type="submit" aria-describedby="upgrade-terms">Upgrade to Pro</button>
+          </form>
+        {% elif can_checkout %}<button type="button" class="billing-button primary checkout-button" data-plan="pro">Choose Pro</button>
+        {% elif billing_profile.is_pro %}<button class="billing-button" disabled>Current plan</button>
+        {% else %}<p class="muted">Resolve your subscription status in Manage subscription before upgrading.</p>{% endif %}
       </div>
-
-      <ul style="line-height: 1.8;">
-        <li>✔️ Everything in Premium</li>
-        <li>✔️ Highest AI usage tier</li>
-        <li>✔️ Priority AI capacity</li>
-        <li>✔️ Unlimited AI bot creation</li>
-        <li>✔️ Priority support</li>
-      </ul>
-
-      <button type="button" {% if not can_checkout %}disabled{% endif %} class="checkout-button" data-plan="pro" style="
-          margin-top: 1rem;
-          background-color: #000;
-          color: #fff;
-          padding: 0.75rem 1.5rem;
-          border: 1px solid #fff;
-          border-radius: 5px;
-          cursor: pointer;
-        ">
-        Choose Pro
-      </button>
-    </div>
+    </section>
   </div>
-
-  <p style="
-      margin-top: 1.5rem;
-      color: #ccc;
-    ">
-    Cancel anytime.
-  </p>
-
-  <p id="checkout-error" style="
-      margin-top: 1rem;
-    "></p>
+  <p id="checkout-error" role="alert" class="status"></p>
 </div>
-
 {% if can_checkout %}
 <script src="https://js.stripe.com/v3/"></script>
 

@@ -3,6 +3,7 @@ from .webhooks import stripe_webhook
 from .views import (
     CreateCheckoutSessionView,
     CreatePortalSessionView,
+    UpgradeSubscriptionView,
     billing,
     payment_success,
     payment_cancel,
@@ -11,6 +12,7 @@ from .views import (
 app_name = 'payments'
 
 urlpatterns = [
+    path('upgrade/', UpgradeSubscriptionView.as_view(), name='upgrade_subscription'),
     path('create-portal-session/', CreatePortalSessionView.as_view(), name='create_portal_session'),
     path('webhook/', stripe_webhook, name='webhook'),
     path('', billing, name='billing'),

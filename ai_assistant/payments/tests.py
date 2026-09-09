@@ -34,7 +34,7 @@ class PortalTests(TestCase):
         self.assertEqual(response["Cache-Control"], "no-store")
         self.create.assert_called_once_with(
             api_key="sk_test_placeholder", customer="cus_owner", locale="en",
-            return_url="http://testserver/payments/",
+            return_url="http://testserver/payments/?sync=1",
         )
         self.user.profile.refresh_from_db()
         self.assertEqual(self.user.profile.stripe_subscription_id, "sub_owner")

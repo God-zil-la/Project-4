@@ -57,6 +57,9 @@ class UserProfile(models.Model):
         null=True,
     )
 
+    subscription_cancel_at_period_end = models.BooleanField(default=False)
+    subscription_ends_at = models.DateTimeField(blank=True, null=True)
+
     daily_message_count = models.IntegerField(default=0)
     last_reset = models.DateField(default=date.today)
 
