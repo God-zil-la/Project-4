@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 import stripe
 
 from django.conf import settings
@@ -8,18 +10,7 @@ from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 
 from ai_assistant.accounts.models import UserProfile
-
-
-PLAN_CONFIG = {
-    UserProfile.PLAN_PREMIUM: {
-        "name": "AI Assistant Premium",
-        "price_sek": 12900,
-    },
-    UserProfile.PLAN_PRO: {
-        "name": "AI Assistant Pro",
-        "price_sek": 24900,
-    },
-}
+from .pricing import CURRENCY, PLAN_CONFIG
 
 
 @method_decorator(login_required, name="dispatch")
@@ -65,9 +56,9 @@ class CreateCheckoutSessionView(View):
                 line_items=[
                     {
                         "price_data": {
-                            "currency": "sek",
+                            "currency": CURRENCY,
                             "unit_amount": plan_config[
-                                "price_sek"
+                                "unit_amount"
                             ],
                             "recurring": {
                                 "interval": "month",
@@ -134,8 +125,8 @@ def billing(request):
             "STRIPE_PUBLIC_KEY": (
                 settings.STRIPE_PUBLIC_KEY
             ),
-            "premium_price": 129,
-            "pro_price": 249,
+            "premium_price": Decimal(PLAN_CONFIG[UserProfile.PLAN_PREMIUM]["unit_amount"]) / 100,
+            "pro_price": Decimal(PLAN_CONFIG[UserProfile.PLAN_PRO]["unit_amount"]) / 100,
         },
     )
 

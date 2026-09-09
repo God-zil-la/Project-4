@@ -15,11 +15,11 @@ class StripeTests(TestCase):
         self.client.force_login(self.user)
         self.url = reverse('payments:webhook')
 
-    def subscription(self, amount=12900, status='active', sid='sub_test'):
+    def subscription(self, amount=1299, status='active', sid='sub_test'):
         return {'id': sid, 'customer': 'cus_test', 'status': status,
                 'metadata': {'user_id': str(self.user.pk), 'plan': 'pro'},
                 'items': {'data': [{'quantity': 1, 'current_period_end': 1900000000,
-                    'price': {'currency': 'sek', 'unit_amount': amount,
+                    'price': {'currency': 'usd', 'unit_amount': amount,
                               'recurring': {'interval': 'month'}}}]}}
 
     def send(self, obj, kind='customer.subscription.updated', eid='evt_test', subscription=None):
@@ -36,12 +36,16 @@ class StripeTests(TestCase):
         return response, retrieve
 
     def test_checkout_premium_and_pro(self):
-        for plan, amount in [('premium', 12900), ('pro', 24900)]:
+        for plan, amount in [('premium', 1299), ('pro', 2499)]:
             with patch('ai_assistant.payments.views.stripe.checkout.Session.create',
                        return_value=SimpleNamespace(id='cs_test')) as create:
                 response = self.client.post(reverse('payments:create_checkout_session'), {'plan': plan})
             self.assertEqual(response.status_code, 200)
             self.assertEqual(create.call_args.kwargs['locale'], 'en')
+            self.assertEqual(create.call_args.kwargs['mode'], 'subscription')
+            self.assertEqual(create.call_args.kwargs['line_items'][0]['quantity'], 1)
+            self.assertEqual(create.call_args.kwargs['line_items'][0]['price_data']['currency'], 'usd')
+            self.assertEqual(create.call_args.kwargs['line_items'][0]['price_data']['recurring'], {'interval': 'month'})
             self.assertEqual(create.call_args.kwargs['line_items'][0]['price_data']['unit_amount'], amount)
             self.assertEqual(create.call_args.kwargs['subscription_data']['metadata']['plan'], plan)
             self.assertEqual(self.user.profile.plan, 'free')
@@ -56,11 +60,11 @@ class StripeTests(TestCase):
 
     def test_upgrade_downgrade_cancel_and_recovery(self):
         for i, (amount, status, expected) in enumerate([
-            (12900, 'active', 'premium'), (24900, 'active', 'pro'),
-            (12900, 'active', 'premium'), (12900, 'past_due', 'free'),
-            (12900, 'active', 'premium'), (12900, 'canceled', 'free'),
-            (24900, 'trialing', 'pro'), (24900, 'unpaid', 'free'),
-            (24900, 'incomplete', 'free'), (24900, 'paused', 'free')]):
+            (1299, 'active', 'premium'), (2499, 'active', 'pro'),
+            (1299, 'active', 'premium'), (1299, 'past_due', 'free'),
+            (1299, 'active', 'premium'), (1299, 'canceled', 'free'),
+            (2499, 'trialing', 'pro'), (2499, 'unpaid', 'free'),
+            (2499, 'incomplete', 'free'), (2499, 'paused', 'free')]):
             response, _ = self.send(self.subscription(amount, status), eid=f'evt_{i}')
             self.assertEqual(response.status_code, 200)
             self.assertEqual(self.user.profile.plan, expected)
@@ -79,7 +83,7 @@ class StripeTests(TestCase):
         self.assertEqual(StripeEvent.objects.count(), 1)
 
     def test_old_event_uses_current_state(self):
-        self.send(self.subscription(24900), subscription=self.subscription(12900))
+        self.send(self.subscription(2499), subscription=self.subscription(1299))
         self.assertEqual(self.user.profile.plan, 'premium')
 
     def test_old_subscription_cannot_revoke_current(self):
@@ -93,6 +97,37 @@ class StripeTests(TestCase):
     def test_unknown_price_is_not_paid(self):
         self.send(self.subscription(1))
         self.assertEqual(self.user.profile.plan, 'free')
+
+    def test_legacy_and_incorrect_prices_revoke_paid_access(self):
+        for i, (currency, amount) in enumerate([
+            ('sek', 12900), ('sek', 24900), ('sek', 1299), ('sek', 2499),
+            ('usd', 12900), ('usd', 24900), ('usd', 1298), ('usd', 2500),
+        ]):
+            with self.subTest(currency=currency, amount=amount):
+                self.send(self.subscription(2499), eid=f'evt_paid_{i}')
+                self.assertEqual(self.user.profile.plan, 'pro')
+                sub = self.subscription(amount)
+                sub['items']['data'][0]['price']['currency'] = currency
+                response, _ = self.send(sub, eid=f'evt_wrong_price_{i}')
+                self.assertEqual(response.status_code, 200)
+                self.assertEqual(self.user.profile.plan, 'free')
+                self.assertFalse(self.user.profile.is_subscribed)
+
+    def test_checkout_completion_reconciles_both_usd_plans(self):
+        for i, (amount, plan) in enumerate([(1299, 'premium'), (2499, 'pro')]):
+            session = {'mode': 'subscription', 'client_reference_id': str(self.user.pk),
+                       'subscription': 'sub_test', 'customer': 'cus_test'}
+            response, _ = self.send(session, 'checkout.session.completed',
+                eid=f'evt_checkout_{i}', subscription=self.subscription(amount))
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(self.user.profile.plan, plan)
+
+    def test_customer_facing_usd_prices(self):
+        for url in [reverse('payments:billing'), reverse('dashboard:home')]:
+            response = self.client.get(url)
+            self.assertContains(response, '$12.99 USD/month')
+            self.assertContains(response, '$24.99 USD/month')
+            self.assertNotContains(response, 'SEK')
 
     def test_signature_and_method_rejected(self):
         self.assertEqual(self.client.get(self.url).status_code, 405)
@@ -153,12 +188,18 @@ class StripeTests(TestCase):
 
     def test_invalid_price_shapes_do_not_grant_access(self):
         variants = []
-        for field, value in [('currency','usd'), ('unit_amount',0)]:
+        for field, value in [('currency','sek'), ('unit_amount',0)]:
             sub = self.subscription()
             sub['items']['data'][0]['price'][field] = value
             variants.append(sub)
         sub = self.subscription()
         sub['items']['data'][0]['price']['recurring']['interval'] = 'year'
+        variants.append(sub)
+        sub = self.subscription()
+        sub['items']['data'][0]['price']['recurring']['interval_count'] = 2
+        variants.append(sub)
+        sub = self.subscription()
+        sub['items']['data'] *= 2
         variants.append(sub)
         sub = self.subscription()
         sub['items']['data'][0]['quantity'] = 2
@@ -182,7 +223,7 @@ class StripeTests(TestCase):
 
     def test_malformed_signed_events_leave_paid_entitlements_unchanged(self):
         from copy import deepcopy
-        self.send(self.subscription(24900))
+        self.send(self.subscription(2499))
         def snapshot():
             return type(self.user.profile).objects.filter(pk=self.user.profile.pk).values().get()
         before = snapshot()
@@ -212,7 +253,7 @@ class StripeTests(TestCase):
                 self.assertEqual(StripeEvent.objects.count(), receipts)
 
     def test_bad_signature_leaves_paid_entitlements_unchanged(self):
-        self.send(self.subscription(24900))
+        self.send(self.subscription(2499))
         before = type(self.user.profile).objects.filter(pk=self.user.profile.pk).values().get()
         with patch('ai_assistant.payments.webhooks.stripe.Subscription.retrieve') as retrieve:
             response = self.client.post(self.url, '{}', content_type='application/json', HTTP_STRIPE_SIGNATURE='invalid')
@@ -222,7 +263,7 @@ class StripeTests(TestCase):
         self.assertEqual(StripeEvent.objects.count(), 1)
 
     def test_wrong_retrieved_subscription_preserves_paid_entitlements(self):
-        self.send(self.subscription(24900))
+        self.send(self.subscription(2499))
         response, _ = self.send(self.subscription(), eid='evt_wrong_sub', subscription=self.subscription(sid='sub_wrong'))
         self.assertEqual(response.status_code, 500)
         self.assertEqual(self.user.profile.plan, 'pro')

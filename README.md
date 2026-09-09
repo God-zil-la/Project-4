@@ -190,9 +190,9 @@ Subscription handling is implemented with Stripe and is currently restricted to 
 
 | Plan | Monthly Price |
 | --- | ---: |
-| Free | 0 SEK |
-| Premium | 129 SEK |
-| Pro | 249 SEK |
+| Free | $0.00 USD |
+| Premium | $12.99 USD |
+| Pro | $24.99 USD |
 
 ### Implemented Stripe Functionality
 
@@ -2525,8 +2525,8 @@ The current subscription prices are:
 
 | Plan | Monthly Price |
 | --- | ---: |
-| Premium | 129 SEK |
-| Pro | 249 SEK |
+| Premium | $12.99 USD |
+| Pro | $24.99 USD |
 
 Stripe credentials and webhook secrets must be provided through environment configuration and must never be committed to the repository.
 
@@ -2753,3 +2753,23 @@ Feedback, suggestions, and contributions are always welcome.
 ---
 
 ## Thank you for visiting AI Assistant Platform!
+
+
+### USD subscription billing configuration
+
+Premium costs $12.99 USD/month (1299 cents); Pro costs $24.99 USD/month
+(2499 cents). Checkout and webhook plan reconciliation share the pricing
+configuration in `ai_assistant/payments/pricing.py`. Only a single quantity
+of a recognized USD price billed every month grants paid access.
+
+Checkout uses inline Stripe `price_data`, so no pre-created Price IDs or new
+Price ID environment variables are required. Keep the existing Test Mode
+`STRIPE_SECRET_KEY`, `STRIPE_PUBLIC_KEY`, and `STRIPE_WEBHOOK_SECRET` configuration.
+Do not substitute live credentials. No Stripe Dashboard changes are required
+for new Test Mode checkouts.
+
+Existing subscriptions are not converted automatically. A legacy non-USD
+subscription will no longer qualify for paid access when reconciled by this
+version. Existing Test Mode subscriptions must be replaced or updated to the
+recognized monthly USD prices before using this version with those accounts.
+This repository change does not modify any Stripe subscriptions or settings.

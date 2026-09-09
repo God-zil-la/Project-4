@@ -10,6 +10,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from ai_assistant.accounts.models import UserProfile
 from .models import StripeEvent
+from .pricing import CURRENCY, PLAN_CONFIG
 
 logger = logging.getLogger(__name__)
 ACTIVE_SUBSCRIPTION_STATUSES = {"active", "trialing"}
@@ -26,10 +27,10 @@ def get_plan_from_subscription(subscription):
         return UserProfile.PLAN_FREE
     price = items[0].get("price", {})
     recurring = price.get("recurring", {})
-    if (price.get("currency") != "sek" or recurring.get("interval") != "month"
+    if (price.get("currency") != CURRENCY or recurring.get("interval") != "month"
             or recurring.get("interval_count", 1) != 1):
         return UserProfile.PLAN_FREE
-    return {12900: UserProfile.PLAN_PREMIUM, 24900: UserProfile.PLAN_PRO}.get(
+    return {config["unit_amount"]: plan for plan, config in PLAN_CONFIG.items()}.get(
         price.get("unit_amount"), UserProfile.PLAN_FREE)
 
 

@@ -40,7 +40,7 @@
           font-weight: bold;
           margin: 1rem 0;
         ">
-        {{ premium_price }} SEK/month
+        ${{ premium_price|floatformat:"2u" }} USD/month
       </div>
 
       <ul style="line-height: 1.8;">
@@ -81,7 +81,7 @@
           font-weight: bold;
           margin: 1rem 0;
         ">
-        {{ pro_price }} SEK/month
+        ${{ pro_price|floatformat:"2u" }} USD/month
       </div>
 
       <ul style="line-height: 1.8;">
