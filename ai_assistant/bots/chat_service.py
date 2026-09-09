@@ -4,6 +4,7 @@ import logging
 import openai
 from django.conf import settings
 from django.core.cache import cache
+from django.db import transaction
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 
@@ -221,6 +222,7 @@ def _build_history(
     return messages
 
 
+@transaction.atomic
 def _save_chat_exchange(
     conversation,
     bot,
@@ -248,9 +250,8 @@ def _save_chat_exchange(
         message=assistant_message,
     )
 
-    _touch_conversation(
-        conversation
-    )
+    _touch_conversation(conversation)
+    user.profile.increment_message_count()
 
 
 def _check_rate_limit(user, profile):
@@ -269,27 +270,23 @@ def _check_rate_limit(user, profile):
         f"{user.pk}"
     )
 
-    added = cache.add(
-        cache_key,
-        1,
-        timeout=60,
-    )
-
-    if added:
-        return
-
     try:
-        request_count = cache.incr(
-            cache_key
-        )
-
-    except ValueError:
-        cache.set(
-            cache_key,
-            1,
-            timeout=60,
-        )
-        return
+        # Retry expiry races without overwriting a new counter.
+        for attempt in range(3):
+            if cache.add(cache_key, 1, timeout=60):
+                return
+            try:
+                request_count = cache.incr(cache_key)
+                break
+            except ValueError:
+                continue
+        else:
+            raise ChatServiceError("AI service is temporarily unavailable.")
+    except ChatServiceError:
+        raise
+    except Exception:
+        logger.error("Rate-limit cache unavailable.")
+        raise ChatServiceError("AI service is temporarily unavailable.") from None
 
     if request_count > rate_limit:
         raise ChatRateLimitError(
@@ -428,7 +425,6 @@ def process_bot_message(
             assistant_message=response_text,
         )
 
-        profile.increment_message_count()
 
         return {
             "response": response_text,
@@ -462,7 +458,7 @@ def process_bot_message(
         )
 
     except Exception:
-        logger.exception(
+        logger.error(
             "Knowledge retrieval failed for bot %s.",
             bot.pk,
         )
@@ -474,10 +470,6 @@ def process_bot_message(
             "output_tokens": 0,
             "model": None,
         }
-
-    embedding_tokens = knowledge_result[
-        "tokens_used"
-    ]
 
     embedding_tokens = knowledge_result[
         "tokens_used"
@@ -527,7 +519,7 @@ def process_bot_message(
 
     if not api_key:
         raise ChatServiceError(
-            "OPENAI_API_KEY is missing."
+            "AI service is temporarily unavailable."
         )
 
     openai.api_key = api_key
@@ -587,7 +579,6 @@ def process_bot_message(
         assistant_message=response_text,
     )
 
-    profile.increment_message_count()
 
     return {
         "response": response_text,

@@ -12,6 +12,8 @@ class KnowledgeBaseForm(forms.ModelForm):
     to be used as the bot's custom knowledge base.
     """
 
+    file = forms.FileField(required=False)
+
     manual_text = forms.CharField(
         widget=forms.Textarea(attrs={
             'rows': 5,
@@ -50,7 +52,7 @@ class KnowledgeBaseForm(forms.ModelForm):
                 raise forms.ValidationError(
                     "File size exceeds the 10MB limit."
                 )
-            if not file.name.endswith(('.txt', '.pdf', '.docx')):
+            if not file.name.lower().endswith(('.txt', '.pdf', '.docx')):
                 raise forms.ValidationError(
                     "Invalid file type. Only .txt, .pdf, and .docx files are allowed."
                 )

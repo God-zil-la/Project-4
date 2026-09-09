@@ -83,23 +83,24 @@ class UserProfile(models.Model):
         return self.plan == self.PLAN_PRO
 
     def reset_daily_count(self):
-        """Reset the message count when a new day starts."""
-        if self.last_reset != date.today():
-            self.daily_message_count = 0
-            self.last_reset = date.today()
-            self.save(
-                update_fields=[
-                    "daily_message_count",
-                    "last_reset",
-                ]
-            )
+        """Reset only an outdated database row, never a stale instance's counter."""
+        today = date.today()
+        type(self).objects.filter(pk=self.pk).exclude(last_reset=today).update(
+            daily_message_count=0, last_reset=today,
+        )
+        self.refresh_from_db(fields=["daily_message_count", "last_reset"])
 
     def increment_message_count(self):
-        """Increment the daily message count by 1."""
-        self.daily_message_count += 1
-        self.save(
-            update_fields=["daily_message_count"]
+        """Increment atomically, including requests that complete after midnight."""
+        today = date.today()
+        type(self).objects.filter(pk=self.pk).update(
+            daily_message_count=models.Case(
+                models.When(last_reset=today, then=models.F("daily_message_count") + 1),
+                default=models.Value(1), output_field=models.IntegerField(),
+            ),
+            last_reset=today,
         )
+        self.refresh_from_db(fields=["daily_message_count", "last_reset"])
 
     def generate_api_key(self):
         """Generate and save a new API key for the user."""
