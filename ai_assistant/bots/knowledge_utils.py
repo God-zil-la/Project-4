@@ -10,6 +10,60 @@ from .models import KnowledgeChunk
 EMBEDDING_MODEL = "text-embedding-3-small"
 
 
+def generate_embedding_batches(texts, record_usage, batch_size=32):
+    """Return ordered vectors, recording each paid response before validation.
+
+    UTF-8 byte limits conservatively bound tokens without a tokenizer dependency.
+    The single-text helper remains unchanged for retrieval callers.
+    """
+    texts = [str(text).strip() for text in texts]
+    if not texts or any(not text for text in texts):
+        raise ValueError("Embedding inputs must not be empty.")
+    if not 1 <= batch_size <= 32:
+        raise ValueError("Embedding batch size must be between 1 and 32.")
+    if any(len(text.encode("utf-8")) > 8191 for text in texts):
+        raise ValueError("A knowledge chunk is too large to embed safely.")
+    api_key = os.getenv("OPENAI_API_KEY")
+    if not api_key:
+        raise RuntimeError("OPENAI_API_KEY is missing")
+    vectors = []
+    dimension = None
+    for start in range(0, len(texts), batch_size):
+        batch = texts[start:start + batch_size]
+        response = openai.Embedding.create(
+            model=EMBEDDING_MODEL, input=batch, api_key=api_key,
+            request_timeout=60,
+        )
+        usage = response.get("usage", {})
+        input_tokens = usage.get("prompt_tokens", usage.get("total_tokens", 0))
+        record_usage({
+            "tokens_used": usage.get("total_tokens", input_tokens),
+            "input_tokens": input_tokens, "output_tokens": 0,
+            "model": response.get("model", EMBEDDING_MODEL),
+        })
+        data = response.get("data", [])
+        if len(data) != len(batch):
+            raise ValueError("Embedding response count does not match inputs.")
+        ordered = [None] * len(batch)
+        for item in data:
+            index = item.get("index")
+            vector = item.get("embedding")
+            if (type(index) is not int or not 0 <= index < len(batch)
+                    or ordered[index] is not None):
+                raise ValueError("Invalid embedding response index.")
+            if (not isinstance(vector, list) or not vector
+                    or any(type(value) not in (int, float) for value in vector)
+                    or not np.isfinite(vector).all()):
+                raise ValueError("Invalid embedding vector.")
+            if dimension is None:
+                dimension = len(vector)
+            if len(vector) != dimension:
+                raise ValueError("Inconsistent embedding dimensions.")
+            ordered[index] = vector
+        vectors.extend(ordered)
+    return vectors
+
+
 def generate_embedding(text, include_usage=False):
     """
     Generate a semantic embedding using OpenAI.

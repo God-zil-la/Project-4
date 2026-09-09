@@ -38,9 +38,20 @@ class KnowledgeUploadTests(TestCase):
         request._dont_enforce_csrf_checks = True
         request.session = {}
         request._messages = FallbackStorage(request)
+        def response_batches(*args, **kwargs):
+            vectors = []
+            for result in results or [self.result, self.result]:
+                if isinstance(result, Exception):
+                    raise result
+                kwargs['record_usage']({k: v for k, v in result.items() if k != 'embedding'})
+                if not result['embedding']:
+                    raise ValueError('Empty embedding')
+                vectors.append(result['embedding'])
+            return vectors
+
         with patch('ai_assistant.bots.views.chunk_text', return_value=['First.', 'Second.']), \
-             patch('ai_assistant.bots.views.generate_embedding',
-                   side_effect=results or [self.result, self.result]), \
+             patch('ai_assistant.bots.views.generate_embedding_batches',
+                   side_effect=response_batches), \
              patch('ai_assistant.bots.views.render', return_value=HttpResponse()):
             response = bot_chat_playground(request, self.bot.pk)
         self.assertIn(response.status_code, (200, 302))
@@ -98,3 +109,68 @@ class KnowledgeUploadTests(TestCase):
         with patch.object(storage, 'save', side_effect=OSError('Storage unavailable')):
             self.upload()
         self.assert_no_partial_upload()
+
+class EmbeddingBatchTests(TestCase):
+    def response(self, count, tokens=7):
+        return {'data': [{'index': i, 'embedding': [float(i), 1.0]}
+                         for i in reversed(range(count))],
+                'usage': {'prompt_tokens': tokens, 'total_tokens': tokens},
+                'model': 'text-embedding-3-small'}
+
+    @patch.dict('os.environ', {'OPENAI_API_KEY': 'test-only'})
+    def test_order_and_usage_across_batches(self):
+        from ai_assistant.bots.knowledge_utils import generate_embedding_batches
+        usage = []
+        with patch('ai_assistant.bots.knowledge_utils.openai.Embedding.create',
+                   side_effect=[self.response(32), self.response(1, 2)]) as api:
+            result = generate_embedding_batches(['text'] * 33, usage.append)
+        self.assertEqual(api.call_count, 2)
+        self.assertEqual(len(api.call_args_list[0].kwargs['input']), 32)
+        self.assertEqual(result[0], [0.0, 1.0])
+        self.assertEqual(result[31], [31.0, 1.0])
+        self.assertEqual(sum(row['tokens_used'] for row in usage), 9)
+
+    @patch.dict('os.environ', {'OPENAI_API_KEY': 'test-only'})
+    def test_paid_usage_survives_invalid_response(self):
+        from ai_assistant.bots.knowledge_utils import generate_embedding_batches
+        for data in [[], [{'index': 0, 'embedding': []}],
+                     [{'index': 4, 'embedding': [1.0]}],
+                     [{'index': 0, 'embedding': [float('nan')]}]]:
+            with self.subTest(data=data):
+                usage = []
+                response = self.response(1)
+                response['data'] = data
+                with patch('ai_assistant.bots.knowledge_utils.openai.Embedding.create',
+                           return_value=response), self.assertRaises(ValueError):
+                    generate_embedding_batches(['text'], usage.append)
+                self.assertEqual(usage[0]['tokens_used'], 7)
+
+    def test_invalid_inputs_make_no_requests(self):
+        from ai_assistant.bots.knowledge_utils import generate_embedding_batches
+        with patch('ai_assistant.bots.knowledge_utils.openai.Embedding.create') as api:
+            for texts in [[], [' '], ['x' * 8192]]:
+                with self.assertRaises(ValueError):
+                    generate_embedding_batches(texts, lambda usage: None)
+            api.assert_not_called()
+
+    @patch.dict('os.environ', {'OPENAI_API_KEY': 'test-only'})
+    def test_real_batch_upload_records_one_usage_row(self):
+        upload = KnowledgeUploadTests(methodName='test_success_saves_all_chunks_file_and_usage')
+        upload.setUp()
+        self.addCleanup(upload.doCleanups)
+        request = RequestFactory().post('/', {
+            'file': SimpleUploadedFile('batch.txt', b'First. Second.')})
+        request.user = upload.user
+        request._dont_enforce_csrf_checks = True
+        request.session = {}
+        request._messages = FallbackStorage(request)
+        with patch('ai_assistant.bots.views.chunk_text', return_value=['First.', 'Second.']), \
+             patch('ai_assistant.bots.knowledge_utils.openai.Embedding.create',
+                   return_value=self.response(2)):
+            response = bot_chat_playground(request, upload.bot.pk)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(BotUsageLog.objects.count(), 1)
+        self.assertEqual(BotUsageLog.objects.get().tokens_used, 7)
+        kb = KnowledgeBase.objects.exclude(pk=upload.existing.pk).get()
+        self.assertEqual(list(kb.chunks.values_list('embedding', flat=True)),
+                         [[0.0, 1.0], [1.0, 1.0]])

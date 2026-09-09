@@ -42,7 +42,7 @@ from ai_assistant.bots.chat_service import (
     process_bot_message,
 )
 from .knowledge_utils import (
-    generate_embedding,
+    generate_embedding_batches,
 )
 
 
@@ -636,38 +636,16 @@ def bot_chat_playground(request, bot_id):
                 if not chunks:
                     raise ValueError("No valid knowledge chunks were generated.")
 
-                prepared_chunks = []
-
-                for chunk in chunks:
-                    embedding_result = generate_embedding(
-                        chunk,
-                        include_usage=True,
-                    )
-
-                    embedding = embedding_result[
-                        "embedding"
-                    ]
-
-                    if not embedding:
-                        raise ValueError("An empty embedding was returned.")
-
-                    prepared_chunks.append((chunk, embedding))
-
-                    if embedding_result["tokens_used"] > 0:
+                def record_embedding_usage(usage):
+                    if usage["tokens_used"] > 0:
                         BotUsageLog.objects.create(
-                            user=request.user,
-                            bot=bot,
-                            tokens_used=embedding_result[
-                                "tokens_used"
-                            ],
-                            input_tokens=embedding_result[
-                                "input_tokens"
-                            ],
-                            output_tokens=embedding_result[
-                                "output_tokens"
-                            ],
-                            model=embedding_result["model"],
+                            user=request.user, bot=bot, **usage,
                         )
+
+                embeddings = generate_embedding_batches(
+                    chunks, record_usage=record_embedding_usage,
+                )
+                prepared_chunks = list(zip(chunks, embeddings))
 
                 # Keep API calls outside the knowledge database transaction.
                 # Usage logs remain recorded even if a later upload step fails.
@@ -713,16 +691,12 @@ def bot_chat_playground(request, bot_id):
                 )
 
             except Exception as error:
-                logger.error(
-                    "Knowledge upload error: %s",
-                    str(error),
-                )
+                logger.error("Knowledge upload failed (%s).", type(error).__name__)
 
                 messages.error(
                     request,
                     (
-                        "Failed to process file: "
-                        f"{str(error)}"
+                        "Failed to process file. Please check the content and try again."
                     ),
                 )
 
