@@ -8,6 +8,23 @@
     padding: 2rem;
   ">
   <h1>Choose Your Plan</h1>
+  {% if existing_subscription %}
+  <p>You already have a subscription. Use subscription management before starting another.</p>
+  {% endif %}
+  {% if billing_unavailable_reason %}
+  <p role="status">{{ billing_unavailable_reason }}</p>
+  {% elif not can_checkout and not existing_subscription %}
+  <p role="status">Checkout is unavailable in this environment. Please contact support.</p>
+  {% endif %}
+  {% if show_management %}
+  <form method="post" action="{% url 'payments:create_portal_session' %}">
+    {% csrf_token %}
+    <button type="submit" {% if not can_manage_subscription %}disabled{% endif %}
+      style="padding: 0.75rem 1.5rem; background: #fff; color: #111; border: 2px solid #555; border-radius: 5px;">
+      Manage subscription
+    </button>
+  </form>
+  {% endif %}
 
   <p>
     Upgrade your AI assistants with more capacity,
@@ -51,7 +68,7 @@
         <li>✔️ Increased AI usage</li>
       </ul>
 
-      <button type="button" class="checkout-button" data-plan="premium" style="
+      <button type="button" {% if not can_checkout %}disabled{% endif %} class="checkout-button" data-plan="premium" style="
           margin-top: 1rem;
           background-color: #000;
           color: #fff;
@@ -92,7 +109,7 @@
         <li>✔️ Priority support</li>
       </ul>
 
-      <button type="button" class="checkout-button" data-plan="pro" style="
+      <button type="button" {% if not can_checkout %}disabled{% endif %} class="checkout-button" data-plan="pro" style="
           margin-top: 1rem;
           background-color: #000;
           color: #fff;
@@ -118,6 +135,7 @@
     "></p>
 </div>
 
+{% if can_checkout %}
 <script src="https://js.stripe.com/v3/"></script>
 
 <script>
@@ -193,4 +211,5 @@
     );
   });
 </script>
+{% endif %}
 {% endblock %}

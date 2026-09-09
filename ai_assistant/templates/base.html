@@ -46,13 +46,11 @@
         <a href="/payments/">Billing</a>
       </li>
 
-      {% if user.is_staff %}
       <li>
         <a href="{% url 'bots:analytics' %}">
           Analytics Dashboard
         </a>
       </li>
-      {% endif %}
 
       <li style="position:relative;">
 

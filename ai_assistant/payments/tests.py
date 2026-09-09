@@ -9,6 +9,96 @@ from django.test import TestCase, Client
 from django.urls import reverse
 from ai_assistant.payments.models import StripeEvent
 
+class PortalTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username="portal-owner")
+        self.user.profile.stripe_customer_id = "cus_owner"
+        self.user.profile.stripe_subscription_id = "sub_owner"
+        self.user.profile.stripe_subscription_status = "active"
+        self.user.profile.save()
+        self.client.force_login(self.user)
+        self.url = reverse("payments:create_portal_session")
+        self.portal = patch("ai_assistant.payments.views.stripe.billing_portal.Session.create")
+        self.create = self.portal.start()
+        self.addCleanup(self.portal.stop)
+        self.create.return_value = SimpleNamespace(url="https://billing.stripe.com/p/session/test_session")
+
+    def test_owner_and_fixed_return_url_with_test_key(self):
+        with self.settings(STRIPE_SECRET_KEY="sk_test_placeholder"):
+            response = self.client.post(self.url, {
+                "customer": "cus_other", "subscription": "sub_other",
+                "return_url": "https://example.org/", "next": "//example.org/",
+            })
+        self.assertEqual(response.status_code, 303)
+        self.assertEqual(response["Location"], self.create.return_value.url)
+        self.assertEqual(response["Cache-Control"], "no-store")
+        self.create.assert_called_once_with(
+            api_key="sk_test_placeholder", customer="cus_owner", locale="en",
+            return_url="http://testserver/payments/",
+        )
+        self.user.profile.refresh_from_db()
+        self.assertEqual(self.user.profile.stripe_subscription_id, "sub_owner")
+
+    def test_login_required(self):
+        self.client.logout()
+        self.assertEqual(self.client.post(self.url).status_code, 302)
+        self.create.assert_not_called()
+
+    def test_post_only(self):
+        self.assertEqual(self.client.get(self.url).status_code, 405)
+        self.create.assert_not_called()
+
+    def test_csrf_required_and_billing_form_works(self):
+        client = Client(enforce_csrf_checks=True)
+        client.force_login(self.user)
+        self.assertEqual(client.post(self.url).status_code, 403)
+        self.create.assert_not_called()
+        response = client.get(reverse("payments:billing"))
+        self.assertContains(response, 'action="' + self.url + '"')
+        self.assertContains(response, "Manage subscription")
+        self.assertEqual(client.post(self.url, {
+            "csrfmiddlewaretoken": client.cookies["csrftoken"].value,
+        }).status_code, 303)
+
+    def test_missing_customer_cannot_use_submitted_customer(self):
+        self.user.profile.stripe_customer_id = ""
+        self.user.profile.save()
+        response = self.client.post(self.url, {"customer": "cus_other"}, follow=True)
+        self.assertContains(response, "No billing account is available to manage.")
+        self.assertContains(response, "missing its billing account link")
+        self.create.assert_not_called()
+
+    def test_customer_without_current_subscription_can_manage_billing(self):
+        self.user.profile.stripe_subscription_id = ""
+        self.user.profile.save()
+        self.assertEqual(self.client.post(self.url).status_code, 303)
+
+    def test_missing_key(self):
+        with self.settings(STRIPE_SECRET_KEY=""):
+            response = self.client.post(self.url, follow=True)
+        self.assertContains(response, "Billing is temporarily unavailable.")
+        self.create.assert_not_called()
+
+    def test_provider_errors_are_sanitized(self):
+        self.create.side_effect = Exception("private-provider-detail")
+        response = self.client.post(self.url, follow=True)
+        self.assertContains(response, "Unable to open subscription management. Please try again later.")
+        self.assertNotContains(response, "private-provider-detail")
+
+    def test_unsafe_provider_destination_is_rejected(self):
+        for url in ["http://billing.stripe.com/session", "https://example.org/", "javascript:alert(1)"]:
+            self.create.return_value = SimpleNamespace(url=url)
+            response = self.client.post(self.url)
+            self.assertRedirects(response, reverse("payments:billing"))
+
+    def test_portal_does_not_remove_duplicate_subscription_protection(self):
+        self.client.post(self.url)
+        with patch("ai_assistant.payments.views.stripe.checkout.Session.create") as checkout:
+            response = self.client.post(reverse("payments:create_checkout_session"))
+        self.assertEqual(response.status_code, 409)
+        checkout.assert_not_called()
+
+
 class StripeTests(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(username='billing', email='test@example.com')
@@ -268,3 +358,57 @@ class StripeTests(TestCase):
         self.assertEqual(response.status_code, 500)
         self.assertEqual(self.user.profile.plan, 'pro')
         self.assertEqual(StripeEvent.objects.count(), 1)
+
+
+class BillingStateTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username="billing-states")
+        self.client.force_login(self.user)
+
+    def test_existing_subscription_has_management_and_no_checkout_script(self):
+        profile = self.user.profile
+        profile.stripe_customer_id = "cus_owner"
+        profile.stripe_subscription_id = "sub_owner"
+        profile.stripe_subscription_status = "active"
+        profile.save()
+        response = self.client.get(reverse("payments:billing"))
+        self.assertContains(response, "Manage subscription")
+        self.assertTrue(response.context["can_manage_subscription"])
+        self.assertFalse(response.context["can_checkout"])
+        self.assertNotContains(response, "https://js.stripe.com/v3/")
+
+    def test_missing_customer_explains_block_and_preserves_checkout_guard(self):
+        profile = self.user.profile
+        profile.stripe_subscription_id = "sub_owner"
+        profile.save()
+        response = self.client.get(reverse("payments:billing"))
+        self.assertContains(response, "missing its billing account link")
+        self.assertFalse(response.context["can_manage_subscription"])
+        self.assertFalse(response.context["can_checkout"])
+        self.assertEqual(self.client.post(reverse("payments:create_checkout_session")).status_code, 409)
+
+    def test_missing_keys_explained_without_stripe_javascript(self):
+        with self.settings(STRIPE_SECRET_KEY="", STRIPE_PUBLIC_KEY=""):
+            response = self.client.get(reverse("payments:billing"))
+        self.assertContains(response, "Billing is not configured in this environment")
+        self.assertNotContains(response, "https://js.stripe.com/v3/")
+        self.assertFalse(response.context["can_checkout"])
+
+    def test_ended_subscriptions_can_checkout(self):
+        for status in ["canceled", "incomplete_expired"]:
+            profile = self.user.profile
+            profile.stripe_subscription_id = "sub_old"
+            profile.stripe_subscription_status = status
+            profile.save()
+            with self.settings(STRIPE_PUBLIC_KEY="pk_test_placeholder"):
+                response = self.client.get(reverse("payments:billing"))
+            self.assertTrue(response.context["can_checkout"])
+
+    def test_alternate_template_matches_active_template(self):
+        from pathlib import Path
+        from django.conf import settings
+        from django.template.loader import get_template
+        active = Path(settings.BASE_DIR) / "templates/payments/billing.html"
+        alternate = Path(settings.BASE_DIR) / "payments/templates/payments/billing.html"
+        self.assertEqual(Path(get_template("payments/billing.html").origin.name), active)
+        self.assertEqual(active.read_text(encoding="utf-8"), alternate.read_text(encoding="utf-8"))

@@ -1,30 +1,215 @@
-{% extends 'base.html' %}
-
-{% block title %}Billing - AI Assistant{% endblock %}
+{% extends "base.html" %}
+{% block title %}Billing{% endblock %}
 
 {% block content %}
-<section>
-    <h2>Upgrade to Pro Bot Plan</h2>
-    <p>Get full access to all premium features for just $24.99 USD/month.</p>
+<div class="billing-container" style="
+    max-width: 900px;
+    margin: auto;
+    padding: 2rem;
+  ">
+  <h1>Choose Your Plan</h1>
+  {% if existing_subscription %}
+  <p>You already have a subscription. Use subscription management before starting another.</p>
+  {% endif %}
+  {% if billing_unavailable_reason %}
+  <p role="status">{{ billing_unavailable_reason }}</p>
+  {% elif not can_checkout and not existing_subscription %}
+  <p role="status">Checkout is unavailable in this environment. Please contact support.</p>
+  {% endif %}
+  {% if show_management %}
+  <form method="post" action="{% url 'payments:create_portal_session' %}">
+    {% csrf_token %}
+    <button type="submit" {% if not can_manage_subscription %}disabled{% endif %}
+      style="padding: 0.75rem 1.5rem; background: #fff; color: #111; border: 2px solid #555; border-radius: 5px;">
+      Manage subscription
+    </button>
+  </form>
+  {% endif %}
 
-    <button id="checkout-button">Pay Now</button>
+  <p>
+    Upgrade your AI assistants with more capacity,
+    advanced features, and unlimited bot creation.
+  </p>
 
-    <script>
-        const stripe = Stripe("{{ STRIPE_PUBLIC_KEY }}");
+  <div style="
+      display: grid;
+      grid-template-columns: repeat(
+        auto-fit,
+        minmax(280px, 1fr)
+      );
+      gap: 1.5rem;
+      margin-top: 2rem;
+    ">
+    <!-- Premium -->
+    <div style="
+        border: 2px solid #fff;
+        padding: 1.5rem;
+        background-color: #111;
+        color: #fff;
+        border-radius: 12px;
+        box-shadow: 0 6px 20px
+          rgba(255,255,255,0.1);
+      ">
+      <h2>Premium</h2>
 
-        document.getElementById("checkout-button").addEventListener("click", function () {
-            fetch("{% url 'payments:checkout' %}", {
-                method: "POST",
-                headers: {
-                    "X-CSRFToken": "{{ csrf_token }}",
-                    "Content-Type": "application/json",
-                },
-            })
-                .then((res) => res.json())
-                .then((session) => {
-                    return stripe.redirectToCheckout({ sessionId: session.id });
-                });
+      <div style="
+          font-size: 2rem;
+          font-weight: bold;
+          margin: 1rem 0;
+        ">
+        ${{ premium_price|floatformat:"2u" }} USD/month
+      </div>
+
+      <ul style="line-height: 1.8;">
+        <li>✔️ Unlimited AI bot creation</li>
+        <li>✔️ Knowledge base uploads</li>
+        <li>✔️ Advanced bot customization</li>
+        <li>✔️ Discord deployment</li>
+        <li>✔️ Increased AI usage</li>
+      </ul>
+
+      <button type="button" {% if not can_checkout %}disabled{% endif %} class="checkout-button" data-plan="premium" style="
+          margin-top: 1rem;
+          background-color: #000;
+          color: #fff;
+          padding: 0.75rem 1.5rem;
+          border: 1px solid #fff;
+          border-radius: 5px;
+          cursor: pointer;
+        ">
+        Choose Premium
+      </button>
+    </div>
+
+    <!-- Pro -->
+    <div style="
+        border: 2px solid #fff;
+        padding: 1.5rem;
+        background-color: #111;
+        color: #fff;
+        border-radius: 12px;
+        box-shadow: 0 6px 20px
+          rgba(255,255,255,0.1);
+      ">
+      <h2>Pro</h2>
+
+      <div style="
+          font-size: 2rem;
+          font-weight: bold;
+          margin: 1rem 0;
+        ">
+        ${{ pro_price|floatformat:"2u" }} USD/month
+      </div>
+
+      <ul style="line-height: 1.8;">
+        <li>✔️ Everything in Premium</li>
+        <li>✔️ Highest AI usage tier</li>
+        <li>✔️ Priority AI capacity</li>
+        <li>✔️ Unlimited AI bot creation</li>
+        <li>✔️ Priority support</li>
+      </ul>
+
+      <button type="button" {% if not can_checkout %}disabled{% endif %} class="checkout-button" data-plan="pro" style="
+          margin-top: 1rem;
+          background-color: #000;
+          color: #fff;
+          padding: 0.75rem 1.5rem;
+          border: 1px solid #fff;
+          border-radius: 5px;
+          cursor: pointer;
+        ">
+        Choose Pro
+      </button>
+    </div>
+  </div>
+
+  <p style="
+      margin-top: 1.5rem;
+      color: #ccc;
+    ">
+    Cancel anytime.
+  </p>
+
+  <p id="checkout-error" style="
+      margin-top: 1rem;
+    "></p>
+</div>
+
+{% if can_checkout %}
+<script src="https://js.stripe.com/v3/"></script>
+
+<script>
+  const stripe = Stripe(
+    "{{ STRIPE_PUBLIC_KEY }}"
+  );
+
+  const buttons = document.querySelectorAll(
+    ".checkout-button"
+  );
+
+  const errorElement = document.getElementById(
+    "checkout-error"
+  );
+
+  buttons.forEach((button) => {
+    button.addEventListener(
+      "click",
+      async function () {
+        const plan = this.dataset.plan;
+
+        errorElement.textContent = "";
+
+        buttons.forEach((btn) => {
+          btn.disabled = true;
         });
-    </script>
 
-    {% endblock %}
+        try {
+          const formData = new URLSearchParams();
+          formData.append("plan", plan);
+
+          const response = await fetch(
+            "{% url 'payments:create_checkout_session' %}",
+            {
+              method: "POST",
+              headers: {
+                "X-CSRFToken": "{{ csrf_token }}",
+                "Content-Type":
+                  "application/x-www-form-urlencoded",
+              },
+              body: formData.toString(),
+            }
+          );
+
+          const data = await response.json();
+
+          if (!response.ok) {
+            throw new Error(
+              data.error ||
+              "Could not create checkout session."
+            );
+          }
+
+          const result =
+            await stripe.redirectToCheckout({
+              sessionId: data.id,
+            });
+
+          if (result.error) {
+            throw new Error(
+              result.error.message
+            );
+          }
+        } catch (error) {
+          errorElement.textContent =
+            error.message;
+
+          buttons.forEach((btn) => {
+            btn.disabled = false;
+          });
+        }
+      }
+    );
+  });
+</script>
+{% endif %}
+{% endblock %}

@@ -14,6 +14,51 @@ from ai_assistant.bots.views import bot_chat_playground
 from ai_assistant.dashboard.models import BotUsageLog
 
 
+class AnalyticsDashboardTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username="analytics-owner")
+        self.client.force_login(self.user)
+
+    def test_navigation_for_regular_and_staff_users(self):
+        for is_staff in [False, True]:
+            self.user.is_staff = is_staff
+            self.user.save()
+            for path in ["/", "/bots/", "/payments/"]:
+                response = self.client.get(path)
+                self.assertContains(response, 'href="/bots/analytics/"')
+                self.assertContains(response, "Analytics Dashboard")
+
+    def test_anonymous_access_requires_login_and_hides_link(self):
+        self.client.logout()
+        self.assertNotContains(self.client.get("/"), 'href="/bots/analytics/"')
+        response = self.client.get("/bots/analytics/")
+        self.assertEqual(response.status_code, 302)
+        self.assertIn("/accounts/login/", response["Location"])
+
+    def test_existing_dashboard_template_and_empty_charts(self):
+        import json
+        response = self.client.get("/bots/analytics/")
+        self.assertTemplateUsed(response, "bots/analytics_dashboard.html")
+        self.assertContains(response, 'id="botUsageChart"')
+        self.assertContains(response, 'id="userUsageChart"')
+        self.assertEqual(json.loads(response.context["bot_data"]), {"labels": [], "counts": []})
+
+    def test_chart_data_is_scoped_to_current_user(self):
+        import json
+        from ai_assistant.bots.models import ChatMessage
+        other = User.objects.create_user(username="other-analytics-owner")
+        own_bot = Bot.objects.create(owner=self.user, name="My bot")
+        other_bot = Bot.objects.create(owner=other, name="Other bot")
+        ChatMessage.objects.create(bot=own_bot, user=self.user, message="Hello", sender="user")
+        ChatMessage.objects.create(bot=own_bot, user=other, message="Private", sender="user")
+        ChatMessage.objects.create(bot=other_bot, user=other, message="Private", sender="user")
+        response = self.client.get("/bots/analytics/")
+        self.assertEqual(json.loads(response.context["bot_data"]), {"labels": ["My bot"], "counts": [1]})
+        self.assertEqual(json.loads(response.context["user_data"]), {
+            "labels": [self.user.username], "counts": [1],
+        })
+
+
 class KnowledgeUploadTests(TestCase):
     def setUp(self):
         self.media = TemporaryDirectory()
