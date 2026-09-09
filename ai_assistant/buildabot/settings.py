@@ -20,7 +20,6 @@ import dj_database_url
 BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv()  # Load .env variables
 
-print("SENDGRID_API_KEY =", os.environ.get("SENDGRID_API_KEY"))
 
 # Fix SSL context for Python 3.13+ and some libraries
 ssl._create_default_https_context = (
@@ -189,10 +188,8 @@ if (BASE_DIR / 'static').exists():
 
 if DEBUG:
     STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
-    print('⚠️ DEVELOPMENT: Using StaticFilesStorage (no manifest)')
 else:
     STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-    print('⚡️ PRODUCTION: Using CompressedManifestStaticFilesStorage')
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
