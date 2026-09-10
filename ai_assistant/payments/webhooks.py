@@ -59,6 +59,8 @@ def update_profile_from_subscription(profile, subscription):
     active = active and not (profile.subscription_ends_at and profile.subscription_ends_at <= timezone.now())
     profile.is_subscribed = active
     profile.plan = plan if active else UserProfile.PLAN_FREE
+    from .changes import reconcile_change
+    reconcile_change(profile, subscription)
     profile.save(update_fields=["stripe_customer_id", "stripe_subscription_id",
         "stripe_subscription_status", "subscription_current_period_end", "is_subscribed", "plan",
         "subscription_cancel_at_period_end", "subscription_ends_at"])
@@ -83,7 +85,9 @@ def stripe_webhook(request):
     event_type = event.get("type")
     if not isinstance(event_type, str):
         return HttpResponse(status=400)
-    if event_type not in {"checkout.session.completed", "customer.subscription.created",
+    schedule_event = event_type in {"subscription_schedule.updated", "subscription_schedule.released",
+        "subscription_schedule.completed", "subscription_schedule.canceled", "subscription_schedule.aborted"}
+    if not schedule_event and event_type not in {"checkout.session.completed", "customer.subscription.created",
                           "customer.subscription.updated", "customer.subscription.deleted",
                           "invoice.paid", "invoice.payment_succeeded"}:
         return HttpResponse(status=200)
@@ -95,7 +99,10 @@ def stripe_webhook(request):
     checkout = event_type == "checkout.session.completed"
     if checkout and obj.get("mode") != "subscription":
         return HttpResponse(status=200)
-    subscription_id = invoice_subscription(obj) if invoice_event else (obj.get("subscription") if checkout else obj.get("id"))
+    subscription_id = (obj.get("subscription") or obj.get("released_subscription")) if schedule_event else (
+        invoice_subscription(obj) if invoice_event else (obj.get("subscription") if checkout else obj.get("id")))
+    if schedule_event and not subscription_id:
+        return HttpResponse(status=200)
     if invoice_event and not subscription_id:
         return HttpResponse(status=200)
     identifiers = (event.get("id"), subscription_id, obj.get("customer"))
@@ -163,7 +170,8 @@ def stripe_webhook(request):
                         or source.get("status") not in {"canceled", "incomplete_expired"}):
                     raise ValueError("Recovery source is still open")
             update_profile_from_subscription(profile, subscription)
-            queue_subscription_emails(profile, subscription, obj.get("id") if invoice_event else None)
+            if not schedule_event:
+                queue_subscription_emails(profile, subscription, obj.get("id") if invoice_event else None)
     except Exception:
         logger.error("Stripe subscription reconciliation failed; retry required.")
         return HttpResponse(status=500)

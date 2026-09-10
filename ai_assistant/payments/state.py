@@ -20,6 +20,9 @@ def validate_subscription(profile, subscription):
 
 
 def clear_subscription(profile):
+    from .models import SubscriptionChange
+    # A confirmed empty inventory must not leave a promised future downgrade.
+    SubscriptionChange.objects.filter(profile=profile, status="scheduled").update(status="removed")
     profile.stripe_subscription_id = None
     profile.stripe_subscription_status = None
     profile.subscription_cancel_at_period_end = False

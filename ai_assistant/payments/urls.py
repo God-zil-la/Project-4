@@ -4,6 +4,8 @@ from .views import (
     CreateCheckoutSessionView,
     CreatePortalSessionView,
     UpgradeSubscriptionView,
+    ResumeSubscriptionView,
+    DowngradeSubscriptionView,
     RecoverSubscriptionView,
     billing,
     payment_success,
@@ -13,6 +15,8 @@ from .views import (
 app_name = 'payments'
 
 urlpatterns = [
+    path("resume/", ResumeSubscriptionView.as_view(), name="resume_subscription"),
+    path("downgrade/", DowngradeSubscriptionView.as_view(), name="downgrade_subscription"),
     path('recover/', RecoverSubscriptionView.as_view(), name='recover_subscription'),
     path('upgrade/', UpgradeSubscriptionView.as_view(), name='upgrade_subscription'),
     path('create-portal-session/', CreatePortalSessionView.as_view(), name='create_portal_session'),

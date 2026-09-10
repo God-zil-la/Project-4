@@ -34,11 +34,13 @@ class SubscriptionManagementTests(TestCase):
         self.retrieve.return_value = self.subscription
         self.list_subscriptions = self.mock("stripe.Subscription.list")
         self.list_subscriptions.side_effect = lambda **kwargs: SimpleNamespace(
-            auto_paging_iter=lambda: iter([self.retrieve()]))
+            auto_paging_iter=lambda: iter([self.retrieve.return_value]))
         self.modify = self.mock("stripe.Subscription.modify")
         self.product = self.mock("stripe.Product.create")
         self.product.return_value = SimpleNamespace(id="prod_pro")
         self.checkout = self.mock("stripe.checkout.Session.create")
+        for name in ("stripe.Invoice.list", "stripe.InvoiceItem.list", "stripe.checkout.Session.list"):
+            self.mock(name).return_value = SimpleNamespace(auto_paging_iter=lambda: iter([]))
 
     def mock(self, name):
         mocker = patch("ai_assistant.payments.views." + name)
@@ -47,7 +49,7 @@ class SubscriptionManagementTests(TestCase):
         return result
 
     def post(self, **extra):
-        return self.client.post(self.url, {"upgrade_token": self.token, **extra})
+        return self.client.post(self.url, {"change_token": self.token, **extra})
 
     def pro(self):
         result = deepcopy(self.subscription)
@@ -55,7 +57,7 @@ class SubscriptionManagementTests(TestCase):
         return result
 
     def test_upgrade_replaces_item_prorates_and_reconciles_without_checkout(self):
-        self.retrieve.side_effect = [self.subscription, self.pro()]
+        self.retrieve.side_effect = [self.subscription, self.subscription, self.pro()]
         response = self.post(subscription="sub_attacker", customer="cus_attacker", price=1, plan="free")
         self.assertEqual(response.status_code, 302)
         args, kwargs = self.modify.call_args
@@ -68,7 +70,7 @@ class SubscriptionManagementTests(TestCase):
         self.assertEqual(kwargs["payment_behavior"], "error_if_incomplete")
         self.assertEqual(kwargs["billing_cycle_anchor"], "unchanged")
         self.assertEqual(kwargs["metadata"], {"plan": "pro", "user_id": str(self.user.pk)})
-        self.assertNotIn("cancel_at_period_end", kwargs)
+        self.assertFalse(kwargs["cancel_at_period_end"])
         self.assertNotIn("cancel_at", kwargs)
         self.user.profile.refresh_from_db()
         self.assertEqual(self.user.profile.plan, "pro")
@@ -76,7 +78,7 @@ class SubscriptionManagementTests(TestCase):
         self.checkout.assert_not_called()
 
     def test_repeated_upgrade_uses_current_stripe_state_and_does_not_charge_again(self):
-        self.retrieve.side_effect = [self.subscription, self.pro(), self.pro()]
+        self.retrieve.side_effect = [self.subscription, self.subscription, self.pro(), self.pro()]
         self.post()
         self.post()
         self.modify.assert_called_once()
@@ -86,14 +88,14 @@ class SubscriptionManagementTests(TestCase):
         self.modify.side_effect = RuntimeError("private-provider-detail")
         self.post()
         first = self.modify.call_args.kwargs["idempotency_key"]
-        self.post()
+        self.post(change_token=self.client.get(self.billing).context["retry_token"])
         self.assertEqual(self.modify.call_args.kwargs["idempotency_key"], first)
         self.user.profile.refresh_from_db()
         self.assertEqual(self.user.profile.plan, "premium")
 
     def test_failed_payment_preserves_premium_and_sanitizes_error(self):
         self.modify.side_effect = stripe.error.CardError("private-provider-detail", "card", "card_declined")
-        response = self.client.post(self.url, {"upgrade_token": self.token}, follow=True)
+        response = self.client.post(self.url, {"change_token": self.token}, follow=True)
         self.assertContains(response, "Payment could not be completed")
         self.assertNotContains(response, "private-provider-detail")
         self.user.profile.refresh_from_db()
@@ -106,22 +108,21 @@ class SubscriptionManagementTests(TestCase):
             self.assertEqual(method(self.url).status_code, 405)
         csrf = Client(enforce_csrf_checks=True)
         csrf.force_login(self.user)
-        self.assertEqual(csrf.post(self.url, {"upgrade_token": self.token}).status_code, 403)
+        self.assertEqual(csrf.post(self.url, {"change_token": self.token}).status_code, 403)
         self.modify.assert_not_called()
         response = csrf.get(self.billing)
         self.assertContains(response, 'action="' + self.url + '"')
-        csrf.post(self.url, {"upgrade_token": response.context["upgrade_token"],
+        csrf.post(self.url, {"change_token": response.context["upgrade_token"],
             "csrfmiddlewaretoken": csrf.cookies["csrftoken"].value})
         self.modify.assert_called_once()
 
     def test_invalid_expired_and_other_user_intents(self):
         for token in ["", "invalid", signing.dumps({"user": self.user.pk + 1,
-                "subscription": "sub_owner"}, salt="billing-upgrade")]:
-            self.client.post(self.url, {"upgrade_token": token})
+                "subscription": "sub_owner"}, salt="billing-change")]:
+            self.client.post(self.url, {"change_token": token})
         with patch("django.core.signing.time.time", return_value=1):
-            expired = signing.dumps({"user": self.user.pk, "subscription": "sub_owner"}, salt="billing-upgrade")
-        self.client.post(self.url, {"upgrade_token": expired})
-        self.retrieve.assert_not_called()
+            expired = signing.dumps({"user": self.user.pk, "subscription": "sub_owner"}, salt="billing-change")
+        self.client.post(self.url, {"change_token": expired})
         self.modify.assert_not_called()
 
     def test_wrong_subscription_customer_owner_and_mode_rejected(self):
@@ -159,18 +160,21 @@ class SubscriptionManagementTests(TestCase):
         self.user.profile.stripe_customer_id = None
         self.user.profile.save()
         self.post()
-        self.retrieve.assert_not_called()
         self.modify.assert_not_called()
 
-    def test_scheduled_cancellation_survives_upgrade_and_blocks_duplicate_checkout(self):
+    def test_scheduled_cancellation_clears_on_upgrade_and_blocks_duplicate_checkout(self):
         self.subscription["cancel_at_period_end"] = True
         self.subscription["cancel_at"] = 1900000000
-        self.retrieve.side_effect = [self.subscription, self.pro()]
+        update_profile_from_subscription(self.user.profile, self.subscription)
+        self.token = self.client.get(self.billing).context["upgrade_token"]
+        continued = self.pro()
+        continued.update(cancel_at_period_end=False, cancel_at=None)
+        self.retrieve.side_effect = [self.subscription, self.subscription, continued]
         self.post()
         self.user.profile.refresh_from_db()
         self.assertEqual(self.user.profile.plan, "pro")
-        self.assertTrue(self.user.profile.subscription_cancel_at_period_end)
-        self.assertEqual(int(self.user.profile.subscription_ends_at.timestamp()), 1900000000)
+        self.assertFalse(self.user.profile.subscription_cancel_at_period_end)
+        self.assertIsNone(self.user.profile.subscription_ends_at)
         self.retrieve.side_effect = None
         self.retrieve.return_value = self.pro()
         self.assertEqual(self.client.post(reverse("payments:create_checkout_session"), {"plan": "pro"}).status_code, 409)
@@ -182,7 +186,7 @@ class SubscriptionManagementTests(TestCase):
         self.assertContains(response, "Access through")
         self.assertContains(response, "March 17, 2030")
         self.assertContains(response, "Upgrade to Pro")
-        self.assertContains(response, "does not restart renewal")
+        self.assertContains(response, "clears your scheduled cancellation")
         self.assertNotContains(response, "Next renewal:")
         self.user.profile.refresh_from_db()
         self.assertEqual(int(self.user.profile.subscription_ends_at.timestamp()), 1900000000)
@@ -216,7 +220,7 @@ class SubscriptionManagementTests(TestCase):
         self.assertNotContains(response, "None")
 
     def test_refresh_failure_keeps_confirmed_state_and_is_sanitized(self):
-        self.retrieve.side_effect = RuntimeError("private-provider-detail")
+        self.list_subscriptions.side_effect = RuntimeError("private-provider-detail")
         response = self.client.get(self.billing + "?sync=1")
         self.assertContains(response, "Showing the last confirmed status")
         self.assertNotContains(response, "private-provider-detail")
@@ -234,7 +238,7 @@ class SubscriptionManagementTests(TestCase):
 
     def test_upgrade_accepts_real_stripe_sdk_objects(self):
         self.retrieve.side_effect = [stripe.Subscription.construct_from(value, "test")
-                                     for value in [self.subscription, self.pro()]]
+                                     for value in [self.subscription, self.subscription, self.pro()]]
         self.post()
         self.modify.assert_called_once()
         self.user.profile.refresh_from_db()
@@ -243,26 +247,26 @@ class SubscriptionManagementTests(TestCase):
     def test_separate_browser_forms_do_not_upgrade_twice(self):
         other_token = self.client.get(self.billing).context["upgrade_token"]
         self.assertNotEqual(other_token, self.token)
-        self.retrieve.side_effect = [self.subscription, self.pro(), self.pro()]
+        self.retrieve.side_effect = [self.subscription, self.subscription, self.pro(), self.pro()]
         self.post()
-        self.post(upgrade_token=other_token)
+        self.post(change_token=other_token)
         self.modify.assert_called_once()
         self.checkout.assert_not_called()
 
     def test_lost_upgrade_response_recovers_without_second_mutation(self):
-        self.retrieve.side_effect = [self.subscription, self.pro()]
+        self.retrieve.side_effect = [self.subscription, self.subscription, self.pro(), self.pro(), self.pro()]
         self.modify.side_effect = stripe.error.APIConnectionError("private-provider-detail")
         self.post()
         # Stripe accepted the first request before the connection failed.
-        other_token = self.client.get(self.billing).context["upgrade_token"]
-        response = self.client.post(self.url, {"upgrade_token": other_token}, follow=True)
-        self.assertContains(response, "already on Pro")
+        other_token = self.client.get(self.billing).context["retry_token"]
+        response = self.client.post(self.url, {"change_token": other_token}, follow=True)
+        self.assertContains(response, "Your subscription continues on Pro")
         self.modify.assert_called_once()
         self.user.profile.refresh_from_db()
         self.assertEqual(self.user.profile.plan, "pro")
 
     def test_post_update_refresh_failure_can_recover_on_portal_return(self):
-        self.retrieve.side_effect = [self.subscription, RuntimeError("private-provider-detail")]
+        self.retrieve.side_effect = [self.subscription, self.subscription, RuntimeError("private-provider-detail")]
         self.post()
         self.user.profile.refresh_from_db()
         self.assertEqual(self.user.profile.plan, "premium")

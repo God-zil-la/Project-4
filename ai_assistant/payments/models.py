@@ -3,6 +3,19 @@ from django.utils import timezone
 import uuid
 
 
+class SubscriptionChange(models.Model):
+    """Durable owner consent and provider retry identity, separate from access."""
+    profile = models.OneToOneField("accounts.UserProfile", on_delete=models.CASCADE)
+    key = models.UUIDField(default=uuid.uuid4, editable=False)
+    action = models.CharField(max_length=20)
+    source = models.JSONField(default=dict)
+    parameters = models.JSONField(default=dict)
+    schedule_id = models.CharField(max_length=255, blank=True)
+    target_price = models.CharField(max_length=255, blank=True)
+    status = models.CharField(max_length=20, default="confirming")
+    started_at = models.DateTimeField(default=timezone.now)
+
+
 class SubscriptionRecovery(models.Model):
     """Committed before ending a legacy contract; retained across uncertain replies."""
     profile = models.OneToOneField("accounts.UserProfile", on_delete=models.CASCADE)

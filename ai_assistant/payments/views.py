@@ -22,7 +22,7 @@ from django.views.decorators.http import require_GET
 
 from ai_assistant.accounts.models import UserProfile
 from .pricing import CURRENCY, PLAN_CONFIG
-from .models import CheckoutAttempt, SubscriptionRecovery
+from .models import CheckoutAttempt, SubscriptionRecovery, SubscriptionChange
 from .state import (has_existing_subscription, reconcile_customer, clear_subscription,
                     validate_subscription, TERMINAL)
 from .webhooks import get_plan_from_subscription, update_profile_from_subscription
@@ -134,77 +134,90 @@ class RecoverSubscriptionView(View):
 
 
 @method_decorator(login_required, name="dispatch")
-class UpgradeSubscriptionView(View):
-    """Replace one owned monthly item; never create a second subscription."""
+@method_decorator(never_cache, name="dispatch")
+class ChangeSubscriptionView(View):
+    """Commit owner consent before provider calls; retain uncertain operations."""
+    action = "resume"
 
     def post(self, request):
-        if not settings.STRIPE_SECRET_KEY:
-            messages.error(request, "Billing is temporarily unavailable.")
-            return redirect("payments:billing")
+        from .changes import eligible, inventory, run_change
         try:
-            token = request.POST.get("upgrade_token", "")
-            intent = signing.loads(token, salt="billing-upgrade", max_age=3600)
+            if not settings.STRIPE_SECRET_KEY:
+                raise ValueError("Billing unavailable")
+            intent = signing.loads(request.POST.get("change_token", ""),
+                                   salt="billing-change", max_age=3600)
+            if intent.get("user") != request.user.pk or intent.get("action") != self.action:
+                raise ValueError("Invalid owner intent")
             with transaction.atomic():
                 profile = UserProfile.objects.select_for_update().get(user=request.user)
-                if (intent.get("user") != request.user.pk
-                        or intent.get("subscription") != profile.stripe_subscription_id
-                        or not profile.stripe_customer_id or not has_existing_subscription(profile)):
-                    raise ValueError("Invalid upgrade owner")
-                if SubscriptionRecovery.objects.filter(profile=profile, completed=False).exists():
-                    raise ValueError("Finish pending migration before upgrading")
+                if intent.get("subscription") != profile.stripe_subscription_id or not profile.stripe_customer_id:
+                    raise ValueError("Subscription changed")
                 subscription = owned_subscription(profile)
-                plan = get_plan_from_subscription(subscription)
                 update_profile_from_subscription(profile, subscription)
-                if not profile.has_paid_plan:
-                    raise ValueError("No current paid entitlement")
-                if plan == UserProfile.PLAN_PRO:
-                    messages.info(request, "Your subscription is already on Pro.")
-                    return redirect("payments:billing")
-                if (plan != UserProfile.PLAN_PREMIUM or subscription.get("status") != "active"
-                        or subscription.get("collection_method") != "charge_automatically"
-                        or subscription.get("pending_update") or subscription.get("schedule")
-                        or subscription.get("pause_collection")):
-                    raise ValueError("Subscription is not eligible for immediate upgrade")
-                invoice = subscription.get("latest_invoice")
-                if not isinstance(invoice, dict) or invoice.get("status") != "paid":
-                    # Do not credit unused Premium time that has not been paid for.
-                    raise ValueError("Latest subscription invoice is not paid")
-                item = subscription["items"]["data"][0]
-                if not item.get("id"):
-                    raise ValueError("Missing subscription item")
-                # Separate product keeps Stripe invoices accurate even though checkout
-                # originally created an inline Premium price/product.
-                product = stripe.Product.create(
-                    api_key=settings.STRIPE_SECRET_KEY,
-                    name=PLAN_CONFIG[UserProfile.PLAN_PRO]["name"],
-                    idempotency_key="ai-assistant-pro-product-v1")
-                stripe.Subscription.modify(
-                    subscription["id"], api_key=settings.STRIPE_SECRET_KEY,
-                    items=[{"id": item["id"], "quantity": 1, "price_data": {
-                        "currency": CURRENCY, "unit_amount": PLAN_CONFIG[UserProfile.PLAN_PRO]["unit_amount"],
-                        "recurring": {"interval": "month"}, "product": product.id}}],
-                    proration_behavior="always_invoice", payment_behavior="error_if_incomplete",
-                    billing_cycle_anchor="unchanged",
-                    metadata={"plan": UserProfile.PLAN_PRO, "user_id": str(request.user.pk)},
-                    idempotency_key="upgrade-" + sha256(token.encode()).hexdigest(),
-                )
-                # Retrieve under the same lock used by webhooks, including on retries.
-                current = owned_subscription(profile)
-                update_profile_from_subscription(profile, current)
-                if profile.plan == UserProfile.PLAN_PRO:
-                    messages.success(request, "You are now on Pro. Your renewal date and any scheduled cancellation are unchanged.")
+                change = SubscriptionChange.objects.filter(profile=profile).first()
+                if change and str(change.key) == intent.get("retry"):
+                    if change.action != self.action:
+                        raise ValueError("Conflicting action")
+                elif change and change.status not in {"complete", "removed", "failed"}:
+                    raise ValueError("Resolve the saved change before choosing another action")
                 else:
-                    messages.info(request, "Your upgrade is being confirmed. Refresh billing status shortly.")
-        except stripe.error.CardError:
-            messages.error(request, "Payment could not be completed. Premium has not been upgraded. Open Manage subscription to update your payment method, then try again. If your bank requires authentication, contact support.")
+                    source = eligible(subscription)
+                    if (intent.get("plan") != source["plan"] or intent.get("end") != source["end"]
+                            or intent.get("canceled") != bool(subscription.get("cancel_at_period_end"))):
+                        raise ValueError("Terms changed; refresh Billing")
+                    if self.action == "upgrade" and source["plan"] != "premium":
+                        raise ValueError("Upgrade requires Premium")
+                    if self.action == "downgrade" and source["plan"] != "pro":
+                        raise ValueError("Downgrade requires Pro")
+                    if self.action == "resume" and not subscription.get("cancel_at_period_end"):
+                        messages.info(request, "Your subscription already renews normally.")
+                        return redirect("payments:billing")
+                    inventory(profile, subscription)
+                    if change:
+                        change.delete()
+                    change = SubscriptionChange.objects.create(profile=profile, action=self.action, source=source)
+                expected_key = change.key
+            # Catch inside the transaction so saved retry stages survive failures.
+            with transaction.atomic():
+                profile = UserProfile.objects.select_for_update().get(user=request.user)
+                change = SubscriptionChange.objects.get(profile=profile)
+                if change.key != expected_key or change.action != self.action:
+                    raise ValueError("Another operation replaced this intent")
+                try:
+                    current = owned_subscription(profile)
+                    update_profile_from_subscription(profile, current)
+                    change.refresh_from_db()
+                    run_change(profile, change, current)
+                    current = owned_subscription(profile)
+                    update_profile_from_subscription(profile, current)
+                    change.refresh_from_db()
+                    if change.status == "complete":
+                        messages.success(request, "Your subscription continues on " + profile.plan.title() + ". Your renewal date is unchanged and scheduled cancellation is cleared.")
+                    elif change.status == "scheduled":
+                        messages.success(request, "Premium is scheduled for your next renewal. Pro remains your current plan until then. Your subscription will continue renewing.")
+                    else:
+                        messages.info(request, "Your change needs confirmation. Refresh Billing or retry the saved change. Contact support if it remains unresolved.")
+                except stripe.error.CardError:
+                    messages.error(request, "Payment could not be completed. The upgrade was not applied. Manage subscription to resolve payment, then choose Upgrade to Pro again from Billing.")
+                except Exception:
+                    messages.error(request, "Unable to confirm the change. Cancellation may already have been cleared. Refresh Billing, retry the saved change, or contact support before making another change.")
         except signing.BadSignature:
-            messages.error(request, "This upgrade form has expired or is invalid. Please try again from Billing.")
+            messages.error(request, "This form has expired or is invalid. Refresh Billing and try again.")
         except Exception:
-            messages.error(request, "Unable to confirm the upgrade. Refresh billing status before trying again, or contact support.")
-        response = redirect("payments:billing")
-        response["Cache-Control"] = "no-store"
-        return response
+            messages.error(request, "This change cannot be safely applied. Refresh Billing, resolve payment in Manage subscription, or contact support.")
+        return redirect("payments:billing")
 
+
+class UpgradeSubscriptionView(ChangeSubscriptionView):
+    action = "upgrade"
+
+
+class ResumeSubscriptionView(ChangeSubscriptionView):
+    action = "resume"
+
+
+class DowngradeSubscriptionView(ChangeSubscriptionView):
+    action = "downgrade"
 
 
 @method_decorator(login_required, name="dispatch")
@@ -268,6 +281,8 @@ class CreateCheckoutSessionView(View):
             # only retry the same request, including after a worker restart.
             with transaction.atomic():
                 profile = UserProfile.objects.select_for_update().get(user=request.user)
+                if SubscriptionChange.objects.filter(profile=profile).exclude(status__in=["complete", "removed", "failed"]).exists():
+                    return JsonResponse({"error": "Resolve your saved subscription change before starting checkout."}, status=409)
                 if SubscriptionRecovery.objects.filter(profile=profile, completed=False).exists():
                     return JsonResponse({"error": "Finish the pending subscription migration from Billing before starting checkout."}, status=409)
                 if profile.stripe_subscription_id and not profile.stripe_customer_id:
@@ -283,6 +298,8 @@ class CreateCheckoutSessionView(View):
             with transaction.atomic():
                 profile = UserProfile.objects.select_for_update().get(user=request.user)
                 attempt = CheckoutAttempt.objects.get(profile=profile)
+                if SubscriptionChange.objects.filter(profile=profile).exclude(status__in=["complete", "removed", "failed"]).exists():
+                    return JsonResponse({"error": "Resolve your saved subscription change before starting checkout."}, status=409)
                 if SubscriptionRecovery.objects.filter(profile=profile, completed=False).exists():
                     return JsonResponse({"error": "Finish the pending subscription migration from Billing before starting checkout."}, status=409)
                 if profile.stripe_subscription_id and not profile.stripe_customer_id:
@@ -466,6 +483,17 @@ def billing(request):
         billing_unavailable_reason = "Your existing subscription is missing its billing account link. Please contact support to restore subscription management."
     elif refresh_failed:
         billing_unavailable_reason = "Confirm billing status before starting a payment. Refresh this page or contact support if the problem continues."
+    change = SubscriptionChange.objects.filter(profile=profile).first()
+    changing = bool(change and change.status not in {"complete", "removed", "failed"})
+    can_change = bool(settings.STRIPE_SECRET_KEY and profile.stripe_customer_id
+        and not refresh_failed and not pending_recovery and existing_subscription
+        and profile.has_paid_plan and profile.stripe_subscription_status == "active")
+    def change_token(action):
+        return signing.dumps({"user": request.user.pk, "action": action,
+            "subscription": profile.stripe_subscription_id, "plan": profile.plan,
+            "end": int(profile.subscription_current_period_end.timestamp()) if profile.subscription_current_period_end else None,
+            "canceled": profile.subscription_cancel_at_period_end, "nonce": uuid4().hex,
+            "retry": str(change.key) if changing and change.action == action else ""}, salt="billing-change")
     return render(
         request,
         "payments/billing.html",
@@ -477,15 +505,20 @@ def billing(request):
             "billing_profile": profile,
             "current_plan": dict(UserProfile.PLAN_CHOICES)[profile.effective_plan],
             "has_paid_access": profile.has_paid_plan,
-            "can_upgrade": bool(settings.STRIPE_SECRET_KEY and profile.stripe_customer_id
-                and not refresh_failed and not pending_recovery and existing_subscription and profile.is_premium
-                and profile.stripe_subscription_status == "active"),
-            "upgrade_token": signing.dumps({"user": request.user.pk,
-                "subscription": profile.stripe_subscription_id, "nonce": uuid4().hex}, salt="billing-upgrade"),
+            "can_upgrade": can_change and not changing and profile.is_premium,
+            "can_resume": can_change and not changing and profile.subscription_cancel_at_period_end,
+            "can_downgrade": can_change and not changing and profile.is_pro,
+            "upgrade_token": change_token("upgrade"),
+            "resume_token": change_token("resume"),
+            "downgrade_token": change_token("downgrade"),
+            "subscription_change": change if changing else None,
+            "change_effective_date": timezone.datetime.fromtimestamp(change.source["end"], tz=timezone.get_current_timezone()) if changing else None,
+            "retry_token": change_token(change.action) if changing else "",
+            "retry_url": reverse("payments:" + change.action + "_subscription") if changing else "",
             "show_management": bool(profile.stripe_customer_id) or existing_subscription,
             "can_manage_subscription": bool(profile.stripe_customer_id and settings.STRIPE_SECRET_KEY),
             "billing_unavailable_reason": billing_unavailable_reason,
-            "can_checkout": bool(settings.STRIPE_SECRET_KEY and settings.STRIPE_PUBLIC_KEY) and not existing_subscription and not refresh_failed and not pending_recovery,
+            "can_checkout": bool(settings.STRIPE_SECRET_KEY and settings.STRIPE_PUBLIC_KEY) and not existing_subscription and not refresh_failed and not pending_recovery and not changing,
             "STRIPE_PUBLIC_KEY": (
                 settings.STRIPE_PUBLIC_KEY
             ),
