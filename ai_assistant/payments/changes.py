@@ -125,10 +125,11 @@ def eligible(subscription, allowed_schedule=""):
     return source
 
 
-def schedule_state(change, subscription):
+def schedule_state(change, subscription, schedule=None):
     """Read the provider schedule; intent alone never promises a downgrade."""
-    schedule = stripe.SubscriptionSchedule.retrieve(change.schedule_id,
-        expand=["phases.items.price"], api_key=settings.STRIPE_SECRET_KEY)
+    if schedule is None:
+        schedule = stripe.SubscriptionSchedule.retrieve(change.schedule_id,
+            expand=["phases.items.price"], api_key=settings.STRIPE_SECRET_KEY)
     if (schedule.get("id") != change.schedule_id
             or identifier(schedule.get("customer")) != subscription.get("customer")
             or schedule.get("livemode") is not subscription.get("livemode")):
@@ -167,11 +168,67 @@ def schedule_state(change, subscription):
     return "scheduled"
 
 
+def verified_keep_schedule(change, subscription):
+    """Require the exact app-owned two-phase contract before releasing it."""
+    if (not change.parameters.get("schedule_configured") or not change.schedule_id
+            or change.source.get("plan") != "pro"
+            or eligible(subscription, change.schedule_id) != change.source
+            or subscription.get("cancel_at_period_end") or subscription.get("cancel_at")):
+        raise ChangeBlocked("unsafe_keep_schedule")
+    schedule = stripe.SubscriptionSchedule.retrieve(change.schedule_id,
+        expand=["phases.items.price"], api_key=settings.STRIPE_SECRET_KEY)
+    if (schedule.get("id") != change.schedule_id
+            or identifier(schedule.get("customer")) != identifier(subscription.get("customer"))
+            or schedule.get("livemode") is not subscription.get("livemode")
+            or (schedule.get("metadata") or {}).get("change") != str(change.key)):
+        raise ChangeBlocked("unsafe_keep_schedule_owner")
+    if (schedule.get("status") == "released" and change.action == "keep"
+            and identifier(schedule.get("released_subscription")) == subscription["id"]
+            and not schedule.get("subscription") and not subscription.get("schedule")):
+        return "complete"
+    if (schedule_state(change, subscription, schedule) != "scheduled"
+            or identifier(schedule.get("subscription")) != subscription["id"]):
+        raise ChangeBlocked("unsafe_keep_schedule_state")
+    phases = schedule.get("phases") or []
+    expected = change.parameters.get("phases") or []
+    if len(phases) != 2 or len(expected) != 2:
+        raise ChangeBlocked("unsafe_keep_schedule_phases")
+    for index, phase in enumerate(phases):
+        items = phase.get("items") or []
+        if (phase.get("start_date") != expected[index].get("start_date")
+                or len(items) != 1 or items[0].get("quantity") != 1
+                or identifier(items[0].get("price")) != (
+                    change.source["price"] if index == 0 else change.target_price)
+                or phase.get("proration_behavior") != "none"
+                or any(phase.get(k) for k in ("discounts", "default_tax_rates",
+                    "add_invoice_items", "trial_end", "transfer_data", "on_behalf_of",
+                    "application_fee_percent", "billing_thresholds"))
+                or any(items[0].get(k) for k in ("discounts", "tax_rates", "billing_thresholds"))
+                or (phase.get("automatic_tax") or {}).get("enabled")):
+            raise ChangeBlocked("unsafe_keep_schedule_terms")
+    if phases[0].get("end_date") != change.source["end"]:
+        raise ChangeBlocked("unsafe_keep_schedule_boundary")
+    return "scheduled"
+
+
 def reconcile_change(profile, subscription):
     change = SubscriptionChange.objects.filter(profile=profile).first()
     if not change or change.source.get("subscription") != subscription.get("id"):
         return
-    if change.action == "downgrade" and change.schedule_id:
+    if change.action == "keep":
+        if change.status == "complete":
+            return
+        # A lost release reply is confirmed only from the same released schedule
+        # and unchanged authoritative Pro contract. Never infer it from intent.
+        try:
+            state = verified_keep_schedule(change, subscription)
+        except ValueError:
+            state = "conflict"
+        if state == "complete":
+            change.status = "complete"
+        elif state == "conflict":
+            change.status = "conflict"
+    elif change.action == "downgrade" and change.schedule_id:
         # Creation and configuration are separate calls. An unfinished creation
         # remains retryable and must not be mistaken for a confirmed downgrade.
         if not change.parameters.get("schedule_configured"):
@@ -191,6 +248,19 @@ def reconcile_change(profile, subscription):
 
 def run_change(profile, change, subscription):
     """Caller commits intent first and holds the profile lock during execution."""
+    if change.action == "keep":
+        state = verified_keep_schedule(change, subscription)
+        inventory(profile, subscription)
+        if state == "complete":
+            return
+        if change.status != "confirming" or timezone.now() - change.started_at > timedelta(hours=23):
+            raise ChangeBlocked("keep_retry_unavailable")
+        # Release leaves the subscription running. Never cancel the schedule,
+        # which would cancel its subscription. Preserve any provider cancellation.
+        stripe.SubscriptionSchedule.release(change.schedule_id, preserve_cancel_date=True,
+            idempotency_key="subscription-change-" + str(change.key) + "-keep",
+            api_key=settings.STRIPE_SECRET_KEY)
+        return
     if change.status == "complete":
         if (subscription.get("cancel_at_period_end") or subscription.get("cancel_at")
                 or subscription.get("status") != "active"):

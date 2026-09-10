@@ -160,7 +160,7 @@ class ChangeSubscriptionView(View):
     action = "resume"
 
     def post(self, request):
-        from .changes import eligible, inventory, run_change
+        from .changes import eligible, inventory, run_change, verified_keep_schedule
         stage = "owner_intent"
         try:
             if not settings.STRIPE_SECRET_KEY:
@@ -180,6 +180,19 @@ class ChangeSubscriptionView(View):
                 if change and str(change.key) == intent.get("retry"):
                     if change.action != self.action:
                         raise ValueError("Conflicting action")
+                elif self.action == "keep":
+                    if (not change or change.action != "downgrade" or change.status != "scheduled"
+                            or intent.get("schedule") != change.schedule_id
+                            or intent.get("change") != str(change.key)
+                            or intent.get("plan") != "pro" or intent.get("end") != change.source["end"]
+                            or intent.get("canceled") is not False):
+                        raise ValueError("Keep requires the confirmed downgrade")
+                    verified_keep_schedule(change, subscription)
+                    inventory(profile, subscription)
+                    change.action = "keep"
+                    change.status = "confirming"
+                    change.started_at = timezone.now()
+                    change.save(update_fields=["action", "status", "started_at"])
                 elif change and change.status not in {"complete", "removed", "failed"}:
                     raise ValueError("Resolve the saved change before choosing another action")
                 else:
@@ -239,6 +252,10 @@ class ChangeSubscriptionView(View):
 
 class UpgradeSubscriptionView(ChangeSubscriptionView):
     action = "upgrade"
+
+
+class KeepSubscriptionView(ChangeSubscriptionView):
+    action = "keep"
 
 
 class ResumeSubscriptionView(ChangeSubscriptionView):
@@ -522,6 +539,8 @@ def billing(request):
             "subscription": profile.stripe_subscription_id, "plan": profile.plan,
             "end": int(profile.subscription_current_period_end.timestamp()) if profile.subscription_current_period_end else None,
             "canceled": profile.subscription_cancel_at_period_end, "nonce": uuid4().hex,
+            "schedule": change.schedule_id if change else "",
+            "change": str(change.key) if change else "",
             "retry": str(change.key) if changing and change.action == action else ""}, salt="billing-change")
     return render(
         request,
@@ -539,6 +558,8 @@ def billing(request):
             "can_downgrade": can_change and not changing and profile.is_pro,
             "upgrade_token": change_token("upgrade"),
             "resume_token": change_token("resume"),
+            "keep_token": change_token("keep"),
+            "can_keep": can_change and changing and change.action == "downgrade" and change.status == "scheduled" and profile.is_pro and not profile.subscription_cancel_at_period_end,
             "downgrade_token": change_token("downgrade"),
             "subscription_change": change if changing else None,
             "change_effective_date": timezone.datetime.fromtimestamp(change.source["end"], tz=timezone.get_current_timezone()) if changing else None,

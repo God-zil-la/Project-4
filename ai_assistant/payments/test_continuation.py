@@ -568,3 +568,143 @@ class ContinuationTests(TestCase):
         self.retrieve.side_effect = lambda *a, **kw: stripe.Subscription.construct_from(self.sub, "test")
         self.assertEqual(self.event("subscription_schedule.updated").status_code, 200)
         self.assertEqual(SubscriptionChange.objects.get().status, "scheduled")
+
+    def prepare_keep(self):
+        self.post("downgrade")
+        self.release = self.mock("SubscriptionSchedule.release", side_effect=self.release_schedule)
+        self.new_subscription = self.mock("Subscription.create")
+        self.cancel_schedule = self.mock("SubscriptionSchedule.cancel")
+        return self.token("keep")
+
+    def release_schedule(self, sid, **kwargs):
+        self.assertEqual(sid, self.schedule["id"])
+        self.assertEqual(SubscriptionChange.objects.get().action, "keep")
+        self.schedule.update(status="released", subscription=None,
+            released_subscription=self.sub["id"])
+        self.sub["schedule"] = None
+        return deepcopy(self.schedule)
+
+    def test_keep_pro_releases_same_subscription_without_checkout(self):
+        token = self.prepare_keep()
+        original = deepcopy(self.sub["items"])
+        response = self.post("keep", token)
+        self.assertNotContains(response, "Pending downgrade: Premium")
+        self.assertEqual(SubscriptionChange.objects.get().status, "complete")
+        self.assertEqual(self.sub["items"], original)
+        self.user.profile.refresh_from_db()
+        self.assertEqual(self.user.profile.plan, "pro")
+        self.assertEqual(self.user.profile.stripe_subscription_id, "sub_owner")
+        self.release.assert_called_once()
+        self.assertTrue(self.release.call_args.kwargs["preserve_cancel_date"])
+        self.modify.assert_not_called()
+        self.checkout.assert_not_called()
+        self.new_subscription.assert_not_called()
+        self.cancel_schedule.assert_not_called()
+        self.post("keep", token)
+        self.release.assert_called_once()
+
+    def test_keep_lost_release_reply_is_reconciled_without_second_write(self):
+        token = self.prepare_keep()
+        def lost(*args, **kwargs):
+            self.release_schedule(*args, **kwargs)
+            raise stripe.error.APIConnectionError("lost")
+        self.release.side_effect = lost
+        self.post("keep", token)
+        self.retry()
+        self.release.assert_called_once()
+        self.assertEqual(SubscriptionChange.objects.get().status, "complete")
+
+    def test_keep_retry_uses_same_key_and_expires(self):
+        token = self.prepare_keep()
+        self.release.side_effect = stripe.error.APIConnectionError("lost")
+        self.post("keep", token)
+        first = self.release.call_args
+        self.retry()
+        self.assertEqual(self.release.call_args, first)
+        SubscriptionChange.objects.update(started_at=timezone.now() - timedelta(hours=24))
+        self.release.reset_mock()
+        self.retry()
+        self.release.assert_not_called()
+
+    def test_keep_rejects_foreign_and_unsafe_schedules(self):
+        token = self.prepare_keep()
+        original = deepcopy(self.schedule)
+        variants = [("customer", "cus_other"), ("subscription", "sub_other"),
+            ("livemode", True), ("metadata", {}), ("end_behavior", "cancel"),
+            ("status", "not_started"), ("phases", original["phases"][:1])]
+        for key, value in variants:
+            with self.subTest(key=key):
+                self.schedule = deepcopy(original)
+                self.schedule[key] = value
+                self.post("keep", token)
+        for index in (0, 1):
+            for key, value in (("items", [{"price": "foreign", "quantity": 1}]),
+                    ("discounts", ["di_other"]), ("proration_behavior", "always_invoice"),
+                    ("start_date", 1)):
+                self.schedule = deepcopy(original)
+                self.schedule["phases"][index][key] = value
+                self.post("keep", token)
+        self.release.assert_not_called()
+        self.modify.assert_not_called()
+        self.checkout.assert_not_called()
+
+    def test_keep_rechecks_invoice_guards(self):
+        token = self.prepare_keep()
+        self.invoices.return_value = self.page([{"id": "in_unpaid"}])
+        self.post("keep", token)
+        self.release.assert_not_called()
+
+    def test_keep_rejects_cancellation_and_changed_entitlement(self):
+        token = self.prepare_keep()
+        self.cancel()
+        self.post("keep", token)
+        self.sub.update(cancel_at_period_end=False, cancel_at=None)
+        self.premium()
+        self.post("keep", token)
+        self.release.assert_not_called()
+        self.user.profile.refresh_from_db()
+        self.assertEqual(self.user.profile.plan, "premium")
+
+    def test_keep_endpoint_requires_owner_post_csrf_and_signed_intent(self):
+        token = self.prepare_keep()
+        url = reverse("payments:keep_subscription")
+        self.assertEqual(Client().post(url).status_code, 302)
+        self.assertEqual(self.client.get(url).status_code, 405)
+        csrf = Client(enforce_csrf_checks=True)
+        csrf.force_login(self.user)
+        self.assertEqual(csrf.post(url, {"change_token": token}).status_code, 403)
+        self.post("keep", "invalid")
+        self.post("keep", self.token("resume"))
+        self.release.assert_not_called()
+
+    def test_cancellation_buttons_keep_current_plan_and_upgrade_is_immediate(self):
+        for plan in ("Pro", "Premium"):
+            if plan == "Premium":
+                self.premium()
+            self.cancel()
+            page = self.client.get(self.billing)
+            self.assertContains(page, ">Keep " + plan + "</button>")
+            self.assertNotContains(page, ">Resume subscription</button>")
+            self.post("resume")
+            self.assertFalse(self.sub["cancel_at_period_end"])
+        self.post("upgrade")
+        page = self.client.get(self.billing)
+        self.assertNotContains(page, ">Keep Premium</button>")
+        self.assertEqual(self.sub["items"]["data"][0]["price"]["unit_amount"], 2499)
+        self.create_schedule.assert_not_called()
+        self.checkout.assert_not_called()
+
+    def test_completed_keep_does_not_block_later_renewal(self):
+        self.post("keep", self.prepare_keep())
+        self.sub["items"]["data"][0]["current_period_end"] += 2678400
+        self.event()
+        self.assertEqual(SubscriptionChange.objects.get().status, "complete")
+
+    def test_keep_rejects_stale_schedule_consent(self):
+        from django.core import signing
+        token = self.prepare_keep()
+        intent = signing.loads(token, salt="billing-change")
+        for key in ("schedule", "change", "user", "end"):
+            invalid = dict(intent, **{key: "other"})
+            self.post("keep", signing.dumps(invalid, salt="billing-change"))
+        self.release.assert_not_called()

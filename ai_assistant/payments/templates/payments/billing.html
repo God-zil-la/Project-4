@@ -54,9 +54,15 @@ html, body { height: auto; overflow-x: clip; }
     {% if subscription_change %}
       {% if subscription_change.status == 'scheduled' %}
         <p class="status">Pending downgrade: Premium, effective <strong>{{ change_effective_date|date:"F j, Y, H:i T" }}</strong>. Pro remains active through the current paid period. Premium then renews at ${{ premium_price|floatformat:"2u" }} USD/month.</p>
-        <p class="muted">To remove this downgrade or cancel instead, contact support before the effective date. Refresh billing status after any change in Stripe.</p>
+        {% if can_keep %}
+        <p class="terms">Changed your mind? Keep Pro at ${{ pro_price|floatformat:"2u" }} USD/month with your existing renewal date.</p>
+        <form method="post" action="{% url 'payments:keep_subscription' %}">{% csrf_token %}
+          <input type="hidden" name="change_token" value="{{ keep_token }}">
+          <button class="billing-button" type="submit">Keep Pro</button>
+        </form>
+        {% else %}<p class="muted">Contact support to review this scheduled change.</p>{% endif %}
       {% elif subscription_change.status == 'confirming' %}
-        <p role="status">Your {{ subscription_change.action }} request needs confirmation. Cancellation may already be cleared; the downgrade is not confirmed until shown as pending. Refresh billing status or retry the saved change. If it remains unresolved, contact support.</p>
+        <p role="status">{% if subscription_change.action == "keep" %}Your request to keep Pro needs confirmation. Refresh billing status or retry to confirm that Pro will continue renewing.{% else %}Your {{ subscription_change.action }} request needs confirmation. Cancellation may already be cleared; the downgrade is not confirmed until shown as pending.{% endif %} Refresh billing status or retry the saved change. If it remains unresolved, contact support.</p>
         <form method="post" action="{{ retry_url }}">{% csrf_token %}
           <input type="hidden" name="change_token" value="{{ retry_token }}">
           <button class="billing-button" type="submit">Retry saved change</button>
@@ -65,10 +71,10 @@ html, body { height: auto; overflow-x: clip; }
         <p role="status">Your saved plan change conflicts with the current Stripe state. A downgrade is not confirmed. Contact support to resolve cancellation or schedule changes, then refresh billing status.</p>
       {% endif %}
     {% elif can_resume %}
-      <p class="terms">Resume your current plan to remove scheduled cancellation. Your renewal date stays unchanged and your current monthly price applies at renewal.</p>
+      <p class="terms">Keep {{ current_plan }} to remove scheduled cancellation. Your renewal date stays unchanged and your current monthly price applies at renewal.</p>
       <form method="post" action="{% url 'payments:resume_subscription' %}">{% csrf_token %}
         <input type="hidden" name="change_token" value="{{ resume_token }}">
-        <button class="billing-button" type="submit">Resume subscription</button>
+        <button class="billing-button" type="submit">Keep {{ current_plan }}</button>
       </form>
     {% endif %}
     {% if show_management %}
@@ -124,6 +130,7 @@ html, body { height: auto; overflow-x: clip; }
           {% if billing_profile.subscription_cancel_at_period_end or billing_profile.subscription_ends_at %}<p class="terms">Upgrading clears your scheduled cancellation so Pro renews normally.</p>{% endif %}
           <form method="post" action="{% url 'payments:upgrade_subscription' %}">
             {% csrf_token %}<input type="hidden" name="change_token" value="{{ upgrade_token }}">
+            <!-- Premium upgrades apply immediately; there is no pending upgrade to reverse. -->
             <button class="billing-button primary" type="submit" aria-describedby="upgrade-terms">Upgrade to Pro</button>
           </form>
         {% elif can_checkout %}<button type="button" class="billing-button primary checkout-button" data-plan="pro">Choose Pro</button>
