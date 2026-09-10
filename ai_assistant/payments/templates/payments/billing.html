@@ -34,7 +34,10 @@ html, body { height: auto; overflow-x: clip; }
   <section class="billing-panel" aria-labelledby="subscription-heading">
     <h2 id="subscription-heading">Your subscription</h2>
     <p class="status">Current plan: <strong>{{ current_plan }}</strong></p>
-    {% if billing_profile.stripe_subscription_status == 'canceled' or billing_profile.stripe_subscription_status == 'incomplete_expired' %}
+    {% if recovery_message %}
+      <p class="status">{{ recovery_message }}</p>
+      {% if recovery_options %}{% if recovery_replacement %}<p class="terms">Test Mode migration: end the legacy SEK subscription first, then start the selected USD plan using your saved payment method. The new monthly period starts now at the price shown below, with no credit or proration for the old test period. Any scheduled cancellation date stays in place. If payment fails, the old subscription remains ended; resume this migration or contact support. No overlapping subscription will be created.</p>{% else %}<p class="terms">Update your existing subscription using your saved payment method. Stripe invoices any prorated difference now; taxes and credits may affect the amount. Your renewal date and scheduled cancellation stay unchanged. Paid access starts after the change succeeds.</p>{% endif %}{% endif %}
+    {% elif billing_profile.stripe_subscription_status == 'canceled' or billing_profile.stripe_subscription_status == 'incomplete_expired' %}
       <p class="status">Subscription ended{% if billing_profile.subscription_ends_at %} on {{ billing_profile.subscription_ends_at|date:"F j, Y, H:i T" }}{% endif %}. Paid access has ended.</p>
       {% if not billing_profile.subscription_ends_at %}<p class="muted">The end date is not yet available. Refresh billing status to retrieve it.</p>{% endif %}
     {% elif existing_subscription and billing_profile.subscription_cancel_at_period_end or existing_subscription and billing_profile.subscription_ends_at %}
@@ -65,7 +68,14 @@ html, body { height: auto; overflow-x: clip; }
       <div class="price">${{ premium_price|floatformat:"2u" }} USD/month</div>
       <p class="muted">A higher AI usage allowance than Free.</p>
       <div class="plan-action">
-        {% if can_checkout %}<button type="button" class="billing-button checkout-button" data-plan="premium">Choose Premium</button>
+        {% if recovery_options %}
+          {% for option in recovery_options %}{% if option.plan == 'premium' %}
+          <form method="post" action="{% url 'payments:recover_subscription' %}">
+            {% csrf_token %}<input type="hidden" name="recovery_token" value="{{ option.token }}">
+            <button class="billing-button" type="submit">{% if recovery_replacement %}Replace legacy test subscription with{% else %}Change existing subscription to{% endif %} {{ option.name }}</button>
+          </form>
+          {% endif %}{% endfor %}
+        {% elif can_checkout %}<button type="button" class="billing-button checkout-button" data-plan="premium">Choose Premium</button>
         {% elif billing_profile.is_premium %}<button class="billing-button" disabled>Current plan</button>
         {% else %}<p class="muted">Use subscription management for available plan options.</p>{% endif %}
       </div>
@@ -76,7 +86,14 @@ html, body { height: auto; overflow-x: clip; }
       <div class="price">${{ pro_price|floatformat:"2u" }} USD/month</div>
       <p class="muted">Our highest AI usage allowance.</p>
       <div class="plan-action">
-        {% if can_upgrade %}
+        {% if recovery_options %}
+          {% for option in recovery_options %}{% if option.plan == 'pro' %}
+          <form method="post" action="{% url 'payments:recover_subscription' %}">
+            {% csrf_token %}<input type="hidden" name="recovery_token" value="{{ option.token }}">
+            <button class="billing-button" type="submit">{% if recovery_replacement %}Replace legacy test subscription with{% else %}Change existing subscription to{% endif %} {{ option.name }}</button>
+          </form>
+          {% endif %}{% endfor %}
+        {% elif can_upgrade %}
           <p class="terms" id="upgrade-terms">Upgrade your existing subscription now. Stripe charges the prorated difference for the remaining billing period to your saved payment method. Your renewal date stays the same; future renewals are ${{ pro_price|floatformat:"2u" }} USD/month. Taxes and existing credits may affect the charge. Pro starts only after payment succeeds.</p>
           {% if billing_profile.subscription_cancel_at_period_end or billing_profile.subscription_ends_at %}<p class="terms">Your scheduled cancellation stays in place. Upgrading does not restart renewal.</p>{% endif %}
           <form method="post" action="{% url 'payments:upgrade_subscription' %}">

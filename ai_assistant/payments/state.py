@@ -56,3 +56,4 @@ def reconcile_customer(profile):
         update_profile_from_subscription(profile, selected)
     else:
         clear_subscription(profile)
+    return selected

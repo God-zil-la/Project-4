@@ -22,10 +22,11 @@ from django.views.decorators.http import require_GET
 
 from ai_assistant.accounts.models import UserProfile
 from .pricing import CURRENCY, PLAN_CONFIG
-from .models import CheckoutAttempt
+from .models import CheckoutAttempt, SubscriptionRecovery
 from .state import (has_existing_subscription, reconcile_customer, clear_subscription,
                     validate_subscription, TERMINAL)
 from .webhooks import get_plan_from_subscription, update_profile_from_subscription
+from .recovery import recovery_reason, recovery_source, replacement_parameters, run_replacement
 
 
 def owned_subscription(profile):
@@ -39,6 +40,97 @@ def owned_subscription(profile):
             or subscription.get("livemode") is not settings.STRIPE_SECRET_KEY.startswith(("sk_live_", "rk_live_"))):
         raise ValueError("Subscription ownership or mode mismatch")
     return subscription
+
+
+@method_decorator(login_required, name="dispatch")
+@method_decorator(never_cache, name="dispatch")
+class RecoverSubscriptionView(View):
+    """Recover legacy test prices with an owned change or durable replacement."""
+
+    def post(self, request):
+        try:
+            if not settings.STRIPE_SECRET_KEY:
+                raise ValueError("Billing unavailable")
+            intent = signing.loads(request.POST.get("recovery_token", ""),
+                                   salt="billing-recovery", max_age=3600)
+            target = intent.get("plan")
+            if intent.get("user") != request.user.pk or target not in PLAN_CONFIG:
+                raise ValueError("Invalid recovery owner or plan")
+            # Persist cross-currency intent before any irreversible provider call.
+            with transaction.atomic():
+                profile = UserProfile.objects.select_for_update().get(user=request.user)
+                attempt = SubscriptionRecovery.objects.filter(profile=profile).first()
+                if attempt:
+                    if attempt.plan != target or attempt.source_subscription != intent.get("subscription"):
+                        raise ValueError("A different migration already exists")
+                    if attempt.completed:
+                        messages.info(request, "This migration is already complete. Refresh Billing to view your current plan.")
+                        return redirect("payments:billing")
+                else:
+                    reconcile_customer(profile)
+                    if profile.stripe_subscription_id != intent.get("subscription"):
+                        raise ValueError("Subscription changed")
+                    subscription = owned_subscription(profile)
+                    if (get_plan_from_subscription(subscription) == "free"
+                            and recovery_reason(subscription)[1]
+                            and subscription["items"]["data"][0]["price"]["currency"] == "sek"):
+                        if any(intent.get(key) != value for key, value in recovery_source(subscription).items()):
+                            raise ValueError("Source price changed")
+                        attempt = SubscriptionRecovery.objects.create(profile=profile,
+                            source_subscription=subscription["id"], plan=target,
+                            source=recovery_source(subscription),
+                            parameters=replacement_parameters(subscription, profile, target))
+            if attempt:
+                with transaction.atomic():
+                    profile = UserProfile.objects.select_for_update().get(user=request.user)
+                    attempt = SubscriptionRecovery.objects.get(profile=profile)
+                    if not attempt.completed:
+                        run_replacement(profile, attempt)
+                messages.success(request, "Your legacy Test Mode subscription has been replaced with the selected USD plan. No overlapping subscription was created.")
+                return redirect("payments:billing")
+            with transaction.atomic():
+                profile = UserProfile.objects.select_for_update().get(user=request.user)
+                reconcile_customer(profile)
+                if profile.stripe_subscription_id != intent.get("subscription"):
+                    raise ValueError("Subscription changed")
+                subscription = owned_subscription(profile)
+                update_profile_from_subscription(profile, subscription)
+                if get_plan_from_subscription(subscription) in PLAN_CONFIG:
+                    messages.info(request, "This subscription already has a current plan. Review Billing before making another change.")
+                    return redirect("payments:billing")
+                if (not recovery_reason(subscription)[1]
+                        or subscription["items"]["data"][0]["price"]["currency"] != CURRENCY):
+                    raise ValueError("Subscription requires management")
+                source = recovery_source(subscription)
+                if any(intent.get(key) != value for key, value in source.items()):
+                    raise ValueError("Subscription item changed; refresh Billing")
+                product = stripe.Product.create(api_key=settings.STRIPE_SECRET_KEY,
+                    name=PLAN_CONFIG[target]["name"],
+                    idempotency_key="ai-assistant-recovery-product-v1-" + target)
+                # The key identifies the source item/price and destination, not the
+                # browser form, so separate tabs retry the identical operation.
+                key = "|".join([str(request.user.pk), *source.values(), target])
+                stripe.Subscription.modify(subscription["id"], api_key=settings.STRIPE_SECRET_KEY,
+                    items=[{"id": source["item"], "quantity": 1, "price_data": {
+                        "currency": CURRENCY, "unit_amount": PLAN_CONFIG[target]["unit_amount"],
+                        "recurring": {"interval": "month"}, "product": product.id}}],
+                    proration_behavior="always_invoice", payment_behavior="error_if_incomplete",
+                    billing_cycle_anchor="unchanged",
+                    metadata={"plan": target, "user_id": str(request.user.pk)},
+                    idempotency_key="recover-" + sha256(key.encode()).hexdigest())
+                current = owned_subscription(profile)
+                update_profile_from_subscription(profile, current)
+                if profile.has_paid_plan and profile.plan == target:
+                    messages.success(request, "Your existing subscription now uses the selected USD plan. Your renewal date and any scheduled cancellation are unchanged.")
+                else:
+                    messages.info(request, "The change is being confirmed. Refresh billing status before trying again.")
+        except signing.BadSignature:
+            messages.error(request, "This recovery form has expired or is invalid. Refresh Billing and try again.")
+        except stripe.error.CardError:
+            messages.error(request, "Payment could not be completed. Open Manage subscription to resolve payment before trying again.")
+        except Exception:
+            messages.error(request, "Unable to confirm the plan change. Refresh billing status or contact support. No additional checkout has been started.")
+        return redirect("payments:billing")
 
 
 @method_decorator(login_required, name="dispatch")
@@ -58,6 +150,8 @@ class UpgradeSubscriptionView(View):
                         or intent.get("subscription") != profile.stripe_subscription_id
                         or not profile.stripe_customer_id or not has_existing_subscription(profile)):
                     raise ValueError("Invalid upgrade owner")
+                if SubscriptionRecovery.objects.filter(profile=profile, completed=False).exists():
+                    raise ValueError("Finish pending migration before upgrading")
                 subscription = owned_subscription(profile)
                 plan = get_plan_from_subscription(subscription)
                 update_profile_from_subscription(profile, subscription)
@@ -174,6 +268,8 @@ class CreateCheckoutSessionView(View):
             # only retry the same request, including after a worker restart.
             with transaction.atomic():
                 profile = UserProfile.objects.select_for_update().get(user=request.user)
+                if SubscriptionRecovery.objects.filter(profile=profile, completed=False).exists():
+                    return JsonResponse({"error": "Finish the pending subscription migration from Billing before starting checkout."}, status=409)
                 if profile.stripe_subscription_id and not profile.stripe_customer_id:
                     return JsonResponse({"error": "Contact support to restore your billing account link."}, status=409)
                 reconcile_customer(profile)
@@ -187,6 +283,8 @@ class CreateCheckoutSessionView(View):
             with transaction.atomic():
                 profile = UserProfile.objects.select_for_update().get(user=request.user)
                 attempt = CheckoutAttempt.objects.get(profile=profile)
+                if SubscriptionRecovery.objects.filter(profile=profile, completed=False).exists():
+                    return JsonResponse({"error": "Finish the pending subscription migration from Billing before starting checkout."}, status=409)
                 if profile.stripe_subscription_id and not profile.stripe_customer_id:
                     return JsonResponse({"error": "Contact support to restore your billing account link."}, status=409)
                 reconcile_customer(profile)
@@ -317,6 +415,9 @@ def billing(request):
     """Render billing actions according to account and configuration state."""
     profile = request.user.profile
     refresh_failed = False
+    recovery_message = ""
+    recovery_options = []
+    recovery_replacement = False
     contradictory = ((profile.plan == UserProfile.PLAN_FREE and
         (profile.subscription_cancel_at_period_end or profile.subscription_ends_at
             or profile.stripe_subscription_status in {"active", "trialing"}))
@@ -330,7 +431,18 @@ def billing(request):
         try:
             with transaction.atomic():
                 profile = UserProfile.objects.select_for_update().get(user=request.user)
-                reconcile_customer(profile)
+                selected = reconcile_customer(profile)
+                if profile.stripe_subscription_status == "active" and profile.plan == UserProfile.PLAN_FREE:
+                    subscription = (owned_subscription(profile)
+                        if (selected.get("items") or {}).get("data") else selected)
+                    update_profile_from_subscription(profile, subscription)
+                    recovery_message, eligible = recovery_reason(subscription)
+                    if eligible:
+                        recovery_replacement = subscription["items"]["data"][0]["price"]["currency"] == "sek"
+                        recovery_options = [{"plan": plan, "name": plan.title(),
+                            "token": signing.dumps({"user": request.user.pk, "plan": plan,
+                                **recovery_source(subscription)}, salt="billing-recovery")}
+                            for plan in PLAN_CONFIG]
         except Exception:
             refresh_failed = True
             profile.refresh_from_db()
@@ -340,6 +452,13 @@ def billing(request):
             profile = UserProfile.objects.select_for_update().get(user=request.user)
             clear_subscription(profile)
     existing_subscription = has_existing_subscription(profile)
+    pending_recovery = SubscriptionRecovery.objects.filter(profile=profile, completed=False).first()
+    if pending_recovery:
+        recovery_replacement = True
+        recovery_message = "Your Test Mode subscription migration needs confirmation. Resume the saved migration below. If it cannot complete, contact support; do not start another checkout."
+        recovery_options = [{"plan": pending_recovery.plan, "name": pending_recovery.plan.title(),
+            "token": signing.dumps({"user": request.user.pk, "plan": pending_recovery.plan,
+                "subscription": pending_recovery.source_subscription}, salt="billing-recovery")}]
     billing_unavailable_reason = ""
     if not settings.STRIPE_SECRET_KEY:
         billing_unavailable_reason = "Billing is not configured in this environment. Please contact support."
@@ -352,18 +471,21 @@ def billing(request):
         "payments/billing.html",
         {
             "existing_subscription": existing_subscription,
+            "recovery_message": recovery_message,
+            "recovery_options": recovery_options,
+            "recovery_replacement": recovery_replacement,
             "billing_profile": profile,
             "current_plan": dict(UserProfile.PLAN_CHOICES)[profile.effective_plan],
             "has_paid_access": profile.has_paid_plan,
             "can_upgrade": bool(settings.STRIPE_SECRET_KEY and profile.stripe_customer_id
-                and not refresh_failed and existing_subscription and profile.is_premium
+                and not refresh_failed and not pending_recovery and existing_subscription and profile.is_premium
                 and profile.stripe_subscription_status == "active"),
             "upgrade_token": signing.dumps({"user": request.user.pk,
                 "subscription": profile.stripe_subscription_id, "nonce": uuid4().hex}, salt="billing-upgrade"),
             "show_management": bool(profile.stripe_customer_id) or existing_subscription,
             "can_manage_subscription": bool(profile.stripe_customer_id and settings.STRIPE_SECRET_KEY),
             "billing_unavailable_reason": billing_unavailable_reason,
-            "can_checkout": bool(settings.STRIPE_SECRET_KEY and settings.STRIPE_PUBLIC_KEY) and not existing_subscription and not refresh_failed,
+            "can_checkout": bool(settings.STRIPE_SECRET_KEY and settings.STRIPE_PUBLIC_KEY) and not existing_subscription and not refresh_failed and not pending_recovery,
             "STRIPE_PUBLIC_KEY": (
                 settings.STRIPE_PUBLIC_KEY
             ),

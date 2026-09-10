@@ -3,6 +3,19 @@ from django.utils import timezone
 import uuid
 
 
+class SubscriptionRecovery(models.Model):
+    """Committed before ending a legacy contract; retained across uncertain replies."""
+    profile = models.OneToOneField("accounts.UserProfile", on_delete=models.CASCADE)
+    key = models.UUIDField(default=uuid.uuid4, editable=False)
+    source_subscription = models.CharField(max_length=255)
+    source = models.JSONField(default=dict)
+    plan = models.CharField(max_length=20)
+    parameters = models.JSONField(default=dict)
+    started_at = models.DateTimeField(default=timezone.now)
+    completed = models.BooleanField(default=False)
+    replacement_subscription = models.CharField(max_length=255, blank=True)
+
+
 class CheckoutAttempt(models.Model):
     """Durable checkout intent shared by every browser tab and retry."""
     profile = models.OneToOneField("accounts.UserProfile", on_delete=models.CASCADE)

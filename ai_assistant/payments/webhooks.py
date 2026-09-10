@@ -10,7 +10,7 @@ from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from ai_assistant.accounts.models import UserProfile
-from .models import StripeEvent
+from .models import StripeEvent, SubscriptionRecovery
 from .emails import invoice_subscription, queue_subscription_emails
 from .pricing import CURRENCY, PLAN_CONFIG
 
@@ -129,10 +129,12 @@ def stripe_webhook(request):
                 return HttpResponse(status=200)
             if profile.stripe_customer_id and profile.stripe_customer_id != obj["customer"]:
                 return HttpResponse(status=200)
+            recovery = SubscriptionRecovery.objects.filter(profile=profile, completed=False).first()
             # Old subscriptions must never revoke or overwrite the current subscription.
             if (profile.stripe_subscription_id and profile.stripe_subscription_id != subscription_id
                     and not checkout):
-                return HttpResponse(status=200)
+                if not recovery or profile.stripe_subscription_id != recovery.source_subscription:
+                    return HttpResponse(status=200)
             if (checkout and profile.stripe_subscription_id
                     and profile.stripe_subscription_id != subscription_id
                     and profile.stripe_subscription_status not in {"canceled", "incomplete_expired"}):
@@ -147,6 +149,19 @@ def stripe_webhook(request):
             metadata_user = (subscription.get("metadata") or {}).get("user_id")
             if metadata_user and str(metadata_user) != str(profile.user_id):
                 raise ValueError("Subscription owner mismatch")
+            if recovery and subscription_id != recovery.source_subscription:
+                # A creation/payment webhook may arrive before the migration HTTP
+                # response. Adopt only the saved replacement after confirmed end.
+                if ((subscription.get("metadata") or {}).get("recovery") != str(recovery.key)
+                        or subscription.get("livemode") is not False
+                        or get_plan_from_subscription(subscription) != recovery.plan):
+                    raise ValueError("Recovery replacement mismatch")
+                source = stripe.Subscription.retrieve(recovery.source_subscription,
+                    api_key=settings.STRIPE_SECRET_KEY)
+                if (source.get("id") != recovery.source_subscription
+                        or source.get("customer") != profile.stripe_customer_id
+                        or source.get("status") not in {"canceled", "incomplete_expired"}):
+                    raise ValueError("Recovery source is still open")
             update_profile_from_subscription(profile, subscription)
             queue_subscription_emails(profile, subscription, obj.get("id") if invoice_event else None)
     except Exception:

@@ -4,6 +4,7 @@ from .views import (
     CreateCheckoutSessionView,
     CreatePortalSessionView,
     UpgradeSubscriptionView,
+    RecoverSubscriptionView,
     billing,
     payment_success,
     payment_cancel,
@@ -12,6 +13,7 @@ from .views import (
 app_name = 'payments'
 
 urlpatterns = [
+    path('recover/', RecoverSubscriptionView.as_view(), name='recover_subscription'),
     path('upgrade/', UpgradeSubscriptionView.as_view(), name='upgrade_subscription'),
     path('create-portal-session/', CreatePortalSessionView.as_view(), name='create_portal_session'),
     path('webhook/', stripe_webhook, name='webhook'),
