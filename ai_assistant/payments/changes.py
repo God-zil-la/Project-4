@@ -11,6 +11,14 @@ from .state import TERMINAL, validate_subscription
 from .webhooks import get_plan_from_subscription
 
 
+class ChangeBlocked(ValueError):
+    """An internal guard rejection with a safe, fixed diagnostic reason."""
+
+    def __init__(self, reason):
+        self.reason = reason
+        super().__init__(reason)
+
+
 def identifier(value):
     return value.get("id") if isinstance(value, dict) else value
 
@@ -30,31 +38,31 @@ def inventory(profile, subscription):
         validate_subscription(profile, entry)
     current = [entry for entry in entries if entry.get("status") not in TERMINAL]
     if len(current) != 1 or current[0].get("id") != subscription["id"]:
-        raise ValueError("Conflicting subscription inventory; contact support")
+        raise ChangeBlocked("conflicting_subscription_inventory")
     if SubscriptionRecovery.objects.filter(profile=profile, completed=False).exists():
-        raise ValueError("Finish the pending legacy migration")
+        raise ChangeBlocked("pending_legacy_migration")
     if CheckoutAttempt.objects.filter(profile=profile).exists():
         # Completed checkout rows are retained by the checkout implementation.
         attempt = CheckoutAttempt.objects.get(profile=profile)
         if not attempt.session_id:
-            raise ValueError("Unconfirmed checkout requires support")
+            raise ChangeBlocked("unconfirmed_checkout")
         session = stripe.checkout.Session.retrieve(attempt.session_id, api_key=settings.STRIPE_SECRET_KEY)
         if session.get("status") != "complete" or identifier(session.get("subscription")) != subscription["id"]:
-            raise ValueError("Conflicting checkout intent")
+            raise ChangeBlocked("conflicting_checkout_intent")
     sessions = stripe.checkout.Session.list(customer=profile.stripe_customer_id,
         limit=100, api_key=settings.STRIPE_SECRET_KEY)
     if any(s.get("mode") == "subscription" and s.get("status") == "open"
            for s in sessions.auto_paging_iter()):
-        raise ValueError("Resolve the open checkout first")
+        raise ChangeBlocked("open_checkout")
     for status in ("open", "draft", "uncollectible"):
         invoices = stripe.Invoice.list(customer=profile.stripe_customer_id, status=status,
             limit=100, api_key=settings.STRIPE_SECRET_KEY)
         if any(invoices.auto_paging_iter()):
-            raise ValueError("Resolve outstanding invoices first")
+            raise ChangeBlocked("outstanding_" + status + "_invoice")
     items = stripe.InvoiceItem.list(customer=profile.stripe_customer_id, pending=True,
         limit=100, api_key=settings.STRIPE_SECRET_KEY)
     if any(items.auto_paging_iter()):
-        raise ValueError("Resolve pending invoice items first")
+        raise ChangeBlocked("pending_invoice_items")
 
 
 def eligible(subscription, allowed_schedule=""):
@@ -72,17 +80,17 @@ def eligible(subscription, allowed_schedule=""):
                 "discount", "discounts", "default_tax_rates", "transfer_data", "on_behalf_of",
                 "application_fee_percent", "pending_invoice_item_interval", "billing_thresholds"))
             or (subscription.get("automatic_tax") or {}).get("enabled")):
-        raise ValueError("Unsupported billing state; use Manage subscription or contact support")
+        raise ChangeBlocked("unsupported_billing_state")
     item = data[0]
     if (not item.get("id") or not (item.get("price") or {}).get("id")
             or any(item.get(k) for k in ("tax_rates", "discounts", "billing_thresholds"))):
-        raise ValueError("Unsupported item settings")
+        raise ChangeBlocked("unsupported_item_settings")
     source = snapshot(subscription)
     if type(source["end"]) is not int or source["end"] <= timezone.now().timestamp():
-        raise ValueError("Renewal boundary is unavailable or already passed")
+        raise ChangeBlocked("invalid_renewal_boundary")
     if subscription.get("cancel_at") and (not subscription.get("cancel_at_period_end")
             or subscription["cancel_at"] != source["end"]):
-        raise ValueError("Custom cancellation requires support")
+        raise ChangeBlocked("custom_cancellation")
     return source
 
 

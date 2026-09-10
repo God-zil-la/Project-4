@@ -2,6 +2,7 @@ from decimal import Decimal
 from urllib.parse import urlsplit
 from uuid import uuid4
 from hashlib import sha256
+import logging
 
 import stripe
 
@@ -27,6 +28,25 @@ from .state import (has_existing_subscription, reconcile_customer, clear_subscri
                     validate_subscription, TERMINAL)
 from .webhooks import get_plan_from_subscription, update_profile_from_subscription
 from .recovery import recovery_reason, recovery_source, replacement_parameters, run_replacement
+
+logger = logging.getLogger(__name__)
+
+
+def log_change_failure(action, stage, error):
+    """Never log exception messages, provider payloads, or credentials."""
+    from .changes import ChangeBlocked
+    reason = error.reason if isinstance(error, ChangeBlocked) else "unexpected_failure"
+    # A code location distinguishes other guards and storage/provider failures
+    # without serializing exception text or traceback locals.
+    origin = "unknown"
+    trace = error.__traceback__
+    while trace:
+        module = trace.tb_frame.f_globals.get("__name__", "")
+        if module.startswith("ai_assistant.payments."):
+            origin = "%s:%s" % (module, trace.tb_lineno)
+        trace = trace.tb_next
+    logger.warning("Subscription change blocked action=%s stage=%s reason=%s error_type=%s origin=%s",
+                   action, stage, reason, type(error).__name__, origin)
 
 
 def owned_subscription(profile):
@@ -141,6 +161,7 @@ class ChangeSubscriptionView(View):
 
     def post(self, request):
         from .changes import eligible, inventory, run_change
+        stage = "owner_intent"
         try:
             if not settings.STRIPE_SECRET_KEY:
                 raise ValueError("Billing unavailable")
@@ -152,6 +173,7 @@ class ChangeSubscriptionView(View):
                 profile = UserProfile.objects.select_for_update().get(user=request.user)
                 if intent.get("subscription") != profile.stripe_subscription_id or not profile.stripe_customer_id:
                     raise ValueError("Subscription changed")
+                stage = "authoritative_subscription"
                 subscription = owned_subscription(profile)
                 update_profile_from_subscription(profile, subscription)
                 change = SubscriptionChange.objects.filter(profile=profile).first()
@@ -161,7 +183,9 @@ class ChangeSubscriptionView(View):
                 elif change and change.status not in {"complete", "removed", "failed"}:
                     raise ValueError("Resolve the saved change before choosing another action")
                 else:
+                    stage = "eligibility"
                     source = eligible(subscription)
+                    stage = "consent_terms"
                     if (intent.get("plan") != source["plan"] or intent.get("end") != source["end"]
                             or intent.get("canceled") != bool(subscription.get("cancel_at_period_end"))):
                         raise ValueError("Terms changed; refresh Billing")
@@ -172,7 +196,9 @@ class ChangeSubscriptionView(View):
                     if self.action == "resume" and not subscription.get("cancel_at_period_end"):
                         messages.info(request, "Your subscription already renews normally.")
                         return redirect("payments:billing")
+                    stage = "inventory"
                     inventory(profile, subscription)
+                    stage = "save_intent"
                     if change:
                         change.delete()
                     change = SubscriptionChange.objects.create(profile=profile, action=self.action, source=source)
@@ -184,6 +210,7 @@ class ChangeSubscriptionView(View):
                 if change.key != expected_key or change.action != self.action:
                     raise ValueError("Another operation replaced this intent")
                 try:
+                    stage = "execute_saved_change"
                     current = owned_subscription(profile)
                     update_profile_from_subscription(profile, current)
                     change.refresh_from_db()
@@ -199,11 +226,13 @@ class ChangeSubscriptionView(View):
                         messages.info(request, "Your change needs confirmation. Refresh Billing or retry the saved change. Contact support if it remains unresolved.")
                 except stripe.error.CardError:
                     messages.error(request, "Payment could not be completed. The upgrade was not applied. Manage subscription to resolve payment, then choose Upgrade to Pro again from Billing.")
-                except Exception:
+                except Exception as error:
+                    log_change_failure(self.action, stage, error)
                     messages.error(request, "Unable to confirm the change. Cancellation may already have been cleared. Refresh Billing, retry the saved change, or contact support before making another change.")
         except signing.BadSignature:
             messages.error(request, "This form has expired or is invalid. Refresh Billing and try again.")
-        except Exception:
+        except Exception as error:
+            log_change_failure(self.action, stage, error)
             messages.error(request, "This change cannot be safely applied. Refresh Billing, resolve payment in Manage subscription, or contact support.")
         return redirect("payments:billing")
 

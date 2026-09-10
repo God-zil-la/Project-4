@@ -122,6 +122,66 @@ class ContinuationTests(TestCase):
         self.assertNotIn("items", self.modify.call_args.kwargs)
         self.checkout.assert_not_called()
 
+    def use_sdk_responses(self, pending_items=()):
+        self.retrieve.side_effect = lambda *a, **kw: stripe.Subscription.construct_from(deepcopy(self.sub), "test")
+        self.sub_list.side_effect = lambda **kw: self.sdk_page([deepcopy(self.sub)], "/v1/subscriptions")
+        self.sessions.return_value = self.sdk_page([], "/v1/checkout/sessions")
+        self.invoices.return_value = self.sdk_page([], "/v1/invoices")
+        self.invoice_items.return_value = self.sdk_page(list(pending_items), "/v1/invoiceitems")
+        self.read_schedule.side_effect = lambda *a, **kw: stripe.SubscriptionSchedule.construct_from(deepcopy(self.schedule), "test")
+
+    @staticmethod
+    def sdk_page(data, url):
+        return stripe.ListObject.construct_from({"object": "list", "data": data,
+            "has_more": False, "url": url}, "test")
+
+    def test_canceled_pro_with_sdk_objects_and_completed_migration_is_eligible(self):
+        self.cancel()
+        self.sub.update(object="subscription", schedule=None, pause_collection=None,
+            pending_update=None, pending_setup_intent=None, trial_end=None,
+            discounts=[], default_tax_rates=[], automatic_tax={"enabled": False},
+            canceled_at=1897400000)
+        self.sub["latest_invoice"].update(object="invoice", paid=True, amount_remaining=0)
+        SubscriptionRecovery.objects.create(profile=self.user.profile,
+            source_subscription="sub_legacy", replacement_subscription=self.sub["id"],
+            plan="pro", completed=True)
+        self.use_sdk_responses()
+        response = self.post("downgrade")
+        self.assertContains(response, "Pending downgrade: Premium")
+        self.assertEqual(SubscriptionChange.objects.get().status, "scheduled")
+        self.assertFalse(self.modify.call_args.kwargs["cancel_at_period_end"])
+        self.assertEqual(self.configure.call_args.kwargs["phases"][1]["start_date"], 1900000000)
+        self.checkout.assert_not_called()
+
+    def test_pending_sdk_invoice_item_reproduces_generic_failure_after_reads(self):
+        self.cancel()
+        self.use_sdk_responses([{"id": "ii_private", "object": "invoiceitem",
+            "customer": "cus_owner", "invoice": None, "amount": 100, "currency": "usd"}])
+        with self.assertLogs("ai_assistant.payments.views", level="WARNING") as logs:
+            response = self.post("downgrade")
+        self.assertContains(response, "This change cannot be safely applied.")
+        self.assertIn("reason=pending_invoice_items", logs.output[0])
+        self.assertNotIn("ii_private", " ".join(logs.output))
+        self.assertEqual(self.invoices.call_count, 3)
+        self.invoice_items.assert_called_once()
+        self.retrieve.assert_called_once()
+        self.modify.assert_not_called()
+        self.create_schedule.assert_not_called()
+        self.assertFalse(SubscriptionChange.objects.exists())
+
+    def test_intent_storage_failure_is_classified_without_exception_details(self):
+        self.cancel()
+        self.use_sdk_responses()
+        with patch.object(SubscriptionChange.objects, "create", side_effect=RuntimeError("private database details")):
+            with self.assertLogs("ai_assistant.payments.views", level="WARNING") as logs:
+                response = self.post("downgrade")
+        self.assertContains(response, "This change cannot be safely applied.")
+        self.assertIn("stage=save_intent", logs.output[0])
+        self.assertIn("error_type=RuntimeError", logs.output[0])
+        self.assertNotIn("private database details", " ".join(logs.output))
+        self.modify.assert_not_called()
+        self.create_schedule.assert_not_called()
+
     def test_uncanceled_downgrade_does_not_modify_current_subscription(self):
         self.post("downgrade")
         self.modify.assert_not_called()
