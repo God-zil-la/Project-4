@@ -8,6 +8,8 @@ import stripe
 from django.conf import settings
 from django.core import signing
 from django.db import transaction
+from django.utils import timezone
+from datetime import timedelta
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.urls import reverse
@@ -20,6 +22,9 @@ from django.views.decorators.http import require_GET
 
 from ai_assistant.accounts.models import UserProfile
 from .pricing import CURRENCY, PLAN_CONFIG
+from .models import CheckoutAttempt
+from .state import (has_existing_subscription, reconcile_customer, clear_subscription,
+                    validate_subscription, TERMINAL)
 from .webhooks import get_plan_from_subscription, update_profile_from_subscription
 
 
@@ -55,8 +60,10 @@ class UpgradeSubscriptionView(View):
                     raise ValueError("Invalid upgrade owner")
                 subscription = owned_subscription(profile)
                 plan = get_plan_from_subscription(subscription)
+                update_profile_from_subscription(profile, subscription)
+                if not profile.has_paid_plan:
+                    raise ValueError("No current paid entitlement")
                 if plan == UserProfile.PLAN_PRO:
-                    update_profile_from_subscription(profile, subscription)
                     messages.info(request, "Your subscription is already on Pro.")
                     return redirect("payments:billing")
                 if (plan != UserProfile.PLAN_PREMIUM or subscription.get("status") != "active"
@@ -105,11 +112,6 @@ class UpgradeSubscriptionView(View):
         return response
 
 
-def has_existing_subscription(profile):
-    return bool(profile.stripe_subscription_id) and profile.stripe_subscription_status not in {
-        "canceled", "incomplete_expired",
-    }
-
 
 @method_decorator(login_required, name="dispatch")
 class CreatePortalSessionView(View):
@@ -145,6 +147,7 @@ class CreatePortalSessionView(View):
 
 
 @method_decorator(login_required, name="dispatch")
+@method_decorator(never_cache, name="dispatch")
 class CreateCheckoutSessionView(View):
     """Create a Stripe Checkout session for a paid monthly plan."""
 
@@ -167,75 +170,136 @@ class CreateCheckoutSessionView(View):
 
             if not settings.STRIPE_SECRET_KEY:
                 return JsonResponse({"error": "Billing is temporarily unavailable."}, status=503)
-            profile = request.user.profile
-            if has_existing_subscription(profile):
-                return JsonResponse({"error": "Manage your existing subscription before starting another."}, status=409)
-            customer = ({"customer": profile.stripe_customer_id} if profile.stripe_customer_id
-                        else {"customer_email": request.user.email})
-            checkout_session = stripe.checkout.Session.create(
-                api_key=settings.STRIPE_SECRET_KEY,
-                **customer,
-                mode="subscription",
-                locale="en",
+            # Commit the intent before provider calls so an uncertain response can
+            # only retry the same request, including after a worker restart.
+            with transaction.atomic():
+                profile = UserProfile.objects.select_for_update().get(user=request.user)
+                if profile.stripe_subscription_id and not profile.stripe_customer_id:
+                    return JsonResponse({"error": "Contact support to restore your billing account link."}, status=409)
+                reconcile_customer(profile)
+                if has_existing_subscription(profile):
+                    return JsonResponse({"error": "Manage your existing subscription before starting another."}, status=409)
+                attempt, _ = CheckoutAttempt.objects.get_or_create(profile=profile, defaults={
+                    "plan": plan,
+                    "success_url": request.build_absolute_uri("/payments/success/") + "?session_id={CHECKOUT_SESSION_ID}",
+                    "cancel_url": request.build_absolute_uri("/payments/cancel/"),
+                })
+            with transaction.atomic():
+                profile = UserProfile.objects.select_for_update().get(user=request.user)
+                attempt = CheckoutAttempt.objects.get(profile=profile)
+                if profile.stripe_subscription_id and not profile.stripe_customer_id:
+                    return JsonResponse({"error": "Contact support to restore your billing account link."}, status=409)
+                reconcile_customer(profile)
+                if has_existing_subscription(profile):
+                    return JsonResponse({"error": "Manage your existing subscription before starting another."}, status=409)
+                if attempt.session_id:
+                    session = stripe.checkout.Session.retrieve(attempt.session_id, api_key=settings.STRIPE_SECRET_KEY)
+                    if (session.get("id") != attempt.session_id
+                            or session.get("customer") != profile.stripe_customer_id):
+                        raise ValueError("Checkout customer mismatch")
+                    if session.get("status") == "expired":
+                        attempt.delete()
+                        return JsonResponse({"error": "Your previous checkout expired. Choose a plan again."}, status=409)
+                    if session.get("status") == "complete":
+                        subscription = stripe.Subscription.retrieve(session.get("subscription"), api_key=settings.STRIPE_SECRET_KEY)
+                        validate_subscription(profile, subscription)
+                        if subscription.get("id") != session.get("subscription"):
+                            raise ValueError("Checkout subscription mismatch")
+                        if subscription.get("status") in TERMINAL:
+                            attempt.delete()
+                            return JsonResponse({"error": "Your previous subscription ended. Choose a plan again."}, status=409)
+                        return JsonResponse({"error": "Your payment is being confirmed. Refresh billing status."}, status=409)
+                    if session.get("status") != "open":
+                        raise ValueError("Unknown checkout status")
+                    if attempt.plan != plan:
+                        return JsonResponse({"error": "Another plan checkout is open. Complete it or let it expire before changing plans."}, status=409)
+                    return JsonResponse({"id": attempt.session_id, "plan": attempt.plan})
+                if timezone.now() - attempt.started_at > timedelta(hours=23):
+                    return JsonResponse({"error": "Checkout confirmation requires support. No new payment has been started."}, status=409)
+                if attempt.plan != plan:
+                    return JsonResponse({"error": "Retry your original plan to confirm the pending checkout before changing plans."}, status=409)
+                if not profile.stripe_customer_id:
+                    customer = stripe.Customer.create(api_key=settings.STRIPE_SECRET_KEY,
+                        metadata={"user_id": str(request.user.pk)},
+                        idempotency_key="checkout-customer-" + str(attempt.key))
+                    profile.stripe_customer_id = customer.id
+                    profile.save(update_fields=["stripe_customer_id"])
+                # Include old sessions created before durable intents were introduced.
+                sessions = stripe.checkout.Session.list(customer=profile.stripe_customer_id,
+                    limit=100, api_key=settings.STRIPE_SECRET_KEY)
+                sessions = list(sessions.auto_paging_iter())
+                recovered = next((s for s in sessions if
+                    (s.get("metadata") or {}).get("attempt") == str(attempt.key)), None)
+                if recovered:
+                    attempt.session_id = recovered["id"]
+                    attempt.save(update_fields=["session_id"])
+                    return JsonResponse({"error": "Previous checkout recovered. Choose your plan again to continue."}, status=409)
+                if any(session.get("mode") == "subscription" and session.get("status") == "open" for session in sessions):
+                    return JsonResponse({"error": "An existing checkout is open. Complete it or let it expire before starting another."}, status=409)
+                customer = {"customer": profile.stripe_customer_id}
+                checkout_session = stripe.checkout.Session.create(
+                    api_key=settings.STRIPE_SECRET_KEY,
+                    idempotency_key="checkout-" + str(attempt.key),
+                    expires_at=int(attempt.started_at.timestamp()) + 86400,
+                    **customer,
+                    mode="subscription",
+                    locale="en",
 
-                client_reference_id=str(
-                    request.user.id
-                ),
+                    client_reference_id=str(
+                        request.user.id
+                    ),
 
 
 
-                line_items=[
-                    {
-                        "price_data": {
-                            "currency": CURRENCY,
-                            "unit_amount": plan_config[
-                                "unit_amount"
-                            ],
-                            "recurring": {
-                                "interval": "month",
-                            },
-                            "product_data": {
-                                "name": plan_config[
-                                    "name"
+                    line_items=[
+                        {
+                            "price_data": {
+                                "currency": CURRENCY,
+                                "unit_amount": plan_config[
+                                    "unit_amount"
                                 ],
+                                "recurring": {
+                                    "interval": "month",
+                                },
+                                "product_data": {
+                                    "name": plan_config[
+                                        "name"
+                                    ],
+                                },
                             },
+                            "quantity": 1,
                         },
-                        "quantity": 1,
-                    },
-                ],
+                    ],
 
-                subscription_data={
-                    "metadata": {
+                    subscription_data={
+                        "metadata": {
+                            "plan": plan,
+                            "user_id": str(
+                                request.user.id
+                            ),
+                        },
+                    },
+
+                    metadata={
+                        "attempt": str(attempt.key),
                         "plan": plan,
                         "user_id": str(
                             request.user.id
                         ),
                     },
-                },
 
-                metadata={
-                    "plan": plan,
-                    "user_id": str(
-                        request.user.id
-                    ),
-                },
-
-                success_url=request.build_absolute_uri(
-                    "/payments/success/"
+                    success_url=attempt.success_url,
+                    cancel_url=attempt.cancel_url,
                 )
-                + "?session_id={CHECKOUT_SESSION_ID}",
+                attempt.session_id = checkout_session.id
+                attempt.save(update_fields=["session_id"])
 
-                cancel_url=request.build_absolute_uri(
-                    "/payments/cancel/"
-                ),
-            )
-
-            return JsonResponse(
-                {
-                    "id": checkout_session.id,
-                    "plan": plan,
-                }
-            )
+                return JsonResponse(
+                    {
+                        "id": checkout_session.id,
+                        "plan": plan,
+                    }
+                )
 
         except Exception:
             return JsonResponse(
@@ -252,34 +316,54 @@ class CreateCheckoutSessionView(View):
 def billing(request):
     """Render billing actions according to account and configuration state."""
     profile = request.user.profile
-    if request.GET.get("sync") == "1" and profile.stripe_subscription_id and profile.stripe_customer_id and settings.STRIPE_SECRET_KEY:
+    refresh_failed = False
+    contradictory = ((profile.plan == UserProfile.PLAN_FREE and
+        (profile.subscription_cancel_at_period_end or profile.subscription_ends_at
+            or profile.stripe_subscription_status in {"active", "trialing"}))
+        or (profile.stripe_customer_id and not profile.stripe_subscription_id)
+        or (profile.stripe_subscription_status in TERMINAL and
+            (profile.plan != UserProfile.PLAN_FREE or profile.is_subscribed
+             or profile.subscription_cancel_at_period_end))
+        or (profile.subscription_ends_at and profile.subscription_ends_at <= timezone.now()
+            and has_existing_subscription(profile)))
+    if settings.STRIPE_SECRET_KEY and (request.GET.get("sync") == "1" or contradictory):
         try:
             with transaction.atomic():
                 profile = UserProfile.objects.select_for_update().get(user=request.user)
-                update_profile_from_subscription(profile, owned_subscription(profile))
+                reconcile_customer(profile)
         except Exception:
+            refresh_failed = True
+            profile.refresh_from_db()
             messages.error(request, "Billing status could not be refreshed. Showing the last confirmed status; please try again shortly.")
+    elif not profile.stripe_subscription_id and not profile.stripe_customer_id:
+        with transaction.atomic():
+            profile = UserProfile.objects.select_for_update().get(user=request.user)
+            clear_subscription(profile)
     existing_subscription = has_existing_subscription(profile)
     billing_unavailable_reason = ""
     if not settings.STRIPE_SECRET_KEY:
         billing_unavailable_reason = "Billing is not configured in this environment. Please contact support."
     elif existing_subscription and not profile.stripe_customer_id:
         billing_unavailable_reason = "Your existing subscription is missing its billing account link. Please contact support to restore subscription management."
+    elif refresh_failed:
+        billing_unavailable_reason = "Confirm billing status before starting a payment. Refresh this page or contact support if the problem continues."
     return render(
         request,
         "payments/billing.html",
         {
             "existing_subscription": existing_subscription,
             "billing_profile": profile,
+            "current_plan": dict(UserProfile.PLAN_CHOICES)[profile.effective_plan],
+            "has_paid_access": profile.has_paid_plan,
             "can_upgrade": bool(settings.STRIPE_SECRET_KEY and profile.stripe_customer_id
-                and existing_subscription and profile.plan == UserProfile.PLAN_PREMIUM
+                and not refresh_failed and existing_subscription and profile.is_premium
                 and profile.stripe_subscription_status == "active"),
             "upgrade_token": signing.dumps({"user": request.user.pk,
                 "subscription": profile.stripe_subscription_id, "nonce": uuid4().hex}, salt="billing-upgrade"),
             "show_management": bool(profile.stripe_customer_id) or existing_subscription,
             "can_manage_subscription": bool(profile.stripe_customer_id and settings.STRIPE_SECRET_KEY),
             "billing_unavailable_reason": billing_unavailable_reason,
-            "can_checkout": bool(settings.STRIPE_SECRET_KEY and settings.STRIPE_PUBLIC_KEY) and not existing_subscription,
+            "can_checkout": bool(settings.STRIPE_SECRET_KEY and settings.STRIPE_PUBLIC_KEY) and not existing_subscription and not refresh_failed,
             "STRIPE_PUBLIC_KEY": (
                 settings.STRIPE_PUBLIC_KEY
             ),

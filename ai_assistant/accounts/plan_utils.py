@@ -11,7 +11,7 @@ def get_plan_config(profile):
     Return the configured AI limits for the user's plan.
     """
     return settings.AI_PLAN_CONFIG.get(
-        profile.plan,
+        profile.effective_plan,
         settings.AI_PLAN_CONFIG[
             UserProfile.PLAN_FREE
         ],
@@ -62,7 +62,7 @@ def get_ai_usage_status(user):
 
     return {
         "allowed": allowed,
-        "plan": profile.plan,
+        "plan": profile.effective_plan,
         "daily_messages_used": (
             profile.daily_message_count
         ),

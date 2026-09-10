@@ -224,13 +224,19 @@ LOGOUT_REDIRECT_URL = '/'
 # Email Configuration (SMTP)
 # ─────────────────────────────────────────────────────────────────────────────
 
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'aibotassistants@gmail.com'
-EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
-DEFAULT_FROM_EMAIL = 'AI Bot Assistants <aibotassistants@gmail.com>'
+EMAIL_BACKEND = os.getenv("EMAIL_BACKEND", "django.core.mail.backends.smtp.EmailBackend")
+EMAIL_HOST = os.getenv("EMAIL_HOST", "smtp.gmail.com")
+EMAIL_PORT = int(os.getenv("EMAIL_PORT", "587"))
+EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "true").lower() in ("true", "1")
+EMAIL_USE_SSL = os.getenv("EMAIL_USE_SSL", "false").lower() in ("true", "1")
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "aibotassistants@gmail.com")
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
+DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "AI Bot Assistants <aibotassistants@gmail.com>")
+EMAIL_TIMEOUT = int(os.getenv("EMAIL_TIMEOUT", "15"))
+# Explicit canonical origin; never trust a request host or the Sites database for email links.
+PUBLIC_BASE_URL = os.getenv("PUBLIC_BASE_URL", "")
+PASSWORD_RESET_TIMEOUT = 3600
+
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Third-Party Keys
@@ -283,7 +289,6 @@ LOGGING = {
 # ─────────────────────────────────────────────────────────────────────────────
 
 SITE_ID = 1
-PASSWORD_RESET_TIMEOUT = 60 * 60 * 24 * 7  # 7 days
 DEFAULT_DOMAIN = os.getenv("DEFAULT_DOMAIN", "ai-assistants-8c06fcfeab86.herokuapp.com")
 DEFAULT_PROTOCOL = os.getenv("DEFAULT_PROTOCOL", "https")
 

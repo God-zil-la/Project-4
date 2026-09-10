@@ -45,100 +45,29 @@ class RegisterForm(forms.ModelForm):
 
 
 class CustomPasswordResetForm(PasswordResetForm):
-    """Custom password reset form with HTML email support and reset URL injection."""
+    """Keep Django's secure tokens and eligible-user filtering."""
 
-    def send_mail(
-        self,
-        subject_template_name,
-        email_template_name,
-        context,
-        from_email,
-        to_email,
-        html_email_template_name=None
-    ):
-        """Send a password reset email using text and optional HTML templates."""
-        subject = render_to_string(subject_template_name, context).strip()
-        body = render_to_string(email_template_name, context)
+    def save(self, **kwargs):
+        from urllib.parse import urlsplit
+        from .email_utils import public_origin
+        origin = urlsplit(public_origin(kwargs.get("request")))
+        kwargs["domain_override"] = origin.netloc
+        kwargs["use_https"] = origin.scheme == "https"
+        return super().save(**kwargs)
 
-        email_message = EmailMultiAlternatives(
-            subject, body, from_email, [to_email]
-        )
+    def send_mail(self, subject_template_name, email_template_name, context,
+                  from_email, to_email, html_email_template_name=None):
+        from django.db import transaction
+        from .email_utils import send_account_email
+        context = dict(context)
+        context["site_name"] = "AI Assistant"
+        context["reset_url"] = "{}://{}{}".format(
+            context["protocol"], context["domain"], reverse(
+                "accounts:password_reset_confirm",
+                kwargs={"uidb64": context["uid"], "token": context["token"]}))
+        subject = "".join(render_to_string(subject_template_name, context).splitlines())
+        message = EmailMultiAlternatives(subject, render_to_string(email_template_name, context),
+                                         from_email, [to_email])
         if html_email_template_name:
-            html_email = render_to_string(html_email_template_name, context)
-            email_message.attach_alternative(html_email, 'text/html')
-
-        email_message.send()
-
-    def save(
-        self,
-        domain_override=None,
-        subject_template_name='accounts/password_reset_subject.txt',
-        email_template_name='accounts/password_reset_email.txt',
-        use_https=False,
-        token_generator=None,
-        from_email=None,
-        request=None,
-        html_email_template_name='accounts/password_reset_email.html',
-        extra_email_context=None
-    ):
-        """Generate password reset email with a custom reset URL."""
-        from django.contrib.auth.tokens import default_token_generator
-        from django.utils.http import urlsafe_base64_encode
-        from django.utils.encoding import force_bytes
-        from django.contrib.auth import get_user_model
-
-        UserModel = get_user_model()
-        email = self.cleaned_data["email"]
-        active_users = UserModel._default_manager.filter(
-            email__iexact=email,
-            is_active=True
-        )
-
-        if not active_users:
-            return
-
-        for user in active_users:
-            if not domain_override and request:
-                current_site = get_current_site(request)
-                site_name = current_site.name
-                domain = current_site.domain
-            else:
-                site_name = domain = (
-                    domain_override or getattr(
-                        settings, 'DEFAULT_DOMAIN', 'example.com'
-                    )
-                )
-
-            uidb64 = urlsafe_base64_encode(force_bytes(user.pk))
-            token = (
-                token_generator or default_token_generator
-            ).make_token(user)
-            reset_path = reverse(
-                'accounts:password_reset_confirm',
-                kwargs={'uidb64': uidb64, 'token': token}
-            )
-            reset_url = (
-                f"{'https' if use_https else 'http'}://{domain}{reset_path}"
-            )
-
-            context = {
-                'email': email,
-                'domain': domain,
-                'site_name': site_name,
-                'user': user,
-                'protocol': 'https' if use_https else 'http',
-                'request': request,
-                'reset_url': reset_url,
-            }
-
-            if extra_email_context:
-                context.update(extra_email_context)
-
-            self.send_mail(
-                subject_template_name,
-                email_template_name,
-                context,
-                from_email or settings.DEFAULT_FROM_EMAIL,
-                email,
-                html_email_template_name=html_email_template_name
-            )
+            message.attach_alternative(render_to_string(html_email_template_name, context), "text/html")
+        transaction.on_commit(lambda: send_account_email(message))

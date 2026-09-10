@@ -32,6 +32,9 @@ class SubscriptionManagementTests(TestCase):
         self.token = self.client.get(self.billing).context["upgrade_token"]
         self.retrieve = self.mock("stripe.Subscription.retrieve")
         self.retrieve.return_value = self.subscription
+        self.list_subscriptions = self.mock("stripe.Subscription.list")
+        self.list_subscriptions.side_effect = lambda **kwargs: SimpleNamespace(
+            auto_paging_iter=lambda: iter([self.retrieve()]))
         self.modify = self.mock("stripe.Subscription.modify")
         self.product = self.mock("stripe.Product.create")
         self.product.return_value = SimpleNamespace(id="prod_pro")
@@ -168,6 +171,8 @@ class SubscriptionManagementTests(TestCase):
         self.assertEqual(self.user.profile.plan, "pro")
         self.assertTrue(self.user.profile.subscription_cancel_at_period_end)
         self.assertEqual(int(self.user.profile.subscription_ends_at.timestamp()), 1900000000)
+        self.retrieve.side_effect = None
+        self.retrieve.return_value = self.pro()
         self.assertEqual(self.client.post(reverse("payments:create_checkout_session"), {"plan": "pro"}).status_code, 409)
         self.checkout.assert_not_called()
 
@@ -299,7 +304,7 @@ class SubscriptionManagementTests(TestCase):
 
     def test_refresh_rejects_wrong_owner_without_changing_saved_state(self):
         before = type(self.user.profile).objects.values().get(pk=self.user.profile.pk)
-        for field, value in [("id", "sub_other"), ("customer", "cus_other"),
+        for field, value in [("customer", "cus_other"),
                              ("metadata", {"user_id": "999999"}), ("livemode", True)]:
             sub = self.pro()
             sub[field] = value

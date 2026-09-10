@@ -33,16 +33,18 @@ html, body { height: auto; overflow-x: clip; }
   <p>View your plan, manage billing, and choose the AI usage tier that fits your needs.</p>
   <section class="billing-panel" aria-labelledby="subscription-heading">
     <h2 id="subscription-heading">Your subscription</h2>
-    <p class="status">Current plan: <strong>{{ billing_profile.get_plan_display }}</strong></p>
-    {% if billing_profile.stripe_subscription_status == 'canceled' %}
+    <p class="status">Current plan: <strong>{{ current_plan }}</strong></p>
+    {% if billing_profile.stripe_subscription_status == 'canceled' or billing_profile.stripe_subscription_status == 'incomplete_expired' %}
       <p class="status">Subscription ended{% if billing_profile.subscription_ends_at %} on {{ billing_profile.subscription_ends_at|date:"F j, Y, H:i T" }}{% endif %}. Paid access has ended.</p>
       {% if not billing_profile.subscription_ends_at %}<p class="muted">The end date is not yet available. Refresh billing status to retrieve it.</p>{% endif %}
-    {% elif billing_profile.subscription_cancel_at_period_end or billing_profile.subscription_ends_at %}
-      {% if billing_profile.is_subscribed %}
+    {% elif existing_subscription and billing_profile.subscription_cancel_at_period_end or existing_subscription and billing_profile.subscription_ends_at %}
+      {% if has_paid_access %}
         <p class="status">Cancellation scheduled. {% if billing_profile.subscription_ends_at %}Access through <strong>{{ billing_profile.subscription_ends_at|date:"F j, Y, H:i T" }}</strong>.{% else %}Your access end date is being confirmed. Refresh billing status.{% endif %} Your subscription will not renew.</p>
-      {% else %}<p class="status">Cancellation scheduled. Paid access is currently unavailable. Check your billing status in subscription management.</p>{% endif %}
+      {% else %}<p class="status">Paid access is currently unavailable. Your subscription is still open ({{ billing_profile.stripe_subscription_status|default:"awaiting confirmation" }}). Manage subscription to resolve payment or cancellation before choosing another plan.</p>{% endif %}
+    {% elif existing_subscription and not has_paid_access %}
+      <p class="status">Paid access is currently unavailable. Your subscription is still open ({{ billing_profile.stripe_subscription_status|default:"awaiting confirmation" }}). Manage subscription to resolve payment or cancellation before choosing another plan.</p>
     {% elif existing_subscription %}
-      <p class="status">Status: {{ billing_profile.stripe_subscription_status|default:"Awaiting confirmation"|capfirst }}.{% if billing_profile.is_subscribed and billing_profile.subscription_current_period_end %} Next renewal: {{ billing_profile.subscription_current_period_end|date:"F j, Y, H:i T" }}.{% endif %}</p>
+      <p class="status">Status: {{ billing_profile.stripe_subscription_status|default:"Awaiting confirmation"|capfirst }}.{% if has_paid_access and billing_profile.subscription_current_period_end %} Next renewal: {{ billing_profile.subscription_current_period_end|date:"F j, Y, H:i T" }}.{% endif %}</p>
     {% else %}<p class="muted">No active paid subscription.</p>{% endif %}
     {% if billing_unavailable_reason %}<p role="status">{{ billing_unavailable_reason }}</p>
     {% elif not can_checkout and not existing_subscription %}<p role="status">Checkout is unavailable in this environment. Please contact support.</p>{% endif %}

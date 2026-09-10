@@ -17,6 +17,12 @@ class PortalTests(TestCase):
         self.user.profile.stripe_subscription_status = "active"
         self.user.profile.save()
         self.client.force_login(self.user)
+        listing = patch("ai_assistant.payments.state.stripe.Subscription.list",
+            return_value=SimpleNamespace(auto_paging_iter=lambda: iter([{
+                "id": "sub_owner", "customer": "cus_owner", "livemode": False,
+                "status": "active"}])))
+        listing.start()
+        self.addCleanup(listing.stop)
         self.url = reverse("payments:create_portal_session")
         self.portal = patch("ai_assistant.payments.views.stripe.billing_portal.Session.create")
         self.create = self.portal.start()
@@ -93,7 +99,11 @@ class PortalTests(TestCase):
 
     def test_portal_does_not_remove_duplicate_subscription_protection(self):
         self.client.post(self.url)
-        with patch("ai_assistant.payments.views.stripe.checkout.Session.create") as checkout:
+        subscription = {"id": "sub_owner", "customer": "cus_owner", "livemode": False,
+                        "status": "active"}
+        with patch("ai_assistant.payments.views.stripe.checkout.Session.create") as checkout, patch(
+                "ai_assistant.payments.state.stripe.Subscription.list", return_value=SimpleNamespace(
+                    auto_paging_iter=lambda: iter([subscription]))):
             response = self.client.post(reverse("payments:create_checkout_session"))
         self.assertEqual(response.status_code, 409)
         checkout.assert_not_called()
@@ -101,6 +111,18 @@ class PortalTests(TestCase):
 
 class StripeTests(TestCase):
     def setUp(self):
+        customer = patch('ai_assistant.payments.views.stripe.Customer.create', return_value=SimpleNamespace(id='cus_test'))
+        customer.start()
+        self.addCleanup(customer.stop)
+        sessions = patch('ai_assistant.payments.views.stripe.checkout.Session.list',
+            return_value=SimpleNamespace(auto_paging_iter=lambda: iter([])))
+        sessions.start()
+        self.addCleanup(sessions.stop)
+        listing = patch('ai_assistant.payments.views.stripe.Subscription.list',
+            side_effect=lambda **kwargs: SimpleNamespace(auto_paging_iter=lambda: iter([dict(self.subscription(), livemode=False)])))
+        listing.start()
+        self.addCleanup(listing.stop)
+
         self.user = User.objects.create_user(username='billing', email='test@example.com')
         self.client.force_login(self.user)
         self.url = reverse('payments:webhook')
@@ -127,6 +149,9 @@ class StripeTests(TestCase):
 
     def test_checkout_premium_and_pro(self):
         for plan, amount in [('premium', 1299), ('pro', 2499)]:
+            # Each plan is tested with a separate genuinely free account.
+            self.user = User.objects.create_user(username='checkout-' + plan)
+            self.client.force_login(self.user)
             with patch('ai_assistant.payments.views.stripe.checkout.Session.create',
                        return_value=SimpleNamespace(id='cs_test')) as create:
                 response = self.client.post(reverse('payments:create_checkout_session'), {'plan': plan})
@@ -365,7 +390,11 @@ class BillingStateTests(TestCase):
         self.user = User.objects.create_user(username="billing-states")
         self.client.force_login(self.user)
 
-    def test_existing_subscription_has_management_and_no_checkout_script(self):
+    @patch("ai_assistant.payments.state.stripe.Subscription.list",
+        return_value=SimpleNamespace(auto_paging_iter=lambda: iter([{
+            "id": "sub_owner", "customer": "cus_owner", "livemode": False,
+            "status": "active"}])))
+    def test_existing_subscription_has_management_and_no_checkout_script(self, listing):
         profile = self.user.profile
         profile.stripe_customer_id = "cus_owner"
         profile.stripe_subscription_id = "sub_owner"

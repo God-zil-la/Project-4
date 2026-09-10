@@ -5,11 +5,13 @@ from datetime import datetime, timezone as dt_timezone
 import stripe
 from django.conf import settings
 from django.db import transaction
+from django.utils import timezone
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from ai_assistant.accounts.models import UserProfile
 from .models import StripeEvent
+from .emails import invoice_subscription, queue_subscription_emails
 from .pricing import CURRENCY, PLAN_CONFIG
 
 logger = logging.getLogger(__name__)
@@ -49,11 +51,12 @@ def update_profile_from_subscription(profile, subscription):
     profile.stripe_subscription_id = subscription.get("id")
     profile.stripe_subscription_status = status
     profile.subscription_current_period_end = timestamp_to_datetime(period_end)
-    profile.subscription_cancel_at_period_end = bool(subscription.get("cancel_at_period_end"))
+    profile.subscription_cancel_at_period_end = bool(subscription.get("cancel_at_period_end")) and status not in {"canceled", "incomplete_expired"}
     # canceled_at is the request time for scheduled cancellations, not access expiry.
-    end = (subscription.get("ended_at") if status == "canceled" else
+    end = (subscription.get("ended_at") if status in {"canceled", "incomplete_expired"} else
            subscription.get("cancel_at") or (period_end if profile.subscription_cancel_at_period_end else None))
     profile.subscription_ends_at = timestamp_to_datetime(end)
+    active = active and not (profile.subscription_ends_at and profile.subscription_ends_at <= timezone.now())
     profile.is_subscribed = active
     profile.plan = plan if active else UserProfile.PLAN_FREE
     profile.save(update_fields=["stripe_customer_id", "stripe_subscription_id",
@@ -81,16 +84,20 @@ def stripe_webhook(request):
     if not isinstance(event_type, str):
         return HttpResponse(status=400)
     if event_type not in {"checkout.session.completed", "customer.subscription.created",
-                          "customer.subscription.updated", "customer.subscription.deleted"}:
+                          "customer.subscription.updated", "customer.subscription.deleted",
+                          "invoice.paid", "invoice.payment_succeeded"}:
         return HttpResponse(status=200)
     data = event.get("data")
     obj = data.get("object") if isinstance(data, dict) else None
     if not isinstance(obj, dict):
         return HttpResponse(status=400)
+    invoice_event = event_type in {"invoice.paid", "invoice.payment_succeeded"}
     checkout = event_type == "checkout.session.completed"
     if checkout and obj.get("mode") != "subscription":
         return HttpResponse(status=200)
-    subscription_id = obj.get("subscription") if checkout else obj.get("id")
+    subscription_id = invoice_subscription(obj) if invoice_event else (obj.get("subscription") if checkout else obj.get("id"))
+    if invoice_event and not subscription_id:
+        return HttpResponse(status=200)
     identifiers = (event.get("id"), subscription_id, obj.get("customer"))
     if any(not isinstance(value, str) or not value or len(value) > 255 for value in identifiers):
         return HttpResponse(status=400)
@@ -127,7 +134,8 @@ def stripe_webhook(request):
                     and not checkout):
                 return HttpResponse(status=200)
             if (checkout and profile.stripe_subscription_id
-                    and profile.stripe_subscription_id != subscription_id and profile.is_subscribed):
+                    and profile.stripe_subscription_id != subscription_id
+                    and profile.stripe_subscription_status not in {"canceled", "incomplete_expired"}):
                 return HttpResponse(status=200)
             # Fetch inside the profile lock: delivery order does not determine access.
             subscription = stripe.Subscription.retrieve(
@@ -140,6 +148,7 @@ def stripe_webhook(request):
             if metadata_user and str(metadata_user) != str(profile.user_id):
                 raise ValueError("Subscription owner mismatch")
             update_profile_from_subscription(profile, subscription)
+            queue_subscription_emails(profile, subscription, obj.get("id") if invoice_event else None)
     except Exception:
         logger.error("Stripe subscription reconciliation failed; retry required.")
         return HttpResponse(status=500)

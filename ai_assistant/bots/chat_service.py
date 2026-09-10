@@ -256,7 +256,7 @@ def _save_chat_exchange(
 
 def _check_rate_limit(user, profile):
     rate_limit = settings.AI_RATE_LIMITS.get(
-        profile.plan,
+        getattr(profile, "effective_plan", profile.plan),
         settings.AI_RATE_LIMITS[
             UserProfile.PLAN_FREE
         ],

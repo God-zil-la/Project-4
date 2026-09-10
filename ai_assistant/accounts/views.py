@@ -12,6 +12,11 @@ from django.contrib.auth.decorators import login_required
 
 from ai_assistant.bots.models import Bot
 from .tokens import account_activation_token
+from django.db import transaction
+from .email_utils import public_origin, send_account_email
+from django.core.validators import validate_email
+from django.core.exceptions import ValidationError
+from django.contrib.auth.password_validation import validate_password
 
 
 User = get_user_model()
@@ -116,6 +121,15 @@ def register(request):
                 {'username': username, 'email': email}
             )
 
+        try:
+            validate_email(email)
+            validate_password(password, User(username=username, email=email))
+        except ValidationError as exc:
+            for error in exc.messages:
+                messages.error(request, error)
+            return render(request, 'accounts/register.html', {'username': username, 'email': email})
+
+        origin = public_origin(request)
         user = User.objects.create_user(
             username=username,
             email=email,
@@ -126,7 +140,8 @@ def register(request):
 
         context = {
             'user': user,
-            'domain': get_current_site(request).domain,
+            'domain': origin.split('://', 1)[1],
+            'login_url': origin + reverse('accounts:login'),
         }
         subject = (
             "Welcome to AI Assistant - "
@@ -148,7 +163,7 @@ def register(request):
             [email]
         )
         email_message.attach_alternative(html_content, "text/html")
-        email_message.send()
+        transaction.on_commit(lambda: send_account_email(email_message))
 
         return render(request, 'accounts/activation_sent.html')
 

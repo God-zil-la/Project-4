@@ -2,6 +2,7 @@ from datetime import date
 import secrets
 
 from django.db import models
+from django.utils import timezone
 from django.contrib.auth.models import User
 
 
@@ -70,20 +71,30 @@ class UserProfile(models.Model):
     )
 
     @property
+    def effective_plan(self):
+        """A known access end is enforced even when the final webhook is late."""
+        if (self.stripe_subscription_id and self.stripe_subscription_status
+                and self.stripe_subscription_status not in {"active", "trialing"}):
+            return self.PLAN_FREE
+        if self.subscription_ends_at and self.subscription_ends_at <= timezone.now():
+            return self.PLAN_FREE
+        return self.plan
+
+    @property
     def has_paid_plan(self):
         """Return True for Premium or Pro users."""
-        return self.plan in {
+        return self.effective_plan in {
             self.PLAN_PREMIUM,
             self.PLAN_PRO,
         }
 
     @property
     def is_premium(self):
-        return self.plan == self.PLAN_PREMIUM
+        return self.effective_plan == self.PLAN_PREMIUM
 
     @property
     def is_pro(self):
-        return self.plan == self.PLAN_PRO
+        return self.effective_plan == self.PLAN_PRO
 
     def reset_daily_count(self):
         """Reset only an outdated database row, never a stale instance's counter."""
