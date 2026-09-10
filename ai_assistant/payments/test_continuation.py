@@ -169,6 +169,89 @@ class ContinuationTests(TestCase):
         self.create_schedule.assert_not_called()
         self.assertFalse(SubscriptionChange.objects.exists())
 
+    def pending_proration(self):
+        return {"id": "ii_proration", "object": "invoiceitem", "amount": 36,
+            "currency": "usd", "proration": True, "invoice": None,
+            "customer": self.sub["customer"], "livemode": False,
+            "parent": {"type": "subscription_details", "subscription_details": {
+                "subscription": self.sub["id"], "subscription_item": "si_owner"}}}
+
+    def test_same_subscription_pending_proration_allows_downgrade(self):
+        self.use_sdk_responses([self.pending_proration()])
+        response = self.post("downgrade")
+        self.assertContains(response, "Pending downgrade: Premium")
+        self.assertEqual(SubscriptionChange.objects.get().status, "scheduled")
+        self.create_schedule.assert_called_once()
+        self.assertEqual(self.create_schedule.call_args.kwargs["from_subscription"], self.sub["id"])
+        self.assertEqual(self.configure.call_args.kwargs["phases"][1]["start_date"], 1900000000)
+        self.modify.assert_not_called()
+        self.checkout.assert_not_called()
+        self.assertEqual(self.invoice_items.call_count, 2)
+
+    def test_pending_proration_unsafe_variants_block_before_writes(self):
+        original = self.pending_proration()
+        variants = []
+        for key in ("proration", "invoice", "customer", "livemode", "parent", "id", "object"):
+            item = deepcopy(original)
+            del item[key]
+            variants.append(("missing_" + key, item))
+        for key, value in (("proration", False), ("proration", 1), ("proration", "true"),
+                ("invoice", "in_attached"), ("customer", "cus_other"), ("livemode", True),
+                ("livemode", 0), ("parent", None), ("parent", "unknown"),
+                ("parent", {"type": "invoice_item_details"}),
+                ("subscription", "sub_other"), ("subscription_item", "si_other")):
+            variants.append((str((key, value)), dict(original, **{key: value})))
+        for key in ("subscription", "subscription_item"):
+            for value in (None, "", "other", {"id": "other"}):
+                item = deepcopy(original)
+                item["parent"]["subscription_details"][key] = value
+                variants.append((str((key, value)), item))
+            item = deepcopy(original)
+            del item["parent"]["subscription_details"][key]
+            variants.append(("missing_parent_" + key, item))
+        for name, item in variants:
+            with self.subTest(variant=name):
+                # A valid item first must not mask an unsafe item later in inventory.
+                self.use_sdk_responses([original, item])
+                with self.assertLogs("ai_assistant.payments.views", level="WARNING") as logs:
+                    response = self.post("downgrade")
+                self.assertContains(response, "This change cannot be safely applied.")
+                self.assertIn("reason=pending_invoice_items", logs.output[0])
+                self.assertFalse(SubscriptionChange.objects.exists())
+        self.modify.assert_not_called()
+        self.product.assert_not_called()
+        self.price.assert_not_called()
+        self.create_schedule.assert_not_called()
+        self.configure.assert_not_called()
+
+    def test_pending_proration_with_expanded_references(self):
+        item = self.pending_proration()
+        item["customer"] = {"id": self.sub["customer"], "object": "customer"}
+        details = item["parent"]["subscription_details"]
+        details["subscription"] = {"id": self.sub["id"], "object": "subscription"}
+        details["subscription_item"] = {"id": "si_owner", "object": "subscription_item"}
+        self.use_sdk_responses([item])
+        self.post("downgrade")
+        self.assertEqual(SubscriptionChange.objects.get().status, "scheduled")
+
+    def test_valid_proration_does_not_bypass_outstanding_invoices(self):
+        for status in ("open", "draft", "uncollectible"):
+            with self.subTest(status=status):
+                self.use_sdk_responses([self.pending_proration()])
+                self.invoices.side_effect = lambda **kw: self.page(
+                    [{"id": "in_unpaid"}] if kw["status"] == status else [])
+                self.post("downgrade")
+                self.assertFalse(SubscriptionChange.objects.exists())
+        self.create_schedule.assert_not_called()
+
+    def test_new_unsafe_pending_item_blocks_execution_recheck(self):
+        self.invoice_items.side_effect = [self.page([self.pending_proration()]),
+            self.page([self.pending_proration(), {"id": "ii_manual"}])]
+        self.post("downgrade")
+        self.assertEqual(SubscriptionChange.objects.get().status, "confirming")
+        self.product.assert_not_called()
+        self.create_schedule.assert_not_called()
+
     def test_intent_storage_failure_is_classified_without_exception_details(self):
         self.cancel()
         self.use_sdk_responses()

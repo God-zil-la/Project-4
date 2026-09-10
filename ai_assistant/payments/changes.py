@@ -31,6 +31,36 @@ def snapshot(subscription):
             "start": subscription.get("current_period_start") or item.get("current_period_start")}
 
 
+def is_current_pending_proration(item, subscription):
+    """Allow only provider-generated prorations with complete current ownership."""
+    if (not isinstance(item, dict) or item.get("object") != "invoiceitem"
+            or not item.get("id") or item.get("proration") is not True
+            or "invoice" not in item or item["invoice"] is not None
+            or identifier(item.get("customer")) != identifier(subscription.get("customer"))
+            or type(item.get("livemode")) is not bool
+            or item["livemode"] is not subscription.get("livemode")):
+        return False
+    parent = item.get("parent")
+    if not isinstance(parent, dict) or parent.get("type") != "subscription_details":
+        return False
+    details = parent.get("subscription_details")
+    if not isinstance(details, dict):
+        return False
+    subscription_id = identifier(details.get("subscription"))
+    item_id = identifier(details.get("subscription_item"))
+    current_items = subscription.get("items") or {}
+    if (not subscription_id or subscription_id != subscription.get("id")
+            or not isinstance(item_id, str) or not item_id
+            or current_items.get("has_more")
+            or not any(current.get("id") == item_id
+                       for current in current_items.get("data", []))):
+        return False
+    # Do not let conflicting legacy identity fields override the provider parent.
+    return all(key not in item or identifier(item[key]) == expected
+               for key, expected in (("subscription", subscription_id),
+                                     ("subscription_item", item_id)))
+
+
 def inventory(profile, subscription):
     entries = list(stripe.Subscription.list(customer=profile.stripe_customer_id,
         status="all", limit=100, api_key=settings.STRIPE_SECRET_KEY).auto_paging_iter())
@@ -61,7 +91,8 @@ def inventory(profile, subscription):
             raise ChangeBlocked("outstanding_" + status + "_invoice")
     items = stripe.InvoiceItem.list(customer=profile.stripe_customer_id, pending=True,
         limit=100, api_key=settings.STRIPE_SECRET_KEY)
-    if any(items.auto_paging_iter()):
+    if any(not is_current_pending_proration(item, subscription)
+           for item in items.auto_paging_iter()):
         raise ChangeBlocked("pending_invoice_items")
 
 
