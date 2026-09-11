@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block title %}Payment Cancelled{% endblock %}
+
+{% block content %}
+<section class="content payment-status-page">
+    <div class="payment-status-card">
+        <h1>Payment Cancelled</h1>
+
+        <p>
+            Your subscription was not completed and no plan change was made.
+        </p>
+
+        <p class="status-note">
+            You can return to Billing whenever you're ready.
+        </p>
+
+        <a href="{% url 'payments:billing' %}" class="btn">
+            Return to Billing
+        </a>
+    </div>
+</section>
+
+<style>
+    .payment-status-page {
+        display: flex;
+        justify-content: center;
+        padding: 3rem 1rem;
+    }
+
+    .payment-status-card {
+        width: 100%;
+        max-width: 560px;
+        padding: 2rem;
+        text-align: center;
+        background: var(--nav-bg);
+        color: var(--text-color);
+        border: 1px solid var(--button-border);
+        border-radius: 14px;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+    }
+
+    .payment-status-card h1 {
+        margin-top: 0;
+        margin-bottom: 1rem;
+        color: var(--accent-color);
+    }
+
+    .payment-status-card p {
+        line-height: 1.6;
+    }
+
+    .status-note {
+        margin-bottom: 1.5rem;
+        opacity: 0.8;
+    }
+</style>
+{% endblock %}
