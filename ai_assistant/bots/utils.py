@@ -135,49 +135,137 @@ def chunk_text(
     overlap=100,
 ):
     """
-    Splits text into chunks of up to max_length characters,
-    with optional overlap and sentence-aware boundaries.
+    Split text into bounded chunks with overlap.
+
+    Chunks prefer natural boundaries such as paragraphs,
+    sentences, and spaces, but will hard-split long content
+    when necessary.
+
+    Every returned chunk is guaranteed to be no longer than
+    max_length characters.
     """
-    sentences = re.split(
-        r"(?<=[.!?])\s+",
-        text,
-    )
+    if not text:
+        return []
+
+    if max_length <= 0:
+        raise ValueError(
+            "max_length must be greater than 0."
+        )
+
+    if overlap < 0:
+        raise ValueError(
+            "overlap cannot be negative."
+        )
+
+    if overlap >= max_length:
+        raise ValueError(
+            "overlap must be smaller than max_length."
+        )
+
+    text = str(text).replace(
+        "\r\n",
+        "\n",
+    ).replace(
+        "\r",
+        "\n",
+    ).strip()
+
+    if not text:
+        return []
 
     chunks = []
-    current_chunk = ""
+    start = 0
+    text_length = len(text)
 
-    for sentence in sentences:
-        if (
-            len(current_chunk)
-            + len(sentence)
-            + 1
-            <= max_length
-        ):
-            current_chunk += " " + sentence
-
-        else:
-            if current_chunk:
-                chunks.append(
-                    current_chunk.strip()
-                )
-
-            if overlap > 0 and chunks:
-                overlap_text = (
-                    chunks[-1][-overlap:]
-                )
-
-                current_chunk = (
-                    overlap_text
-                    + " "
-                    + sentence
-                )
-
-            else:
-                current_chunk = sentence
-
-    if current_chunk:
-        chunks.append(
-            current_chunk.strip()
+    while start < text_length:
+        hard_end = min(
+            start + max_length,
+            text_length,
         )
+
+        end = hard_end
+
+        if hard_end < text_length:
+            window = text[
+                start:hard_end
+            ]
+
+            minimum_boundary = int(
+                max_length * 0.6
+            )
+
+            boundary_positions = []
+
+            paragraph_position = (
+                window.rfind("\n\n")
+            )
+
+            if paragraph_position >= minimum_boundary:
+                boundary_positions.append(
+                    paragraph_position + 2
+                )
+
+            newline_position = (
+                window.rfind("\n")
+            )
+
+            if newline_position >= minimum_boundary:
+                boundary_positions.append(
+                    newline_position + 1
+                )
+
+            sentence_matches = list(
+                re.finditer(
+                    r"[.!?](?:\s|$)",
+                    window,
+                )
+            )
+
+            for match in sentence_matches:
+                position = match.end()
+
+                if position >= minimum_boundary:
+                    boundary_positions.append(
+                        position
+                    )
+
+            space_position = (
+                window.rfind(" ")
+            )
+
+            if space_position >= minimum_boundary:
+                boundary_positions.append(
+                    space_position + 1
+                )
+
+            if boundary_positions:
+                end = start + max(
+                    boundary_positions
+                )
+
+        chunk = text[
+            start:end
+        ].strip()
+
+        if chunk:
+            chunks.append(
+                chunk
+            )
+
+        if end >= text_length:
+            break
+
+        next_start = max(
+            end - overlap,
+            start + 1,
+        )
+
+        while (
+            next_start < text_length
+            and text[next_start].isspace()
+        ):
+            next_start += 1
+
+        start = next_start
 
     return chunks
