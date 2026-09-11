@@ -1,5 +1,5 @@
 from django.contrib.auth.decorators import login_required
-from django.core.exceptions import PermissionDenied
+from django.core.exceptions import PermissionDenied, SuspiciousOperation
 from django.shortcuts import render
 from django.utils import timezone
 
@@ -109,7 +109,7 @@ def dashboard(request):
 # Custom error triggers used for testing error pages.
 
 def trigger_400(request):
-    raise ValueError("Manually triggered 400")
+    raise SuspiciousOperation("Manually triggered 400")
 
 
 def trigger_403(request):
