@@ -1,5 +1,6 @@
 import os
 
+import re
 import logging
 import openai
 from django.conf import settings
@@ -535,6 +536,13 @@ def process_bot_message(
         .choices[0]
         .message["content"]
         .strip()
+    )
+
+    # Clean up duplicated Markdown links produced by the model.
+    response_text = re.sub(
+        r"\[\[(https?://[^\]\s]+)\]\(\1\)\]\(\1\)",
+        r"\1",
+        response_text,
     )
 
     response_usage = response.get(
