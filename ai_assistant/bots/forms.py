@@ -43,19 +43,17 @@ class KnowledgeBaseForm(forms.ModelForm):
 
     def clean_file(self):
         """
-        Validate uploaded file type and size (max 10MB).
-        Only allows .txt, .pdf, and .docx files.
+        Validate uploaded file type.
         """
-        file = self.cleaned_data.get('file')
-        if file:
-            if file.size > 10 * 1024 * 1024:
-                raise forms.ValidationError(
-                    "File size exceeds the 10MB limit."
-                )
-            if not file.name.lower().endswith(('.txt', '.pdf', '.docx')):
-                raise forms.ValidationError(
-                    "Invalid file type. Only .txt, .pdf, and .docx files are allowed."
-                )
+        file = self.cleaned_data.get("file")
+
+        if file and not file.name.lower().endswith(
+            (".txt", ".pdf", ".docx")
+        ):
+            raise forms.ValidationError(
+                "Invalid file type. Only .txt, .pdf, and .docx files are allowed."
+            )
+
         return file
 
 

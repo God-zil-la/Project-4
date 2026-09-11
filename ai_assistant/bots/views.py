@@ -3,6 +3,9 @@
 import json
 import logging
 import traceback
+from ai_assistant.accounts.plan_utils import (
+    get_knowledge_storage_status,
+)
 
 
 # Django imports
@@ -605,7 +608,6 @@ def delete_knowledge(request, bot_id, knowledge_id):
         KnowledgeBase,
         id=knowledge_id,
         bot=bot,
-        uploaded_by=request.user,
     )
 
     if request.method == "POST":
@@ -664,6 +666,43 @@ def bot_chat_playground(request, bot_id):
                     "manual_text"
                 )
             )
+
+            if file:
+                source_size_bytes = file.size
+            else:
+                source_size_bytes = len(
+                    manual_text.encode("utf-8")
+                )
+
+            storage_status = get_knowledge_storage_status(
+                request.user,
+                incoming_size_bytes=source_size_bytes,
+            )
+
+            if not storage_status["allowed"]:
+                used_mb = (
+                    storage_status["storage_used_bytes"]
+                    / (1024 * 1024)
+                )
+                limit_mb = (
+                    storage_status["storage_limit_bytes"]
+                    / (1024 * 1024)
+                )
+
+                messages.error(
+                    request,
+                    (
+                        "Knowledge storage limit reached. "
+                        f"You are using {used_mb:.1f} MB of "
+                        f"{limit_mb:.0f} MB available on your "
+                        f"{storage_status['plan'].capitalize()} plan."
+                    ),
+                )
+
+                return redirect(
+                    "bots:playground",
+                    bot_id=bot.id,
+                )
 
             source_text = ""
             filename = ""
@@ -724,6 +763,7 @@ def bot_chat_playground(request, bot_id):
                     bot=bot,
                     file=file if file else None,
                     uploaded_by=request.user,
+                    source_size_bytes=source_size_bytes,
                 )
                 try:
                     if file:

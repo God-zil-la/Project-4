@@ -346,14 +346,17 @@ AI_PLAN_CONFIG = {
     "free": {
         "monthly_message_limit": 150,
         "monthly_cost_limit_usd": None,
+        "knowledge_storage_limit_bytes": 10 * 1024 * 1024,
     },
     "premium": {
         "monthly_message_limit": 3000,
         "monthly_cost_limit_usd": None,
+        "knowledge_storage_limit_bytes": 250 * 1024 * 1024,
     },
     "pro": {
         "monthly_message_limit": 10000,
         "monthly_cost_limit_usd": None,
+        "knowledge_storage_limit_bytes": 1024 * 1024 * 1024,
     },
 }
 

@@ -41,6 +41,13 @@ class KnowledgeBase(models.Model):
         auto_now_add=True,
         help_text="Timestamp of when the file was uploaded.",
     )
+    source_size_bytes = models.PositiveBigIntegerField(
+        default=0,
+        help_text=(
+            "Size in bytes of the uploaded file or manual text "
+            "stored as Knowledge."
+        ),
+    )
 
     def __str__(self):
         return f"{self.bot.name} - {self.file.name}"

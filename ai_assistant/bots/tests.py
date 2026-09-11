@@ -233,10 +233,330 @@ class KnowledgeUploadTests(TestCase):
         self.assert_no_partial_upload()
 
     def test_storage_failure_leaves_no_knowledge(self):
-        storage = KnowledgeBase._meta.get_field('file').storage
-        with patch.object(storage, 'save', side_effect=OSError('Storage unavailable')):
+        storage = KnowledgeBase._meta.get_field("file").storage
+        with patch.object(
+            storage,
+            "save",
+            side_effect=OSError("Storage unavailable"),
+        ):
             self.upload()
         self.assert_no_partial_upload()
+
+    def test_free_quota_blocks_before_processing(self):
+        self.existing.source_size_bytes = 10 * 1024 * 1024
+        self.existing.save(
+            update_fields=["source_size_bytes"]
+        )
+
+        request = RequestFactory().post(
+            "/",
+            {
+                "file": SimpleUploadedFile(
+                    "over-limit.txt",
+                    b"x",
+                )
+            },
+        )
+        request.user = self.user
+        request._dont_enforce_csrf_checks = True
+        request.session = {}
+        request._messages = FallbackStorage(request)
+
+        with (
+            patch(
+                "ai_assistant.bots.views.extract_text"
+            ) as extract_text,
+            patch(
+                "ai_assistant.bots.views.generate_embedding_batches"
+            ) as generate_embeddings,
+        ):
+            response = bot_chat_playground(
+                request,
+                self.bot.pk,
+            )
+
+        self.assertEqual(response.status_code, 302)
+        extract_text.assert_not_called()
+        generate_embeddings.assert_not_called()
+
+        self.assertEqual(
+            KnowledgeBase.objects.count(),
+            1,
+        )
+
+        messages = [
+            str(message)
+            for message in request._messages
+        ]
+
+        self.assertTrue(
+            any(
+                "Knowledge storage limit reached" in message
+                for message in messages
+            )
+        )
+
+    def test_free_quota_allows_exact_storage_limit(self):
+        self.existing.source_size_bytes = (
+            10 * 1024 * 1024
+        ) - 1
+        self.existing.save(
+            update_fields=["source_size_bytes"]
+        )
+
+        request = RequestFactory().post(
+            "/",
+            {
+                "file": SimpleUploadedFile(
+                    "exact-limit.txt",
+                    b"x",
+                )
+            },
+        )
+        request.user = self.user
+        request._dont_enforce_csrf_checks = True
+        request.session = {}
+        request._messages = FallbackStorage(request)
+
+        with (
+            patch(
+                "ai_assistant.bots.views.extract_text",
+                return_value="x",
+            ) as extract_text,
+            patch(
+                "ai_assistant.bots.views.chunk_text",
+                return_value=["x"],
+            ),
+            patch(
+                "ai_assistant.bots.views.generate_embedding_batches",
+                return_value=[[0.5]],
+            ) as generate_embeddings,
+        ):
+            response = bot_chat_playground(
+                request,
+                self.bot.pk,
+            )
+
+        self.assertEqual(response.status_code, 302)
+
+        extract_text.assert_called_once()
+        generate_embeddings.assert_called_once()
+
+        self.assertEqual(
+            KnowledgeBase.objects.count(),
+            2,
+        )
+
+        uploaded = KnowledgeBase.objects.exclude(
+            pk=self.existing.pk
+        ).get()
+
+        self.assertEqual(
+            uploaded.source_size_bytes,
+            1,
+        )
+
+    def test_knowledge_quota_is_account_wide_across_bots(self):
+        second_bot = Bot.objects.create(
+            owner=self.user,
+            name="Second bot",
+        )
+
+        self.existing.source_size_bytes = (
+            10 * 1024 * 1024
+        ) - 1
+        self.existing.save(
+            update_fields=["source_size_bytes"]
+        )
+
+        request = RequestFactory().post(
+            "/",
+            {
+                "file": SimpleUploadedFile(
+                    "over-account-limit.txt",
+                    b"xx",
+                )
+            },
+        )
+        request.user = self.user
+        request._dont_enforce_csrf_checks = True
+        request.session = {}
+        request._messages = FallbackStorage(request)
+
+        with (
+            patch(
+                "ai_assistant.bots.views.extract_text"
+            ) as extract_text,
+            patch(
+                "ai_assistant.bots.views.generate_embedding_batches"
+            ) as generate_embeddings,
+        ):
+            response = bot_chat_playground(
+                request,
+                second_bot.pk,
+            )
+
+        self.assertEqual(response.status_code, 302)
+        extract_text.assert_not_called()
+        generate_embeddings.assert_not_called()
+
+        self.assertEqual(
+            KnowledgeBase.objects.count(),
+            1,
+        )
+
+    def test_downgrade_keeps_existing_knowledge_but_blocks_new_uploads(self):
+        self.user.profile.is_subscribed = False
+        self.user.profile.subscription_plan = "free"
+        self.user.profile.save()
+
+        self.existing.source_size_bytes = 20 * 1024 * 1024
+        self.existing.save(
+            update_fields=["source_size_bytes"]
+        )
+
+        request = RequestFactory().post(
+            "/",
+            {
+                "file": SimpleUploadedFile(
+                    "blocked-after-downgrade.txt",
+                    b"x",
+                )
+            },
+        )
+        request.user = self.user
+        request._dont_enforce_csrf_checks = True
+        request.session = {}
+        request._messages = FallbackStorage(request)
+
+        with (
+            patch(
+                "ai_assistant.bots.views.extract_text"
+            ) as extract_text,
+            patch(
+                "ai_assistant.bots.views.generate_embedding_batches"
+            ) as generate_embeddings,
+        ):
+            response = bot_chat_playground(
+                request,
+                self.bot.pk,
+            )
+
+        self.assertEqual(response.status_code, 302)
+        extract_text.assert_not_called()
+        generate_embeddings.assert_not_called()
+
+        self.assertTrue(
+            KnowledgeBase.objects.filter(
+                pk=self.existing.pk
+            ).exists()
+        )
+
+        self.assertEqual(
+            KnowledgeBase.objects.count(),
+            1,
+        )
+
+    def test_deleting_knowledge_releases_storage_quota(self):
+        self.existing.source_size_bytes = 10 * 1024 * 1024
+        self.existing.save(
+            update_fields=["source_size_bytes"]
+        )
+
+        self.existing.delete()
+
+        request = RequestFactory().post(
+            "/",
+            {
+                "file": SimpleUploadedFile(
+                    "after-delete.txt",
+                    b"x",
+                )
+            },
+        )
+        request.user = self.user
+        request._dont_enforce_csrf_checks = True
+        request.session = {}
+        request._messages = FallbackStorage(request)
+
+        with (
+            patch(
+                "ai_assistant.bots.views.extract_text",
+                return_value="x",
+            ) as extract_text,
+            patch(
+                "ai_assistant.bots.views.chunk_text",
+                return_value=["x"],
+            ),
+            patch(
+                "ai_assistant.bots.views.generate_embedding_batches",
+                return_value=[[0.5]],
+            ) as generate_embeddings,
+        ):
+            response = bot_chat_playground(
+                request,
+                self.bot.pk,
+            )
+
+        self.assertEqual(response.status_code, 302)
+
+        extract_text.assert_called_once()
+        generate_embeddings.assert_called_once()
+
+        self.assertEqual(
+            KnowledgeBase.objects.count(),
+            1,
+        )
+
+        uploaded = KnowledgeBase.objects.get()
+
+        self.assertEqual(
+            uploaded.source_size_bytes,
+            1,
+        )
+
+    def test_manual_text_counts_utf8_bytes_toward_quota(self):
+        self.existing.source_size_bytes = (
+            10 * 1024 * 1024
+        ) - 1
+        self.existing.save(
+            update_fields=["source_size_bytes"]
+        )
+
+        request = RequestFactory().post(
+            "/",
+            {
+                "manual_text": "å",
+            },
+        )
+        request.user = self.user
+        request._dont_enforce_csrf_checks = True
+        request.session = {}
+        request._messages = FallbackStorage(request)
+
+        with (
+            patch(
+                "ai_assistant.bots.views.chunk_text"
+            ) as chunk_text,
+            patch(
+                "ai_assistant.bots.views.generate_embedding_batches"
+            ) as generate_embeddings,
+        ):
+            response = bot_chat_playground(
+                request,
+                self.bot.pk,
+            )
+
+        self.assertEqual(response.status_code, 302)
+
+        chunk_text.assert_not_called()
+        generate_embeddings.assert_not_called()
+
+        self.assertEqual(
+            KnowledgeBase.objects.count(),
+            1,
+        )                                      
+
 
 class EmbeddingBatchTests(TestCase):
     def response(self, count, tokens=7):
