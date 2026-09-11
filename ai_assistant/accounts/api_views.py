@@ -24,9 +24,7 @@ class PublicChatAPIView(APIView):
     authentication_classes = []
 
     def post(self, request, *args, **kwargs):
-        api_key = request.headers.get(
-            "X-API-KEY"
-        )
+        api_key = request.headers.get("X-API-KEY")
 
         if not api_key:
             return Response(
@@ -38,7 +36,8 @@ class PublicChatAPIView(APIView):
 
         try:
             profile = UserProfile.objects.get(
-                api_key=api_key, user__is_active=True
+                api_key=api_key,
+                user__is_active=True,
             )
             user = profile.user
 
@@ -50,11 +49,21 @@ class PublicChatAPIView(APIView):
                 status=status.HTTP_401_UNAUTHORIZED,
             )
 
-        validate_request_object(request.data, ("message", "conversation_id"), ("conversation_id",))
+        if profile.plan != UserProfile.PLAN_PRO:
+            return Response(
+                {
+                    "error": "API access requires the Pro plan.",
+                },
+                status=status.HTTP_403_FORBIDDEN,
+            )
 
-        bot_id = request.data.get(
-            "bot_id"
+        validate_request_object(
+            request.data,
+            ("message", "conversation_id"),
+            ("conversation_id",),
         )
+
+        bot_id = request.data.get("bot_id")
 
         message = str(
             request.data.get(
@@ -63,14 +72,10 @@ class PublicChatAPIView(APIView):
             )
         ).strip()
 
-        conversation_id = request.data.get(
-            "conversation_id"
-        )
+        conversation_id = request.data.get("conversation_id")
 
         if conversation_id is not None:
-            conversation_id = str(
-                conversation_id
-            ).strip()
+            conversation_id = str(conversation_id).strip()
 
             if not conversation_id:
                 conversation_id = None
@@ -123,20 +128,14 @@ class PublicChatAPIView(APIView):
                 "plan": usage_status["plan"],
             }
 
-            if usage_status[
-                "daily_limit_reached"
-            ]:
+            if usage_status["daily_limit_reached"]:
                 response_data.update(
                     {
                         "daily_messages_used": (
-                            usage_status[
-                                "daily_messages_used"
-                            ]
+                            usage_status["daily_messages_used"]
                         ),
                         "daily_limit": (
-                            usage_status[
-                                "daily_message_limit"
-                            ]
+                            usage_status["daily_message_limit"]
                         ),
                     }
                 )
@@ -170,9 +169,7 @@ class PublicChatAPIView(APIView):
                 {
                     "error": "AI processing failed.",
                 },
-                status=(
-                    status.HTTP_500_INTERNAL_SERVER_ERROR
-                ),
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
         return Response(
