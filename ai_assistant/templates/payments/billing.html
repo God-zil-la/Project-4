@@ -1,5 +1,7 @@
 {% extends "base.html" %}
+
 {% block title %}Billing{% endblock %}
+
 {% block extra_css %}
 <style>
   html,
@@ -158,168 +160,452 @@
   }
 </style>
 {% endblock %}
+
 {% block content %}
 <div class="billing-container">
+
   <h1>Plans &amp; Billing</h1>
-  <p>View your plan, manage billing, and choose the AI usage tier that fits your needs.</p>
+
+  <p>
+    View your plan, manage billing, and choose the AI usage tier that fits your needs.
+  </p>
+
   <section class="billing-panel" aria-labelledby="subscription-heading">
+
     <h2 id="subscription-heading">Your subscription</h2>
-    <p class="status">Current plan: <strong>{{ current_plan }}</strong></p>
+
+    <p class="status">
+      Current plan: <strong>{{ current_plan }}</strong>
+    </p>
+
     {% if recovery_message %}
-    <p class="status">{{ recovery_message }}</p>
-    {% if recovery_options %}{% if recovery_replacement %}<p class="terms">Test Mode migration: end the legacy SEK
-      subscription first, then start the selected USD plan using your saved payment method. The new monthly period
-      starts now at the price shown below, with no credit or proration for the old test period. Any scheduled
-      cancellation date stays in place. If payment fails, the old subscription remains ended; resume this migration or
-      contact support. No overlapping subscription will be created.</p>{% else %}<p class="terms">Update your existing
-      subscription using your saved payment method. Stripe invoices any prorated difference now; taxes and credits may
-      affect the amount. Your renewal date and scheduled cancellation stay unchanged. Paid access starts after the
-      change succeeds.</p>{% endif %}{% endif %}
-    {% elif billing_profile.stripe_subscription_status == 'canceled' or billing_profile.stripe_subscription_status ==
-    'incomplete_expired' %}
-    <p class="status">Subscription ended{% if billing_profile.subscription_ends_at %} on {{
-      billing_profile.subscription_ends_at|date:"F j, Y, H:i T" }}{% endif %}. Paid access has ended.</p>
-    {% if not billing_profile.subscription_ends_at %}<p class="muted">The end date is not yet available. Refresh billing
-      status to retrieve it.</p>{% endif %}
-    {% elif existing_subscription and billing_profile.subscription_cancel_at_period_end or existing_subscription and
-    billing_profile.subscription_ends_at %}
-    {% if has_paid_access %}
-    <p class="status">Cancellation scheduled. {% if billing_profile.subscription_ends_at %}Access through <strong>{{
-        billing_profile.subscription_ends_at|date:"F j, Y, H:i T" }}</strong>.{% else %}Your access end date is being
-      confirmed. Refresh billing status.{% endif %} Your subscription will not renew.</p>
-    {% else %}<p class="status">Paid access is currently unavailable. Your subscription is still open ({{
-      billing_profile.stripe_subscription_status|default:"awaiting confirmation" }}). Manage subscription to resolve
-      payment or cancellation before choosing another plan.</p>{% endif %}
+
+      <p class="status">{{ recovery_message }}</p>
+
+      {% if recovery_options %}
+        {% if recovery_replacement %}
+          <p class="terms">
+            Test Mode migration: end the legacy SEK subscription first, then start the selected USD plan using your saved payment method.
+            The new monthly period starts now at the price shown below, with no credit or proration for the old test period.
+            Any scheduled cancellation date stays in place.
+            If payment fails, the old subscription remains ended; resume this migration or contact support.
+            No overlapping subscription will be created.
+          </p>
+        {% else %}
+          <p class="terms">
+            Update your existing subscription using your saved payment method.
+            Stripe invoices any prorated difference now; taxes and credits may affect the amount.
+            Your renewal date and scheduled cancellation stay unchanged.
+            Paid access starts after the change succeeds.
+          </p>
+        {% endif %}
+      {% endif %}
+
+    {% elif billing_profile.stripe_subscription_status == 'canceled' or billing_profile.stripe_subscription_status == 'incomplete_expired' %}
+
+      <p class="status">
+        Subscription ended{% if billing_profile.subscription_ends_at %} on {{ billing_profile.subscription_ends_at|date:"F j, Y, H:i T" }}{% endif %}.
+        Paid access has ended.
+      </p>
+
+      {% if not billing_profile.subscription_ends_at %}
+        <p class="muted">
+          The end date is not yet available. Refresh billing status to retrieve it.
+        </p>
+      {% endif %}
+
+    {% elif existing_subscription and billing_profile.subscription_cancel_at_period_end or existing_subscription and billing_profile.subscription_ends_at %}
+
+      {% if has_paid_access %}
+
+        <p class="status">
+          Cancellation scheduled.
+          {% if billing_profile.subscription_ends_at %}
+            Access through <strong>{{ billing_profile.subscription_ends_at|date:"F j, Y, H:i T" }}</strong>.
+          {% else %}
+            Your access end date is being confirmed. Refresh billing status.
+          {% endif %}
+          Your subscription will not renew.
+        </p>
+
+      {% else %}
+
+        <p class="status">
+          Paid access is currently unavailable.
+          Your subscription is still open ({{ billing_profile.stripe_subscription_status|default:"awaiting confirmation" }}).
+          Manage subscription to resolve payment or cancellation before choosing another plan.
+        </p>
+
+      {% endif %}
+
     {% elif existing_subscription and not has_paid_access %}
-    <p class="status">Paid access is currently unavailable. Your subscription is still open ({{
-      billing_profile.stripe_subscription_status|default:"awaiting confirmation" }}). Manage subscription to resolve
-      payment or cancellation before choosing another plan.</p>
+
+      <p class="status">
+        Paid access is currently unavailable.
+        Your subscription is still open ({{ billing_profile.stripe_subscription_status|default:"awaiting confirmation" }}).
+        Manage subscription to resolve payment or cancellation before choosing another plan.
+      </p>
+
     {% elif existing_subscription %}
-    <p class="status">Status: {{ billing_profile.stripe_subscription_status|default:"Awaiting confirmation"|capfirst
-      }}.{% if has_paid_access and billing_profile.subscription_current_period_end %} Next renewal: {{
-      billing_profile.subscription_current_period_end|date:"F j, Y, H:i T" }}.{% endif %}</p>
-    {% else %}<p class="muted">No active paid subscription.</p>{% endif %}
-    {% if billing_unavailable_reason %}<p role="status">{{ billing_unavailable_reason }}</p>
-    {% elif not can_checkout and not existing_subscription %}<p role="status">Checkout is unavailable in this
-      environment. Please contact support.</p>{% endif %}
-    {% if subscription_change %}
-    {% if subscription_change.status == 'scheduled' %}
-    <p class="status">Pending downgrade: Premium, effective <strong>{{ change_effective_date|date:"F j, Y, H:i T"
-        }}</strong>. Pro remains active through the current paid period. Premium then renews at ${{
-      premium_price|floatformat:"2u" }} USD/month.</p>
-    {% if can_keep %}
-    <p class="terms">Changed your mind? Keep Pro at ${{ pro_price|floatformat:"2u" }} USD/month with your existing
-      renewal date.</p>
-    <form method="post" action="{% url 'payments:keep_subscription' %}">{% csrf_token %}
-      <input type="hidden" name="change_token" value="{{ keep_token }}">
-      <button class="billing-button" type="submit">Keep Pro</button>
-    </form>
-    {% else %}<p class="muted">Contact support to review this scheduled change.</p>{% endif %}
-    {% elif subscription_change.status == 'confirming' %}
-    <p role="status">{% if subscription_change.action == "keep" %}Your request to keep Pro needs confirmation. Refresh
-      billing status or retry to confirm that Pro will continue renewing.{% else %}Your {{ subscription_change.action }}
-      request needs confirmation. Cancellation may already be cleared; the downgrade is not confirmed until shown as
-      pending.{% endif %} Refresh billing status or retry the saved change. If it remains unresolved, contact support.
-    </p>
-    <form method="post" action="{{ retry_url }}">{% csrf_token %}
-      <input type="hidden" name="change_token" value="{{ retry_token }}">
-      <button class="billing-button" type="submit">Retry saved change</button>
-    </form>
+
+      <p class="status">
+        Status: {{ billing_profile.stripe_subscription_status|default:"Awaiting confirmation"|capfirst }}.
+        {% if has_paid_access and billing_profile.subscription_current_period_end %}
+          Next renewal: {{ billing_profile.subscription_current_period_end|date:"F j, Y, H:i T" }}.
+        {% endif %}
+      </p>
+
     {% else %}
-    <p role="status">Your saved plan change conflicts with the current Stripe state. A downgrade is not confirmed.
-      Contact support to resolve cancellation or schedule changes, then refresh billing status.</p>
+
+      <p class="muted">No active paid subscription.</p>
+
     {% endif %}
+
+    {% if billing_unavailable_reason %}
+
+      <p role="status">{{ billing_unavailable_reason }}</p>
+
+    {% elif not can_checkout and not existing_subscription %}
+
+      <p role="status">
+        Checkout is unavailable in this environment. Please contact support.
+      </p>
+
+    {% endif %}
+
+
+    {% if subscription_change %}
+
+      {% if subscription_change.status == 'scheduled' %}
+
+        <p class="status">
+          Pending downgrade: Premium, effective
+          <strong>{{ change_effective_date|date:"F j, Y, H:i T" }}</strong>.
+          Pro remains active through the current paid period.
+          Premium then renews at ${{ premium_price|floatformat:"2u" }} USD/month.
+        </p>
+
+        {% if can_keep %}
+
+          <p class="terms">
+            Changed your mind?
+            Keep Pro at ${{ pro_price|floatformat:"2u" }} USD/month with your existing renewal date.
+          </p>
+
+          <form method="post" action="{% url 'payments:keep_subscription' %}">
+            {% csrf_token %}
+            <input type="hidden" name="change_token" value="{{ keep_token }}">
+            <button class="billing-button" type="submit">Keep Pro</button>
+          </form>
+
+        {% else %}
+
+          <p class="muted">
+            Contact support to review this scheduled change.
+          </p>
+
+        {% endif %}
+
+
+      {% elif subscription_change.status == 'confirming' %}
+
+        <p role="status">
+          {% if subscription_change.action == "keep" %}
+            Your request to keep Pro needs confirmation.
+            Refresh billing status or retry to confirm that Pro will continue renewing.
+          {% else %}
+            Your {{ subscription_change.action }} request needs confirmation.
+            Cancellation may already be cleared; the downgrade is not confirmed until shown as pending.
+          {% endif %}
+          Refresh billing status or retry the saved change.
+          If it remains unresolved, contact support.
+        </p>
+
+        <form method="post" action="{{ retry_url }}">
+          {% csrf_token %}
+          <input type="hidden" name="change_token" value="{{ retry_token }}">
+          <button class="billing-button" type="submit">
+            Retry saved change
+          </button>
+        </form>
+
+      {% else %}
+
+        <p role="status">
+          Your saved plan change conflicts with the current Stripe state.
+          A downgrade is not confirmed.
+          Contact support to resolve cancellation or schedule changes, then refresh billing status.
+        </p>
+
+      {% endif %}
+
+
     {% elif can_resume %}
-    <p class="terms">Keep {{ current_plan }} to remove scheduled cancellation. Your renewal date stays unchanged and
-      your current monthly price applies at renewal.</p>
-    <form method="post" action="{% url 'payments:resume_subscription' %}">{% csrf_token %}
-      <input type="hidden" name="change_token" value="{{ resume_token }}">
-      <button class="billing-button" type="submit">Keep {{ current_plan }}</button>
-    </form>
-    {% endif %}
-    {% if show_management %}
-    <p class="muted">Open Stripe to view invoices and the payment and cancellation options available for your account.
-    </p>
-    <div class="management-actions">
-      <form method="post" action="{% url 'payments:create_portal_session' %}">
-        {% csrf_token %}<button class="billing-button" type="submit" {% if not can_manage_subscription %} disabled{% endif %}>Manage subscription</button>
+
+      <p class="terms">
+        Keep {{ current_plan }} to remove scheduled cancellation.
+        Your renewal date stays unchanged and your current monthly price applies at renewal.
+      </p>
+
+      <form method="post" action="{% url 'payments:resume_subscription' %}">
+        {% csrf_token %}
+        <input type="hidden" name="change_token" value="{{ resume_token }}">
+        <button class="billing-button" type="submit">
+          Keep {{ current_plan }}
+        </button>
       </form>
-      <a href="{% url 'payments:billing' %}?sync=1">Refresh billing status</a>
-    </div>
+
     {% endif %}
+
+
+    {% if show_management %}
+
+      <p class="muted">
+        Open Stripe to view invoices and the payment and cancellation options available for your account.
+      </p>
+
+      <div class="management-actions">
+
+        <form method="post" action="{% url 'payments:create_portal_session' %}">
+          {% csrf_token %}
+          <button class="billing-button" type="submit"{% if not can_manage_subscription %} disabled{% endif %}>
+            Manage subscription
+          </button>
+        </form>
+
+        <a href="{% url 'payments:billing' %}?sync=1">
+          Refresh billing status
+        </a>
+
+      </div>
+
+    {% endif %}
+
   </section>
+
+
   <div class="plan-grid">
+
     <section class="plan-card {% if billing_profile.is_premium %}current{% endif %}">
+
       <h2>Premium</h2>
-      {% if billing_profile.is_premium %}<span class="badge">Current plan</span>{% endif %}
-      <div class="price">${{ premium_price|floatformat:"2u" }} USD/month</div>
+
+      {% if billing_profile.is_premium %}
+        <span class="badge">Current plan</span>
+      {% endif %}
+
+      <div class="price">
+        ${{ premium_price|floatformat:"2u" }} USD/month
+      </div>
+
       <p class="muted">
         5 AI assistants · 3,000 AI messages/month · 250 MB Knowledge Base ·
         Unlimited chats · Full analytics · Priority support
       </p>
+
       <div class="plan-action">
+
         {% if recovery_options %}
-        {% for option in recovery_options %}{% if option.plan == 'premium' %}
-        <form method="post" action="{% url 'payments:recover_subscription' %}">
-          {% csrf_token %}<input type="hidden" name="recovery_token" value="{{ option.token }}">
-          <button class="billing-button" type="submit">{% if recovery_replacement %}Replace legacy test subscription
-            with{% else %}Change existing subscription to{% endif %} {{ option.name }}</button>
-        </form>
-        {% endif %}{% endfor %}
+
+          {% for option in recovery_options %}
+
+            {% if option.plan == 'premium' %}
+
+              <form method="post" action="{% url 'payments:recover_subscription' %}">
+                {% csrf_token %}
+
+                <input type="hidden" name="recovery_token" value="{{ option.token }}">
+
+                <button class="billing-button" type="submit">
+                  {% if recovery_replacement %}
+                    Replace legacy test subscription with
+                  {% else %}
+                    Change existing subscription to
+                  {% endif %}
+                  {{ option.name }}
+                </button>
+
+              </form>
+
+            {% endif %}
+
+          {% endfor %}
+
+
         {% elif can_downgrade %}
-        <p class="terms">Keep Pro through the current period. Premium starts at your next renewal, {{
-          billing_profile.subscription_current_period_end|date:"F j, Y, H:i T" }}, at ${{ premium_price|floatformat:"2u"
-          }} USD/month. No immediate plan change or prorated credit. Choosing this clears scheduled cancellation so your
-          subscription continues.</p>
-        <form method="post" action="{% url 'payments:downgrade_subscription' %}">{% csrf_token %}
-          <input type="hidden" name="change_token" value="{{ downgrade_token }}">
-          <button class="billing-button" type="submit">Schedule downgrade to Premium</button>
-        </form>
-        {% elif can_checkout %}<button type="button" class="billing-button checkout-button" data-plan="premium">Choose
-          Premium</button>
-        {% elif billing_profile.is_premium %}<button class="billing-button" disabled>Current plan</button>
-        {% else %}<p class="muted">Use subscription management for available plan options.</p>{% endif %}
+
+          <p class="terms">
+            Keep Pro through the current period.
+            Premium starts at your next renewal,
+            {{ billing_profile.subscription_current_period_end|date:"F j, Y, H:i T" }},
+            at ${{ premium_price|floatformat:"2u" }} USD/month.
+            No immediate plan change or prorated credit.
+            Choosing this clears scheduled cancellation so your subscription continues.
+          </p>
+
+          <form method="post" action="{% url 'payments:downgrade_subscription' %}">
+            {% csrf_token %}
+
+            <input type="hidden" name="change_token" value="{{ downgrade_token }}">
+
+            <button class="billing-button" type="submit">
+              Schedule downgrade to Premium
+            </button>
+
+          </form>
+
+
+        {% elif can_checkout %}
+
+          <button
+            type="button"
+            class="billing-button checkout-button"
+            data-plan="premium"
+          >
+            Choose Premium
+          </button>
+
+
+        {% elif billing_profile.is_premium %}
+
+          <button class="billing-button" disabled>
+            Current plan
+          </button>
+
+
+        {% else %}
+
+          <p class="muted">
+            Use subscription management for available plan options.
+          </p>
+
+        {% endif %}
+
       </div>
+
     </section>
+
+
     <section class="plan-card {% if billing_profile.is_pro %}current{% endif %}">
+
       <h2>Pro</h2>
-      {% if billing_profile.is_pro %}<span class="badge">Current plan</span>{% endif %}
-      <div class="price">${{ pro_price|floatformat:"2u" }} USD/month</div>
+
+      {% if billing_profile.is_pro %}
+        <span class="badge">Current plan</span>
+      {% endif %}
+
+      <div class="price">
+        ${{ pro_price|floatformat:"2u" }} USD/month
+      </div>
+
       <p class="muted">
         15 AI assistants · 10,000 AI messages/month · 1 GB Knowledge Base ·
         Unlimited chats · API access · Discord integration · Priority support
       </p>
+
       <div class="plan-action">
+
         {% if recovery_options %}
-        {% for option in recovery_options %}{% if option.plan == 'pro' %}
-        <form method="post" action="{% url 'payments:recover_subscription' %}">
-          {% csrf_token %}<input type="hidden" name="recovery_token" value="{{ option.token }}">
-          <button class="billing-button" type="submit">{% if recovery_replacement %}Replace legacy test subscription
-            with{% else %}Change existing subscription to{% endif %} {{ option.name }}</button>
-        </form>
-        {% endif %}{% endfor %}
+
+          {% for option in recovery_options %}
+
+            {% if option.plan == 'pro' %}
+
+              <form method="post" action="{% url 'payments:recover_subscription' %}">
+                {% csrf_token %}
+
+                <input type="hidden" name="recovery_token" value="{{ option.token }}">
+
+                <button class="billing-button" type="submit">
+                  {% if recovery_replacement %}
+                    Replace legacy test subscription with
+                  {% else %}
+                    Change existing subscription to
+                  {% endif %}
+                  {{ option.name }}
+                </button>
+
+              </form>
+
+            {% endif %}
+
+          {% endfor %}
+
+
         {% elif can_upgrade %}
-        <p class="terms" id="upgrade-terms">Upgrade your existing subscription now. Stripe charges the prorated
-          difference for the remaining billing period to your saved payment method. Your renewal date stays the same;
-          future renewals are ${{ pro_price|floatformat:"2u" }} USD/month. Taxes and existing credits may affect the
-          charge. Pro starts only after payment succeeds.</p>
-        {% if billing_profile.subscription_cancel_at_period_end or billing_profile.subscription_ends_at %}<p
-          class="terms">Upgrading clears your scheduled cancellation so Pro renews normally.</p>{% endif %}
-        <form method="post" action="{% url 'payments:upgrade_subscription' %}">
-          {% csrf_token %}<input type="hidden" name="change_token" value="{{ upgrade_token }}">
-          <!-- Premium upgrades apply immediately; there is no pending upgrade to reverse. -->
-          <button class="billing-button primary" type="submit" aria-describedby="upgrade-terms">Upgrade to Pro</button>
-        </form>
-        {% elif can_checkout %}<button type="button" class="billing-button primary checkout-button"
-          data-plan="pro">Choose Pro</button>
-        {% elif billing_profile.is_pro %}<button class="billing-button" disabled>Current plan</button>
-        {% else %}<p class="muted">Resolve your subscription status in Manage subscription before upgrading.</p>{% endif %}
+
+          <p class="terms" id="upgrade-terms">
+            Upgrade your existing subscription now.
+            Stripe charges the prorated difference for the remaining billing period to your saved payment method.
+            Your renewal date stays the same; future renewals are ${{ pro_price|floatformat:"2u" }} USD/month.
+            Taxes and existing credits may affect the charge.
+            Pro starts only after payment succeeds.
+          </p>
+
+          {% if billing_profile.subscription_cancel_at_period_end or billing_profile.subscription_ends_at %}
+            <p class="terms">
+              Upgrading clears your scheduled cancellation so Pro renews normally.
+            </p>
+          {% endif %}
+
+          <form method="post" action="{% url 'payments:upgrade_subscription' %}">
+            {% csrf_token %}
+
+            <input type="hidden" name="change_token" value="{{ upgrade_token }}">
+
+            <!-- Premium upgrades apply immediately; there is no pending upgrade to reverse. -->
+
+            <button
+              class="billing-button primary"
+              type="submit"
+              aria-describedby="upgrade-terms"
+            >
+              Upgrade to Pro
+            </button>
+
+          </form>
+
+
+        {% elif can_checkout %}
+
+          <button
+            type="button"
+            class="billing-button primary checkout-button"
+            data-plan="pro"
+          >
+            Choose Pro
+          </button>
+
+
+        {% elif billing_profile.is_pro %}
+
+          <button class="billing-button" disabled>
+            Current plan
+          </button>
+
+
+        {% else %}
+
+          <p class="muted">
+            Resolve your subscription status in Manage subscription before upgrading.
+          </p>
+
+        {% endif %}
+
       </div>
+
     </section>
+
   </div>
+
+
   <p id="checkout-error" role="alert" class="status"></p>
+
 </div>
+
+
 {% if can_checkout %}
+
 <script src="https://js.stripe.com/v3/"></script>
 
 <script>
@@ -357,8 +643,7 @@
               method: "POST",
               headers: {
                 "X-CSRFToken": "{{ csrf_token }}",
-                "Content-Type":
-                  "application/x-www-form-urlencoded",
+                "Content-Type": "application/x-www-form-urlencoded",
               },
               body: formData.toString(),
             }
@@ -383,17 +668,22 @@
               result.error.message
             );
           }
+
         } catch (error) {
+
           errorElement.textContent =
             error.message;
 
           buttons.forEach((btn) => {
             btn.disabled = false;
           });
+
         }
       }
     );
   });
 </script>
+
 {% endif %}
+
 {% endblock %}
