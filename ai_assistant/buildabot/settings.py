@@ -6,6 +6,8 @@ email setup, OpenAI/Stripe integration, static/media files,
 security settings, and REST API permissions.
 """
 
+from django.contrib.messages import constants as messages
+from .cache_config import build_cache_config
 import os
 import ssl
 import certifi
@@ -292,7 +294,6 @@ SITE_ID = 1
 DEFAULT_DOMAIN = os.getenv("DEFAULT_DOMAIN", "ai-assistants-8c06fcfeab86.herokuapp.com")
 DEFAULT_PROTOCOL = os.getenv("DEFAULT_PROTOCOL", "https")
 
-from django.contrib.messages import constants as messages
 
 MESSAGE_TAGS = {
     messages.DEBUG: 'info',
@@ -308,9 +309,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # PLAN LIMITS
 # -------------------------------------------------
 
-# Maximum successful AI messages per day for Free users.
-# Web and API clients share the same counter.
-FREE_PLAN_DAILY_LIMIT = 15
 
 
 # -------------------------------------------------
@@ -328,7 +326,6 @@ FREE_PLAN_DAILY_LIMIT = 15
 
 REDIS_URL = os.getenv("REDIS_URL")
 
-from .cache_config import build_cache_config
 
 CACHES = build_cache_config(REDIS_URL, heroku_kvs=bool(os.getenv("DYNO")))
 
@@ -347,15 +344,15 @@ CACHES = build_cache_config(REDIS_URL, heroku_kvs=bool(os.getenv("DYNO")))
 
 AI_PLAN_CONFIG = {
     "free": {
-        "daily_message_limit": 15,
-        "monthly_cost_limit_usd": 0.60,
+        "monthly_message_limit": 150,
+        "monthly_cost_limit_usd": None,
     },
     "premium": {
-        "daily_message_limit": 500,
-        "monthly_cost_limit_usd": 10.00,
+        "monthly_message_limit": 3000,
+        "monthly_cost_limit_usd": None,
     },
     "pro": {
-        "daily_message_limit": None,
+        "monthly_message_limit": 10000,
         "monthly_cost_limit_usd": None,
     },
 }

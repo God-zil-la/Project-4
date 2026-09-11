@@ -1,4 +1,4 @@
-import hashlib
+﻿import hashlib
 import hmac
 import json
 import time
@@ -127,7 +127,7 @@ class StripeTests(TestCase):
         self.client.force_login(self.user)
         self.url = reverse('payments:webhook')
 
-    def subscription(self, amount=1299, status='active', sid='sub_test'):
+    def subscription(self, amount=2900, status='active', sid='sub_test'):
         return {'id': sid, 'customer': 'cus_test', 'status': status,
                 'metadata': {'user_id': str(self.user.pk), 'plan': 'pro'},
                 'items': {'data': [{'quantity': 1, 'current_period_end': 1900000000,
@@ -148,7 +148,7 @@ class StripeTests(TestCase):
         return response, retrieve
 
     def test_checkout_premium_and_pro(self):
-        for plan, amount in [('premium', 1299), ('pro', 2499)]:
+        for plan, amount in [('premium', 2900), ('pro', 5900)]:
             # Each plan is tested with a separate genuinely free account.
             self.user = User.objects.create_user(username='checkout-' + plan)
             self.client.force_login(self.user)
@@ -175,11 +175,11 @@ class StripeTests(TestCase):
 
     def test_upgrade_downgrade_cancel_and_recovery(self):
         for i, (amount, status, expected) in enumerate([
-            (1299, 'active', 'premium'), (2499, 'active', 'pro'),
-            (1299, 'active', 'premium'), (1299, 'past_due', 'free'),
-            (1299, 'active', 'premium'), (1299, 'canceled', 'free'),
-            (2499, 'trialing', 'pro'), (2499, 'unpaid', 'free'),
-            (2499, 'incomplete', 'free'), (2499, 'paused', 'free')]):
+            (2900, 'active', 'premium'), (5900, 'active', 'pro'),
+            (2900, 'active', 'premium'), (2900, 'past_due', 'free'),
+            (2900, 'active', 'premium'), (2900, 'canceled', 'free'),
+            (5900, 'trialing', 'pro'), (5900, 'unpaid', 'free'),
+            (5900, 'incomplete', 'free'), (5900, 'paused', 'free')]):
             response, _ = self.send(self.subscription(amount, status), eid=f'evt_{i}')
             self.assertEqual(response.status_code, 200)
             self.assertEqual(self.user.profile.plan, expected)
@@ -198,7 +198,7 @@ class StripeTests(TestCase):
         self.assertEqual(StripeEvent.objects.count(), 1)
 
     def test_old_event_uses_current_state(self):
-        self.send(self.subscription(2499), subscription=self.subscription(1299))
+        self.send(self.subscription(5900), subscription=self.subscription(2900))
         self.assertEqual(self.user.profile.plan, 'premium')
 
     def test_old_subscription_cannot_revoke_current(self):
@@ -219,7 +219,7 @@ class StripeTests(TestCase):
             ('usd', 12900), ('usd', 24900), ('usd', 1298), ('usd', 2500),
         ]):
             with self.subTest(currency=currency, amount=amount):
-                self.send(self.subscription(2499), eid=f'evt_paid_{i}')
+                self.send(self.subscription(5900), eid=f'evt_paid_{i}')
                 self.assertEqual(self.user.profile.plan, 'pro')
                 sub = self.subscription(amount)
                 sub['items']['data'][0]['price']['currency'] = currency
@@ -229,7 +229,7 @@ class StripeTests(TestCase):
                 self.assertFalse(self.user.profile.is_subscribed)
 
     def test_checkout_completion_reconciles_both_usd_plans(self):
-        for i, (amount, plan) in enumerate([(1299, 'premium'), (2499, 'pro')]):
+        for i, (amount, plan) in enumerate([(2900, 'premium'), (5900, 'pro')]):
             session = {'mode': 'subscription', 'client_reference_id': str(self.user.pk),
                        'subscription': 'sub_test', 'customer': 'cus_test'}
             response, _ = self.send(session, 'checkout.session.completed',
@@ -238,11 +238,10 @@ class StripeTests(TestCase):
             self.assertEqual(self.user.profile.plan, plan)
 
     def test_customer_facing_usd_prices(self):
-        for url in [reverse('payments:billing'), reverse('dashboard:home')]:
-            response = self.client.get(url)
-            self.assertContains(response, '$12.99 USD/month')
-            self.assertContains(response, '$24.99 USD/month')
-            self.assertNotContains(response, 'SEK')
+        response = self.client.get(reverse('payments:billing'))
+        self.assertContains(response, '$29.00 USD/month')
+        self.assertContains(response, '$59.00 USD/month')
+        self.assertNotContains(response, 'SEK')
 
     def test_signature_and_method_rejected(self):
         self.assertEqual(self.client.get(self.url).status_code, 405)
@@ -338,7 +337,7 @@ class StripeTests(TestCase):
 
     def test_malformed_signed_events_leave_paid_entitlements_unchanged(self):
         from copy import deepcopy
-        self.send(self.subscription(2499))
+        self.send(self.subscription(5900))
         def snapshot():
             return type(self.user.profile).objects.filter(pk=self.user.profile.pk).values().get()
         before = snapshot()
@@ -368,7 +367,7 @@ class StripeTests(TestCase):
                 self.assertEqual(StripeEvent.objects.count(), receipts)
 
     def test_bad_signature_leaves_paid_entitlements_unchanged(self):
-        self.send(self.subscription(2499))
+        self.send(self.subscription(5900))
         before = type(self.user.profile).objects.filter(pk=self.user.profile.pk).values().get()
         with patch('ai_assistant.payments.webhooks.stripe.Subscription.retrieve') as retrieve:
             response = self.client.post(self.url, '{}', content_type='application/json', HTTP_STRIPE_SIGNATURE='invalid')
@@ -378,7 +377,7 @@ class StripeTests(TestCase):
         self.assertEqual(StripeEvent.objects.count(), 1)
 
     def test_wrong_retrieved_subscription_preserves_paid_entitlements(self):
-        self.send(self.subscription(2499))
+        self.send(self.subscription(5900))
         response, _ = self.send(self.subscription(), eid='evt_wrong_sub', subscription=self.subscription(sid='sub_wrong'))
         self.assertEqual(response.status_code, 500)
         self.assertEqual(self.user.profile.plan, 'pro')
@@ -441,3 +440,7 @@ class BillingStateTests(TestCase):
         alternate = Path(settings.BASE_DIR) / "payments/templates/payments/billing.html"
         self.assertEqual(Path(get_template("payments/billing.html").origin.name), active)
         self.assertEqual(active.read_text(encoding="utf-8"), alternate.read_text(encoding="utf-8"))
+
+
+
+

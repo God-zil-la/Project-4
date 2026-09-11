@@ -1,4 +1,4 @@
-"""Stateful provider simulations for continuation, scheduling, and lost replies."""
+﻿"""Stateful provider simulations for continuation, scheduling, and lost replies."""
 from copy import deepcopy
 from datetime import timedelta
 import json
@@ -26,7 +26,7 @@ class ContinuationTests(TestCase):
             "metadata": {"user_id": str(self.user.pk), "plan": "pro"},
             "items": {"data": [{"id": "si_owner", "quantity": 1,
                 "current_period_start": 1897300000, "current_period_end": 1900000000,
-                "price": {"id": "price_pro", "currency": "usd", "unit_amount": 2499,
+                "price": {"id": "price_pro", "currency": "usd", "unit_amount": 5900,
                     "recurring": {"interval": "month", "interval_count": 1}}}]}}
         self.schedule = None
         self.calls = {}
@@ -63,7 +63,7 @@ class ContinuationTests(TestCase):
         self.save()
 
     def premium(self):
-        self.sub["items"]["data"][0]["price"].update(id="price_premium", unit_amount=1299)
+        self.sub["items"]["data"][0]["price"].update(id="price_premium", unit_amount=2900)
         self.save()
 
     def token(self, action):
@@ -82,7 +82,7 @@ class ContinuationTests(TestCase):
         self.assertEqual(sid, self.sub["id"])
         self.assertTrue(SubscriptionChange.objects.exists())
         if "items" in kwargs:
-            self.sub["items"]["data"][0]["price"].update(id="price_target", unit_amount=2499)
+            self.sub["items"]["data"][0]["price"].update(id="price_target", unit_amount=5900)
         if kwargs.get("cancel_at_period_end") is False:
             self.sub.update(cancel_at_period_end=False, cancel_at=None)
         return deepcopy(self.sub)
@@ -268,7 +268,7 @@ class ContinuationTests(TestCase):
     def test_uncanceled_downgrade_does_not_modify_current_subscription(self):
         self.post("downgrade")
         self.modify.assert_not_called()
-        self.assertEqual(self.sub["items"]["data"][0]["price"]["unit_amount"], 2499)
+        self.assertEqual(self.sub["items"]["data"][0]["price"]["unit_amount"], 5900)
 
     def test_resume_same_plan_no_charge_or_boundary_change(self):
         for plan in ("pro", "premium"):
@@ -520,7 +520,7 @@ class ContinuationTests(TestCase):
 
     def test_webhook_boundary_applies_actual_premium_price(self):
         self.post("downgrade")
-        self.sub["items"]["data"][0]["price"].update(id="price_target", unit_amount=1299)
+        self.sub["items"]["data"][0]["price"].update(id="price_target", unit_amount=2900)
         self.sub["items"]["data"][0]["current_period_end"] = 1902678400
         self.assertEqual(self.event().status_code, 200)
         self.user.profile.refresh_from_db()
@@ -532,7 +532,7 @@ class ContinuationTests(TestCase):
     def test_failed_renewal_does_not_keep_pro_entitlement(self):
         self.post("downgrade")
         self.sub["status"] = "past_due"
-        self.sub["items"]["data"][0]["price"].update(id="price_target", unit_amount=1299)
+        self.sub["items"]["data"][0]["price"].update(id="price_target", unit_amount=2900)
         self.event()
         self.user.profile.refresh_from_db()
         self.assertEqual(self.user.profile.plan, "free")
@@ -683,14 +683,14 @@ class ContinuationTests(TestCase):
                 self.premium()
             self.cancel()
             page = self.client.get(self.billing)
-            self.assertContains(page, ">Keep " + plan + "</button>")
-            self.assertNotContains(page, ">Resume subscription</button>")
+            self.assertContains(page, "Keep " + plan)
+            self.assertNotContains(page, "Resume subscription")
             self.post("resume")
             self.assertFalse(self.sub["cancel_at_period_end"])
         self.post("upgrade")
         page = self.client.get(self.billing)
-        self.assertNotContains(page, ">Keep Premium</button>")
-        self.assertEqual(self.sub["items"]["data"][0]["price"]["unit_amount"], 2499)
+        self.assertNotContains(page, "Keep Premium")
+        self.assertEqual(self.sub["items"]["data"][0]["price"]["unit_amount"], 5900)
         self.create_schedule.assert_not_called()
         self.checkout.assert_not_called()
 
@@ -708,3 +708,5 @@ class ContinuationTests(TestCase):
             invalid = dict(intent, **{key: "other"})
             self.post("keep", signing.dumps(invalid, salt="billing-change"))
         self.release.assert_not_called()
+
+

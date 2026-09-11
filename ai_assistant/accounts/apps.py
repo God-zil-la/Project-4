@@ -9,4 +9,4 @@ class AccountsConfig(AppConfig):
 
     def ready(self):
         """Import signal handlers when the app is ready."""
-        import ai_assistant.accounts.signals
+        import ai_assistant.accounts.signals  # noqa: F401

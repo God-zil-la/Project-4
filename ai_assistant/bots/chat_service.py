@@ -1,7 +1,7 @@
 import os
-
 import re
 import logging
+
 import openai
 from django.conf import settings
 from django.core.cache import cache
@@ -233,6 +233,9 @@ def _save_chat_exchange(
 ):
     """
     Save one complete user and assistant exchange.
+
+    Monthly quota is reserved before AI processing, so this
+    function must not increment the quota counter.
     """
 
     ChatMessage.objects.create(
@@ -252,7 +255,6 @@ def _save_chat_exchange(
     )
 
     _touch_conversation(conversation)
-    user.profile.increment_message_count()
 
 
 def _check_rate_limit(user, profile):
@@ -276,18 +278,30 @@ def _check_rate_limit(user, profile):
         for attempt in range(3):
             if cache.add(cache_key, 1, timeout=60):
                 return
+
             try:
                 request_count = cache.incr(cache_key)
                 break
+
             except ValueError:
                 continue
+
         else:
-            raise ChatServiceError("AI service is temporarily unavailable.")
+            raise ChatServiceError(
+                "AI service is temporarily unavailable."
+            )
+
     except ChatServiceError:
         raise
+
     except Exception:
-        logger.error("Rate-limit cache unavailable.")
-        raise ChatServiceError("AI service is temporarily unavailable.") from None
+        logger.error(
+            "Rate-limit cache unavailable."
+        )
+
+        raise ChatServiceError(
+            "AI service is temporarily unavailable."
+        ) from None
 
     if request_count > rate_limit:
         raise ChatRateLimitError(
@@ -310,7 +324,7 @@ def process_bot_message(
 
     The pipeline handles:
 
-    - Account usage limits
+    - Account-wide monthly AI message limits
     - Short-term rate limiting
     - Conversation resolution
     - Category enforcement
@@ -319,7 +333,6 @@ def process_bot_message(
     - OpenAI response generation
     - Token usage logging
     - Chat message persistence
-    - Daily message tracking
     """
 
     message = str(message).strip()
@@ -351,10 +364,10 @@ def process_bot_message(
 
     if not usage_status["allowed"]:
         if usage_status[
-            "daily_limit_reached"
+            "monthly_message_limit_reached"
         ]:
             raise ChatUsageLimitError(
-                "Daily AI message limit reached.",
+                "Monthly AI message limit reached.",
                 usage_status,
             )
 
@@ -371,51 +384,243 @@ def process_bot_message(
             usage_status,
         )
 
-    active_conversation = (
-        _resolve_conversation(
-            user=user,
-            bot=bot,
-            conversation=conversation,
+    reservation_period = (
+        profile.reserve_message_slot(
+            usage_status[
+                "monthly_message_limit"
+            ]
         )
     )
 
-    _set_conversation_title(
-        active_conversation,
-        message,
-    )
+    if reservation_period is None:
+        usage_status = get_ai_usage_status(
+            user
+        )
 
-    domain_result = check_message_domain(
-        bot,
-        message,
-    )
+        raise ChatUsageLimitError(
+            "Monthly AI message limit reached.",
+            usage_status,
+        )
 
-    classifier_tokens = domain_result[
-        "tokens_used"
-    ]
+    reservation_active = True
 
-    classifier_input_tokens = domain_result[
-        "input_tokens"
-    ]
+    try:
+        active_conversation = (
+            _resolve_conversation(
+                user=user,
+                bot=bot,
+                conversation=conversation,
+            )
+        )
 
-    classifier_output_tokens = domain_result[
-        "output_tokens"
-    ]
+        _set_conversation_title(
+            active_conversation,
+            message,
+        )
 
-    _log_usage(
-        user=user,
-        bot=bot,
-        tokens_used=classifier_tokens,
-        input_tokens=classifier_input_tokens,
-        output_tokens=classifier_output_tokens,
-        model=domain_result["model"],
-    )
+        domain_result = check_message_domain(
+            bot,
+            message,
+        )
 
-    if not domain_result["in_domain"]:
+        classifier_tokens = domain_result[
+            "tokens_used"
+        ]
+
+        classifier_input_tokens = domain_result[
+            "input_tokens"
+        ]
+
+        classifier_output_tokens = domain_result[
+            "output_tokens"
+        ]
+
+        _log_usage(
+            user=user,
+            bot=bot,
+            tokens_used=classifier_tokens,
+            input_tokens=classifier_input_tokens,
+            output_tokens=classifier_output_tokens,
+            model=domain_result["model"],
+        )
+
+        if not domain_result["in_domain"]:
+            response_text = (
+                f"I specialize in "
+                f"{bot.get_category_display()}. "
+                f"Please ask me something related "
+                f"to that category."
+            )
+
+            _save_chat_exchange(
+                conversation=active_conversation,
+                bot=bot,
+                user=user,
+                user_message=message,
+                assistant_message=response_text,
+            )
+
+            reservation_active = False
+
+            profile.refresh_from_db(
+                fields=[
+                    "monthly_message_count",
+                    "message_count_period_start",
+                ]
+            )
+
+            return {
+                "response": response_text,
+                "conversation_id": str(
+                    active_conversation.public_id
+                ),
+                "plan": profile.plan,
+                "tokens_used": classifier_tokens,
+                "input_tokens": (
+                    classifier_input_tokens
+                ),
+                "output_tokens": (
+                    classifier_output_tokens
+                ),
+                "model": domain_result["model"],
+                "monthly_messages_used": (
+                    profile.monthly_message_count
+                ),
+                "monthly_limit": usage_status[
+                    "monthly_message_limit"
+                ],
+                "in_domain": False,
+            }
+
+        try:
+            knowledge_result = (
+                search_relevant_chunks(
+                    bot,
+                    message,
+                    top_k=3,
+                    include_usage=True,
+                )
+            )
+
+        except Exception:
+            logger.error(
+                "Knowledge retrieval failed for bot %s.",
+                bot.pk,
+            )
+
+            knowledge_result = {
+                "chunks": [],
+                "tokens_used": 0,
+                "input_tokens": 0,
+                "output_tokens": 0,
+                "model": None,
+            }
+
+        embedding_tokens = knowledge_result[
+            "tokens_used"
+        ]
+
+        embedding_input_tokens = knowledge_result[
+            "input_tokens"
+        ]
+
+        embedding_output_tokens = knowledge_result[
+            "output_tokens"
+        ]
+
+        _log_usage(
+            user=user,
+            bot=bot,
+            tokens_used=embedding_tokens,
+            input_tokens=embedding_input_tokens,
+            output_tokens=embedding_output_tokens,
+            model=knowledge_result["model"],
+        )
+
+        knowledge_text = "\n\n".join(
+            knowledge_result["chunks"]
+        )
+
+        system_message = render_system_message(
+            bot,
+            knowledge_text,
+        )
+
+        openai_messages = _build_history(
+            active_conversation,
+            system_message,
+        )
+
+        openai_messages.append(
+            {
+                "role": "user",
+                "content": message,
+            }
+        )
+
+        api_key = os.getenv(
+            "OPENAI_API_KEY"
+        )
+
+        if not api_key:
+            raise ChatServiceError(
+                "AI service is temporarily unavailable."
+            )
+
+        openai.api_key = api_key
+
+        response = openai.ChatCompletion.create(
+            model=CHAT_MODEL,
+            messages=openai_messages,
+            max_tokens=CHAT_MAX_TOKENS,
+        )
+
         response_text = (
-            f"I specialize in "
-            f"{bot.get_category_display()}. "
-            f"Please ask me something related "
-            f"to that category."
+            response
+            .choices[0]
+            .message["content"]
+            .strip()
+        )
+
+        # Clean up duplicated Markdown links produced by the model.
+        response_text = re.sub(
+            r"\[\[(https?://[^\]\s]+)\]\(\1\)\]\(\1\)",
+            r"\1",
+            response_text,
+        )
+
+        response_usage = response.get(
+            "usage",
+            {},
+        )
+
+        input_tokens = response_usage.get(
+            "prompt_tokens",
+            0,
+        )
+
+        output_tokens = response_usage.get(
+            "completion_tokens",
+            0,
+        )
+
+        tokens_used = response_usage.get(
+            "total_tokens",
+            0,
+        )
+
+        model_name = response.get(
+            "model",
+            CHAT_MODEL,
+        )
+
+        _log_usage(
+            user=user,
+            bot=bot,
+            tokens_used=tokens_used,
+            input_tokens=input_tokens,
+            output_tokens=output_tokens,
+            model=model_name,
         )
 
         _save_chat_exchange(
@@ -426,6 +631,14 @@ def process_bot_message(
             assistant_message=response_text,
         )
 
+        reservation_active = False
+
+        profile.refresh_from_db(
+            fields=[
+                "monthly_message_count",
+                "message_count_period_start",
+            ]
+        )
 
         return {
             "response": response_text,
@@ -433,188 +646,35 @@ def process_bot_message(
                 active_conversation.public_id
             ),
             "plan": profile.plan,
-            "tokens_used": classifier_tokens,
+            "tokens_used": (
+                classifier_tokens
+                + embedding_tokens
+                + tokens_used
+            ),
             "input_tokens": (
                 classifier_input_tokens
+                + embedding_input_tokens
+                + input_tokens
             ),
             "output_tokens": (
                 classifier_output_tokens
+                + embedding_output_tokens
+                + output_tokens
             ),
-            "model": domain_result["model"],
-            "daily_messages_used": (
-                profile.daily_message_count
+            "model": model_name,
+            "monthly_messages_used": (
+                profile.monthly_message_count
             ),
-            "daily_limit": usage_status[
-                "daily_message_limit"
+            "monthly_limit": usage_status[
+                "monthly_message_limit"
             ],
-            "in_domain": False,
+            "in_domain": True,
         }
-
-    try:
-        knowledge_result = search_relevant_chunks(
-            bot,
-            message,
-            top_k=3,
-            include_usage=True,
-        )
 
     except Exception:
-        logger.error(
-            "Knowledge retrieval failed for bot %s.",
-            bot.pk,
-        )
+        if reservation_active:
+            profile.release_message_slot(
+                reservation_period
+            )
 
-        knowledge_result = {
-            "chunks": [],
-            "tokens_used": 0,
-            "input_tokens": 0,
-            "output_tokens": 0,
-            "model": None,
-        }
-
-    embedding_tokens = knowledge_result[
-        "tokens_used"
-    ]
-
-    embedding_input_tokens = knowledge_result[
-        "input_tokens"
-    ]
-
-    embedding_output_tokens = knowledge_result[
-        "output_tokens"
-    ]
-
-    _log_usage(
-        user=user,
-        bot=bot,
-        tokens_used=embedding_tokens,
-        input_tokens=embedding_input_tokens,
-        output_tokens=embedding_output_tokens,
-        model=knowledge_result["model"],
-    )
-
-    knowledge_text = "\n\n".join(
-        knowledge_result["chunks"]
-    )
-
-    system_message = render_system_message(
-        bot,
-        knowledge_text,
-    )
-
-    openai_messages = _build_history(
-        active_conversation,
-        system_message,
-    )
-
-    openai_messages.append(
-        {
-            "role": "user",
-            "content": message,
-        }
-    )
-
-    api_key = os.getenv(
-        "OPENAI_API_KEY"
-    )
-
-    if not api_key:
-        raise ChatServiceError(
-            "AI service is temporarily unavailable."
-        )
-
-    openai.api_key = api_key
-
-    response = openai.ChatCompletion.create(
-        model=CHAT_MODEL,
-        messages=openai_messages,
-        max_tokens=CHAT_MAX_TOKENS,
-    )
-
-    response_text = (
-        response
-        .choices[0]
-        .message["content"]
-        .strip()
-    )
-
-    # Clean up duplicated Markdown links produced by the model.
-    response_text = re.sub(
-        r"\[\[(https?://[^\]\s]+)\]\(\1\)\]\(\1\)",
-        r"\1",
-        response_text,
-    )
-
-    response_usage = response.get(
-        "usage",
-        {},
-    )
-
-    input_tokens = response_usage.get(
-        "prompt_tokens",
-        0,
-    )
-
-    output_tokens = response_usage.get(
-        "completion_tokens",
-        0,
-    )
-
-    tokens_used = response_usage.get(
-        "total_tokens",
-        0,
-    )
-
-    model_name = response.get(
-        "model",
-        CHAT_MODEL,
-    )
-
-    _log_usage(
-        user=user,
-        bot=bot,
-        tokens_used=tokens_used,
-        input_tokens=input_tokens,
-        output_tokens=output_tokens,
-        model=model_name,
-    )
-
-    _save_chat_exchange(
-        conversation=active_conversation,
-        bot=bot,
-        user=user,
-        user_message=message,
-        assistant_message=response_text,
-    )
-
-
-    return {
-        "response": response_text,
-        "conversation_id": str(
-            active_conversation.public_id
-        ),
-        "plan": profile.plan,
-        "tokens_used": (
-            classifier_tokens
-            + embedding_tokens
-            + tokens_used
-        ),
-        "input_tokens": (
-            classifier_input_tokens
-            + embedding_input_tokens
-            + input_tokens
-        ),
-        "output_tokens": (
-            classifier_output_tokens
-            + embedding_output_tokens
-            + output_tokens
-        ),
-        "model": model_name,
-        "daily_messages_used": (
-            profile.daily_message_count
-        ),
-        "daily_limit": usage_status[
-            "daily_message_limit"
-        ],
-        "in_domain": True,
-    }
+        raise

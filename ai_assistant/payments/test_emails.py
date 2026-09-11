@@ -1,4 +1,4 @@
-import hashlib
+﻿import hashlib
 import hmac
 import json
 import time
@@ -24,12 +24,12 @@ class BillingEmailTests(TestCase):
         self.subscription = {"id": "sub_payer", "customer": "cus_payer", "status": "active",
             "latest_invoice": "in_paid", "metadata": {"user_id": str(self.user.pk)},
             "current_period_end": 2000000000, "cancel_at_period_end": False,
-            "items": {"data": [{"quantity": 1, "price": {"currency": "usd", "unit_amount": 1299,
+            "items": {"data": [{"quantity": 1, "price": {"currency": "usd", "unit_amount": 2900,
                 "recurring": {"interval": "month"}}}]}}
         self.invoice = {"id": "in_paid", "customer": "cus_payer", "subscription": "sub_payer",
             "livemode": False, "status": "paid", "paid": True, "currency": "usd",
-            "amount_paid": 1299, "amount_remaining": 0,
-            "lines": {"data": [{"amount": 1299, "quantity": 1, "price": deepcopy(self.subscription["items"]["data"][0]["price"])}]}}
+            "amount_paid": 2900, "amount_remaining": 0,
+            "lines": {"data": [{"amount": 2900, "quantity": 1, "price": deepcopy(self.subscription["items"]["data"][0]["price"])}]}}
         for name, value in [("Subscription.retrieve", self.subscription), ("Invoice.retrieve", self.invoice)]:
             patcher = patch("stripe." + name, return_value=value)
             setattr(self, name.split(".")[0].lower() + "_retrieve", patcher.start())
@@ -48,20 +48,20 @@ class BillingEmailTests(TestCase):
         self.assertEqual(self.post().status_code, 200)
         self.assertEqual(len(mail.outbox), 1)
         self.assertIn("Premium", mail.outbox[0].body)
-        self.assertIn("$12.99 USD/month", mail.outbox[0].body)
-        self.assertIn("Amount paid: $12.99 USD", mail.outbox[0].body)
+        self.assertIn("$29.00 USD/month", mail.outbox[0].body)
+        self.assertIn("Amount paid: $29.00 USD", mail.outbox[0].body)
         self.assertEqual(BillingEmail.objects.get().status, "sent")
 
     def test_pro_price(self):
-        self.subscription["items"]["data"][0]["price"]["unit_amount"] = 2499
-        self.invoice["amount_paid"] = 2499
-        self.invoice["lines"]["data"][0]["price"]["unit_amount"] = 2499
+        self.subscription["items"]["data"][0]["price"]["unit_amount"] = 5900
+        self.invoice["amount_paid"] = 5900
+        self.invoice["lines"]["data"][0]["price"]["unit_amount"] = 5900
         self.post()
         self.assertIn("Pro", mail.outbox[0].body)
-        self.assertIn("$24.99 USD/month", mail.outbox[0].body)
+        self.assertIn("$59.00 USD/month", mail.outbox[0].body)
 
     def test_historical_invoice_uses_billed_plan(self):
-        self.subscription["items"]["data"][0]["price"]["unit_amount"] = 2499
+        self.subscription["items"]["data"][0]["price"]["unit_amount"] = 5900
         self.post(kind="invoice.paid", obj=self.invoice)
         self.assertIn("Premium", mail.outbox[0].body)
         self.assertNotIn("Pro", mail.outbox[0].body)
@@ -197,3 +197,8 @@ class BillingEmailTests(TestCase):
                 pass
         self.assertFalse(BillingEmail.objects.exists())
         self.assertEqual(len(mail.outbox), 0)
+
+
+
+
+

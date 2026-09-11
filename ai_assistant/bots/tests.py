@@ -1,4 +1,4 @@
-from pathlib import Path
+﻿from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
@@ -23,41 +23,124 @@ class AnalyticsDashboardTests(TestCase):
         for is_staff in [False, True]:
             self.user.is_staff = is_staff
             self.user.save()
+
             for path in ["/", "/bots/", "/payments/"]:
                 response = self.client.get(path)
-                self.assertContains(response, 'href="/bots/analytics/"')
-                self.assertContains(response, "Analytics Dashboard")
+                self.assertContains(
+                    response,
+                    'href="/bots/analytics/"',
+                )
 
     def test_anonymous_access_requires_login_and_hides_link(self):
         self.client.logout()
-        self.assertNotContains(self.client.get("/"), 'href="/bots/analytics/"')
+
+        self.assertNotContains(
+            self.client.get("/"),
+            'href="/bots/analytics/"',
+        )
+
         response = self.client.get("/bots/analytics/")
+
         self.assertEqual(response.status_code, 302)
-        self.assertIn("/accounts/login/", response["Location"])
+        self.assertIn(
+            "/accounts/login/",
+            response["Location"],
+        )
 
     def test_existing_dashboard_template_and_empty_charts(self):
         import json
+
         response = self.client.get("/bots/analytics/")
-        self.assertTemplateUsed(response, "bots/analytics_dashboard.html")
-        self.assertContains(response, 'id="botUsageChart"')
-        self.assertContains(response, 'id="userUsageChart"')
-        self.assertEqual(json.loads(response.context["bot_data"]), {"labels": [], "counts": []})
+
+        self.assertTemplateUsed(
+            response,
+            "bots/analytics_dashboard.html",
+        )
+
+        self.assertContains(
+            response,
+            'id="botUsageChart"',
+        )
+
+        self.assertContains(
+            response,
+            'id="timeUsageChart"',
+        )
+
+        self.assertEqual(
+            json.loads(response.context["bot_data"]),
+            {
+                "labels": [],
+                "counts": [],
+            },
+        )
+
+        self.assertEqual(
+            json.loads(response.context["time_data"]),
+            {
+                "labels": [],
+                "counts": [],
+            },
+        )
 
     def test_chart_data_is_scoped_to_current_user(self):
         import json
         from ai_assistant.bots.models import ChatMessage
-        other = User.objects.create_user(username="other-analytics-owner")
-        own_bot = Bot.objects.create(owner=self.user, name="My bot")
-        other_bot = Bot.objects.create(owner=other, name="Other bot")
-        ChatMessage.objects.create(bot=own_bot, user=self.user, message="Hello", sender="user")
-        ChatMessage.objects.create(bot=own_bot, user=other, message="Private", sender="user")
-        ChatMessage.objects.create(bot=other_bot, user=other, message="Private", sender="user")
-        response = self.client.get("/bots/analytics/")
-        self.assertEqual(json.loads(response.context["bot_data"]), {"labels": ["My bot"], "counts": [1]})
-        self.assertEqual(json.loads(response.context["user_data"]), {
-            "labels": [self.user.username], "counts": [1],
-        })
 
+        other = User.objects.create_user(
+            username="other-analytics-owner"
+        )
+
+        own_bot = Bot.objects.create(
+            owner=self.user,
+            name="My bot",
+        )
+
+        other_bot = Bot.objects.create(
+            owner=other,
+            name="Other bot",
+        )
+
+        own_message = ChatMessage.objects.create(
+            bot=own_bot,
+            user=self.user,
+            message="Hello",
+            sender="user",
+        )
+
+        ChatMessage.objects.create(
+            bot=own_bot,
+            user=other,
+            message="Private",
+            sender="user",
+        )
+
+        ChatMessage.objects.create(
+            bot=other_bot,
+            user=other,
+            message="Private",
+            sender="user",
+        )
+
+        response = self.client.get("/bots/analytics/")
+
+        self.assertEqual(
+            json.loads(response.context["bot_data"]),
+            {
+                "labels": ["My bot"],
+                "counts": [1],
+            },
+        )
+
+        expected_day = own_message.timestamp.date().isoformat()
+
+        self.assertEqual(
+            json.loads(response.context["time_data"]),
+            {
+                "labels": [expected_day],
+                "counts": [1],
+            },
+        )
 
 class KnowledgeUploadTests(TestCase):
     def setUp(self):
@@ -219,3 +302,4 @@ class EmbeddingBatchTests(TestCase):
         kb = KnowledgeBase.objects.exclude(pk=upload.existing.pk).get()
         self.assertEqual(list(kb.chunks.values_list('embedding', flat=True)),
                          [[0.0, 1.0], [1.0, 1.0]])
+

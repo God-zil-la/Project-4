@@ -9,8 +9,8 @@ class UserProfileAdmin(admin.ModelAdmin):
     list_display = (
         'user',
         'is_subscribed',
-        'daily_message_count',
-        'last_reset'
+        'monthly_message_count',
+        'message_count_period_start',
     )
     search_fields = ('user__username',)
     readonly_fields = ('api_key',)

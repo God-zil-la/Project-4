@@ -385,18 +385,18 @@ def ajax_chat(request, bot_id):
             }
 
             if usage_status[
-                "daily_limit_reached"
+                "monthly_message_limit_reached"
             ]:
                 response_data.update(
                     {
-                        "daily_messages_used": (
+                        "monthly_messages_used": (
                             usage_status[
-                                "daily_messages_used"
+                                "monthly_messages_used"
                             ]
                         ),
-                        "daily_limit": (
+                        "monthly_limit": (
                             usage_status[
-                                "daily_message_limit"
+                                "monthly_message_limit"
                             ]
                         ),
                     }
@@ -451,13 +451,13 @@ def ajax_chat(request, bot_id):
                     "conversation_id"
                 ],
                 "plan": result["plan"],
-                "daily_messages_used": (
+                "monthly_messages_used": (
                     result[
-                        "daily_messages_used"
+                        "monthly_messages_used"
                     ]
                 ),
-                "daily_limit": (
-                    result["daily_limit"]
+                "monthly_limit": (
+                    result["monthly_limit"]
                 ),
                 "in_domain": (
                     result["in_domain"]

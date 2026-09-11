@@ -27,12 +27,12 @@ def get_ai_usage_status(user):
     should currently be allowed.
     """
     profile = user.profile
-    profile.reset_daily_count()
+    profile.reset_monthly_count()
 
     plan_config = get_plan_config(profile)
 
-    daily_limit = plan_config.get(
-        "daily_message_limit"
+    monthly_message_limit = plan_config.get(
+        "monthly_message_limit"
     )
 
     monthly_cost_limit = plan_config.get(
@@ -45,9 +45,10 @@ def get_ai_usage_status(user):
 
     monthly_cost = monthly_usage["cost_usd"]
 
-    daily_limit_reached = (
-        daily_limit is not None
-        and profile.daily_message_count >= daily_limit
+    monthly_message_limit_reached = (
+        monthly_message_limit is not None
+        and profile.monthly_message_count
+        >= monthly_message_limit
     )
 
     monthly_cost_limit_reached = (
@@ -56,23 +57,25 @@ def get_ai_usage_status(user):
     )
 
     allowed = not (
-        daily_limit_reached
+        monthly_message_limit_reached
         or monthly_cost_limit_reached
     )
 
     return {
         "allowed": allowed,
         "plan": profile.effective_plan,
-        "daily_messages_used": (
-            profile.daily_message_count
+        "monthly_messages_used": (
+            profile.monthly_message_count
         ),
-        "daily_message_limit": daily_limit,
+        "monthly_message_limit": (
+            monthly_message_limit
+        ),
         "monthly_cost_usd": monthly_cost,
         "monthly_cost_limit_usd": (
             monthly_cost_limit
         ),
-        "daily_limit_reached": (
-            daily_limit_reached
+        "monthly_message_limit_reached": (
+            monthly_message_limit_reached
         ),
         "monthly_cost_limit_reached": (
             monthly_cost_limit_reached

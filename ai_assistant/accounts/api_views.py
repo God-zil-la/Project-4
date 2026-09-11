@@ -128,14 +128,14 @@ class PublicChatAPIView(APIView):
                 "plan": usage_status["plan"],
             }
 
-            if usage_status["daily_limit_reached"]:
+            if usage_status["monthly_message_limit_reached"]:
                 response_data.update(
                     {
-                        "daily_messages_used": (
-                            usage_status["daily_messages_used"]
+                        "monthly_messages_used": (
+                            usage_status["monthly_messages_used"]
                         ),
-                        "daily_limit": (
-                            usage_status["daily_message_limit"]
+                        "monthly_limit": (
+                            usage_status["monthly_message_limit"]
                         ),
                     }
                 )

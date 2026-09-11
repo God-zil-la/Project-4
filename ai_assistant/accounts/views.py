@@ -1,31 +1,26 @@
+from ai_assistant.bots.models import Bot
+from ai_assistant.bots.forms import BotForm
+
 from django.contrib.auth import get_user_model, login
-from django.contrib.sites.shortcuts import get_current_site
 from django.core.mail import EmailMultiAlternatives
 from django.conf import settings
-from django.shortcuts import render
+from django.shortcuts import render, redirect, get_object_or_404
 from django.template.loader import render_to_string
 from django.utils.encoding import force_bytes, force_str
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.contrib import messages
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
-
-from ai_assistant.bots.models import Bot
-from .tokens import account_activation_token
 from django.db import transaction
-from .email_utils import public_origin, send_account_email
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
 from django.contrib.auth.password_validation import validate_password
 
+from .tokens import account_activation_token
+from .email_utils import public_origin, send_account_email
+
 
 User = get_user_model()
-
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib import messages
-from django.contrib.auth.decorators import login_required
-from ai_assistant.bots.models import Bot
-from ai_assistant.bots.forms import BotForm
 
 
 @login_required
@@ -42,48 +37,100 @@ def create_bot(request):
         form = BotForm(request.POST, user=request.user)
         if form.is_valid():
             name = form.cleaned_data['name']
-            if Bot.objects.filter(name__iexact=name, owner=request.user).exists():
-                form.add_error('name', "A bot with this name already exists.")
+            if Bot.objects.filter(
+                name__iexact=name,
+                owner=request.user
+            ).exists():
+                form.add_error(
+                    'name',
+                    "A bot with this name already exists."
+                )
             else:
                 bot = form.save(commit=False)
                 bot.owner = request.user
                 bot.save()
-                messages.success(request, "Bot created successfully!")
+                messages.success(
+                    request,
+                    "Bot created successfully!"
+                )
                 return redirect('bots:list')
         else:
-            messages.error(request, "Please fix the errors below.")
+            messages.error(
+                request,
+                "Please fix the errors below."
+            )
     else:
         form = BotForm(user=request.user)
-    return render(request, 'bots/create_bot.html', {'form': form})
+
+    return render(
+        request,
+        'bots/create_bot.html',
+        {'form': form}
+    )
 
 
 @login_required
 def edit_bot(request, bot_id):
     """Allow editing of an existing bot owned by the user."""
-    bot = get_object_or_404(Bot, id=bot_id, owner=request.user)
+    bot = get_object_or_404(
+        Bot,
+        id=bot_id,
+        owner=request.user
+    )
+
     if request.method == 'POST':
-        form = BotForm(request.POST, instance=bot, user=request.user)
+        form = BotForm(
+            request.POST,
+            instance=bot,
+            user=request.user
+        )
         if form.is_valid():
             form.save()
-            messages.success(request, "Bot updated successfully!")
+            messages.success(
+                request,
+                "Bot updated successfully!"
+            )
             return redirect('bots:list')
         else:
-            messages.error(request, "Please fix the errors below.")
+            messages.error(
+                request,
+                "Please fix the errors below."
+            )
     else:
-        form = BotForm(instance=bot, user=request.user)
-    return render(request, 'bots/edit_bot.html', {'form': form})
+        form = BotForm(
+            instance=bot,
+            user=request.user
+        )
+
+    return render(
+        request,
+        'bots/edit_bot.html',
+        {'form': form}
+    )
 
 
 @login_required
 def delete_bot(request, bot_id):
     """Confirm and process bot deletion for the logged-in user."""
-    bot = get_object_or_404(Bot, id=bot_id, owner=request.user)
+    bot = get_object_or_404(
+        Bot,
+        id=bot_id,
+        owner=request.user
+    )
+
     if request.method == 'POST':
         bot.delete()
-        messages.success(request, "Bot deleted successfully.")
+        messages.success(
+            request,
+            "Bot deleted successfully."
+        )
         return redirect('bots:list')
-    return render(request, 'bots/confirm_delete.html', {'bot': bot})
 
+    return render(
+        request,
+        'bots/confirm_delete.html',
+        {'bot': bot}
+    )
 
 
 def register(request):
@@ -95,19 +142,31 @@ def register(request):
         password2 = request.POST.get('password2', '')
 
         if not all([username, email, password, password2]):
-            messages.error(request, "All fields are required.")
+            messages.error(
+                request,
+                "All fields are required."
+            )
             return render(
                 request,
                 'accounts/register.html',
-                {'username': username, 'email': email}
+                {
+                    'username': username,
+                    'email': email
+                }
             )
 
         if password != password2:
-            messages.error(request, "Passwords do not match.")
+            messages.error(
+                request,
+                "Passwords do not match."
+            )
             return render(
                 request,
                 'accounts/register.html',
-                {'username': username, 'email': email}
+                {
+                    'username': username,
+                    'email': email
+                }
             )
 
         if User.objects.filter(username=username).exists():
@@ -118,7 +177,10 @@ def register(request):
             return render(
                 request,
                 'accounts/register.html',
-                {'username': username, 'email': email}
+                {
+                    'username': username,
+                    'email': email
+                }
             )
 
         if User.objects.filter(email__iexact=email).exists():
@@ -129,14 +191,20 @@ def register(request):
             return render(
                 request,
                 'accounts/register.html',
-                {'username': username, 'email': email}
+                {
+                    'username': username,
+                    'email': email
+                }
             )
 
         try:
             validate_email(email)
             validate_password(
                 password,
-                User(username=username, email=email)
+                User(
+                    username=username,
+                    email=email
+                )
             )
         except ValidationError as exc:
             for error in exc.messages:
@@ -145,7 +213,10 @@ def register(request):
             return render(
                 request,
                 'accounts/register.html',
-                {'username': username, 'email': email}
+                {
+                    'username': username,
+                    'email': email
+                }
             )
 
         origin = public_origin(request)
@@ -160,7 +231,9 @@ def register(request):
         user.is_active = False
         user.save(update_fields=['is_active'])
 
-        uid = urlsafe_base64_encode(force_bytes(user.pk))
+        uid = urlsafe_base64_encode(
+            force_bytes(user.pk)
+        )
         token = account_activation_token.make_token(user)
 
         activation_path = reverse(
@@ -215,8 +288,12 @@ def register(request):
     return render(
         request,
         'accounts/register.html',
-        {'username': '', 'email': ''}
+        {
+            'username': '',
+            'email': ''
+        }
     )
+
 
 def resend_activation(request):
     """Resend the email verification link for an inactive account."""
@@ -300,9 +377,16 @@ def resend_activation(request):
 def activate(request, uidb64, token):
     """Activate a user account via the email verification link."""
     try:
-        uid = force_str(urlsafe_base64_decode(uidb64))
+        uid = force_str(
+            urlsafe_base64_decode(uidb64)
+        )
         user = User.objects.get(pk=uid)
-    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+    except (
+        TypeError,
+        ValueError,
+        OverflowError,
+        User.DoesNotExist
+    ):
         user = None
 
     if user is None:
@@ -322,7 +406,9 @@ def activate(request, uidb64, token):
         user.save(update_fields=['is_active'])
 
         origin = public_origin(request)
-        dashboard_url = f"{origin}{reverse('dashboard:home')}"
+        dashboard_url = (
+            f"{origin}{reverse('dashboard:home')}"
+        )
 
         context = {
             'user': user,

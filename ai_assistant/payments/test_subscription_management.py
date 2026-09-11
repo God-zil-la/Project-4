@@ -25,7 +25,7 @@ class SubscriptionManagementTests(TestCase):
             "metadata": {"user_id": str(self.user.pk), "plan": "premium"},
             "items": {"data": [{"id": "si_owner", "quantity": 1,
                 "current_period_end": 1900000000,
-                "price": {"id": "price_premium", "currency": "usd", "unit_amount": 1299,
+                "price": {"id": "price_premium", "currency": "usd", "unit_amount": 2900,
                     "recurring": {"interval": "month"}}}]},
         }
         update_profile_from_subscription(self.user.profile, self.subscription)
@@ -53,7 +53,7 @@ class SubscriptionManagementTests(TestCase):
 
     def pro(self):
         result = deepcopy(self.subscription)
-        result["items"]["data"][0]["price"]["unit_amount"] = 2499
+        result["items"]["data"][0]["price"]["unit_amount"] = 5900
         return result
 
     def test_upgrade_replaces_item_prorates_and_reconciles_without_checkout(self):
@@ -64,7 +64,7 @@ class SubscriptionManagementTests(TestCase):
         self.assertEqual(args, ("sub_owner",))
         self.assertEqual(kwargs["api_key"], "sk_test_placeholder")
         self.assertEqual(kwargs["items"], [{"id": "si_owner", "quantity": 1,
-            "price_data": {"currency": "usd", "unit_amount": 2499,
+            "price_data": {"currency": "usd", "unit_amount": 5900,
                 "recurring": {"interval": "month"}, "product": "prod_pro"}}])
         self.assertEqual(kwargs["proration_behavior"], "always_invoice")
         self.assertEqual(kwargs["payment_behavior"], "error_if_incomplete")
@@ -229,7 +229,7 @@ class SubscriptionManagementTests(TestCase):
 
     def test_pricing_copy_and_responsive_styles(self):
         response = self.client.get(self.billing)
-        for text in ["$12.99 USD/month", "$24.99 USD/month", "Upgrade to Pro",
+        for text in ["$29.00 USD/month", "$59.00 USD/month", "Upgrade to Pro",
                      "prorated difference", "max-width: 640px", "focus-visible"]:
             self.assertContains(response, text)
         for text in ["unlimited bot creation", "You already have a subscription.",
@@ -349,3 +349,5 @@ class SubscriptionManagementTests(TestCase):
             self.assertEqual(self.client.post(reverse("payments:create_checkout_session"),
                                               {"plan": "pro"}).status_code, 409)
         self.checkout.assert_not_called()
+
+

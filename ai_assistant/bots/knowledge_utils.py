@@ -1,4 +1,4 @@
-﻿import json
+import json
 import os
 import re
 import unicodedata
@@ -598,10 +598,6 @@ No explanation.
         .choices[0]
         .message["content"]
         .strip()
-    )
-
-    fallback = _default_retrieval_plan(
-        query
     )
 
     try:
@@ -1888,7 +1884,7 @@ def render_system_message(
     }
 
     if is_general_bot:
-        domain_rules = f"""
+        domain_rules = """
 GENERAL-PURPOSE MODE:
 
 - This is a general-purpose assistant.
@@ -1908,7 +1904,7 @@ GENERAL-PURPOSE MODE:
 """.strip()
 
     else:
-        domain_rules = f"""
+        domain_rules = """
 STRICT DOMAIN RULES:
 
 - Only answer requests that clearly fall within the CATEGORY DEFINITION above.
@@ -1980,3 +1976,4 @@ KNOWLEDGE BASE RULES:
 {knowledge_text if knowledge_text else "[No relevant knowledge found.]"}
 === END OF KNOWLEDGE ===
 """.strip()
+

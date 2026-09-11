@@ -1,9 +1,9 @@
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied, SuspiciousOperation
 from django.shortcuts import render
-from django.utils import timezone
 
-from ai_assistant.bots.models import Bot, ChatMessage, KnowledgeBase
+from ai_assistant.accounts.plan_utils import get_ai_usage_status
+from ai_assistant.bots.models import Bot, KnowledgeBase
 
 
 def home(request):
@@ -43,27 +43,25 @@ def dashboard(request):
         },
     }
 
-    limits = plan_limits.get(plan, plan_limits["free"])
-
-    # Current UTC calendar month.
-    now = timezone.now()
-    month_start = now.replace(
-        day=1,
-        hour=0,
-        minute=0,
-        second=0,
-        microsecond=0,
+    limits = plan_limits.get(
+        plan,
+        plan_limits["free"],
     )
 
-    # Count assistant responses generated for this user this month.
-    message_count = ChatMessage.objects.filter(
-        user=user,
-        sender=ChatMessage.SENDER_ASSISTANT,
-        timestamp__gte=month_start,
-    ).count()
+    usage_status = get_ai_usage_status(user)
+
+    message_count = usage_status[
+        "monthly_messages_used"
+    ]
+
+    message_limit = usage_status[
+        "monthly_message_limit"
+    ]
 
     # Count assistants owned by this user.
-    bot_count = Bot.objects.filter(owner=user).count()
+    bot_count = Bot.objects.filter(
+        owner=user
+    ).count()
 
     # Calculate total Knowledge Base storage used by the user.
     knowledge_files = KnowledgeBase.objects.filter(
@@ -76,27 +74,42 @@ def dashboard(request):
         try:
             if knowledge.file:
                 knowledge_bytes += knowledge.file.size
-        except (OSError, FileNotFoundError, ValueError):
-            # Ignore missing legacy files instead of breaking the dashboard.
+        except (
+            OSError,
+            FileNotFoundError,
+            ValueError,
+        ):
+            # Ignore missing legacy files instead of
+            # breaking the dashboard.
             continue
 
-    knowledge_mb = knowledge_bytes / (1024 * 1024)
+    knowledge_mb = knowledge_bytes / (
+        1024 * 1024
+    )
 
-    if knowledge_bytes >= 1024 * 1024 * 1024:
+    if knowledge_bytes >= (
+        1024 * 1024 * 1024
+    ):
         knowledge_used_display = (
             f"{knowledge_bytes / (1024 * 1024 * 1024):.2f} GB"
         )
     else:
-        knowledge_used_display = f"{knowledge_mb:.2f} MB"
+        knowledge_used_display = (
+            f"{knowledge_mb:.2f} MB"
+        )
 
     context = {
         "current_plan": plan,
         "message_count": message_count,
-        "message_limit": limits["messages"],
+        "message_limit": message_limit,
         "bot_count": bot_count,
         "bot_limit": limits["bots"],
-        "knowledge_used_display": knowledge_used_display,
-        "knowledge_limit_display": limits["knowledge_display"],
+        "knowledge_used_display": (
+            knowledge_used_display
+        ),
+        "knowledge_limit_display": (
+            limits["knowledge_display"]
+        ),
     }
 
     return render(
@@ -108,13 +121,20 @@ def dashboard(request):
 
 # Custom error triggers used for testing error pages.
 
+
 def trigger_400(request):
-    raise SuspiciousOperation("Manually triggered 400")
+    raise SuspiciousOperation(
+        "Manually triggered 400"
+    )
 
 
 def trigger_403(request):
-    raise PermissionDenied("Manually triggered 403")
+    raise PermissionDenied(
+        "Manually triggered 403"
+    )
 
 
 def trigger_500(request):
-    raise Exception("Manually triggered 500")
+    raise Exception(
+        "Manually triggered 500"
+    )

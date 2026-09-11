@@ -4,8 +4,6 @@ from django.core.exceptions import ValidationError
 from django.contrib.auth.forms import PasswordResetForm
 from django.template.loader import render_to_string
 from django.core.mail import EmailMultiAlternatives
-from django.conf import settings
-from django.contrib.sites.shortcuts import get_current_site
 from django.urls import reverse
 
 

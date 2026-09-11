@@ -409,18 +409,18 @@ def api_bot_chat(request, bot_id):
         }
 
         if usage_status[
-            "daily_limit_reached"
+            "monthly_message_limit_reached"
         ]:
             response_data.update(
                 {
-                    "daily_messages_used": (
+                    "monthly_messages_used": (
                         usage_status[
-                            "daily_messages_used"
+                            "monthly_messages_used"
                         ]
                     ),
-                    "daily_limit": (
+                    "monthly_limit": (
                         usage_status[
-                            "daily_message_limit"
+                            "monthly_message_limit"
                         ]
                     ),
                 }
