@@ -1,35 +1,28 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}My Bots{% endblock %}
+{% block title %}My AI Assistants{% endblock %}
 
 {% block content %}
-<h1>My Bots</h1>
+<h1>My AI Assistants</h1>
 
-{% if request.user.userprofile and not request.user.userprofile.is_subscribed %}
-<div class="free-tier-warning" style="
-    background-color: #1a1a1a;
-    color: #FFD700;
-    border: 1px solid #FFD700;
-    border-radius: 10px;
-    padding: 1rem 1.5rem;
-    margin-bottom: 1.5rem;
-    text-align: center;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
-    font-size: 1rem;">
-    You’re on the <strong>Free Plan</strong>: you can create up to <strong>3 bots</strong>.
-    To create unlimited bots, <a href="{% url 'payments:checkout' %}"
-        style="color: #FFD700; text-decoration: underline;">upgrade to Premium</a>.
+{% if request.user.profile.effective_plan == "free" %}
+<div class="free-tier-warning">
+    You’re on the <strong>Free Plan</strong>: you can create up to <strong>1 AI assistant</strong>.
+    <a href="{% url 'payments:billing' %}">
+        Upgrade your plan
+    </a>
+    for higher limits and more features.
 </div>
 {% endif %}
 
 <!-- TOP BUTTONS -->
 <div style="margin-bottom: 1.5rem;">
-    <a href="{% url 'bots:create' %}" class="btn btn-primary"
-        style="display: block; width: 100%; text-align: center; margin-bottom: 0.75rem;">
-        + Create a Bot
-    </a>
-    <a href="{% static 'pdf/ai_bot_information_guide.pdf' %}" target="_blank" rel="noopener noreferrer"
+    <a href="{% url 'bots:create' %}" class="btn"
+    style="display: block; width: 100%; text-align: center; margin-bottom: 0.75rem;">
+    + Create Assistant
+</a>
+    <a href="{% static 'pdf/ai_assistant_setup_guide_v2.pdf' %}" target="_blank" rel="noopener noreferrer"
         class="btn btn-secondary" style="display: block; width: 100%; text-align: center;">
         📘 Information Guide (PDF)
     </a>
@@ -37,24 +30,60 @@
 
 <!-- Bot list -->
 {% if bots %}
-<ul class="bot-list">
+<ul class="bot-list" style="list-style: none; padding: 0;">
     {% for bot in bots %}
     <li class="bot-card">
         <h3>{{ bot.name }}</h3>
         <p>{{ bot.description }}</p>
         <small>Created on {{ bot.created_at|date:"F j, Y" }}</small>
         <div style="margin-top: 1rem;">
-            <a href="{% url 'bots:playground' bot.id %}" class="btn">Playground / Upload</a>
-            <a href="{% url 'bots:edit' bot.id %}" class="btn">Edit</a>
+            <a href="{% url 'bots:playground' bot.id %}" class="btn">💬 Chat & Knowledge</a>
+            <a href="{% url 'bots:edit' bot.id %}" class="btn">✏️ Edit Assistant</a>
+            {% if request.user.profile.effective_plan == "pro" %}
+
             <a href="{% url 'bots:discord-setup' bot.id %}" class="btn btn-success" style="margin-left: .25rem;">
-                Discord Setup
+                🎮 Discord Setup
             </a>
+
+            {% else %}
+
+            <a href="{% url 'payments:billing' %}" class="btn" style="margin-left: .25rem;"
+                title="Discord integration requires the Pro plan.">
+                🔒 Discord — Pro
+            </a>
+
+            {% endif %}
+
             <a href="{% url 'bots:delete' bot.id %}" class="btn btn-danger">Delete</a>
         </div>
     </li>
     {% endfor %}
 </ul>
 {% else %}
-<p>You don't have any bots yet.</p>
+<p>You don't have any AI assistants yet.</p>
 {% endif %}
+<style>
+    .free-tier-warning {
+        background: var(--nav-bg);
+        color: var(--text-color);
+        border: 1px solid var(--button-border);
+        border-radius: 12px;
+        padding: 1rem 1.5rem;
+        margin-bottom: 1.5rem;
+        text-align: center;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        font-size: 1rem;
+        font-weight: 600;
+    }
+
+    .free-tier-warning a {
+        color: var(--accent-color);
+        text-decoration: underline;
+        font-weight: 700;
+    }
+
+    .free-tier-warning a:hover {
+        opacity: 0.8;
+    }
+</style>
 {% endblock %}

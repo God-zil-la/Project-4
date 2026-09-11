@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}Home - AI Assistant{% endblock %}
+{% block title %}AI Assistant - Build Your Own AI Assistants{% endblock %}
 
 {% block content %}
 <section style="
@@ -22,23 +22,28 @@
         align-items: center;
         justify-content: center;
     ">
+
+        <!-- HERO -->
         <h1 style="
             margin-bottom: 1rem;
             color: var(--accent-color);
         ">
-            Welcome to AI Assistant
+            Powerful AI assistants. Simple pricing.
         </h1>
 
         <p style="
             max-width: 700px;
             margin: 0 auto;
             font-weight: 600;
+            line-height: 1.6;
         ">
-            Your all-in-one platform to build, train,
-            and deploy smart AI bots. Simple to use,
-            with powerful capabilities.
+            Create AI assistants for your personal projects,
+            studies, documents, customer support, or business.
+            Add your own knowledge, keep your conversations
+            organized, and start chatting in minutes.
         </p>
 
+        <!-- WHAT YOU CAN DO -->
         <div style="
             margin-top: 2rem;
             width: 100%;
@@ -57,74 +62,86 @@
                 margin: 0 auto;
                 text-align: left;
             ">
+
                 <li style="margin-bottom: 1.5rem;">
-                    🌸 <strong>Create</strong> AI bots
-                    tailored for your business or hobby
+                    🤖 <strong>Create your own AI assistants</strong>
 
                     <p style="
                         margin: 0.5rem 0 0;
                         font-weight: 600;
+                        line-height: 1.5;
                     ">
-                        Build bots with personalized
-                        features. Get started quickly
-                        with easy-to-use templates.
+                        Build personalized AI assistants for
+                        work, studies, personal projects, hobbies,
+                        customer support, or your business.
                     </p>
                 </li>
 
                 <li style="margin-bottom: 1.5rem;">
-                    📚 <strong>Train</strong> them with
-                    custom knowledge
+                    📚 <strong>Add your own knowledge</strong>
 
                     <p style="
                         margin: 0.5rem 0 0;
                         font-weight: 600;
+                        line-height: 1.5;
                     ">
-                        Upload documents or data to give
-                        your bot domain-specific knowledge
-                        for more accurate responses.
+                        Upload documents and information so your
+                        assistants can answer using knowledge
+                        that matters to you or your business.
                     </p>
                 </li>
 
                 <li style="margin-bottom: 1.5rem;">
-                    ⚙️ <strong>Deploy</strong> your AI
-                    bots on Discord
+                    💬 <strong>Keep unlimited conversations</strong>
 
                     <p style="
                         margin: 0.5rem 0 0;
                         font-weight: 600;
+                        line-height: 1.5;
                     ">
-                        Easily deploy to Discord with
-                        minimal setup and customizable
-                        settings.
+                        Start separate conversations with your
+                        assistants and return to your chat history
+                        whenever you need it.
                     </p>
                 </li>
 
                 <li style="margin-bottom: 1.5rem;">
-                    📊 <strong>Monitor</strong>
-                    performance and chat logs
+                    📊 <strong>Understand your AI usage</strong>
 
                     <p style="
                         margin: 0.5rem 0 0;
                         font-weight: 600;
+                        line-height: 1.5;
                     ">
-                        Track interactions, analyze usage,
-                        and use feedback to improve your
-                        bot over time.
+                        View usage and conversation analytics to
+                        understand how your assistants are being used.
                     </p>
                 </li>
+
             </ul>
         </div>
 
-        <div style="
-            margin-top: 3rem;
-            width: 100%;
-        ">
+        <!-- PRICING -->
+        <div id="pricing" style="
+    margin-top: 3rem;
+    width: 100%;
+">
             <h2 style="
-                margin-bottom: 1rem;
+                margin-bottom: 0.5rem;
                 color: var(--accent-color);
             ">
-                Plans & Limits
+                Plans & Pricing
             </h2>
+
+            <p style="
+                max-width: 650px;
+                margin: 0 auto 1.5rem;
+                font-weight: 600;
+                line-height: 1.5;
+            ">
+                Start for free and upgrade when you need more
+                assistants, messages, storage, or advanced features.
+            </p>
 
             <div style="
                 display: flex;
@@ -134,24 +151,8 @@
                 max-width: 700px;
                 margin: 0 auto;
             ">
-                <div style="
-                    border: 2px solid var(--accent-color);
-                    border-radius: 12px;
-                    padding: 1rem;
-                    background: var(--nav-bg);
-                ">
-                    <h3>🆓 Free Plan</h3>
 
-                    <ul style="
-                        margin: 0;
-                        padding-left: 1.2rem;
-                    ">
-                        <li>✔️ Up to 3 bots</li>
-                        <li>✔️ 15 AI messages per day</li>
-                        <li>✔️ Limited knowledge uploads</li>
-                    </ul>
-                </div>
-
+                <!-- FREE -->
                 <div style="
                     border: 2px solid var(--accent-color);
                     border-radius: 12px;
@@ -159,23 +160,75 @@
                     background: var(--nav-bg);
                 ">
                     <h3>
-                        💎 Premium Plan — $12.99 USD/month
+                        🆓 Free — $0/month
                     </h3>
+
+                    <p style="
+                        margin-top: 0;
+                        font-weight: 600;
+                    ">
+                        A simple way to create your first AI assistant.
+                    </p>
 
                     <ul style="
                         margin: 0;
                         padding-left: 1.2rem;
                     ">
-                        <li>✔️ Unlimited bots</li>
-                        <li>✔️ Increased AI usage</li>
+                        <li>✔️ 1 AI assistant</li>
+                        <li>✔️ 150 AI messages per month</li>
+                        <li>✔️ 10 MB Knowledge Base</li>
+                        <li>✔️ Unlimited chats</li>
+                        <li>✔️ Conversation history</li>
+                        <li>✔️ Knowledge uploads</li>
+                        <li>✔️ Basic analytics</li>
+                        <li>✔️ Basic assistant naming</li>
+                        <li>✔️ AI Assistant branding</li>
+                    </ul>
+                </div>
+
+                <!-- PREMIUM -->
+                <div style="
+                    border: 2px solid var(--accent-color);
+                    border-radius: 12px;
+                    padding: 1rem;
+                    background: var(--nav-bg);
+                ">
+                    <h3>
+                        💎 Premium — $29 USD/month
+                    </h3>
+
+                    <p style="
+                        margin-top: 0;
+                        font-weight: 600;
+                    ">
+                        For individuals, creators, and small businesses
+                        that need more capacity and flexibility.
+                    </p>
+
+                    <ul style="
+                        margin: 0;
+                        padding-left: 1.2rem;
+                    ">
+                        <li>✔️ 5 AI assistants</li>
+                        <li>✔️ 3,000 AI messages per month</li>
+                        <li>✔️ 250 MB Knowledge Base</li>
+                        <li>✔️ Unlimited chats</li>
+                        <li>✔️ Conversation history</li>
+                        <li>✔️ Knowledge uploads</li>
+                        <li>✔️ Full analytics</li>
                         <li>
-                            ✔️ Advanced knowledge uploads
+                            🔜 Advanced assistant customization
+                            — Coming soon
                         </li>
-                        <li>✔️ Discord deployment</li>
+                        <li>
+                            🔜 Website widget & public chatbot
+                            — Coming soon
+                        </li>
                         <li>✔️ Priority support</li>
                     </ul>
                 </div>
 
+                <!-- PRO -->
                 <div style="
                     border: 2px solid var(--accent-color);
                     border-radius: 12px;
@@ -183,23 +236,67 @@
                     background: var(--nav-bg);
                 ">
                     <h3>
-                        🚀 Pro Plan — $24.99 USD/month
+                        🚀 Pro — $59 USD/month
                     </h3>
+
+                    <p style="
+                        margin-top: 0;
+                        font-weight: 600;
+                    ">
+                        For power users and businesses that need
+                        higher limits, integrations, and developer access.
+                    </p>
 
                     <ul style="
                         margin: 0;
                         padding-left: 1.2rem;
                     ">
                         <li>✔️ Everything in Premium</li>
-                        <li>✔️ Highest AI usage tier</li>
-                        <li>✔️ Priority AI capacity</li>
-                        <li>✔️ Unlimited bots</li>
+                        <li>✔️ 15 AI assistants</li>
+                        <li>✔️ 10,000 AI messages per month</li>
+                        <li>✔️ 1 GB Knowledge Base</li>
+                        <li>✔️ Unlimited chats</li>
+                        <li>✔️ API access</li>
+                        <li>✔️ Discord integration</li>
+                        <li>
+                            🔜 Remove AI Assistant branding
+                            — Coming soon
+                        </li>
+                        <li>
+                            🔜 Advanced customization
+                            — Coming soon
+                        </li>
                         <li>✔️ Priority support</li>
                     </ul>
                 </div>
+
             </div>
         </div>
 
+        <!-- FINAL CTA -->
+        <div style="
+            margin-top: 3rem;
+            width: 100%;
+        ">
+            <h2 style="
+                margin-bottom: 0.5rem;
+                color: var(--accent-color);
+            ">
+                Start building your AI assistant today
+            </h2>
+
+            <p style="
+                max-width: 650px;
+                margin: 0 auto;
+                font-weight: 600;
+                line-height: 1.5;
+            ">
+                No credit card required for the Free plan.
+                Create your account and get started in minutes.
+            </p>
+        </div>
+
+        <!-- CTA BUTTONS -->
         <div style="
             margin-top: 2rem;
             display: flex;
@@ -209,14 +306,55 @@
             width: 100%;
             max-width: 300px;
         ">
-            <a href="{% url 'bots:create' %}" class="nav-btn">
+
+            {% if not user.is_authenticated %}
+
+            <a href="{% url 'accounts:register' %}" class="nav-btn">
                 Get Started Free
             </a>
 
-            <a href="{% url 'payments:billing' %}" class="nav-btn btn-premium">
+            <a href="#pricing" class="nav-btn btn-premium">
                 View Premium & Pro
             </a>
+
+            {% else %}
+
+            {% if user.profile.effective_plan == 'free' %}
+
+            <a href="{% url 'bots:create' %}" class="nav-btn">
+                Create AI Assistant
+            </a>
+
+            <a href="{% url 'payments:billing' %}" class="nav-btn btn-premium">
+                Upgrade Plan
+            </a>
+
+            {% elif user.profile.effective_plan == 'premium' %}
+
+            <a href="{% url 'bots:my-bots' %}" class="nav-btn">
+                My AI Assistants
+            </a>
+
+            <a href="{% url 'payments:billing' %}" class="nav-btn btn-premium">
+                Upgrade to Pro
+            </a>
+
+            {% elif user.profile.effective_plan == 'pro' %}
+
+            <a href="{% url 'bots:my-bots' %}" class="nav-btn">
+                My AI Assistants
+            </a>
+
+            <a href="{% url 'payments:billing' %}" class="nav-btn btn-premium">
+                Manage Plan
+            </a>
+
+            {% endif %}
+
+            {% endif %}
+
         </div>
+
     </div>
 </section>
 
@@ -235,6 +373,9 @@
         display: inline-block;
         margin-top: 0.5rem;
         transition: all 0.3s ease;
+        width: 100%;
+        text-align: center;
+        box-sizing: border-box;
     }
 
     a.nav-btn:hover {

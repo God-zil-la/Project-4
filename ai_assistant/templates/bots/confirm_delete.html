@@ -1,16 +1,30 @@
 {% extends 'base.html' %}
 
-{% block title %}Delete Bot - AI Assistant{% endblock %}
+{% block title %}Delete Assistant - AI Assistant{% endblock %}
 
 {% block content %}
 <section class="content">
-    <h2>Delete Bot</h2>
-    <p>Are you sure you want to delete <strong>{{ bot.name }}</strong>?</p>
+    <h2>🗑️ Delete Assistant</h2>
+
+    <p>
+        Are you sure you want to delete
+        <strong>{{ bot.name }}</strong>?
+    </p>
+
+    <p>
+        <strong>This action cannot be undone.</strong>
+    </p>
 
     <form method="post" style="margin-top: 1rem;">
         {% csrf_token %}
-        <button type="submit" class="btn btn-danger">Confirm Delete</button>
-        <a href="{% url 'bots:list' %}" class="btn btn-secondary">Cancel</a>
+
+        <button type="submit" class="btn btn-danger">
+            🗑️ Delete Assistant
+        </button>
+
+        <a href="{% url 'bots:list' %}" class="btn btn-secondary">
+            Cancel
+        </a>
     </form>
 </section>
 {% endblock %}

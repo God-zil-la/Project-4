@@ -87,7 +87,7 @@ def delete_bot(request, bot_id):
 
 
 def register(request):
-    """Handle user registration, validation, and welcome email."""
+    """Register a new user and send an email verification link."""
     if request.method == 'POST':
         username = request.POST.get('username', '').strip()
         email = request.POST.get('email', '').strip()
@@ -121,36 +121,71 @@ def register(request):
                 {'username': username, 'email': email}
             )
 
+        if User.objects.filter(email__iexact=email).exists():
+            messages.error(
+                request,
+                "An account with this email address already exists."
+            )
+            return render(
+                request,
+                'accounts/register.html',
+                {'username': username, 'email': email}
+            )
+
         try:
             validate_email(email)
-            validate_password(password, User(username=username, email=email))
+            validate_password(
+                password,
+                User(username=username, email=email)
+            )
         except ValidationError as exc:
             for error in exc.messages:
                 messages.error(request, error)
-            return render(request, 'accounts/register.html', {'username': username, 'email': email})
+
+            return render(
+                request,
+                'accounts/register.html',
+                {'username': username, 'email': email}
+            )
 
         origin = public_origin(request)
+
         user = User.objects.create_user(
             username=username,
             email=email,
             password=password
         )
-        user.is_active = True
-        user.save()
+
+        # The account stays inactive until the email address is verified.
+        user.is_active = False
+        user.save(update_fields=['is_active'])
+
+        uid = urlsafe_base64_encode(force_bytes(user.pk))
+        token = account_activation_token.make_token(user)
+
+        activation_path = reverse(
+            'accounts:activate',
+            kwargs={
+                'uidb64': uid,
+                'token': token,
+            }
+        )
+
+        activation_url = f"{origin}{activation_path}"
 
         context = {
             'user': user,
             'domain': origin.split('://', 1)[1],
-            'login_url': origin + reverse('accounts:login'),
+            'activation_url': activation_url,
         }
-        subject = (
-            "Welcome to AI Assistant - "
-            "Your account is active!"
-        )
+
+        subject = "Verify your email - AI Assistant"
+
         text_content = render_to_string(
             'accounts/activation_email.txt',
             context
         )
+
         html_content = render_to_string(
             'accounts/activation_email.html',
             context
@@ -162,10 +197,20 @@ def register(request):
             settings.DEFAULT_FROM_EMAIL,
             [email]
         )
-        email_message.attach_alternative(html_content, "text/html")
-        transaction.on_commit(lambda: send_account_email(email_message))
+        email_message.attach_alternative(
+            html_content,
+            "text/html"
+        )
 
-        return render(request, 'accounts/activation_sent.html')
+        transaction.on_commit(
+            lambda: send_account_email(email_message)
+        )
+
+        return render(
+            request,
+            'accounts/activation_sent.html',
+            {'email': email}
+        )
 
     return render(
         request,
@@ -173,22 +218,153 @@ def register(request):
         {'username': '', 'email': ''}
     )
 
+def resend_activation(request):
+    """Resend the email verification link for an inactive account."""
+    if request.method == 'POST':
+        email = request.POST.get('email', '').strip()
+
+        try:
+            user = User.objects.get(
+                email__iexact=email,
+                is_active=False
+            )
+        except User.DoesNotExist:
+            user = None
+
+        if user is not None:
+            origin = public_origin(request)
+
+            uid = urlsafe_base64_encode(
+                force_bytes(user.pk)
+            )
+            token = account_activation_token.make_token(user)
+
+            activation_path = reverse(
+                'accounts:activate',
+                kwargs={
+                    'uidb64': uid,
+                    'token': token,
+                }
+            )
+
+            activation_url = f"{origin}{activation_path}"
+
+            context = {
+                'user': user,
+                'domain': origin.split('://', 1)[1],
+                'activation_url': activation_url,
+            }
+
+            subject = "Verify your email - AI Assistant"
+
+            text_content = render_to_string(
+                'accounts/activation_email.txt',
+                context
+            )
+
+            html_content = render_to_string(
+                'accounts/activation_email.html',
+                context
+            )
+
+            email_message = EmailMultiAlternatives(
+                subject,
+                text_content,
+                settings.DEFAULT_FROM_EMAIL,
+                [user.email]
+            )
+
+            email_message.attach_alternative(
+                html_content,
+                "text/html"
+            )
+
+            transaction.on_commit(
+                lambda: send_account_email(email_message)
+            )
+
+        messages.success(
+            request,
+            "If an unverified account exists with that email address, "
+            "a new verification email has been sent."
+        )
+
+        return redirect('accounts:login')
+
+    return render(
+        request,
+        'accounts/resend_activation.html'
+    )
+
 
 def activate(request, uidb64, token):
-    """Activate user account via email confirmation link."""
+    """Activate a user account via the email verification link."""
     try:
         uid = force_str(urlsafe_base64_decode(uidb64))
         user = User.objects.get(pk=uid)
     except (TypeError, ValueError, OverflowError, User.DoesNotExist):
         user = None
 
-    if user is not None and account_activation_token.check_token(user, token):
-        if not user.is_active:
-            user.is_active = True
-            user.save()
-            login(request, user)
-            return render(request, 'accounts/activation_success.html')
-        else:
-            return render(request, 'accounts/activation_already_active.html')
-    else:
-        return render(request, 'accounts/activation_invalid.html')
+    if user is None:
+        return render(
+            request,
+            'accounts/activation_invalid.html'
+        )
+
+    if user.is_active:
+        return render(
+            request,
+            'accounts/activation_already_active.html'
+        )
+
+    if account_activation_token.check_token(user, token):
+        user.is_active = True
+        user.save(update_fields=['is_active'])
+
+        origin = public_origin(request)
+        dashboard_url = f"{origin}{reverse('dashboard:home')}"
+
+        context = {
+            'user': user,
+            'dashboard_url': dashboard_url,
+        }
+
+        subject = "Your email is verified 🎉"
+
+        text_content = render_to_string(
+            'accounts/welcome_email.txt',
+            context
+        )
+
+        html_content = render_to_string(
+            'accounts/welcome_email.html',
+            context
+        )
+
+        email_message = EmailMultiAlternatives(
+            subject,
+            text_content,
+            settings.DEFAULT_FROM_EMAIL,
+            [user.email]
+        )
+
+        email_message.attach_alternative(
+            html_content,
+            "text/html"
+        )
+
+        transaction.on_commit(
+            lambda: send_account_email(email_message)
+        )
+
+        login(request, user)
+
+        return render(
+            request,
+            'accounts/activation_success.html'
+        )
+
+    return render(
+        request,
+        'accounts/activation_invalid.html'
+    )

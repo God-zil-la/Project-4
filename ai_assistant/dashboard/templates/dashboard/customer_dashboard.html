@@ -1,0 +1,275 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - AI Assistant{% endblock %}
+
+{% block content %}
+<section style="
+    display: flex;
+    justify-content: center;
+    padding: 2rem 1rem;
+">
+    <div style="
+        background: var(--nav-bg);
+        padding: 1.5rem;
+        border-radius: 16px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+        max-width: 1000px;
+        width: 100%;
+    ">
+
+        <div style="
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+        ">
+            <h1 style="
+                margin: 0;
+                color: var(--accent-color);
+            ">
+                Dashboard
+            </h1>
+
+            <p style="
+                margin: 0;
+                font-weight: 600;
+            ">
+                Welcome back, {{ user.first_name|default:user.username }}.
+                Manage your AI assistants, usage, knowledge, and subscription.
+            </p>
+        </div>
+
+        <!-- CURRENT PLAN -->
+        <div style="
+            border: 2px solid var(--accent-color);
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+        ">
+            <h2 style="
+                margin-top: 0;
+                color: var(--accent-color);
+            ">
+                Current Plan
+            </h2>
+
+            <h3 style="margin-bottom: 0.5rem;">
+                {{ user.profile.effective_plan|title }}
+            </h3>
+
+            {% if user.profile.effective_plan == 'free' %}
+            <p style="font-weight: 600;">
+                Free includes 1 AI assistant, 150 AI messages per month,
+                10 MB Knowledge Base, and unlimited chats.
+            </p>
+
+            <a href="{% url 'payments:billing' %}" class="dashboard-btn">
+                Upgrade Plan
+            </a>
+
+            {% elif user.profile.effective_plan == 'premium' %}
+            <p style="font-weight: 600;">
+                Premium includes 5 AI assistants, 3,000 AI messages per month,
+                250 MB Knowledge Base, and unlimited chats.
+            </p>
+
+            <a href="{% url 'payments:billing' %}" class="dashboard-btn">
+                Upgrade to Pro
+            </a>
+
+            <a href="{% url 'payments:billing' %}" class="dashboard-btn secondary-btn">
+                Manage Plan
+            </a>
+
+            {% elif user.profile.effective_plan == 'pro' %}
+            <p style="font-weight: 600;">
+                Pro includes 15 AI assistants, 10,000 AI messages per month,
+                1 GB Knowledge Base, and unlimited chats.
+            </p>
+
+            <a href="{% url 'payments:billing' %}" class="dashboard-btn">
+                Manage Plan
+            </a>
+            {% endif %}
+        </div>
+
+        <!-- USAGE -->
+        <!-- USAGE -->
+        <div style="
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+">
+
+            <div class="dashboard-card">
+                <h3>💬 AI Messages</h3>
+                <p>
+                    {{ message_count }} / {{ message_limit }} this month
+                </p>
+            </div>
+
+            <div class="dashboard-card">
+                <h3>🤖 AI Assistants</h3>
+                <p>
+                    {{ bot_count }} / {{ bot_limit }}
+                </p>
+            </div>
+
+            <div class="dashboard-card">
+                <h3>📚 Knowledge Base</h3>
+                <p>
+                    {{ knowledge_used_display }} / {{ knowledge_limit_display }}
+                </p>
+            </div>
+
+            <div class="dashboard-card">
+                <h3>🗨️ Chats</h3>
+                <p>
+                    Unlimited
+                </p>
+            </div>
+
+        </div>
+
+        <!-- GET STARTED -->
+        <div style="
+            border: 2px solid var(--accent-color);
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+        ">
+            <h2 style="
+                margin-top: 0;
+                color: var(--accent-color);
+            ">
+                Get Started
+            </h2>
+
+            <ol style="
+                padding-left: 1.3rem;
+                font-weight: 600;
+                line-height: 1.8;
+            ">
+                <li>Create your first AI assistant</li>
+                <li>Add your own knowledge</li>
+                <li>Start chatting</li>
+            </ol>
+
+            <div style="
+                display: flex;
+                flex-wrap: wrap;
+                gap: 1rem;
+                margin-top: 1rem;
+            ">
+                <a href="{% url 'bots:create' %}" class="dashboard-btn">
+                    Create AI Assistant
+                </a>
+
+                <a href="{% url 'bots:my-bots' %}" class="dashboard-btn secondary-btn">
+                    My AI Assistants
+                </a>
+            </div>
+        </div>
+
+        <!-- PLAN FEATURES -->
+        <div style="
+            border: 2px solid var(--accent-color);
+            border-radius: 12px;
+            padding: 1rem;
+        ">
+            <h2 style="
+                margin-top: 0;
+                color: var(--accent-color);
+            ">
+                Features
+            </h2>
+
+            {% if user.profile.effective_plan == 'free' %}
+            <ul style="
+                    padding-left: 1.2rem;
+                    font-weight: 600;
+                    line-height: 1.8;
+                ">
+                <li>✔️ AI chat</li>
+                <li>✔️ Knowledge uploads</li>
+                <li>✔️ Conversation history</li>
+                <li>✔️ Basic analytics</li>
+                <li>🔒 Full analytics — Premium</li>
+                <li>🔒 API access — Pro</li>
+                <li>🔒 Discord integration — Pro</li>
+                <li>🔜 Website widget & public chatbot — Coming soon</li>
+            </ul>
+
+            {% elif user.profile.effective_plan == 'premium' %}
+            <ul style="
+                    padding-left: 1.2rem;
+                    font-weight: 600;
+                    line-height: 1.8;
+                ">
+                <li>✔️ AI chat</li>
+                <li>✔️ Knowledge uploads</li>
+                <li>✔️ Conversation history</li>
+                <li>✔️ Full analytics</li>
+                <li>🔒 API access — Pro</li>
+                <li>🔒 Discord integration — Pro</li>
+                <li>🔜 Website widget & public chatbot — Coming soon</li>
+                <li>🔜 Advanced assistant customization — Coming soon</li>
+            </ul>
+
+            {% elif user.profile.effective_plan == 'pro' %}
+            <ul style="
+                    padding-left: 1.2rem;
+                    font-weight: 600;
+                    line-height: 1.8;
+                ">
+                <li>✔️ AI chat</li>
+                <li>✔️ Knowledge uploads</li>
+                <li>✔️ Conversation history</li>
+                <li>✔️ Full analytics</li>
+                <li>✔️ API access</li>
+                <li>✔️ Discord integration</li>
+                <li>🔜 Website widget & public chatbot — Coming soon</li>
+                <li>🔜 Remove AI Assistant branding — Coming soon</li>
+                <li>🔜 Advanced customization — Coming soon</li>
+            </ul>
+            {% endif %}
+        </div>
+
+    </div>
+</section>
+
+<style>
+    .dashboard-card {
+        border: 2px solid var(--accent-color);
+        border-radius: 12px;
+        padding: 1rem;
+        background: var(--nav-bg);
+    }
+
+    .dashboard-card h3 {
+        margin-top: 0;
+        color: var(--accent-color);
+    }
+
+    .dashboard-btn {
+        background-color: var(--button-bg);
+        color: var(--button-text);
+        padding: 0.75rem 1.25rem;
+        border-radius: 8px;
+        text-decoration: none;
+        display: inline-block;
+        transition: all 0.3s ease;
+        font-weight: 600;
+    }
+
+    .dashboard-btn:hover {
+        background: var(--button-hover);
+        transform: scale(1.03);
+    }
+
+    .secondary-btn {
+        border: 2px solid var(--accent-color);
+    }
+</style>
+{% endblock %}

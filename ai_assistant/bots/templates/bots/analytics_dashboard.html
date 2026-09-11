@@ -5,203 +5,288 @@
 
 {% block content %}
 <main class="analytics-dashboard container" role="main" aria-label="Analytics Dashboard">
+
     <header class="dashboard-header">
         <h1>📊 Analytics Dashboard</h1>
-        <p class="dashboard-intro">Insights into your AI bots and user interactions.</p>
+        <p class="dashboard-intro">
+            Insights into your AI assistants and conversations.
+        </p>
     </header>
 
     <section class="chart-section" aria-labelledby="bot-usage-title">
-        <h2 id="bot-usage-title" class="chart-title">Messages by Bot</h2>
-        <canvas id="botUsageChart" role="img" aria-label="Bar chart showing messages count per bot"></canvas>
+        <h2 id="bot-usage-title" class="chart-title">
+            Messages by Assistant
+        </h2>
+
+        <canvas
+            id="botUsageChart"
+            role="img"
+            aria-label="Bar chart showing message count per AI assistant">
+        </canvas>
     </section>
 
-    <section class="chart-section" aria-labelledby="user-usage-title">
-        <h2 id="user-usage-title" class="chart-title">Messages by User</h2>
-        <canvas id="userUsageChart" role="img" aria-label="Bar chart showing messages count per user"></canvas>
+    <section class="chart-section" aria-labelledby="time-usage-title">
+        <h2 id="time-usage-title" class="chart-title">
+            Messages Over Time
+        </h2>
+
+        <canvas
+            id="timeUsageChart"
+            role="img"
+            aria-label="Bar chart showing messages over time">
+        </canvas>
     </section>
+
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const root = document.documentElement;
-        const isDark = root.classList.contains('dark');
+document.addEventListener('DOMContentLoaded', function () {
+    const root = document.documentElement;
+    const isDark = root.classList.contains('dark');
 
-        const bgColor = isDark ? '#1e1e1e' : '#ffffff';
-        const textColor = isDark ? '#eeeeee' : '#222222';
-        const mutedColor = isDark ? '#cccccc' : '#555555';
-        const gridColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)';
-        const gridSubColor = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)';
-        const tooltipBg = isDark ? '#2a2a2a' : '#ffffff';
+    const bgColor = isDark ? '#1e1e1e' : '#ffffff';
+    const textColor = isDark ? '#eeeeee' : '#222222';
+    const mutedColor = isDark ? '#cccccc' : '#555555';
+    const gridColor = isDark
+        ? 'rgba(255,255,255,0.1)'
+        : 'rgba(0,0,0,0.05)';
+    const gridSubColor = isDark
+        ? 'rgba(255,255,255,0.05)'
+        : 'rgba(0,0,0,0.03)';
+    const tooltipBg = isDark ? '#2a2a2a' : '#ffffff';
 
-        const chartOptions = {
-            responsive: true,
-            maintainAspectRatio: false,
-            backgroundColor: bgColor,
-            plugins: {
-                legend: {
-                    labels: {
-                        color: textColor
-                    }
-                },
-                tooltip: {
-                    mode: 'index',
-                    intersect: false,
-                    backgroundColor: tooltipBg,
-                    titleColor: textColor,
-                    bodyColor: textColor,
-                    borderColor: isDark ? '#888' : '#000',
-                    borderWidth: 1,
-                    caretSize: 6,
-                    titleFont: { weight: 'bold', size: 14 },
-                    bodyFont: { size: 13 },
-                    padding: 10
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: {
-                        stepSize: 1,
-                        color: textColor
-                    },
-                    grid: {
-                        color: gridColor
-                    },
-                    title: {
-                        display: true,
-                        text: 'Message Count',
-                        color: mutedColor,
-                        font: { weight: '600' }
-                    }
-                },
-                x: {
-                    ticks: {
-                        color: textColor,
-                        maxRotation: 45,
-                        minRotation: 30
-                    },
-                    grid: {
-                        color: gridSubColor
-                    },
-                    title: {
-                        display: true,
-                        text: 'Name',
-                        color: mutedColor,
-                        font: { weight: '600' }
-                    }
-                }
-            }
-        };
+    const botData = JSON.parse(
+        `{{ bot_data|default:"{}"|escapejs }}`
+    );
 
-        const botData = JSON.parse(`{{ bot_data|default:"{}"|escapejs }}`);
-        const userData = JSON.parse(`{{ user_data|default:"{}"|escapejs }}`);
+    const timeData = JSON.parse(
+        `{{ time_data|default:"{}"|escapejs }}`
+    );
 
-        function createChart(canvasId, label, data, color) {
-            const ctx = document.getElementById(canvasId).getContext('2d');
-            new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: data.labels || [],
-                    datasets: [{
-                        label: label,
-                        data: data.counts || [],
-                        backgroundColor: color,
-                        borderColor: color,
-                        borderWidth: 1,
-                        borderRadius: 6,
-                        barPercentage: 0.6,
-                        categoryPercentage: 0.5
-                    }]
-                },
-                options: chartOptions,
-                plugins: [{
-                    id: 'customBackground',
-                    beforeDraw: chart => {
-                        const ctx = chart.canvas.getContext('2d');
-                        ctx.save();
-                        ctx.fillStyle = bgColor;
-                        ctx.fillRect(0, 0, chart.width, chart.height);
-                        ctx.restore();
-                    }
-                }]
-            });
+    function createChart(
+        canvasId,
+        label,
+        data,
+        color,
+        xAxisTitle = 'Name'
+    ) {
+        const canvas = document.getElementById(canvasId);
+
+        if (!canvas) {
+            return;
         }
 
-        createChart('botUsageChart', 'Messages by Bot', botData, 'rgba(240, 165, 0, 0.85)');
-        createChart('userUsageChart', 'Messages by User', userData, 'rgba(54, 162, 235, 0.85)');
-    });
+        const ctx = canvas.getContext('2d');
+
+        new Chart(ctx, {
+            type: 'bar',
+
+            data: {
+                labels: data.labels || [],
+                datasets: [{
+                    label: label,
+                    data: data.counts || [],
+                    backgroundColor: color,
+                    borderColor: color,
+                    borderWidth: 1,
+                    borderRadius: 6,
+                    barPercentage: 0.6,
+                    categoryPercentage: 0.5
+                }]
+            },
+
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+
+                plugins: {
+                    legend: {
+                        labels: {
+                            color: textColor
+                        }
+                    },
+
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                        backgroundColor: tooltipBg,
+                        titleColor: textColor,
+                        bodyColor: textColor,
+                        borderColor: isDark ? '#888' : '#000',
+                        borderWidth: 1,
+                        caretSize: 6,
+                        titleFont: {
+                            weight: 'bold',
+                            size: 14
+                        },
+                        bodyFont: {
+                            size: 13
+                        },
+                        padding: 10
+                    }
+                },
+
+                scales: {
+                    y: {
+                        beginAtZero: true,
+
+                        ticks: {
+                            stepSize: 1,
+                            color: textColor
+                        },
+
+                        grid: {
+                            color: gridColor
+                        },
+
+                        title: {
+                            display: true,
+                            text: 'Message Count',
+                            color: mutedColor,
+                            font: {
+                                weight: '600'
+                            }
+                        }
+                    },
+
+                    x: {
+                        ticks: {
+                            color: textColor,
+                            maxRotation: 45,
+                            minRotation: 30
+                        },
+
+                        grid: {
+                            color: gridSubColor
+                        },
+
+                        title: {
+                            display: true,
+                            text: xAxisTitle,
+                            color: mutedColor,
+                            font: {
+                                weight: '600'
+                            }
+                        }
+                    }
+                }
+            },
+
+            plugins: [{
+                id: 'customBackground',
+
+                beforeDraw: chart => {
+                    const chartCtx =
+                        chart.canvas.getContext('2d');
+
+                    chartCtx.save();
+                    chartCtx.fillStyle = bgColor;
+                    chartCtx.fillRect(
+                        0,
+                        0,
+                        chart.width,
+                        chart.height
+                    );
+                    chartCtx.restore();
+                }
+            }]
+        });
+    }
+
+    createChart(
+        'botUsageChart',
+        'Messages by Assistant',
+        botData,
+        'rgba(240, 165, 0, 0.85)',
+        'Name'
+    );
+
+    createChart(
+        'timeUsageChart',
+        'Messages Over Time',
+        timeData,
+        'rgba(54, 162, 235, 0.85)',
+        'Date'
+    );
+});
 </script>
+
 <style>
-    :root {
-        --text-color: #222;
-        --text-color-muted: #555;
-        --chart-bg: #f8f8f8;
-    }
+:root {
+    --text-color: #222;
+    --text-color-muted: #555;
+    --chart-bg: #f8f8f8;
+}
 
-    .dark {
-        --text-color: #EEE;
-        --text-color-muted: #CCC;
-        --chart-bg: #1e1e1e;
-    }
+.dark {
+    --text-color: #EEE;
+    --text-color-muted: #CCC;
+    --chart-bg: #1e1e1e;
+}
 
-    .container {
-        max-width: 900px;
-        margin: 2rem auto 4rem;
-        padding: 0 1rem;
-    }
+.container {
+    max-width: 900px;
+    margin: 2rem auto 4rem;
+    padding: 0 1rem;
+}
 
-    .dashboard-header {
-        text-align: center;
-        margin-bottom: 3rem;
-    }
+.dashboard-header {
+    text-align: center;
+    margin-bottom: 3rem;
+}
 
-    .dashboard-header h1,
-    .dashboard-intro,
-    .chart-title {
-        color: var(--text-color);
-        transition: color 0.3s ease;
-    }
+.dashboard-header h1,
+.dashboard-intro,
+.chart-title {
+    color: var(--text-color);
+    transition: color 0.3s ease;
+}
 
-    .dashboard-intro {
-        font-size: 1.1rem;
-        font-weight: 500;
-        color: var(--text-color-muted);
-    }
+.dashboard-intro {
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: var(--text-color-muted);
+}
 
+.dashboard-header h1 {
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin-bottom: 0.25rem;
+}
+
+.chart-section {
+    margin-bottom: 4rem;
+}
+
+.chart-title {
+    font-size: 1.8rem;
+    margin-bottom: 1rem;
+    font-weight: 700;
+}
+
+canvas {
+    width: 100% !important;
+    height: 400px !important;
+    border-radius: 16px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+    padding: 1rem;
+    background-color: var(--chart-bg);
+}
+
+@media (max-width: 600px) {
     .dashboard-header h1 {
-        font-size: 2.5rem;
-        font-weight: 800;
-        margin-bottom: 0.25rem;
-    }
-
-    .chart-section {
-        margin-bottom: 4rem;
+        font-size: 1.8rem;
     }
 
     .chart-title {
-        font-size: 1.8rem;
-        margin-bottom: 1rem;
-        font-weight: 700;
+        font-size: 1.4rem;
     }
 
     canvas {
-        width: 100% !important;
-        height: 400px !important;
-        border-radius: 16px;
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
-        padding: 1rem;
-        background-color: var(--chart-bg);
+        height: 320px !important;
     }
-
-    @media (max-width: 600px) {
-        .dashboard-header h1 {
-            font-size: 1.8rem;
-        }
-
-        .chart-title {
-            font-size: 1.4rem;
-        }
-    }
+}
 </style>
 {% endblock %}

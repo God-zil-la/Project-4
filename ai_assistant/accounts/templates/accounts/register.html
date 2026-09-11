@@ -1,68 +1,114 @@
 {% extends "base.html" %}
-{% block title %}Register{% endblock %}
+
+{% block title %}Create Account - AI Assistant{% endblock %}
 
 {% block content %}
-<h2>Create an Account</h2>
+<section class="form-section">
+    <div class="form-wrapper">
+        <h2>Create an Account</h2>
 
-{% if messages %}
-<ul class="messages">
-    {% for message in messages %}
-    <li{% if message.tags %} class="{{ message.tags }}" {% endif %}>{{ message }}</li>
-        {% endfor %}
-</ul>
-{% endif %}
+        <p class="helper-text">
+            Create your free AI Assistant account. No credit card required.
+        </p>
 
-<form method="post" class="form-wrapper">
-    {% csrf_token %}
+        <form method="post">
+            {% csrf_token %}
 
-    <div class="form-group">
-        <label for="id_username">Username:</label>
-        <input id="id_username" type="text" name="username" value="{{ username }}" required autocomplete="username">
+            <div class="form-group">
+                <label for="id_username">Username:</label>
+                <input
+                    id="id_username"
+                    type="text"
+                    name="username"
+                    value="{{ username }}"
+                    required
+                    autocomplete="username"
+                >
+            </div>
+
+            <div class="form-group">
+                <label for="id_email">Email:</label>
+                <input
+                    id="id_email"
+                    type="email"
+                    name="email"
+                    value="{{ email }}"
+                    required
+                    autocomplete="email"
+                >
+            </div>
+
+            <div class="form-group">
+                <label for="id_password">Password:</label>
+                <input
+                    id="id_password"
+                    type="password"
+                    name="password"
+                    required
+                    autocomplete="new-password"
+                >
+                <div class="password-requirements">
+    <strong>Password requirements:</strong>
+    <ul>
+        <li>At least 8 characters</li>
+        <li>Cannot be entirely numeric</li>
+        <li>Cannot be too common or easy to guess</li>
+        <li>Cannot be too similar to your username or email</li>
+    </ul>
+</div>
+            </div>
+
+            <div class="form-group">
+                <label for="id_password2">Confirm Password:</label>
+                <input
+                    id="id_password2"
+                    type="password"
+                    name="password2"
+                    required
+                    autocomplete="new-password"
+                >
+            </div>
+
+            <button type="submit" class="nav-btn">
+                Create Account
+            </button>
+        </form>
+
+        <p class="link-helper">
+            Already have an account?
+            <a href="{% url 'accounts:login' %}">
+                Log in
+            </a>
+        </p>
     </div>
-
-    <div class="form-group">
-        <label for="id_email">Email:</label>
-        <input id="id_email" type="email" name="email" value="{{ email }}" required autocomplete="email">
-    </div>
-
-    <div class="form-group">
-        <label for="id_password">Password:</label>
-        <input id="id_password" type="password" name="password" required autocomplete="new-password">
-    </div>
-
-    <div class="form-group">
-        <label for="id_password2">Confirm Password:</label>
-        <input id="id_password2" type="password" name="password2" required autocomplete="new-password">
-    </div>
-
-    <button type="submit" class="nav-btn">Register</button>
-</form>
+</section>
 
 <style>
-    :root {
-        --bg-color: #111;
-        --input-bg: #222;
-        --input-border: #444;
-        --input-text: #f0f0f0;
-        --button-bg: #333;
-        --button-hover-bg: #444;
-        --button-text: #f0f0f0;
-        --messages-bg: #222;
-        --messages-text: #f0f0f0;
+    .form-section {
+        display: flex;
+        justify-content: center;
+        padding: 2rem 1rem;
     }
 
     .form-wrapper {
         max-width: 400px;
-        margin: 2rem auto;
+        width: 100%;
+        background: var(--nav-bg);
         padding: 2rem;
-        background: var(--bg-color);
-        border-radius: 12px;
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
-        color: var(--input-text);
+        border-radius: 16px;
+        border: 1px solid var(--button-border);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+        color: var(--text-color);
+    }
+
+    .form-wrapper h2 {
+        text-align: center;
+        margin-bottom: 1.5rem;
+        color: var(--accent-color);
     }
 
     .form-group {
-        margin-bottom: 1.5rem;
+        margin-bottom: 1.25rem;
         display: flex;
         flex-direction: column;
     }
@@ -70,54 +116,75 @@
     .form-group label {
         margin-bottom: 0.5rem;
         font-weight: 600;
-        color: var(--input-text);
+        color: var(--text-color);
     }
 
     .form-group input {
-        padding: 0.65rem;
-        border-radius: 6px;
-        border: 1px solid var(--input-border);
-        background: var(--input-bg);
-        color: var(--input-text);
+        width: 100%;
+        padding: 0.8rem;
+        border: 1px solid var(--button-border);
+        border-radius: 12px;
+        background-color: rgba(255, 255, 255, 0.02);
+        color: var(--text-color);
         font-size: 1rem;
-        caret-color: var(--input-text);
     }
 
     .form-group input:focus {
         outline: none;
-        border-color: #888;
-        box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.2);
+        border-color: var(--accent-color);
+        background-color: rgba(0, 0, 0, 0.02);
     }
 
-    .nav-btn {
+    .form-wrapper .nav-btn {
+        width: 100%;
         background: var(--button-bg);
         color: var(--button-text);
-        padding: 0.75rem 1.5rem;
-        border: none;
-        border-radius: 6px;
-        cursor: pointer;
-        width: 100%;
+        border: 1px solid var(--button-border);
+        padding: 0.7rem 1.5rem;
+        border-radius: 0;
         font-weight: 600;
-        transition: background 0.3s ease;
+        cursor: pointer;
+        box-shadow: var(--button-shadow);
+        transition: all 0.3s ease;
     }
 
-    .nav-btn:hover {
-        background: var(--button-hover-bg);
+    .form-wrapper .nav-btn:hover {
+        background: var(--button-hover);
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
+        transform: scale(1.05);
     }
 
-    ul.messages {
-        list-style: none;
-        padding: 0;
-        margin-bottom: 1.5rem;
+    .auth-links {
+        margin-top: 1.25rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.7rem;
+        text-align: center;
     }
 
-    ul.messages li {
-        background: var(--messages-bg);
-        padding: 0.75rem;
-        border-radius: 6px;
-        margin-bottom: 0.5rem;
-        color: var(--messages-text);
-        border: 1px solid var(--input-border);
+    .auth-links a,
+    .form-error a {
+        color: var(--accent-color);
+        text-decoration: underline;
+        font-weight: 600;
+    }
+
+    .form-error {
+        margin-bottom: 1rem;
+        color: #721c24;
+        background: #f8d7da;
+        border: 1px solid #f5c6cb;
+        border-radius: 10px;
+        padding: 1rem;
+        font-weight: 600;
+        text-align: left;
+        line-height: 1.6;
+    }
+
+    @media (max-width: 400px) {
+        .form-wrapper {
+            padding: 1.5rem 1rem;
+        }
     }
 </style>
 {% endblock %}

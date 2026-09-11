@@ -42,6 +42,29 @@
     </button>
 </form>
 
+<p>DEBUG KNOWLEDGE COUNT: {{ knowledge_files|length }}</p>
+
+{% if knowledge_files %}
+<div class="upload-knowledge-container" style="margin-bottom: 1rem;">
+    <h3 style="margin-top: 0;">
+        Uploaded Knowledge
+    </h3>
+
+    {% for knowledge in knowledge_files %}
+    <div style="
+        padding: 0.75rem 0;
+        border-bottom: 1px solid rgba(128, 128, 128, 0.25);
+    ">
+        {% if knowledge.file %}
+            {{ knowledge.file.name }}
+        {% else %}
+            Manual Knowledge
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
 <!-- Upload knowledge form -->
 <form method="post" enctype="multipart/form-data" class="upload-knowledge-container">
     {% csrf_token %}

@@ -1,70 +1,82 @@
 {% extends "base.html" %}
-{% block title %}Login{% endblock %}
+
+{% block title %}Login - AI Assistant{% endblock %}
 
 {% block content %}
 <section class="form-section">
     <div class="form-wrapper">
         <h2>Login</h2>
 
-        {% if messages %}
-        <ul class="messages">
-            {% for message in messages %}
-            <li{% if message.tags %} class="{{ message.tags }}" {% endif %}>{{ message }}</li>
-                {% endfor %}
-        </ul>
-        {% endif %}
-
         {% if form.non_field_errors %}
-        <div class="form-error">
-            ❌ Username or password is incorrect.<br>
-            👉 If you don’t have an account, <a href="{% url 'accounts:register' %}" style="color:#00e6e6;">register
-                here</a>.<br>
-            🔐 Already have an account but forgot your password? <a href="{% url 'accounts:password_reset' %}"
-                style="color:#00e6e6;">Reset it</a>.
-        </div>
+            <div class="form-error">
+                ❌ Username or password is incorrect.<br>
+                👉 If you don’t have an account,
+                <a href="{% url 'accounts:register' %}">register here</a>.<br>
+                🔐 Forgot your password?
+                <a href="{% url 'accounts:password_reset' %}">Reset it</a>.
+            </div>
         {% endif %}
-
 
         <form method="post" action="{% url 'accounts:login' %}">
             {% csrf_token %}
 
             <div class="form-group">
                 <label for="id_username">Username:</label>
-                <input type="text" name="username" id="id_username" required autocomplete="username"
-                    value="{{ form.username.value|default:'' }}">
+                <input
+                    type="text"
+                    name="username"
+                    id="id_username"
+                    required
+                    autocomplete="username"
+                    value="{{ form.username.value|default:'' }}"
+                >
+
                 {% if form.username.errors %}
-                <div class="form-error">
-                    {% for error in form.username.errors %}
-                    ❌ {{ error }}
-                    {% endfor %}
-                </div>
+                    <div class="form-error">
+                        {% for error in form.username.errors %}
+                            ❌ {{ error }}
+                        {% endfor %}
+                    </div>
                 {% endif %}
             </div>
 
             <div class="form-group">
                 <label for="id_password">Password:</label>
-                <input type="password" name="password" id="id_password" required autocomplete="current-password">
+                <input
+                    type="password"
+                    name="password"
+                    id="id_password"
+                    required
+                    autocomplete="current-password"
+                >
+
                 {% if form.password.errors %}
-                <div class="form-error">
-                    {% for error in form.password.errors %}
-                    ❌ {{ error }}
-                    {% endfor %}
-                </div>
+                    <div class="form-error">
+                        {% for error in form.password.errors %}
+                            ❌ {{ error }}
+                        {% endfor %}
+                    </div>
                 {% endif %}
             </div>
 
-            <button type="submit" class="nav-btn">Log in</button>
+            <button type="submit" class="nav-btn">
+                Log in
+            </button>
         </form>
 
-        <p class="link-helper">
-            <a href="{% url 'accounts:password_reset' %}">Forgot Password?</a>
-        </p>
+        <div class="auth-links">
+            <a href="{% url 'accounts:password_reset' %}">
+                Forgot Password?
+            </a>
 
-        {% if user.is_authenticated %}
-        <div class="form-success">
-            ✅ Logged in as {{ user.username }}
+            <a href="{% url 'accounts:resend_activation' %}">
+                Resend Verification Email
+            </a>
+
+            <a href="{% url 'accounts:register' %}">
+                Create an Account
+            </a>
         </div>
-        {% endif %}
     </div>
 </section>
 
@@ -78,17 +90,18 @@
     .form-wrapper {
         max-width: 400px;
         width: 100%;
-        background: #111;
+        background: var(--nav-bg);
         padding: 2rem;
         border-radius: 16px;
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
-        color: #f0f0f0;
+        border: 1px solid var(--button-border);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+        color: var(--text-color);
     }
 
     .form-wrapper h2 {
         text-align: center;
         margin-bottom: 1.5rem;
-        color: #00bcd4;
+        color: var(--accent-color);
     }
 
     .form-group {
@@ -100,84 +113,75 @@
     .form-group label {
         margin-bottom: 0.5rem;
         font-weight: 600;
-        color: #ccc;
+        color: var(--text-color);
     }
 
     .form-group input {
-        padding: 0.6rem;
-        border-radius: 6px;
-        border: 1px solid #333;
-        background: #222;
-        color: #f0f0f0;
+        width: 100%;
+        padding: 0.8rem;
+        border: 1px solid var(--button-border);
+        border-radius: 12px;
+        background-color: rgba(255, 255, 255, 0.02);
+        color: var(--text-color);
         font-size: 1rem;
-    }
-
-    .form-group input::placeholder {
-        color: #888;
     }
 
     .form-group input:focus {
         outline: none;
-        border-color: #00bcd4;
-        box-shadow: 0 0 0 2px rgba(0, 188, 212, 0.3);
+        border-color: var(--accent-color);
+        background-color: rgba(0, 0, 0, 0.02);
     }
 
-    .nav-btn {
-        background: #00bcd4;
-        color: #fff;
-        padding: 0.75rem 1.5rem;
-        border: none;
-        border-radius: 6px;
-        cursor: pointer;
+    .form-wrapper .nav-btn {
         width: 100%;
+        background: var(--button-bg);
+        color: var(--button-text);
+        border: 1px solid var(--button-border);
+        padding: 0.7rem 1.5rem;
+        border-radius: 0;
         font-weight: 600;
-        transition: background 0.3s ease;
+        cursor: pointer;
+        box-shadow: var(--button-shadow);
+        transition: all 0.3s ease;
     }
 
-    .nav-btn:hover {
-        background: #0097a7;
+    .form-wrapper .nav-btn:hover {
+        background: var(--button-hover);
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
+        transform: scale(1.05);
     }
 
-    .link-helper {
-        margin-top: 1rem;
+    .auth-links {
+        margin-top: 1.25rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.7rem;
         text-align: center;
     }
 
-    .link-helper a {
-        color: #00bcd4;
-        text-decoration: none;
-        font-weight: 600;
-    }
-
-    .link-helper a:hover {
+    .auth-links a,
+    .form-error a {
+        color: var(--accent-color);
         text-decoration: underline;
-    }
-
-    .messages {
-        list-style: none;
-        padding: 0;
-        margin-bottom: 1.5rem;
-    }
-
-    .messages li {
-        background: rgba(0, 188, 212, 0.15);
-        padding: 0.75rem;
-        border-radius: 6px;
-        margin-bottom: 0.5rem;
+        font-weight: 600;
     }
 
     .form-error {
-        margin-top: 0.5rem;
-        color: #ff4c4c;
+        margin-bottom: 1rem;
+        color: #721c24;
+        background: #f8d7da;
+        border: 1px solid #f5c6cb;
+        border-radius: 10px;
+        padding: 1rem;
         font-weight: 600;
         text-align: left;
+        line-height: 1.6;
     }
 
-    .form-success {
-        margin-top: 1rem;
-        color: #4caf50;
-        font-weight: 600;
-        text-align: center;
+    @media (max-width: 400px) {
+        .form-wrapper {
+            padding: 1.5rem 1rem;
+        }
     }
 </style>
 {% endblock %}

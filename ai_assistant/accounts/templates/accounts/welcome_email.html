@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reset Your Password - AI Assistant</title>
+    <title>Your Email Is Verified - AI Assistant</title>
 </head>
 
 <body style="
@@ -40,6 +40,7 @@
                     box-shadow:0 4px 16px rgba(0,0,0,0.12);
                 "
             >
+                <!-- Header -->
                 <tr>
                     <td
                         align="center"
@@ -56,6 +57,7 @@
                     </td>
                 </tr>
 
+                <!-- Content -->
                 <tr>
                     <td
                         bgcolor="#ebe4d8"
@@ -70,7 +72,7 @@
                             text-align:center;
                             font-size:22px;
                         ">
-                            Reset Your Password
+                            Your Email Is Verified 🎉
                         </h2>
 
                         <p style="
@@ -79,7 +81,7 @@
                             color:#3a3228;
                             margin:0 0 16px;
                         ">
-                            Hi {{ user.get_username }},
+                            Hi {{ user.username }},
                         </p>
 
                         <p style="
@@ -88,8 +90,8 @@
                             color:#3a3228;
                             margin:0 0 16px;
                         ">
-                            We received a request to reset the password for your
-                            AI Assistant account.
+                            Your email has been successfully verified and your
+                            AI Assistant account is ready.
                         </p>
 
                         <p style="
@@ -98,7 +100,8 @@
                             color:#3a3228;
                             margin:0 0 20px;
                         ">
-                            Click the button below to choose a new password:
+                            You can now create your first AI assistant,
+                            add your own knowledge, and start chatting.
                         </p>
 
                         <p style="
@@ -106,8 +109,7 @@
                             margin:30px 0;
                         ">
                             <a
-                                href="{{ reset_url }}"
-                                target="_blank"
+                                href="{{ dashboard_url }}"
                                 style="
                                     display:inline-block;
                                     padding:14px 28px;
@@ -120,7 +122,7 @@
                                     font-size:16px;
                                 "
                             >
-                                Reset Your Password
+                                Create Your First AI Assistant
                             </a>
                         </p>
 
@@ -141,25 +143,14 @@
                             margin:0 0 24px;
                         ">
                             <a
-                                href="{{ reset_url }}"
+                                href="{{ dashboard_url }}"
                                 style="
                                     color:#3a3228;
                                     text-decoration:underline;
                                 "
                             >
-                                {{ reset_url }}
+                                {{ dashboard_url }}
                             </a>
-                        </p>
-
-                        <p style="
-                            font-size:14px;
-                            line-height:1.6;
-                            color:#6f665b;
-                            margin:0 0 16px;
-                        ">
-                            This link is time-limited for security.
-                            If you did not request a password reset, you can safely
-                            ignore this email.
                         </p>
 
                         <p style="
@@ -168,11 +159,22 @@
                             color:#3a3228;
                             margin:28px 0 0;
                         ">
+                            Thanks for joining AI Assistant!
+                        </p>
+
+                        <p style="
+                            font-size:16px;
+                            line-height:1.6;
+                            color:#3a3228;
+                            margin:8px 0 0;
+                        ">
                             — The AI Assistant Team
                         </p>
+
                     </td>
                 </tr>
 
+                <!-- Footer -->
                 <tr>
                     <td
                         bgcolor="#e9dfcf"

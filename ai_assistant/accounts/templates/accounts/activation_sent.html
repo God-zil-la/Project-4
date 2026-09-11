@@ -1,8 +1,109 @@
 {% extends "base.html" %}
-{% block title %}Registration Complete{% endblock %}
+
+{% block title %}Check Your Email - AI Assistant{% endblock %}
+
 {% block content %}
-<h2>Your account is active</h2>
-<p>You can now log in. We will attempt to send a welcome email; email verification is not required.</p>
-<p>If no email arrives, check your spam folder or contact support. You can still use your account.</p>
-<a href="{% url 'accounts:login' %}">Log in</a>
+<section class="form-section">
+    <div class="form-wrapper">
+        <h2>Check Your Email</h2>
+
+        <p>
+            We've sent a verification link
+            {% if email %}
+                to <strong>{{ email }}</strong>
+            {% endif %}.
+        </p>
+
+        <p>
+            Please open the email and click <strong>Verify Email</strong>
+            to activate your AI Assistant account.
+        </p>
+
+        <p>
+            You won't be able to log in until your email address has been verified.
+        </p>
+
+        <p class="helper-text">
+            Didn't receive the email? Check your spam or junk folder.
+        </p>
+
+        <a href="{% url 'accounts:login' %}" class="nav-btn">
+            Back to Login
+        </a>
+    </div>
+</section>
+
+<style>
+    .form-section {
+        display: flex;
+        justify-content: center;
+        padding: 2rem 1rem;
+    }
+
+    .form-wrapper {
+        max-width: 520px;
+        width: 100%;
+        padding: 2rem;
+        background: var(--nav-bg);
+        border: 1px solid var(--button-border);
+        border-radius: 12px;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+        color: var(--text-color);
+        text-align: center;
+    }
+
+    .form-wrapper h2 {
+        margin-bottom: 1rem;
+        color: var(--accent-color);
+        font-size: 1.8rem;
+        font-weight: 600;
+    }
+
+    .form-wrapper p {
+        color: var(--text-color);
+        line-height: 1.6;
+        margin: 1rem 0;
+    }
+
+    .form-wrapper strong {
+        color: var(--text-color);
+        font-weight: 700;
+    }
+
+    .helper-text {
+        margin-top: 1.75rem !important;
+        opacity: 0.75;
+        font-size: 0.95rem;
+    }
+
+    .nav-btn {
+        display: inline-block;
+        margin-top: 1rem;
+        padding: 0.75rem 1.5rem;
+        background: var(--button-bg);
+        color: var(--button-text);
+        border: 1px solid var(--button-border);
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .nav-btn:hover {
+        background: var(--button-hover);
+        color: var(--button-text);
+        text-decoration: none;
+        transform: scale(1.02);
+    }
+
+    @media (max-width: 400px) {
+        .form-wrapper {
+            padding: 1.5rem 1rem;
+        }
+
+        .form-wrapper h2 {
+            font-size: 1.5rem;
+        }
+    }
+</style>
 {% endblock %}

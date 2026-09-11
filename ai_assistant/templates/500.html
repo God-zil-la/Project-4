@@ -1,15 +1,59 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends "base.html" %}
 
-<head>
-    <meta charset="UTF-8">
-    <title>Server Error - 500</title>
-</head>
+{% block title %}500 - Server Error{% endblock %}
 
-<body>
-    <h1>500 - Internal Server Error</h1>
-    <p>Oops! Something went wrong.</p>
-    <a href="{% url 'home' %}">Return Home</a>
-</body>
+{% block content %}
+<section class="content error-page">
+    <div class="error-card">
+        <h1>500 - Server Error</h1>
 
-</html>
+        <p>
+            Something went wrong. We're currently experiencing a temporary problem.
+            Your data is safe. Please try again shortly.
+        </p>
+
+        <p class="error-note">
+            We apologize for the inconvenience.
+        </p>
+
+        <a href="{% url 'home' %}" class="btn">
+            Return Home
+        </a>
+    </div>
+</section>
+
+<style>
+    .error-page {
+        display: flex;
+        justify-content: center;
+        padding: 3rem 1rem;
+    }
+
+    .error-card {
+        width: 100%;
+        max-width: 560px;
+        padding: 2rem;
+        text-align: center;
+        background: var(--nav-bg);
+        color: var(--text-color);
+        border: 1px solid var(--button-border);
+        border-radius: 14px;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+    }
+
+    .error-card h1 {
+        margin-top: 0;
+        margin-bottom: 1rem;
+        color: var(--accent-color);
+    }
+
+    .error-card p {
+        line-height: 1.6;
+    }
+
+    .error-note {
+        margin-bottom: 1.5rem;
+        opacity: 0.8;
+    }
+</style>
+{% endblock %}

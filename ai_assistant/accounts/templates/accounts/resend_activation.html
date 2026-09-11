@@ -1,43 +1,38 @@
 {% extends "base.html" %}
 
-{% block title %}Reset Password - AI Assistant{% endblock %}
+{% block title %}Resend Verification Email - AI Assistant{% endblock %}
 
 {% block content %}
 <section class="form-section">
     <div class="form-wrapper">
-        <h2>Reset Your Password</h2>
+        <h2>Resend Verification Email</h2>
 
         <p class="helper-text">
-            Enter the email address associated with your account.
-            If an account exists, we'll send you a secure password reset link.
+            Enter the email address you used when creating your account.
+            If the account is still waiting for verification, we'll send you a new link.
         </p>
 
-        <form method="post" novalidate>
+        <form method="post">
             {% csrf_token %}
 
             <div class="form-group">
-                <label for="{{ form.email.id_for_label }}">
-                    Email:
-                </label>
+                <label for="id_email">Email:</label>
 
-                {{ form.email }}
-
-                {% if form.email.errors %}
-                    <div class="form-error">
-                        {% for error in form.email.errors %}
-                            <p>❌ {{ error }}</p>
-                        {% endfor %}
-                    </div>
-                {% endif %}
+                <input
+                    type="email"
+                    name="email"
+                    id="id_email"
+                    required
+                    autocomplete="email"
+                >
             </div>
 
             <button type="submit" class="nav-btn">
-                Send Password Reset Email
+                Send Verification Email
             </button>
         </form>
 
         <p class="link-helper">
-            Remember your password?
             <a href="{% url 'accounts:login' %}">
                 Back to Login
             </a>
@@ -61,24 +56,22 @@
         border: 1px solid var(--button-border);
         box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
         color: var(--text-color);
-        font-family: Arial, sans-serif;
     }
 
     .form-wrapper h2 {
         text-align: center;
-        margin-bottom: 0.75rem;
+        margin-bottom: 1rem;
         color: var(--accent-color);
-        font-weight: 600;
         font-size: 1.8rem;
+        font-weight: 600;
     }
 
     .helper-text {
-        text-align: center;
         color: var(--text-color);
-        opacity: 0.8;
-        margin-bottom: 1.5rem;
-        font-size: 0.95rem;
+        opacity: 0.85;
         line-height: 1.5;
+        margin-bottom: 1.5rem;
+        text-align: center;
     }
 
     .form-group {
@@ -95,13 +88,13 @@
 
     .form-group input {
         box-sizing: border-box;
+        width: 100%;
         padding: 0.65rem;
-        border: 1px solid var(--button-border);
         border-radius: 6px;
+        border: 1px solid var(--button-border);
         background: rgba(255, 255, 255, 0.02);
         color: var(--text-color);
         font-size: 1rem;
-        width: 100%;
     }
 
     .form-group input:focus {
@@ -111,42 +104,29 @@
     }
 
     .nav-btn {
+        box-sizing: border-box;
+        width: 100%;
         padding: 0.75rem 1.5rem;
         background: var(--button-bg);
         color: var(--button-text);
         border: 1px solid var(--button-border);
         border-radius: 8px;
-        font-size: 1rem;
         cursor: pointer;
-        width: 100%;
+        font-size: 1rem;
         font-weight: 600;
         transition: all 0.3s ease;
     }
 
     .nav-btn:hover {
         background: var(--button-hover);
+        color: var(--button-text);
         transform: scale(1.02);
     }
 
-    .form-error {
-        margin-top: 0.5rem;
-        color: #d93025;
-        font-size: 0.9rem;
-        font-weight: 600;
-    }
-
-    .form-error p {
-        margin: 0.25rem 0;
-        color: inherit;
-        text-align: left;
-    }
-
     .link-helper {
-        margin-top: 1.25rem;
+        margin-top: 1rem;
         margin-bottom: 0;
         text-align: center;
-        color: var(--text-color);
-        opacity: 0.85;
     }
 
     .link-helper a {

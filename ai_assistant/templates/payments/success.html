@@ -3,42 +3,69 @@
 {% block title %}Payment Successful{% endblock %}
 
 {% block content %}
-<div class="payment-success-container"
-    style="max-width: 600px; margin: 4rem auto; padding: 2rem; background-color: rgba(0,0,0,0.2); border-radius: 12px; text-align: center;">
-    <h1 style="color: #4CAF50; font-size: 2rem; margin-bottom: 1rem;">✅ Payment Successful</h1>
-    <p style="color: #ccc; font-size: 1.1rem; margin-bottom: 2rem;">
-        Thank you for subscribing to the Pro Bot Plan!
-    </p>
-    <a href="/" class="btn-return-dashboard">Return to Dashboard</a>
-</div>
+<section class="content payment-status-page">
+    <div class="payment-status-card">
+        <h1>Payment Successful</h1>
+
+        <p>
+            Thank you! Your subscription has been successfully processed.
+        </p>
+
+        <p class="status-note">
+            Your current plan and subscription details are available on your Billing page.
+        </p>
+
+        <div class="status-actions">
+            <a href="{% url 'dashboard:home' %}" class="btn">
+                Go to Dashboard
+            </a>
+
+            <a href="{% url 'payments:billing' %}" class="btn">
+                View Billing
+            </a>
+        </div>
+    </div>
+</section>
 
 <style>
-    .btn-return-dashboard {
-        display: inline-block;
-        padding: 0.75rem 1.5rem;
-        background-color: #0af;
-        color: #ffffff;
-        text-decoration: none;
-        font-weight: 600;
-        border-radius: 8px;
-        border: 1px solid #0af;
-        transition: background 0.3s ease, transform 0.2s ease;
+    .payment-status-page {
+        display: flex;
+        justify-content: center;
+        padding: 3rem 1rem;
     }
 
-    .btn-return-dashboard:hover {
-        background-color: #0088cc;
-        border-color: #0088cc;
-        transform: scale(1.02);
+    .payment-status-card {
+        width: 100%;
+        max-width: 560px;
+        padding: 2rem;
+        text-align: center;
+        background: var(--nav-bg);
+        color: var(--text-color);
+        border: 1px solid var(--button-border);
+        border-radius: 14px;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
     }
 
-    @media (prefers-color-scheme: light) {
-        .payment-success-container {
-            background-color: #f9f9f9;
-        }
+    .payment-status-card h1 {
+        margin-top: 0;
+        margin-bottom: 1rem;
+        color: var(--accent-color);
+    }
 
-        .payment-success-container p {
-            color: #333;
-        }
+    .payment-status-card p {
+        line-height: 1.6;
+    }
+
+    .status-note {
+        margin-bottom: 1.5rem;
+        opacity: 0.8;
+    }
+
+    .status-actions {
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 0.75rem;
     }
 </style>
 {% endblock %}

@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Account Already Activated{% endblock %}
+{% block title %}Account Already Activated - AI Assistant{% endblock %}
 
 {% block content %}
 <style>
@@ -8,61 +8,105 @@
         max-width: 600px;
         margin: 3rem auto;
         padding: 2rem;
-        background-color: #111;
+        background: var(--nav-bg);
+        border: 1px solid var(--button-border);
         border-radius: 12px;
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
         text-align: center;
-        color: #f0f0f0;
+        color: var(--text-color);
         font-family: Arial, sans-serif;
     }
 
     .activation-already-active h2 {
-        color: #f0f0f0;
+        color: var(--accent-color);
         margin-bottom: 1rem;
         font-size: 1.8rem;
+        font-weight: 600;
     }
 
     .activation-already-active p {
-        color: #bbb;
+        color: var(--text-color);
         font-size: 1rem;
         line-height: 1.5;
         margin: 1rem 0;
     }
 
-    .activation-already-active a.button-link {
+    .activation-already-active .button-link {
         display: inline-block;
-        margin-top: 1.5rem;
+        margin-top: 1rem;
         padding: 0.75rem 1.5rem;
-        background-color: #222;
-        color: #f0f0f0;
+        background: var(--button-bg);
+        color: var(--button-text);
+        border: 1px solid var(--button-border);
         text-decoration: none;
-        border-radius: 6px;
-        font-weight: bold;
-        border: 1px solid #444;
-        transition: background-color 0.3s ease, border-color 0.3s ease;
+        border-radius: 8px;
+        font-weight: 600;
+        transition: all 0.3s ease;
     }
 
-    .activation-already-active a.button-link:hover {
-        background-color: #333;
-        border-color: #555;
+    .activation-already-active .button-link:hover {
+        background: var(--button-hover);
+        color: var(--button-text);
+        text-decoration: none;
+        transform: scale(1.02);
     }
 
-    .activation-already-active a {
-        color: #f0f0f0;
+    .activation-already-active .secondary-link {
+        display: block;
+        margin-top: 1.25rem;
+        color: var(--accent-color);
+        text-decoration: none;
+        font-weight: 600;
+    }
+
+    .activation-already-active .secondary-link:hover {
         text-decoration: underline;
-        transition: color 0.3s ease;
     }
 
-    .activation-already-active a:hover {
-        color: #ccc;
+    @media (max-width: 400px) {
+        .activation-already-active {
+            padding: 1.5rem 1rem;
+        }
+
+        .activation-already-active h2 {
+            font-size: 1.5rem;
+        }
+
+        .activation-already-active .button-link {
+            width: 100%;
+            box-sizing: border-box;
+        }
     }
 </style>
 
 <div class="activation-already-active">
-    <h2>✅ Your Account is Already Activated</h2>
-    <p>Your account has already been activated. You can now <a href="{% url 'accounts:login' %}">log in</a> to access
-        your AI Assistant dashboard.</p>
-    <p>If you're having trouble logging in, try resetting your password below.</p>
-    <a href="{% url 'accounts:password_reset' %}" class="button-link">Reset Password</a>
+    <h2>✅ Account Already Verified</h2>
+
+    <p>
+        Your email address has already been verified and your
+        AI Assistant account is active.
+    </p>
+
+    {% if user.is_authenticated %}
+        <p>
+            You're already signed in and can continue to your dashboard.
+        </p>
+
+        <a href="{% url 'dashboard:home' %}" class="button-link">
+            Go to Dashboard
+        </a>
+    {% else %}
+        <p>
+            Log in to continue to your AI Assistant dashboard.
+        </p>
+
+        <a href="{% url 'accounts:login' %}" class="button-link">
+            Log In
+        </a>
+
+        <a href="{% url 'accounts:password_reset' %}" class="secondary-link">
+            Forgot your password?
+        </a>
+    {% endif %}
 </div>
 {% endblock %}

@@ -6,35 +6,75 @@
 {% block content %}
 <div class="connect-wrapper">
     <h1>🤖 Connect <em>{{ bot.name }}</em> to Discord</h1>
+
     <ol class="connect-steps">
         <li>
             <strong>Create a Discord bot token</strong><br>
-            <small>(Go to the Discord Developer Portal → <em>Bot</em> → “Copy token”)</small>
+            <small>
+                (Go to the Discord Developer Portal → <em>Bot</em> → “Copy token”)
+            </small>
         </li>
 
         <li>
             <strong>Invite Your Discord Bot to Your Server</strong><br>
+
             <small>
-                To connect your own Discord bot with our AI Assistant platform, you will need to authorize it in your
-                server.
+                To connect your own Discord bot with our AI Assistant platform,
+                you will need to authorize it in your server.
             </small>
+
             <div class="sub-step-content">
                 <ul class="sub-steps">
-                    <li>Log in to the <a href="https://discord.com/developers/applications" target="_blank"
-                            rel="noopener">Discord Developer Portal</a> and locate your bot.</li>
-                    <li>Copy your bot’s <strong>Client ID</strong> (also called <em>Application ID</em>). You can find
-                        it under the <strong>General Information</strong> tab.</li>
-                    <li>Paste your Client ID in the field below.</li>
-                    <li>Click <strong>Generate Invite Link</strong> to create a personalized authorization link.</li>
-                    <li>Click the generated link to invite <strong>your bot</strong> to <strong>your Discord
-                            server</strong>.</li>
-                </ul>
-                <p>Once authorized, your bot will be ready to communicate securely with our platform.</p>
+                    <li>
+                        Log in to the
+                        <a
+                            href="https://discord.com/developers/applications"
+                            target="_blank"
+                            rel="noopener"
+                        >
+                            Discord Developer Portal
+                        </a>
+                        and locate your bot.
+                    </li>
 
-                <label for="clientIdInput">Your Bot Client ID:</label><br>
-                <input type="text" id="clientIdInput" placeholder="Paste your bot's Client ID here">
+                    <li>
+                        Copy your bot’s <strong>Client ID</strong>
+                        (also called <em>Application ID</em>).
+                        You can find it under the
+                        <strong>General Information</strong> tab.
+                    </li>
+
+                    <li>
+                        Paste your Client ID in the field below.
+                    </li>
+
+                    <li>
+                        Click <strong>Generate Invite Link</strong>
+                        to create a personalized authorization link.
+                    </li>
+
+                    <li>
+                        Click the generated link to invite
+                        <strong>your bot</strong> to
+                        <strong>your Discord server</strong>.
+                    </li>
+                </ul>
+
+                <p>
+                    Once authorized, your bot will be ready to communicate
+                    securely with our platform.
+                </p>
+
+                <label for="clientIdInput">Your Bot Client ID:</label>
+
+                <input
+                    type="text"
+                    id="clientIdInput"
+                    placeholder="Paste your bot's Client ID here"
+                >
 
                 <label for="permissionsInput">Bot Permissions:</label>
+
                 <select id="permissionsInput">
                     <option value="0">None</option>
                     <option value="2048">Send Messages</option>
@@ -43,46 +83,81 @@
                     <option value="33554432">Manage Messages</option>
                 </select>
 
-                <button type="button" class="btn" onclick="generateInviteLink()">Generate Invite Link</button>
+                <button
+                    type="button"
+                    class="btn"
+                    onclick="generateInviteLink()"
+                >
+                    Generate Invite Link
+                </button>
 
-                <div id="result" style="margin-top: 1em;"></div>
+                <div id="result" class="invite-result"></div>
             </div>
         </li>
 
         <li>
             <strong>Download the bridge bundle</strong><br>
+
             <div class="download-group">
-                <a class="download-btn" download href="{% static 'discord_bridge/bridge.py' %}">bridge.py</a>
-                <a class="download-btn" download href="{% static 'discord_bridge/env.example' %}">env.example</a>
-                <a class="download-btn" download
-                    href="{% static 'discord_bridge/requirements.txt' %}">requirements.txt</a>
+                <a
+                    class="download-btn"
+                    download
+                    href="{% static 'discord_bridge/bridge.py' %}"
+                >
+                    bridge.py
+                </a>
+
+                <a
+                    class="download-btn"
+                    download
+                    href="{% static 'discord_bridge/env.example' %}"
+                >
+                    env.example
+                </a>
+
+                <a
+                    class="download-btn"
+                    download
+                    href="{% static 'discord_bridge/requirements.txt' %}"
+                >
+                    requirements.txt
+                </a>
             </div>
         </li>
 
         <li>
             <strong>Edit <code>.env</code> — paste your secrets:</strong>
+
             <pre class="example-env">{{ example_env }}</pre>
         </li>
 
         <li>
             <strong>Run locally</strong><br>
-            <small>(copy & paste the right version for your system)</small>
-            <small>This sets up your Python environment so the bridge can run on your computer.</small>
+
+            <small>
+                (copy & paste the right version for your system)
+            </small>
+
+            <small>
+                This sets up your Python environment so the bridge can run
+                on your computer.
+            </small>
+
             <br><br>
+
             <strong>💻 For macOS / Linux:</strong>
-            <pre class="shell-steps">
-python3 -m venv venv
+
+            <pre class="shell-steps">python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
-python bridge.py
-            </pre>
+python bridge.py</pre>
+
             <strong>💻 For Windows (PowerShell or CMD):</strong>
-            <pre class="shell-steps">
-python -m venv venv
+
+            <pre class="shell-steps">python -m venv venv
 venv\Scripts\activate
 pip install -r requirements.txt
-python bridge.py
-            </pre>
+python bridge.py</pre>
         </li>
 
         <li>
@@ -91,35 +166,48 @@ python bridge.py
 
         <li>
             <strong>Extra Help & Documentation</strong><br>
-            <small>Need more help? Download our detailed guides below.</small>
+
+            <small>
+                Need more help? Download our detailed guides below.
+            </small>
+
             <div class="download-group">
-                <a class="download-btn" download href="{% static 'discord_bridge/Setup_Guide.pdf' %}">📄 Full Setup
-                    Guide (PDF)</a>
-                <a class="download-btn" download href="{% static 'discord_bridge/Commands_Guide.pdf' %}">🤖 Commands
-                    Guide (PDF)</a>
+                <a
+                    class="download-btn"
+                    download
+                    href="{% static 'discord_bridge/Setup_Guide.pdf' %}"
+                >
+                    📄 Full Setup Guide (PDF)
+                </a>
+
+                <a
+                    class="download-btn"
+                    download
+                    href="{% static 'discord_bridge/Commands_Guide.pdf' %}"
+                >
+                    🤖 Commands Guide (PDF)
+                </a>
             </div>
         </li>
     </ol>
 </div>
 
 <style>
-    :root {
-        --accent-color: #0af;
-    }
-
     .connect-wrapper {
         max-width: 780px;
         margin: 3rem auto;
-        padding: 2rem 2rem;
-        background: var(--nav-bg, #111);
+        padding: 2rem;
+        background: var(--nav-bg);
+        color: var(--text-color);
+        border: 1px solid var(--button-border);
         border-radius: 18px;
-        box-shadow: 0 10px 35px rgba(0, 0, 0, 0.5);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
     }
 
     .connect-wrapper h1 {
         text-align: center;
         margin-bottom: 2rem;
-        color: var(--accent-color, #0af);
+        color: var(--accent-color);
         font-size: 2.1rem;
     }
 
@@ -130,25 +218,25 @@ python bridge.py
         margin: 0;
     }
 
-    .connect-steps>li {
+    .connect-steps > li {
         position: relative;
         margin-bottom: 1.8rem;
         padding: 1.4rem 1.8rem 1.4rem 3.2rem;
         border-radius: 14px;
-        background: rgba(255, 255, 255, 0.025);
-        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(128, 128, 128, 0.05);
+        border: 1px solid var(--button-border);
         line-height: 1.7;
-        transition: background 0.25s ease, border-color 0.25s ease, transform 0.2s ease;
-        color: inherit;
+        color: var(--text-color);
+        transition: all 0.25s ease;
     }
 
-    .connect-steps>li:hover {
-        background: rgba(0, 170, 255, 0.08);
-        border-color: var(--accent-color, #0af);
+    .connect-steps > li:hover {
+        background: rgba(128, 128, 128, 0.08);
+        border-color: var(--accent-color);
         transform: translateY(-2px);
     }
 
-    .connect-steps>li::before {
+    .connect-steps > li::before {
         counter-increment: step;
         content: counter(step) ".";
         position: absolute;
@@ -156,59 +244,72 @@ python bridge.py
         top: 1.3rem;
         font-weight: 700;
         font-size: 1.25rem;
-        color: var(--accent-color, #0af);
+        color: var(--accent-color);
     }
 
     .connect-steps strong {
-        color: var(--accent-color, #0af);
+        color: var(--accent-color);
     }
 
     .connect-steps li small {
         display: block;
         margin-top: 0.3rem;
+        color: var(--text-color);
+        opacity: 0.75;
         font-size: 0.85rem;
     }
 
-    html:not(.dark) .connect-steps li small {
-        color: #333;
+    .sub-step-content {
+        margin-top: 1rem;
+    }
+
+    .sub-step-content label {
+        display: block;
+        margin-top: 1rem;
+        margin-bottom: 0.4rem;
+        color: var(--text-color);
+        font-weight: 600;
+    }
+
+    .sub-step-content input,
+    .sub-step-content select {
+        box-sizing: border-box;
+        width: 100%;
+        padding: 0.65rem;
+        border: 1px solid var(--button-border);
+        border-radius: 6px;
+        background: rgba(255, 255, 255, 0.02);
+        color: var(--text-color);
+        font-size: 1rem;
+    }
+
+    .sub-step-content input:focus,
+    .sub-step-content select:focus {
+        outline: none;
+        border-color: var(--accent-color);
+        box-shadow: 0 0 0 2px rgba(128, 128, 128, 0.15);
     }
 
     .btn,
-    .invite-btn {
-        display: inline-block;
-        margin-top: 0.6rem;
-        padding: 0.5rem 1.2rem;
-        border-radius: 8px;
-        background: var(--accent-color, #0af);
-        color: #fff;
-        text-decoration: none;
-        font-weight: 600;
-        transition: background 0.3s ease, transform 0.2s ease;
-    }
-
-    .btn:hover,
-    .invite-btn:hover {
-        background: #0088cc;
-        transform: scale(1.02);
-    }
-
     .download-btn {
         display: inline-block;
         margin-top: 0.6rem;
-        padding: 0.5rem 1.2rem;
+        padding: 0.6rem 1.2rem;
         border-radius: 8px;
-        background: var(--accent-color, #0af);
-        color: #ffffff !important;
-        text-decoration: none;
+        background: var(--button-bg);
+        color: var(--button-text) !important;
+        border: 1px solid var(--button-border);
+        text-decoration: none !important;
         font-weight: 600;
-        border: none;
+        cursor: pointer;
         text-align: center;
-        transition: background 0.3s ease, transform 0.2s ease;
+        transition: all 0.3s ease;
     }
 
+    .btn:hover,
     .download-btn:hover {
-        background: #0088cc;
-        color: #ffffff !important;
+        background: var(--button-hover);
+        color: var(--button-text) !important;
         transform: scale(1.02);
     }
 
@@ -221,29 +322,22 @@ python bridge.py
 
     pre.example-env,
     pre.shell-steps {
-        background: #0c0c0c;
         padding: 0.85rem 1rem;
+        border: 1px solid var(--button-border);
         border-radius: 8px;
+        background: rgba(128, 128, 128, 0.08);
+        color: var(--text-color);
         overflow-x: auto;
         font-size: 0.85rem;
         line-height: 1.6;
         margin-top: 0.75rem;
-        color: #ccc;
         white-space: pre-wrap;
         word-break: break-word;
     }
 
-    .sub-step-content {
-        margin-top: 1rem;
-        margin-left: 0;
-        padding-left: 0;
-    }
-
     .sub-steps {
         list-style-type: disc;
-        margin-top: 1rem;
-        margin-bottom: 1rem;
-        margin-left: 2rem;
+        margin: 1rem 0 1rem 2rem;
         padding: 0;
     }
 
@@ -253,17 +347,21 @@ python bridge.py
         border: none;
         padding: 0;
         position: static;
-        counter-increment: none;
-        color: inherit;
+        color: var(--text-color);
     }
 
-    .connect-wrapper a {
-        color: var(--accent-color, #0af);
+    .connect-wrapper a:not(.download-btn) {
+        color: var(--accent-color);
         text-decoration: underline;
     }
 
-    .connect-wrapper a:hover {
-        color: #0088cc;
+    .connect-wrapper a:not(.download-btn):hover {
+        opacity: 0.8;
+    }
+
+    .invite-result {
+        margin-top: 1rem;
+        color: var(--text-color);
     }
 
     @media (max-width: 600px) {
@@ -271,13 +369,12 @@ python bridge.py
             padding: 1.5rem;
         }
 
-        .connect-steps li {
+        .connect-steps > li {
             padding: 1.2rem 1.5rem 1.2rem 2.6rem;
         }
     }
 
     @media (max-width: 400px) {
-
         pre.example-env,
         pre.shell-steps {
             font-size: 0.78rem;
@@ -293,16 +390,18 @@ python bridge.py
         const resultDiv = document.getElementById('result');
 
         if (!clientId) {
-            resultDiv.innerHTML = "<span style='color:red;'>⚠️ Please enter a valid Client ID.</span>";
+            resultDiv.innerHTML =
+                "<span style='color:#d93025;'>⚠️ Please enter a valid Client ID.</span>";
             return;
         }
 
-        const inviteURL = `https://discord.com/oauth2/authorize?client_id=${encodeURIComponent(clientId)}&scope=bot&permissions=${permissions}`;
+        const inviteURL =
+            `https://discord.com/oauth2/authorize?client_id=${encodeURIComponent(clientId)}&scope=bot&permissions=${permissions}`;
 
         resultDiv.innerHTML = `
-      ✅ Your personalized invite link:<br>
-      <a href="${inviteURL}" target="_blank" rel="noopener">${inviteURL}</a>
-    `;
+            ✅ Your personalized invite link:<br>
+            <a href="${inviteURL}" target="_blank" rel="noopener">${inviteURL}</a>
+        `;
     }
 </script>
 

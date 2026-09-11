@@ -7,6 +7,8 @@ import traceback
 
 # Django imports
 
+from django.db.models.functions import TruncDate
+from django.db.models import Count
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
@@ -84,15 +86,27 @@ def create_bot(request):
 
     bot_count = Bot.objects.filter(owner=request.user).count()
 
-    if (
-    not user_profile
-    or not user_profile.has_paid_plan
-) and bot_count >= 3:
+    plan = (
+        user_profile.effective_plan
+        if user_profile
+        else "free"
+    )
+
+    bot_limits = {
+        "free": 1,
+        "premium": 5,
+        "pro": 15,
+    }
+
+    bot_limit = bot_limits.get(plan, 1)
+
+    if bot_count >= bot_limit:
         messages.error(
             request,
-            "Free plan allows up to 3 bots. Upgrade to Premium for more.",
+            f"Your {plan.capitalize()} plan allows up to {bot_limit} AI assistant"
+            f"{'s' if bot_limit != 1 else ''}.",
         )
-        return redirect("bots:my-bots")
+        return redirect("bots:list")
 
     if request.method == "POST":
         form = BotForm(request.POST)
@@ -487,16 +501,32 @@ def analytics_dashboard(request):
             ).count()
         )
 
-    user_data = {
-        "labels": [
-            request.user.username
-        ],
-        "counts": [
-            ChatMessage.objects.filter(
-                user=request.user
-            ).count()
-        ],
+    messages_over_time = (
+        ChatMessage.objects.filter(
+            user=request.user
+        )
+        .annotate(
+            day=TruncDate("timestamp")
+        )
+        .values("day")
+        .annotate(
+            count=Count("id")
+        )
+        .order_by("day")
+    )
+
+    time_data = {
+        "labels": [],
+        "counts": [],
     }
+
+    for item in messages_over_time:
+        time_data["labels"].append(
+            item["day"].isoformat()
+        )
+        time_data["counts"].append(
+            item["count"]
+        )
 
     return render(
         request,
@@ -505,8 +535,8 @@ def analytics_dashboard(request):
             "bot_data": json.dumps(
                 bot_data
             ),
-            "user_data": json.dumps(
-                user_data
+            "time_data": json.dumps(
+                time_data
             ),
         },
     )
@@ -564,6 +594,43 @@ def admin_dashboard(request):
 
 
 @login_required
+def delete_knowledge(request, bot_id, knowledge_id):
+    bot = get_object_or_404(
+        Bot,
+        id=bot_id,
+        owner=request.user,
+    )
+
+    knowledge = get_object_or_404(
+        KnowledgeBase,
+        id=knowledge_id,
+        bot=bot,
+        uploaded_by=request.user,
+    )
+
+    if request.method == "POST":
+        if knowledge.file:
+            try:
+                knowledge.file.delete(save=False)
+            except Exception:
+                logger.exception(
+                    "Failed to delete knowledge file %s",
+                    knowledge.file.name,
+                )
+
+        knowledge.delete()
+
+        messages.success(
+            request,
+            "Knowledge deleted successfully.",
+        )
+
+    return redirect(
+        "bots:playground",
+        bot_id=bot.id,
+    )
+
+@login_required
 @csrf_protect
 def bot_chat_playground(request, bot_id):
     bot = get_object_or_404(
@@ -576,6 +643,10 @@ def bot_chat_playground(request, bot_id):
         bot=bot,
         user=request.user,
     ).order_by("timestamp")
+
+    knowledge_files = KnowledgeBase.objects.filter(
+    bot=bot,
+    ).order_by("-id")
 
     if request.method == "POST":
         knowledge_form = KnowledgeBaseForm(
@@ -691,7 +762,7 @@ def bot_chat_playground(request, bot_id):
                 )
 
             except Exception as error:
-                logger.error("Knowledge upload failed (%s).", type(error).__name__)
+                logger.error("Knowledge upload failed (%s).", error,)
 
                 messages.error(
                     request,
@@ -722,6 +793,7 @@ def bot_chat_playground(request, bot_id):
             "bot": bot,
             "chat_messages": chat_messages,
             "knowledge_form": knowledge_form,
+            "knowledge_files": knowledge_files,
         },
     )
 
@@ -733,6 +805,13 @@ def discord_setup(request, bot_id):
         id=bot_id,
         owner=request.user,
     )
+
+    if request.user.profile.effective_plan != "pro":
+        messages.warning(
+            request,
+            "Discord integration is available on the Pro plan."
+        )
+        return redirect("payments:billing")
 
     token, _ = Token.objects.get_or_create(
         user=request.user

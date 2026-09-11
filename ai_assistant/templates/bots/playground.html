@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Bot Playground - {{ bot.name }}{% endblock %}
+{% block title %}Chat & Knowledge - {{ bot.name }}{% endblock %}
 
 {% block content %}
 
@@ -26,7 +26,7 @@
     <section class="conversation-main">
 
         <div id="conversation-title" class="conversation-title">
-            New Chat
+            Conversation
         </div>
 
         <div id="chat-box"></div>
@@ -34,7 +34,12 @@
         <form id="chat-form" method="post" autocomplete="off">
             {% csrf_token %}
 
-            <input id="chat-input" type="text" name="message" placeholder="Type your message..." required />
+            <input
+    id="chat-input"
+    type="text"
+    name="message"
+    placeholder="Message {{ bot.name }}..."
+    required />
 
             <button type="submit">
                 Send
@@ -47,9 +52,48 @@
 </div>
 
 
-<h2 style="text-align: center; margin-bottom: 1rem;">
-    Upload Knowledge File for {{ bot.name }}
+<h2 style="text-align: center; margin-bottom: 0.5rem;">
+    📚 Knowledge for {{ bot.name }}
 </h2>
+<p style="text-align: center; margin-bottom: 1rem;">
+    Add documents your assistant can use when answering your questions.
+</p>
+
+{% if knowledge_files %}
+<div class="upload-knowledge-container" style="margin-bottom: 1rem;">
+    <h3 style="margin-top: 0;">Uploaded Knowledge</h3>
+
+    {% for knowledge in knowledge_files %}
+    <div style="
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid rgba(128, 128, 128, 0.25);
+    ">
+        <span>
+            {% if knowledge.file %}
+                {{ knowledge.file.name|cut:"knowledge_files/" }}
+            {% else %}
+                Manual Knowledge
+            {% endif %}
+        </span>
+
+        <form
+            method="post"
+            action="{% url 'bots:delete-knowledge' bot.id knowledge.id %}"
+            style="margin: 0;"
+        >
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger">
+                🗑️ Delete
+            </button>
+        </form>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
 
 <form method="post" enctype="multipart/form-data" class="upload-knowledge-container">
     {% csrf_token %}
@@ -90,46 +134,55 @@
 </form>
 
 <style>
+    /* ================= CHAT MESSAGES ================= */
+
     .chat-message.user {
         text-align: right;
-        color: black;
+        color: var(--text-color);
         margin: 5px 0;
         font-weight: bold;
         font-size: 1.1rem;
-        background-color: #e0e0e0;
+        background: var(--button-bg);
         padding: 10px 15px;
         border-radius: 12px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        border: 1px solid var(--button-border);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
         max-width: 80%;
+        margin-left: auto;
         word-wrap: break-word;
     }
 
     .chat-message.bot,
     .chat-message.assistant {
         text-align: left;
-        color: #4A4A4A;
+        color: var(--text-color);
         margin: 5px 0;
         font-size: 1.1rem;
-        background-color: #f0f0f0;
+        background: var(--nav-bg);
         padding: 10px 15px;
         border-radius: 12px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        border: 1px solid var(--button-border);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
         max-width: 80%;
         word-wrap: break-word;
     }
 
     .chat-message code {
         font-family: monospace;
-        background: rgba(0, 0, 0, 0.08);
+        background: rgba(128, 128, 128, 0.15);
         padding: 0.1rem 0.3rem;
         border-radius: 4px;
     }
+
+
+    /* ================= KNOWLEDGE ================= */
 
     .upload-knowledge-container {
         background: var(--nav-bg);
         padding: 1.5rem 2rem;
         border-radius: 16px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        border: 1px solid var(--button-border);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
         max-width: 600px;
         margin: 0 auto 2rem auto;
         font-family:
@@ -146,27 +199,26 @@
 
     .upload-knowledge-container button.btn-primary {
         width: 100%;
-        padding: 0.75rem 0;
+        padding: 0.75rem 1rem;
         font-weight: 700;
-        font-size: 1.1rem;
-        background: var(--accent-color);
-        color: #fff;
-        border: none;
-        border-radius: 14px;
-        box-shadow:
-            0 6px 18px rgba(0, 204, 255, 0.6);
+        font-size: 1rem;
+        background: var(--button-bg);
+        color: var(--button-text);
+        border: 1px solid var(--button-border);
+        border-radius: 0;
+        box-shadow: var(--button-shadow);
         cursor: pointer;
-        transition:
-            background-color 0.3s ease,
-            box-shadow 0.3s ease;
+        transition: all 0.3s ease;
     }
 
     .upload-knowledge-container button.btn-primary:hover {
-        background: #00b8e6;
-        box-shadow:
-            0 8px 25px rgba(0, 184, 230, 0.8);
-        transform: scale(1.05);
+        background: var(--button-hover);
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
+        transform: scale(1.03);
     }
+
+
+    /* ================= CHAT LAYOUT ================= */
 
     .playground-chat-layout {
         display: grid;
@@ -177,26 +229,41 @@
 
     .conversation-sidebar {
         background: var(--nav-bg);
+        border: 1px solid var(--button-border);
         border-radius: 16px;
         padding: 1rem;
         min-height: 500px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
     }
+
+    .conversation-main {
+        min-width: 0;
+    }
+
+
+    /* ================= NEW CHAT ================= */
 
     .new-chat-button {
         width: 100%;
-        border: none;
-        border-radius: 12px;
+        border: 1px solid var(--button-border);
+        border-radius: 0;
         padding: 0.75rem 1rem;
         margin-bottom: 1rem;
         cursor: pointer;
         font-weight: 700;
-        background: var(--accent-color);
-        color: #fff;
+        background: var(--button-bg);
+        color: var(--button-text);
+        box-shadow: var(--button-shadow);
+        transition: all 0.3s ease;
     }
 
     .new-chat-button:hover {
-        opacity: 0.9;
+        background: var(--button-hover);
+        transform: scale(1.03);
     }
+
+
+    /* ================= CONVERSATION LIST ================= */
 
     #conversation-list {
         display: flex;
@@ -205,24 +272,45 @@
     }
 
     .conversation-item {
+        position: relative;
+        display: flex;
+        align-items: stretch;
         width: 100%;
-        text-align: left;
-        padding: 0.7rem;
-        border: 1px solid rgba(128, 128, 128, 0.25);
+        padding: 0;
+        border: 1px solid var(--button-border);
         border-radius: 10px;
         background: transparent;
         color: var(--text-color);
-        cursor: pointer;
-        overflow: hidden;
+        overflow: visible;
+        transition: background 0.2s ease;
     }
 
     .conversation-item:hover {
-        background: rgba(128, 128, 128, 0.12);
+        background: rgba(128, 128, 128, 0.1);
     }
 
     .conversation-item.active {
         border-color: var(--accent-color);
-        background: rgba(0, 188, 212, 0.15);
+        background: var(--button-bg);
+    }
+
+    .conversation-content {
+        flex: 1;
+        min-width: 0;
+        border: none;
+        background: transparent;
+        color: inherit;
+        text-align: left;
+        padding: 0.7rem;
+        cursor: pointer;
+        box-shadow: none;
+        transform: none;
+    }
+
+    .conversation-content:hover {
+        background: transparent;
+        box-shadow: none;
+        transform: none;
     }
 
     .conversation-item-title {
@@ -246,103 +334,8 @@
         opacity: 0.7;
     }
 
-    .conversation-main {
-        min-width: 0;
-    }
 
-    .conversation-title {
-        font-size: 1.1rem;
-        font-weight: 700;
-        margin-bottom: 0.75rem;
-    }
-
-    #chat-box {
-        border: 1px solid #ccc;
-        padding: 15px;
-        height: 400px;
-        overflow-y: auto;
-        background: #fff;
-        margin-bottom: 10px;
-        border-radius: 12px;
-    }
-
-    #chat-form {
-        display: flex;
-        gap: 10px;
-        margin-bottom: 1rem;
-    }
-
-    #chat-input {
-        flex-grow: 1;
-        padding: 8px;
-    }
-
-    #chat-form button {
-        padding: 8px 15px;
-    }
-
-    @media (max-width: 700px) {
-        .playground-chat-layout {
-            grid-template-columns: 1fr;
-        }
-
-        .conversation-sidebar {
-            min-height: auto;
-        }
-
-        #conversation-list {
-            max-height: 180px;
-            overflow-y: auto;
-        }
-    }
-
-    .conversation-item {
-        position: relative;
-        display: flex;
-        align-items: stretch;
-        width: 100%;
-        padding: 0;
-        border: 1px solid rgba(128, 128, 128, 0.25);
-        border-radius: 10px;
-        background: transparent;
-        color: var(--text-color);
-        overflow: visible;
-    }
-
-    .conversation-item:hover {
-        background: rgba(128, 128, 128, 0.12);
-    }
-
-    .conversation-item.active {
-        border-color: var(--accent-color);
-        background: rgba(0, 188, 212, 0.15);
-    }
-
-    .conversation-content {
-        flex: 1;
-        min-width: 0;
-        border: none;
-        background: transparent;
-        color: inherit;
-        text-align: left;
-        padding: 0.7rem;
-        cursor: pointer;
-    }
-
-    .conversation-item-title {
-        display: block;
-        font-weight: 700;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-
-    .conversation-item-count {
-        display: block;
-        margin-top: 0.25rem;
-        font-size: 0.8rem;
-        opacity: 0.7;
-    }
+    /* ================= CONVERSATION MENU ================= */
 
     .conversation-menu-button {
         flex: 0 0 40px;
@@ -354,10 +347,13 @@
         font-size: 1.4rem;
         border-radius: 8px;
         z-index: 2;
+        box-shadow: none;
     }
 
     .conversation-menu-button:hover {
         background: rgba(128, 128, 128, 0.15);
+        transform: none;
+        box-shadow: none;
     }
 
     .conversation-menu {
@@ -369,9 +365,10 @@
         min-width: 130px;
         padding: 0.35rem;
         border-radius: 10px;
-        background: #1b1b1b;
-        border: 1px solid rgba(255, 255, 255, 0.15);
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+        background: var(--nav-bg);
+        color: var(--text-color);
+        border: 1px solid var(--button-border);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
     }
 
     .conversation-menu.open {
@@ -383,29 +380,94 @@
         width: 100%;
         border: none;
         background: transparent;
-        color: #fff;
+        color: var(--text-color);
         text-align: left;
         padding: 0.6rem 0.75rem;
         border-radius: 7px;
         cursor: pointer;
+        box-shadow: none;
     }
 
     .conversation-menu button:hover {
-        background: rgba(255, 255, 255, 0.1);
+        background: rgba(128, 128, 128, 0.12);
+        transform: none;
+        box-shadow: none;
     }
 
     .conversation-menu .conversation-delete-button {
-        color: #ff6b6b;
+        color: #c62828;
     }
+
+
+    /* ================= CHAT AREA ================= */
+
+    .conversation-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        margin-bottom: 0.75rem;
+        color: var(--text-color);
+    }
+
+    #chat-box {
+        border: 1px solid var(--button-border);
+        padding: 15px;
+        height: 400px;
+        overflow-y: auto;
+        background: var(--nav-bg);
+        color: var(--text-color);
+        margin-bottom: 10px;
+        border-radius: 12px;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+    }
+
+    #chat-form {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 1rem;
+    }
+
+    #chat-input {
+        flex-grow: 1;
+        padding: 0.8rem;
+        border: 1px solid var(--button-border);
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.02);
+        color: var(--text-color);
+    }
+
+    #chat-input:focus {
+        outline: none;
+        border-color: var(--accent-color);
+    }
+
+    #chat-form button {
+        padding: 0.8rem 1.5rem;
+        background: var(--button-bg);
+        color: var(--button-text);
+        border: 1px solid var(--button-border);
+        border-radius: 0;
+        font-weight: 600;
+        cursor: pointer;
+        box-shadow: var(--button-shadow);
+        transition: all 0.3s ease;
+    }
+
+    #chat-form button:hover {
+        background: var(--button-hover);
+        transform: scale(1.03);
+    }
+
+
+    /* ================= DIALOG ================= */
 
     #conversation-action-dialog {
         width: min(92vw, 520px);
-        border: none;
+        border: 1px solid var(--button-border);
         border-radius: 16px;
         padding: 0;
         background: var(--nav-bg);
         color: var(--text-color);
-        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
     }
 
     #conversation-action-dialog::backdrop {
@@ -421,6 +483,7 @@
         margin: 0 0 0.75rem;
         font-size: 1.3rem;
         font-weight: 700;
+        color: var(--accent-color);
     }
 
     .conversation-dialog-message {
@@ -432,17 +495,17 @@
         width: 100%;
         box-sizing: border-box;
         padding: 0.75rem 0.9rem;
-        border: 1px solid rgba(128, 128, 128, 0.4);
+        border: 1px solid var(--button-border);
         border-radius: 10px;
-        background: #ffffff;
-        color: #111111;
+        background: rgba(255, 255, 255, 0.02);
+        color: var(--text-color);
         font-size: 1rem;
         outline: none;
     }
 
     #conversation-dialog-input:focus {
         border-color: var(--accent-color);
-        box-shadow: 0 0 0 3px rgba(0, 188, 212, 0.18);
+        box-shadow: 0 0 0 3px rgba(128, 128, 128, 0.15);
     }
 
     .conversation-dialog-actions {
@@ -453,25 +516,66 @@
     }
 
     .conversation-dialog-actions button {
-        border: none;
-        border-radius: 10px;
+        border: 1px solid var(--button-border);
+        border-radius: 0;
         padding: 0.7rem 1rem;
         cursor: pointer;
         font-weight: 700;
+        transition: all 0.3s ease;
     }
 
     #conversation-dialog-cancel {
-        background: rgba(128, 128, 128, 0.2);
-        color: var(--text-color);
+        background: var(--button-bg);
+        color: var(--button-text);
+    }
+
+    #conversation-dialog-cancel:hover {
+        background: var(--button-hover);
     }
 
     #conversation-dialog-confirm {
-        background: var(--accent-color);
-        color: #ffffff;
+        background: var(--button-bg);
+        color: var(--button-text);
+    }
+
+    #conversation-dialog-confirm:hover {
+        background: var(--button-hover);
     }
 
     #conversation-dialog-confirm.delete-mode {
-        background: #c62828;
+        background: #8b0000;
+        color: #ffffff;
+        border-color: #8b0000;
+    }
+
+    #conversation-dialog-confirm.delete-mode:hover {
+        background: #a80000;
+    }
+
+
+    /* ================= RESPONSIVE ================= */
+
+    @media (max-width: 700px) {
+        .playground-chat-layout {
+            grid-template-columns: 1fr;
+        }
+
+        .conversation-sidebar {
+            min-height: auto;
+        }
+
+        #conversation-list {
+            max-height: 180px;
+            overflow-y: auto;
+        }
+
+        #chat-form {
+            flex-direction: column;
+        }
+
+        #chat-form button {
+            width: 100%;
+        }
     }
 
     @media (max-width: 480px) {
@@ -490,6 +594,16 @@
 
         .conversation-dialog-actions button {
             width: 100%;
+        }
+
+        .upload-knowledge-container {
+            padding: 1rem;
+        }
+
+        .chat-message.user,
+        .chat-message.bot,
+        .chat-message.assistant {
+            max-width: 95%;
         }
     }
 </style>
@@ -747,7 +861,7 @@
             if (!conversationId) {
                 currentConversationId = null;
                 conversationTitle.textContent =
-                    "New Chat";
+                    "Conversation";
                 chatBox.innerHTML = "";
                 setActiveConversationButton();
                 return;
@@ -1010,17 +1124,7 @@
         );
 
 
-        function deleteConversation(conversation) {
-            openDeleteDialog(conversation);
-        }
-
-        conversationDialogCancel.addEventListener(
-            "click",
-            () => {
-                closeConversationDialog();
-            }
-        );
-
+  
         conversationDialog.addEventListener(
             "cancel",
             (event) => {
@@ -1331,198 +1435,6 @@
 
         loadConversations();
 
-        async function createConversation() {
-            try {
-                newChatButton.disabled = true;
-
-                const response = await fetch(
-                    "/bots/api/conversations/",
-                    {
-                        method: "POST",
-                        headers: {
-                            "Content-Type":
-                                "application/json",
-                            "X-CSRFToken":
-                                getCookie(
-                                    "csrftoken"
-                                ),
-                        },
-                        body: JSON.stringify({
-                            bot_id: Number(botId),
-                        }),
-                    }
-                );
-
-                if (!response.ok) {
-                    throw new Error(
-                        "Failed to create conversation."
-                    );
-                }
-
-                const conversation =
-                    await response.json();
-
-                currentConversationId =
-                    conversation.conversation_id;
-
-                chatBox.innerHTML = "";
-
-                conversationTitle.textContent =
-                    conversation.title
-                    || "New Chat";
-
-                await loadConversations(
-                    conversation
-                        .conversation_id
-                );
-
-                chatInput.focus();
-
-            } catch (error) {
-                console.error(
-                    "Failed to create conversation:",
-                    error
-                );
-
-                appendMessage(
-                    "assistant",
-                    "Failed to create a new conversation."
-                );
-
-            } finally {
-                newChatButton.disabled = false;
-            }
-        }
-
-        async function sendMessage(userMessage) {
-            const cleanMessage =
-                String(userMessage).trim();
-
-            if (!cleanMessage) {
-                return;
-            }
-
-            appendMessage(
-                "user",
-                cleanMessage
-            );
-
-            chatInput.value = "";
-            chatInput.disabled = true;
-
-            try {
-                const response = await fetch(
-                    `/bots/${botId}/ajax_chat/`,
-                    {
-                        method: "POST",
-                        headers: {
-                            "Content-Type":
-                                "application/json",
-                            "X-CSRFToken":
-                                getCookie(
-                                    "csrftoken"
-                                ),
-                        },
-                        body: JSON.stringify({
-                            message:
-                                cleanMessage,
-                            conversation_id:
-                                currentConversationId,
-                        }),
-                    }
-                );
-
-                const data =
-                    await response.json();
-
-                if (!response.ok) {
-                    appendMessage(
-                        "assistant",
-                        data.error
-                        || "An error occurred."
-                    );
-
-                    return;
-                }
-
-                currentConversationId =
-                    data.conversation_id;
-
-                await loadConversations(
-                    currentConversationId
-                );
-
-            } catch (error) {
-                appendMessage(
-                    "assistant",
-                    "Network error. Please try again."
-                );
-
-                console.error(error);
-
-            } finally {
-                chatInput.disabled = false;
-                chatInput.focus();
-            }
-        }
-
-        chatForm.addEventListener(
-            "submit",
-            (event) => {
-                event.preventDefault();
-
-                sendMessage(
-                    chatInput.value
-                );
-            }
-        );
-
-        newChatButton.addEventListener(
-            "click",
-            createConversation
-        );
-
-        function getCookie(name) {
-            let cookieValue = null;
-
-            if (
-                document.cookie
-                && document.cookie !== ""
-            ) {
-                const cookies =
-                    document.cookie.split(";");
-
-                for (
-                    let index = 0;
-                    index < cookies.length;
-                    index += 1
-                ) {
-                    const cookie =
-                        cookies[index].trim();
-
-                    if (
-                        cookie.substring(
-                            0,
-                            name.length + 1
-                        )
-                        === name + "="
-                    ) {
-                        cookieValue =
-                            decodeURIComponent(
-                                cookie.substring(
-                                    name.length + 1
-                                )
-                            );
-
-                        break;
-                    }
-                }
-            }
-
-            return cookieValue;
-        }
-
-        loadConversations();
     });
 </script>
 

@@ -1,0 +1,14 @@
+Your Email Is Verified - AI Assistant
+
+Hi {{ user.username }},
+
+Your email has been successfully verified and your AI Assistant account is ready.
+
+You can now create your first AI assistant, add your own knowledge, and start chatting.
+
+Create your first AI assistant:
+{{ dashboard_url }}
+
+Thanks for joining AI Assistant!
+
+— The AI Assistant Team

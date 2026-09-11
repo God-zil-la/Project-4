@@ -1,10 +1,13 @@
-# Requirements for the Discord AI Bridge
+# ==========================================================
+# AI Assistant - Discord Bridge
+# Python Dependencies
+# ==========================================================
 
-# Discord bot library
+# Discord integration
 discord.py>=2.0
 
-# HTTP requests to call the AI service
+# Communication with the AI Assistant service
 requests>=2.20
 
-# Load .env secrets easily
+# Environment variable configuration
 python-dotenv>=1.0

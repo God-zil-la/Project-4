@@ -48,6 +48,11 @@ urlpatterns = [
         name="playground",
     ),
     path(
+        "<int:bot_id>/knowledge/<int:knowledge_id>/delete/",
+        views.delete_knowledge,
+        name="delete-knowledge",
+    ),
+    path(
         "<int:bot_id>/bot_chat_api/",
         views.bot_chat_api,
         name="bot_chat_api",

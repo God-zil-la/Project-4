@@ -2,115 +2,108 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Welcome to AI Assistant</title>
-    <style>
-        /* Base Reset */
-        body,
-        html {
-            margin: 0;
-            padding: 0;
-            height: 100%;
-            width: 100%;
-            background-color: #000;
-            font-family: Arial, sans-serif;
-            color: #f0f0f0;
-        }
-
-        a {
-            color: #f0f0f0;
-            text-decoration: underline;
-            transition: color 0.3s ease;
-        }
-
-        a:hover {
-            color: #ccc;
-        }
-
-        /* Container */
-        .container {
-            max-width: 600px;
-            margin: 40px auto;
-            background: #111;
-            border-radius: 12px;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6);
-            padding: 40px 30px;
-            animation: fadeInUp 0.8s ease forwards;
-            text-align: center;
-        }
-
-        /* Header */
-        h1 {
-            font-size: 2rem;
-            margin-bottom: 16px;
-            color: #fff;
-            letter-spacing: 1px;
-            font-weight: bold;
-        }
-
-        .highlight {
-            color: #fff;
-            font-weight: bold;
-        }
-
-        /* Paragraph */
-        p {
-            font-size: 1rem;
-            line-height: 1.6;
-            margin: 16px 0;
-            color: #bbb;
-        }
-
-        /* Footer */
-        .footer {
-            margin-top: 30px;
-            font-size: 0.85rem;
-            color: #777;
-            border-top: 1px solid #222;
-            padding-top: 12px;
-        }
-
-        /* Responsive */
-        @media (max-width: 480px) {
-            .container {
-                padding: 30px 20px;
-                margin: 20px 10px;
-            }
-
-            h1 {
-                font-size: 1.75rem;
-            }
-
-            p {
-                font-size: 0.95rem;
-            }
-        }
-
-        /* Animation */
-        @keyframes fadeInUp {
-            0% {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-
-            100% {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-    </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify your email - AI Assistant</title>
 </head>
 
-<body>
-    <div class="container" role="main" aria-label="Welcome message">
-        <h1>Welcome to <span class="highlight">AI Assistant</span>, {{ user.username }}!</h1>
-        <p>We're thrilled to have you on board. Your account is now fully active and ready to explore.</p>
-        <p>Get started by <a href="{{ login_url }}">logging in</a> and discovering how AI can assist you every step of
-            the way.</p>
-        <p>If you did not create this account, you can safely ignore this email.</p>
-        <div class="footer">
-            <p>&copy; {{ domain }} 2025 — All rights reserved.</p>
+<body style="
+    margin: 0;
+    padding: 0;
+    background-color: #f6f2eb;
+    font-family: Arial, sans-serif;
+    color: #3a3228;
+">
+    <div style="
+        max-width: 600px;
+        margin: 40px auto;
+        background-color: #ebe4d8;
+        border: 1px solid #d8cdbd;
+        border-radius: 12px;
+        padding: 40px 30px;
+        text-align: center;
+        box-sizing: border-box;
+    ">
+        <h1 style="
+            margin-top: 0;
+            color: #3a3228;
+            font-size: 28px;
+        ">
+            Verify your email
+        </h1>
+
+        <p style="
+            color: #3a3228;
+            font-size: 16px;
+            line-height: 1.6;
+        ">
+            Hi {{ user.username }},
+        </p>
+
+        <p style="
+            color: #3a3228;
+            font-size: 16px;
+            line-height: 1.6;
+        ">
+            Thanks for creating an AI Assistant account.
+            Please verify your email address to activate your account.
+        </p>
+
+        <p style="margin: 32px 0;">
+            <a href="{{ activation_url }}"
+               style="
+                   display: inline-block;
+                   background-color: #e9dfcf;
+                   color: #3a3228;
+                   border: 1px solid #cfc1ae;
+                   text-decoration: none;
+                   font-weight: bold;
+                   padding: 14px 24px;
+                   border-radius: 8px;
+               ">
+                Verify Email
+            </a>
+        </p>
+
+        <p style="
+            color: #6f665b;
+            font-size: 14px;
+            line-height: 1.6;
+        ">
+            If the button does not work, copy and paste this link into your browser:
+        </p>
+
+        <p style="
+            word-break: break-all;
+            font-size: 13px;
+            line-height: 1.5;
+        ">
+            <a href="{{ activation_url }}"
+               style="
+                   color: #3a3228;
+                   text-decoration: underline;
+               ">
+                {{ activation_url }}
+            </a>
+        </p>
+
+        <p style="
+            color: #6f665b;
+            font-size: 14px;
+            line-height: 1.6;
+            margin-top: 30px;
+        ">
+            If you did not create this account, you can safely ignore this email.
+        </p>
+
+        <div style="
+            margin-top: 30px;
+            border-top: 1px solid #d8cdbd;
+            padding-top: 15px;
+            color: #6f665b;
+            font-size: 12px;
+        ">
+            AI Assistant
         </div>
     </div>
 </body>

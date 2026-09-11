@@ -32,14 +32,14 @@
 
     <ul>
 
-      <li>
-        <a href="/">Home</a>
-      </li>
-
       {% if user.is_authenticated %}
 
       <li>
-        <a href="/bots/">My Bots</a>
+        <a href="/dashboard/">Dashboard</a>
+      </li>
+
+      <li>
+        <a href="/bots/">My AI Assistants</a>
       </li>
 
       <li>
@@ -48,7 +48,7 @@
 
       <li>
         <a href="{% url 'bots:analytics' %}">
-          Analytics Dashboard
+          Analytics
         </a>
       </li>
 
@@ -81,6 +81,10 @@
       </li>
 
       {% else %}
+
+      <li>
+        <a href="/">Home</a>
+      </li>
 
       <li>
         <a href="/accounts/login/">Login</a>
@@ -177,11 +181,9 @@
   </main>
 
   <footer>
-
     <p>
-      &copy; 2025 AI Assistant. Developed By Mr.Hu$$e
+      &copy; {% now "Y" %} AI Assistant. All rights reserved.
     </p>
-
   </footer>
 
   <script>

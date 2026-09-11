@@ -1,7 +1,13 @@
-Welcome to AI Assistant, {{ user.username }}!
+Verify your email - AI Assistant
 
-Thanks for registering with us. Your account is now active.
+Hi {{ user.username }},
 
-If you didn’t register for an AI Assistant account, you can safely ignore this email.
+Thanks for creating an AI Assistant account.
 
-© {{ domain }} - All rights reserved.
+Please verify your email address to activate your account by opening the link below:
+
+{{ activation_url }}
+
+If you did not create this account, you can safely ignore this email.
+
+AI Assistant

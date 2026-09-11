@@ -3,7 +3,7 @@ import tempfile
 import zipfile
 
 from django.contrib.auth.decorators import login_required
-from django.http import FileResponse, HttpResponseBadRequest
+from django.http import FileResponse, HttpResponseBadRequest, HttpResponseForbidden
 from rest_framework.authtoken.models import Token
 
 from .models import Bot
@@ -11,9 +11,13 @@ from .models import Bot
 
 @login_required
 def download_discord_bridge(request, bot_id):
-
     if request.method != "POST":
         return HttpResponseBadRequest("POST required.")
+
+    if request.user.profile.effective_plan != "pro":
+        return HttpResponseForbidden(
+            "Discord integration requires the Pro plan."
+        )
 
     bot = Bot.objects.get(
         id=bot_id,
@@ -42,11 +46,8 @@ def download_discord_bridge(request, bot_id):
     temp_dir = tempfile.mkdtemp()
 
     env_text = f"""DISCORD_TOKEN={discord_token}
-
 DJANGO_API_TOKEN={token.key}
-
 DJANGO_BOT_ID={bot.id}
-
 DJANGO_BACKEND=https://{backend}
 """
 
@@ -82,7 +83,6 @@ DJANGO_BACKEND=https://{backend}
         ]
 
         for filename in files:
-
             file_path = os.path.join(
                 bridge_folder,
                 filename,
