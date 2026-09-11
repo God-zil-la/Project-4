@@ -1972,6 +1972,9 @@ KNOWLEDGE BASE RULES:
 - If the user requests an exact fact and it is not present in the retrieved knowledge, say that you could not find it.
 - When summarizing a document, summarize only the document content actually supplied below.
 - General knowledge may supplement an answer when appropriate, but it must not contradict the uploaded Knowledge Base.
+- When the retrieved knowledge contains a URL or Markdown link, preserve the destination URL exactly.
+- Do not wrap an existing Markdown link inside another Markdown link.
+- If the user asks specifically for a link or URL, prefer returning the plain destination URL on its own line.
 
 === START OF KNOWLEDGE ===
 {knowledge_text if knowledge_text else "[No relevant knowledge found.]"}
