@@ -354,31 +354,113 @@ class CreateCheckoutSessionView(View):
                 if has_existing_subscription(profile):
                     return JsonResponse({"error": "Manage your existing subscription before starting another."}, status=409)
                 if attempt.session_id:
-                    session = stripe.checkout.Session.retrieve(attempt.session_id, api_key=settings.STRIPE_SECRET_KEY)
-                    if (session.get("id") != attempt.session_id
-                            or session.get("customer") != profile.stripe_customer_id):
+                    session = stripe.checkout.Session.retrieve(
+                        attempt.session_id,
+                        api_key=settings.STRIPE_SECRET_KEY
+                    )
+
+                    if (
+                        session.get("id") != attempt.session_id
+                        or session.get("customer") != profile.stripe_customer_id
+                    ):
                         raise ValueError("Checkout customer mismatch")
-                    if session.get("status") == "expired":
-                        attempt.delete()
-                        return JsonResponse({"error": "Your previous checkout expired. Choose a plan again."}, status=409)
+
                     if session.get("status") == "complete":
-                        subscription = stripe.Subscription.retrieve(session.get("subscription"), api_key=settings.STRIPE_SECRET_KEY)
+                        subscription = stripe.Subscription.retrieve(
+                            session.get("subscription"),
+                            api_key=settings.STRIPE_SECRET_KEY
+                        )
+
                         validate_subscription(profile, subscription)
+
                         if subscription.get("id") != session.get("subscription"):
                             raise ValueError("Checkout subscription mismatch")
+
                         if subscription.get("status") in TERMINAL:
                             attempt.delete()
-                            return JsonResponse({"error": "Your previous subscription ended. Choose a plan again."}, status=409)
-                        return JsonResponse({"error": "Your payment is being confirmed. Refresh billing status."}, status=409)
-                    if session.get("status") != "open":
+                            return JsonResponse(
+                                {
+                                    "error": (
+                                        "Your previous subscription ended. "
+                                        "Choose a plan again."
+                                    )
+                                },
+                                status=409,
+                            )
+
+                        return JsonResponse(
+                            {
+                                "error": (
+                                    "Your payment is being confirmed. "
+                                    "Refresh billing status."
+                                )
+                            },
+                            status=409,
+                        )
+
+                    if session.get("status") == "expired":
+                        attempt.delete()
+
+                        attempt = CheckoutAttempt.objects.create(
+                            profile=profile,
+                            plan=plan,
+                            success_url=(
+                                request.build_absolute_uri(
+                                    "/payments/success/"
+                                )
+                                + "?session_id={CHECKOUT_SESSION_ID}"
+                            ),
+                            cancel_url=request.build_absolute_uri(
+                                "/payments/cancel/"
+                            ),
+                        )
+
+                    elif session.get("status") == "open":
+                        if attempt.plan != plan:
+                            # The user changed plan before completing payment.
+                            # Expire the old Checkout and create a fresh intent.
+                            stripe.checkout.Session.expire(
+                                attempt.session_id,
+                                api_key=settings.STRIPE_SECRET_KEY,
+                            )
+
+                            attempt.delete()
+
+                            attempt = CheckoutAttempt.objects.create(
+                                profile=profile,
+                                plan=plan,
+                                success_url=(
+                                    request.build_absolute_uri(
+                                        "/payments/success/"
+                                    )
+                                    + "?session_id={CHECKOUT_SESSION_ID}"
+                                ),
+                                cancel_url=request.build_absolute_uri(
+                                    "/payments/cancel/"
+                                ),
+                            )
+                        else:
+                            # Same plan: reuse the existing open Checkout.
+                            return JsonResponse(
+                                {
+                                    "id": attempt.session_id,
+                                    "plan": attempt.plan,
+                                }
+                            )
+
+                    else:
                         raise ValueError("Unknown checkout status")
-                    if attempt.plan != plan:
-                        return JsonResponse({"error": "Another plan checkout is open. Complete it or let it expire before changing plans."}, status=409)
-                    return JsonResponse({"id": attempt.session_id, "plan": attempt.plan})
-                if timezone.now() - attempt.started_at > timedelta(hours=23):
-                    return JsonResponse({"error": "Checkout confirmation requires support. No new payment has been started."}, status=409)
+
                 if attempt.plan != plan:
-                    return JsonResponse({"error": "Retry your original plan to confirm the pending checkout before changing plans."}, status=409)
+                    return JsonResponse(
+                        {
+                            "error": (
+                                "Retry your original plan to confirm the "
+                                "pending checkout before changing plans."
+                            )
+                        },
+                        status=409,
+                    )
                 if not profile.stripe_customer_id:
                     customer = stripe.Customer.create(api_key=settings.STRIPE_SECRET_KEY,
                         metadata={"user_id": str(request.user.pk)},
@@ -389,14 +471,44 @@ class CreateCheckoutSessionView(View):
                 sessions = stripe.checkout.Session.list(customer=profile.stripe_customer_id,
                     limit=100, api_key=settings.STRIPE_SECRET_KEY)
                 sessions = list(sessions.auto_paging_iter())
-                recovered = next((s for s in sessions if
-                    (s.get("metadata") or {}).get("attempt") == str(attempt.key)), None)
+                recovered = next(
+                    (
+                        session
+                        for session in sessions
+                        if (session.get("metadata") or {}).get("attempt")
+                        == str(attempt.key)
+                    ),
+                    None,
+                )
+
                 if recovered:
                     attempt.session_id = recovered["id"]
                     attempt.save(update_fields=["session_id"])
-                    return JsonResponse({"error": "Previous checkout recovered. Choose your plan again to continue."}, status=409)
-                if any(session.get("mode") == "subscription" and session.get("status") == "open" for session in sessions):
-                    return JsonResponse({"error": "An existing checkout is open. Complete it or let it expire before starting another."}, status=409)
+                    return JsonResponse(
+                        {
+                            "error": (
+                                "Previous checkout recovered. "
+                                "Choose your plan again to continue."
+                            )
+                        },
+                        status=409,
+                    )
+
+                if any(
+                    session.get("mode") == "subscription"
+                    and session.get("status") == "open"
+                    for session in sessions
+                ):
+                    return JsonResponse(
+                        {
+                            "error": (
+                                "An existing checkout is open. Complete it "
+                                "or let it expire before starting another."
+                            )
+                        },
+                        status=409,
+                    )
+
                 customer = {"customer": profile.stripe_customer_id}
                 checkout_session = stripe.checkout.Session.create(
                     api_key=settings.STRIPE_SECRET_KEY,
