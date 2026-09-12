@@ -681,8 +681,12 @@ def billing(request):
             "change_effective_date": timezone.datetime.fromtimestamp(change.source["end"], tz=timezone.get_current_timezone()) if changing else None,
             "retry_token": change_token(change.action) if changing else "",
             "retry_url": reverse("payments:" + change.action + "_subscription") if changing else "",
-            "show_management": bool(profile.stripe_customer_id) or existing_subscription,
-            "can_manage_subscription": bool(profile.stripe_customer_id and settings.STRIPE_SECRET_KEY),
+            "show_management": existing_subscription,
+            "can_manage_subscription": bool(
+                existing_subscription
+                and profile.stripe_customer_id
+                and settings.STRIPE_SECRET_KEY
+            ),
             "billing_unavailable_reason": billing_unavailable_reason,
             "can_checkout": bool(settings.STRIPE_SECRET_KEY and settings.STRIPE_PUBLIC_KEY) and not existing_subscription and not refresh_failed and not pending_recovery and not changing,
             "STRIPE_PUBLIC_KEY": (
