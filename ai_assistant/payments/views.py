@@ -410,6 +410,10 @@ class CreateCheckoutSessionView(View):
                         request.user.id
                     ),
 
+                    branding_settings={
+                        "display_name": "AI Assistant"
+                    },
+
 
 
                     line_items=[
