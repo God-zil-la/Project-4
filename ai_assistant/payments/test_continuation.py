@@ -11,6 +11,8 @@ from django.test import Client, TestCase
 from django.urls import reverse
 from django.utils import timezone
 
+from ai_assistant.bots.models import Bot, ChatMessage, KnowledgeBase
+
 from .models import SubscriptionChange, SubscriptionRecovery, StripeEvent
 from .webhooks import update_profile_from_subscription
 
@@ -528,6 +530,192 @@ class ContinuationTests(TestCase):
         self.assertEqual(SubscriptionChange.objects.get().status, "complete")
         self.assertEqual(self.event().status_code, 200)
         self.assertEqual(StripeEvent.objects.count(), 1)
+
+    def test_downgrade_boundary_preserves_existing_bots_chats_and_knowledge(self):
+        bots = [
+            Bot.objects.create(
+                owner=self.user,
+                name=f"Existing bot {index}",
+            )
+            for index in range(7)
+        ]
+        bot = bots[0]
+
+        chat = ChatMessage.objects.create(
+            bot=bot,
+            user=self.user,
+            message="Existing user message",
+            sender=ChatMessage.SENDER_USER,
+        )
+
+        assistant_chat = ChatMessage.objects.create(
+            bot=bot,
+            user=self.user,
+            message="Existing AI response",
+            sender=ChatMessage.SENDER_ASSISTANT,
+        )
+
+        knowledge = KnowledgeBase.objects.create(
+            bot=bot,
+            uploaded_by=self.user,
+            source_size_bytes=24,
+        )
+
+        self.post("downgrade")
+
+        self.sub["items"]["data"][0]["price"].update(
+            id="price_target",
+            unit_amount=2900,
+        )
+        self.sub["items"]["data"][0]["current_period_end"] = 1902678400
+
+        self.assertEqual(self.event().status_code, 200)
+
+        self.user.profile.refresh_from_db()
+        self.assertEqual(self.user.profile.plan, "premium")
+        self.assertEqual(
+            Bot.objects.filter(owner=self.user).count(),
+            7,
+        )
+        self.assertTrue(
+            ChatMessage.objects.filter(pk=chat.pk).exists()
+        )
+        self.assertTrue(
+            ChatMessage.objects.filter(pk=assistant_chat.pk).exists()
+        )
+        self.assertTrue(
+            KnowledgeBase.objects.filter(pk=knowledge.pk).exists()
+        )
+
+    def test_downgraded_premium_user_over_bot_limit_cannot_create_new_bot(self):
+        for index in range(7):
+            Bot.objects.create(
+                owner=self.user,
+                name=f"Existing bot {index}",
+            )
+
+        self.assertEqual(
+            Bot.objects.filter(owner=self.user).count(),
+            7,
+        )
+
+        self.post("downgrade")
+
+        self.sub["items"]["data"][0]["price"].update(
+            id="price_target",
+            unit_amount=2900,
+        )
+        self.sub["items"]["data"][0]["current_period_end"] = 1902678400
+
+        self.assertEqual(self.event().status_code, 200)
+
+        self.user.profile.refresh_from_db()
+        self.assertEqual(self.user.profile.plan, "premium")
+
+        response = self.client.post(
+            reverse("bots:create"),
+            follow=True,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(
+            response,
+            "Your Premium plan allows up to 5 AI assistants.",
+        )
+        self.assertEqual(
+            Bot.objects.filter(owner=self.user).count(),
+            7,
+        )
+
+    def test_canceled_subscription_preserves_existing_bots_chats_and_knowledge_on_free(self):
+        bots = [
+            Bot.objects.create(
+                owner=self.user,
+                name=f"Existing bot {index}",
+            )
+            for index in range(3)
+        ]
+        bot = bots[0]
+
+        user_chat = ChatMessage.objects.create(
+            bot=bot,
+            user=self.user,
+            message="Existing user message",
+            sender=ChatMessage.SENDER_USER,
+        )
+
+        assistant_chat = ChatMessage.objects.create(
+            bot=bot,
+            user=self.user,
+            message="Existing AI response",
+            sender=ChatMessage.SENDER_ASSISTANT,
+        )
+
+        knowledge = KnowledgeBase.objects.create(
+            bot=bot,
+            uploaded_by=self.user,
+            source_size_bytes=24,
+        )
+
+        self.post("downgrade")
+
+        self.sub.update(
+            status="canceled",
+            ended_at=1899999000,
+        )
+
+        self.assertEqual(self.event().status_code, 200)
+
+        self.user.profile.refresh_from_db()
+        self.assertEqual(self.user.profile.plan, "free")
+
+        self.assertEqual(
+            Bot.objects.filter(owner=self.user).count(),
+            3,
+        )
+        self.assertTrue(
+            ChatMessage.objects.filter(pk=user_chat.pk).exists()
+        )
+        self.assertTrue(
+            ChatMessage.objects.filter(pk=assistant_chat.pk).exists()
+        )
+        self.assertTrue(
+            KnowledgeBase.objects.filter(pk=knowledge.pk).exists()
+        )
+
+    def test_free_user_over_bot_limit_cannot_create_new_bot(self):
+        for index in range(3):
+            Bot.objects.create(
+                owner=self.user,
+                name=f"Existing bot {index}",
+            )
+
+        self.post("downgrade")
+
+        self.sub.update(
+            status="canceled",
+            ended_at=1899999000,
+        )
+
+        self.assertEqual(self.event().status_code, 200)
+
+        self.user.profile.refresh_from_db()
+        self.assertEqual(self.user.profile.plan, "free")
+
+        response = self.client.post(
+            reverse("bots:create"),
+            follow=True,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(
+            response,
+            "Your Free plan allows up to 1 AI assistant.",
+        )
+        self.assertEqual(
+            Bot.objects.filter(owner=self.user).count(),
+            3,
+        )                   
 
     def test_failed_renewal_does_not_keep_pro_entitlement(self):
         self.post("downgrade")
