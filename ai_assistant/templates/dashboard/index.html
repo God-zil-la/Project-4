@@ -393,17 +393,13 @@
     display: none;
 
     position: fixed;
-    top: 0;
-    left: 0;
+    inset: 0;
 
     width: 100vw;
     height: 100vh;
     height: 100dvh;
 
-    z-index: 99999;
-
-    align-items: center;
-    justify-content: center;
+    z-index: 999999;
 
     margin: 0;
     padding: 0;
@@ -411,33 +407,26 @@
     background: var(--bg-color);
     color: var(--text-color);
 
-    opacity: 1;
+    place-items: center;
 
-    box-sizing: border-box;
+    opacity: 1;
 
     transition:
         opacity 0.5s ease,
         visibility 0.5s ease;
-    }
+}
 
-    .web-splash.show {
-        display: flex;
-    }
+.web-splash.show {
+    display: grid;
+}
 
-    .web-splash.hide {
-        opacity: 0;
-        visibility: hidden;
-        pointer-events: none;
-    }
+.web-splash.hide {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
 
     .web-splash-inner {
-    position: absolute;
-
-    top: 50%;
-    left: 50%;
-
-    transform: translate(-50%, -50%);
-
     width: min(90vw, 420px);
 
     display: flex;
@@ -451,7 +440,7 @@
     text-align: center;
 
     animation: splashIntro 0.8s ease forwards;
-    }
+}
 
     .web-splash-logo {
         width: min(220px, 55vw);
@@ -491,12 +480,12 @@
 
         0% {
             opacity: 0;
-            transform: translate(-50%, -50%) scale(0.86);
+            transform: scale(0.86);
         }
 
         100% {
             opacity: 1;
-            transform: translate(-50%, -50%) scale(1);
+            transform: scale(1);
         }
 
     }
@@ -564,6 +553,8 @@
         if (!splash) {
             return;
         }
+
+        document.body.appendChild(splash);
 
         const splashAlreadyShown =
             sessionStorage.getItem(
