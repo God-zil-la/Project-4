@@ -7,22 +7,35 @@
 
 <!-- ================= SPLASH / INTRO ================= -->
 <div id="web-splash" class="web-splash" aria-hidden="true">
+
     <div class="web-splash-inner">
-        <img
-            src="{% static 'images/ai-assistant-logo.png' %}"
-            alt="AI Assistant"
-            class="web-splash-logo"
-        >
 
-        <div class="web-splash-text">
-            AI Assistant
+        <div class="web-splash-logo-wrapper">
+
+            <img
+                src="{% static 'images/ai-assistant-logo.png' %}"
+                alt="AI Assistant"
+                class="web-splash-logo"
+            >
+
+            <div class="web-splash-title-group">
+
+                <div class="web-splash-text">
+                    AI Assistant
+                </div>
+
+                <div class="web-splash-subtext">
+                    BY MR.HU$$E
+                </div>
+
+            </div>
+
         </div>
 
-        <div class="web-splash-subtext">
-            BY MR.HU$$E
-        </div>
     </div>
+
 </div>
+
 
 <section style="
     display: flex;
@@ -31,6 +44,7 @@
     padding: 2rem 1rem;
     text-align: center;
 ">
+
     <div style="
         background: var(--nav-bg);
         padding: 1.5rem;
@@ -64,11 +78,13 @@
             organized, and start chatting in minutes.
         </p>
 
+
         <!-- WHAT YOU CAN DO -->
         <div style="
             margin-top: 2rem;
             width: 100%;
         ">
+
             <h2 style="
                 margin-bottom: 1rem;
                 color: var(--accent-color);
@@ -85,6 +101,7 @@
             ">
 
                 <li style="margin-bottom: 1.5rem;">
+
                     🤖 <strong>Create your own AI assistants</strong>
 
                     <p style="
@@ -96,9 +113,12 @@
                         work, studies, personal projects, hobbies,
                         customer support, or your business.
                     </p>
+
                 </li>
 
+
                 <li style="margin-bottom: 1.5rem;">
+
                     📚 <strong>Add your own knowledge</strong>
 
                     <p style="
@@ -110,9 +130,12 @@
                         assistants can answer using knowledge
                         that matters to you or your business.
                     </p>
+
                 </li>
 
+
                 <li style="margin-bottom: 1.5rem;">
+
                     💬 <strong>Keep unlimited conversations</strong>
 
                     <p style="
@@ -124,9 +147,12 @@
                         assistants and return to your chat history
                         whenever you need it.
                     </p>
+
                 </li>
 
+
                 <li style="margin-bottom: 1.5rem;">
+
                     📊 <strong>Understand your AI usage</strong>
 
                     <p style="
@@ -137,16 +163,23 @@
                         View usage and conversation analytics to
                         understand how your assistants are being used.
                     </p>
+
                 </li>
 
             </ul>
+
         </div>
 
+
         <!-- PRICING -->
-        <div id="pricing" style="
-            margin-top: 3rem;
-            width: 100%;
-        ">
+        <div
+            id="pricing"
+            style="
+                margin-top: 3rem;
+                width: 100%;
+            "
+        >
+
             <h2 style="
                 margin-bottom: 0.5rem;
                 color: var(--accent-color);
@@ -164,6 +197,7 @@
                 assistants, messages, storage, or advanced features.
             </p>
 
+
             <div style="
                 display: flex;
                 flex-direction: column;
@@ -173,6 +207,7 @@
                 margin: 0 auto;
             ">
 
+
                 <!-- FREE -->
                 <div style="
                     border: 2px solid var(--accent-color);
@@ -180,6 +215,7 @@
                     padding: 1rem;
                     background: var(--nav-bg);
                 ">
+
                     <h3>
                         🆓 Free — $0/month
                     </h3>
@@ -205,7 +241,9 @@
                         <li>✔️ Basic assistant naming</li>
                         <li>✔️ AI Assistant branding</li>
                     </ul>
+
                 </div>
+
 
                 <!-- PREMIUM -->
                 <div style="
@@ -214,6 +252,7 @@
                     padding: 1rem;
                     background: var(--nav-bg);
                 ">
+
                     <h3>
                         💎 Premium — $29 USD/month
                     </h3>
@@ -230,6 +269,7 @@
                         margin: 0;
                         padding-left: 1.2rem;
                     ">
+
                         <li>✔️ 5 AI assistants</li>
                         <li>✔️ 3,000 AI messages per month</li>
                         <li>✔️ 250 MB Knowledge Base</li>
@@ -249,8 +289,11 @@
                         </li>
 
                         <li>✔️ Priority support</li>
+
                     </ul>
+
                 </div>
+
 
                 <!-- PRO -->
                 <div style="
@@ -259,6 +302,7 @@
                     padding: 1rem;
                     background: var(--nav-bg);
                 ">
+
                     <h3>
                         🚀 Pro — $59 USD/month
                     </h3>
@@ -275,6 +319,7 @@
                         margin: 0;
                         padding-left: 1.2rem;
                     ">
+
                         <li>✔️ Everything in Premium</li>
                         <li>✔️ 15 AI assistants</li>
                         <li>✔️ 10,000 AI messages per month</li>
@@ -294,17 +339,22 @@
                         </li>
 
                         <li>✔️ Priority support</li>
+
                     </ul>
+
                 </div>
 
             </div>
+
         </div>
+
 
         <!-- FINAL CTA -->
         <div style="
             margin-top: 3rem;
             width: 100%;
         ">
+
             <h2 style="
                 margin-bottom: 0.5rem;
                 color: var(--accent-color);
@@ -321,7 +371,9 @@
                 No credit card required for the Free plan.
                 Create your account and get started in minutes.
             </p>
+
         </div>
+
 
         <!-- CTA BUTTONS -->
         <div style="
@@ -336,145 +388,239 @@
 
             {% if not user.is_authenticated %}
 
-            <a href="{% url 'accounts:register' %}" class="nav-btn">
-                Get Started Free
-            </a>
+                <a
+                    href="{% url 'accounts:register' %}"
+                    class="nav-btn"
+                >
+                    Get Started Free
+                </a>
 
-            <a href="#pricing" class="nav-btn btn-premium">
-                View Premium & Pro
-            </a>
+                <a
+                    href="#pricing"
+                    class="nav-btn btn-premium"
+                >
+                    View Premium & Pro
+                </a>
+
 
             {% else %}
 
-            {% if user.profile.effective_plan == 'free' %}
 
-            <a href="{% url 'bots:create' %}" class="nav-btn">
-                Create AI Assistant
-            </a>
+                {% if user.profile.effective_plan == 'free' %}
 
-            <a href="{% url 'payments:billing' %}" class="nav-btn btn-premium">
-                Upgrade Plan
-            </a>
+                    <a
+                        href="{% url 'bots:create' %}"
+                        class="nav-btn"
+                    >
+                        Create AI Assistant
+                    </a>
 
-            {% elif user.profile.effective_plan == 'premium' %}
+                    <a
+                        href="{% url 'payments:billing' %}"
+                        class="nav-btn btn-premium"
+                    >
+                        Upgrade Plan
+                    </a>
 
-            <a href="{% url 'bots:my-bots' %}" class="nav-btn">
-                My AI Assistants
-            </a>
 
-            <a href="{% url 'payments:billing' %}" class="nav-btn btn-premium">
-                Upgrade to Pro
-            </a>
+                {% elif user.profile.effective_plan == 'premium' %}
 
-            {% elif user.profile.effective_plan == 'pro' %}
+                    <a
+                        href="{% url 'bots:my-bots' %}"
+                        class="nav-btn"
+                    >
+                        My AI Assistants
+                    </a>
 
-            <a href="{% url 'bots:my-bots' %}" class="nav-btn">
-                My AI Assistants
-            </a>
+                    <a
+                        href="{% url 'payments:billing' %}"
+                        class="nav-btn btn-premium"
+                    >
+                        Upgrade to Pro
+                    </a>
 
-            <a href="{% url 'payments:billing' %}" class="nav-btn btn-premium">
-                Manage Plan
-            </a>
 
-            {% endif %}
+                {% elif user.profile.effective_plan == 'pro' %}
+
+                    <a
+                        href="{% url 'bots:my-bots' %}"
+                        class="nav-btn"
+                    >
+                        My AI Assistants
+                    </a>
+
+                    <a
+                        href="{% url 'payments:billing' %}"
+                        class="nav-btn btn-premium"
+                    >
+                        Manage Plan
+                    </a>
+
+                {% endif %}
 
             {% endif %}
 
         </div>
 
     </div>
+
 </section>
+
 
 <style>
 
     /* ================= WEB SPLASH ================= */
 
     .web-splash {
-    display: none;
+        display: none;
 
-    position: fixed;
-    inset: 0;
+        position: fixed;
+        inset: 0;
 
-    width: 100vw;
-    height: 100vh;
-    height: 100dvh;
+        z-index: 999999;
 
-    z-index: 999999;
+        margin: 0;
+        padding: 0;
 
-    margin: 0;
-    padding: 0;
+        background: var(--bg-color);
+        color: var(--text-color);
 
-    background: var(--bg-color);
-    color: var(--text-color);
+        align-items: center;
+        justify-content: center;
 
-    place-items: center;
+        opacity: 1;
 
-    opacity: 1;
+        box-sizing: border-box;
 
-    transition:
-        opacity 0.5s ease,
-        visibility 0.5s ease;
-}
+        transition:
+            opacity 0.5s ease,
+            visibility 0.5s ease;
+    }
 
-.web-splash.show {
-    display: grid;
-}
 
-.web-splash.hide {
-    opacity: 0;
-    visibility: hidden;
-    pointer-events: none;
-}
+    .web-splash.show {
+        display: flex;
+    }
 
+
+    .web-splash.hide {
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+    }
+
+
+    /*
+     * The outer splash is centered on the viewport.
+     * This inner element does not shift the logo.
+     */
     .web-splash-inner {
-    width: min(90vw, 420px);
+        position: relative;
 
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
+        width: min(90vw, 420px);
+        height: min(90vh, 500px);
 
-    margin: 0;
-    padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
 
-    text-align: center;
+        margin: 0;
+        padding: 0;
 
-    animation: splashIntro 0.8s ease forwards;
-}
+        text-align: center;
+    }
+
+
+    /*
+     * This wrapper itself is exactly in the center.
+     * Text is positioned underneath without affecting
+     * the logo's center position.
+     */
+    .web-splash-logo-wrapper {
+        position: relative;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
 
     .web-splash-logo {
+        display: block;
+
         width: min(220px, 55vw);
         height: auto;
 
-        display: block;
+        margin: 0;
+        padding: 0;
 
         border-radius: 28px;
 
+        transform-origin: center center;
+
+        animation: splashIntro 0.8s ease forwards;
+
         filter:
-            drop-shadow(0 0 14px rgba(21, 131, 157, 0.35))
-            drop-shadow(0 0 28px rgba(21, 131, 157, 0.18));
+            drop-shadow(
+                0 0 14px
+                rgba(21, 131, 157, 0.35)
+            )
+            drop-shadow(
+                0 0 28px
+                rgba(21, 131, 157, 0.18)
+            );
     }
 
-    .web-splash-text {
-        margin-top: 1.25rem;
 
-        font-size: clamp(1.7rem, 5vw, 2.5rem);
+    /*
+     * Absolutely positioned so it does not move
+     * the logo away from the viewport center.
+     */
+    .web-splash-title-group {
+        position: absolute;
+
+        top: calc(100% + 18px);
+        left: 50%;
+
+        width: max-content;
+        max-width: 90vw;
+
+        transform: translateX(-50%);
+
+        text-align: center;
+    }
+
+
+    .web-splash-text {
+        margin: 0;
+
+        font-size: clamp(
+            1.7rem,
+            5vw,
+            2.5rem
+        );
+
         font-weight: 800;
+
         letter-spacing: 0.04em;
 
         color: var(--accent-color);
     }
+
 
     .web-splash-subtext {
         margin-top: 0.25rem;
 
         font-size: 0.85rem;
         font-weight: 700;
+
         letter-spacing: 0.18em;
 
         color: var(--text-color);
+
         opacity: 0.75;
     }
+
 
     @keyframes splashIntro {
 
@@ -490,23 +636,42 @@
 
     }
 
+
     @media (max-width: 550px) {
+
+        .web-splash-inner {
+            width: 100%;
+            height: 100%;
+        }
 
         .web-splash-logo {
             width: min(190px, 58vw);
             border-radius: 24px;
         }
 
+        .web-splash-title-group {
+            top: calc(100% + 16px);
+        }
+
         .web-splash-text {
-            margin-top: 1rem;
+            font-size: clamp(
+                1.55rem,
+                7vw,
+                2rem
+            );
+        }
+
+        .web-splash-subtext {
+            font-size: 0.78rem;
         }
 
     }
 
+
     @media (prefers-reduced-motion: reduce) {
 
         .web-splash,
-        .web-splash-inner {
+        .web-splash-logo {
             animation: none;
             transition: none;
         }
@@ -521,19 +686,30 @@
         transition: transform 0.3s ease;
     }
 
+
     a.nav-btn {
         background-color: var(--button-bg);
         color: var(--button-text);
+
         padding: 0.75rem 1.5rem;
+
         border-radius: 8px;
+
         text-decoration: none;
+
         display: inline-block;
+
         margin-top: 0.5rem;
+
         transition: all 0.3s ease;
+
         width: 100%;
+
         text-align: center;
+
         box-sizing: border-box;
     }
+
 
     a.nav-btn:hover {
         background: var(--button-hover);
@@ -548,30 +724,57 @@
     (function () {
 
         const splash =
-            document.getElementById("web-splash");
+            document.getElementById(
+                "web-splash"
+            );
 
         if (!splash) {
             return;
         }
 
+
+        /*
+         * Move splash directly under body.
+         * This prevents <main> or other page layout
+         * from influencing its viewport position.
+         */
         document.body.appendChild(splash);
 
-        const splashAlreadyShown =
-            sessionStorage.getItem(
-                "aiAssistantSplashShown"
+
+        let splashAlreadyShown = false;
+
+
+        /*
+         * sessionStorage can theoretically be unavailable,
+         * so we keep this inside try/catch.
+         */
+        try {
+
+            splashAlreadyShown =
+                sessionStorage.getItem(
+                    "aiAssistantSplashShown"
+                ) === "true";
+
+        } catch (error) {
+
+            console.warn(
+                "Splash session storage unavailable.",
+                error
             );
+
+        }
+
 
         /*
          * Show only once per browser session.
-         * If sessionStorage is unavailable,
-         * the page still works normally.
          */
         if (splashAlreadyShown) {
 
             splash.remove();
-            return;
 
+            return;
         }
+
 
         try {
 
@@ -589,19 +792,29 @@
 
         }
 
+
         splash.classList.add("show");
+
         splash.setAttribute(
             "aria-hidden",
             "false"
         );
+
 
         const reducedMotion =
             window.matchMedia(
                 "(prefers-reduced-motion: reduce)"
             ).matches;
 
+
+        /*
+         * Normal splash = 4 seconds.
+         */
         const displayTime =
-            reducedMotion ? 650 : 4000;
+            reducedMotion
+                ? 650
+                : 4000;
+
 
         window.setTimeout(() => {
 
@@ -612,11 +825,13 @@
                 "true"
             );
 
+
             window.setTimeout(() => {
 
                 splash.remove();
 
             }, reducedMotion ? 0 : 550);
+
 
         }, displayTime);
 
