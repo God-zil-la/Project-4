@@ -5,6 +5,155 @@
 
 {% block content %}
 
+{% if user.is_authenticated %}
+
+<section style="
+    display: flex;
+    justify-content: center;
+    padding: 2rem 1rem;
+">
+    <div style="
+        background: var(--nav-bg);
+        padding: 1.5rem;
+        border-radius: 16px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+        max-width: 900px;
+        width: 100%;
+    ">
+
+        <div style="
+            margin-bottom: 2rem;
+        ">
+            <h1 style="
+                margin: 0 0 0.5rem;
+                color: var(--accent-color);
+            ">
+                Welcome back, {{ user.first_name|default:user.username }} 👋
+            </h1>
+
+            <p style="
+                margin: 0;
+                font-weight: 600;
+                line-height: 1.6;
+            ">
+                What would you like to do?
+            </p>
+        </div>
+
+
+        <!-- CURRENT PLAN -->
+        <div style="
+            border: 2px solid var(--accent-color);
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+        ">
+            <h2 style="
+                margin-top: 0;
+                margin-bottom: 0.5rem;
+                color: var(--accent-color);
+            ">
+                Current Plan
+            </h2>
+
+            <strong>
+                {{ user.profile.effective_plan|title }}
+            </strong>
+        </div>
+
+
+        <!-- QUICK ACTIONS -->
+        <div class="home-actions">
+
+            <a
+                href="{% url 'bots:my-bots' %}"
+                class="home-action-card"
+            >
+                <span class="home-action-icon">
+                    🤖
+                </span>
+
+                <span>
+                    <strong>My AI Assistants</strong>
+                    <small>
+                        View and manage your assistants
+                    </small>
+                </span>
+            </a>
+
+
+            <a
+                href="{% url 'bots:create' %}"
+                class="home-action-card"
+            >
+                <span class="home-action-icon">
+                    ➕
+                </span>
+
+                <span>
+                    <strong>Create AI Assistant</strong>
+                    <small>
+                        Build a new AI assistant
+                    </small>
+                </span>
+            </a>
+
+
+            <a
+                href="{% url 'bots:analytics' %}"
+                class="home-action-card"
+            >
+                <span class="home-action-icon">
+                    📊
+                </span>
+
+                <span>
+                    <strong>Analytics</strong>
+                    <small>
+                        View usage and activity
+                    </small>
+                </span>
+            </a>
+
+
+            <a
+                href="{% url 'payments:billing' %}"
+                class="home-action-card"
+            >
+                <span class="home-action-icon">
+                    💳
+                </span>
+
+                <span>
+                    <strong>Billing</strong>
+                    <small>
+                        Manage your plan
+                    </small>
+                </span>
+            </a>
+
+        </div>
+
+
+        <!-- DASHBOARD -->
+        <div style="
+            margin-top: 1.5rem;
+            text-align: center;
+        ">
+            <a
+                href="/dashboard/"
+                class="nav-btn home-dashboard-btn"
+            >
+                Open Dashboard
+            </a>
+        </div>
+
+    </div>
+</section>
+
+
+{% else %}
+
 
 <section style="
     display: flex;
@@ -238,7 +387,6 @@
                         margin: 0;
                         padding-left: 1.2rem;
                     ">
-
                         <li>✔️ 5 AI assistants</li>
                         <li>✔️ 3,000 AI messages per month</li>
                         <li>✔️ 250 MB Knowledge Base</li>
@@ -355,79 +503,19 @@
             max-width: 300px;
         ">
 
-            {% if not user.is_authenticated %}
+            <a
+                href="{% url 'accounts:register' %}"
+                class="nav-btn"
+            >
+                Get Started Free
+            </a>
 
-                <a
-                    href="{% url 'accounts:register' %}"
-                    class="nav-btn"
-                >
-                    Get Started Free
-                </a>
-
-                <a
-                    href="#pricing"
-                    class="nav-btn btn-premium"
-                >
-                    View Premium & Pro
-                </a>
-
-
-            {% else %}
-
-
-                {% if user.profile.effective_plan == 'free' %}
-
-                    <a
-                        href="{% url 'bots:create' %}"
-                        class="nav-btn"
-                    >
-                        Create AI Assistant
-                    </a>
-
-                    <a
-                        href="{% url 'payments:billing' %}"
-                        class="nav-btn btn-premium"
-                    >
-                        Upgrade Plan
-                    </a>
-
-
-                {% elif user.profile.effective_plan == 'premium' %}
-
-                    <a
-                        href="{% url 'bots:my-bots' %}"
-                        class="nav-btn"
-                    >
-                        My AI Assistants
-                    </a>
-
-                    <a
-                        href="{% url 'payments:billing' %}"
-                        class="nav-btn btn-premium"
-                    >
-                        Upgrade to Pro
-                    </a>
-
-
-                {% elif user.profile.effective_plan == 'pro' %}
-
-                    <a
-                        href="{% url 'bots:my-bots' %}"
-                        class="nav-btn"
-                    >
-                        My AI Assistants
-                    </a>
-
-                    <a
-                        href="{% url 'payments:billing' %}"
-                        class="nav-btn btn-premium"
-                    >
-                        Manage Plan
-                    </a>
-
-                {% endif %}
-
-            {% endif %}
+            <a
+                href="#pricing"
+                class="nav-btn btn-premium"
+            >
+                View Premium & Pro
+            </a>
 
         </div>
 
@@ -435,12 +523,12 @@
 
 </section>
 
+{% endif %}
+
 
 <style>
 
-    
-
-    /* ================= EXISTING HOME STYLES ================= */
+    /* ================= HOME ================= */
 
     ul li:hover {
         transform: scale(1.02);
@@ -477,127 +565,103 @@
         transform: scale(1.05);
     }
 
+
+    /* ================= LOGGED-IN HOME ================= */
+
+    .home-actions {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 1rem;
+    }
+
+
+    .home-action-card {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+
+        padding: 1rem;
+
+        border: 2px solid var(--accent-color);
+        border-radius: 12px;
+
+        background: var(--nav-bg);
+        color: var(--text-color);
+
+        text-decoration: none;
+
+        transition: all 0.25s ease;
+    }
+
+
+    .home-action-card:hover {
+        background: var(--button-bg);
+        transform: translateY(-2px);
+    }
+
+
+    .home-action-icon {
+        width: 48px;
+        height: 48px;
+
+        flex: 0 0 48px;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        border-radius: 12px;
+
+        background: var(--button-bg);
+
+        font-size: 1.5rem;
+    }
+
+
+    .home-action-card strong {
+        display: block;
+        margin-bottom: 0.25rem;
+        color: var(--accent-color);
+    }
+
+
+    .home-action-card small {
+        display: block;
+
+        color: var(--text-color);
+
+        font-size: 0.9rem;
+        font-weight: 600;
+
+        opacity: 0.85;
+    }
+
+
+    .home-dashboard-btn {
+        max-width: 280px;
+    }
+
+
+    /* ================= MOBILE ================= */
+
+    @media (max-width: 600px) {
+
+        .home-actions {
+            grid-template-columns: 1fr;
+        }
+
+        .home-action-card {
+            padding: 0.9rem;
+        }
+
+        .home-action-icon {
+            width: 44px;
+            height: 44px;
+            flex-basis: 44px;
+        }
+
+    }
+
 </style>
-
-
-<script>
-
-    (function () {
-
-        const splash =
-            document.getElementById(
-                "web-splash"
-            );
-
-        if (!splash) {
-            return;
-        }
-
-
-        /*
-         * Move splash directly under body.
-         * This prevents <main> or other page layout
-         * from influencing its viewport position.
-         */
-        document.body.appendChild(splash);
-
-
-        let splashAlreadyShown = false;
-
-
-        /*
-         * sessionStorage can theoretically be unavailable,
-         * so we keep this inside try/catch.
-         */
-        try {
-
-            splashAlreadyShown =
-                sessionStorage.getItem(
-                    "aiAssistantSplashShown"
-                ) === "true";
-
-        } catch (error) {
-
-            console.warn(
-                "Splash session storage unavailable.",
-                error
-            );
-
-        }
-
-
-        /*
-         * Show only once per browser session.
-         */
-        if (splashAlreadyShown) {
-
-            splash.remove();
-
-            return;
-        }
-
-
-        try {
-
-            sessionStorage.setItem(
-                "aiAssistantSplashShown",
-                "true"
-            );
-
-        } catch (error) {
-
-            console.warn(
-                "Splash session storage unavailable.",
-                error
-            );
-
-        }
-
-
-        splash.classList.add("show");
-
-        splash.setAttribute(
-            "aria-hidden",
-            "false"
-        );
-
-
-        const reducedMotion =
-            window.matchMedia(
-                "(prefers-reduced-motion: reduce)"
-            ).matches;
-
-
-        /*
-         * Normal splash = 4 seconds.
-         */
-        const displayTime =
-            reducedMotion
-                ? 650
-                : 4000;
-
-
-        window.setTimeout(() => {
-
-            splash.classList.add("hide");
-
-            splash.setAttribute(
-                "aria-hidden",
-                "true"
-            );
-
-
-            window.setTimeout(() => {
-
-                splash.remove();
-
-            }, reducedMotion ? 0 : 550);
-
-
-        }, displayTime);
-
-    })();
-
-</script>
 
 {% endblock %}
