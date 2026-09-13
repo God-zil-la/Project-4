@@ -76,15 +76,10 @@
     <h3 style="margin-top: 0;">Uploaded Knowledge</h3>
 
     {% for knowledge in knowledge_files %}
-    <div style="
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 1rem;
-        padding: 0.75rem 0;
-        border-bottom: 1px solid rgba(128, 128, 128, 0.25);
-    ">
-        <span>
+
+    <div class="knowledge-file-row">
+
+        <span class="knowledge-file-name">
             {% if knowledge.file %}
                 {{ knowledge.file.name|cut:"knowledge_files/" }}
             {% else %}
@@ -95,14 +90,21 @@
         <form
             method="post"
             action="{% url 'bots:delete-knowledge' bot.id knowledge.id %}"
-            style="margin: 0;"
+            class="knowledge-delete-form"
         >
             {% csrf_token %}
-            <button type="submit" class="btn btn-danger">
+
+            <button
+                type="submit"
+                class="btn btn-danger knowledge-delete-button"
+            >
                 🗑️ Delete
             </button>
+
         </form>
+
     </div>
+
     {% endfor %}
 </div>
 {% endif %}
@@ -361,6 +363,49 @@
         box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
         transform: scale(1.03);
     }
+
+    .knowledge-file-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+
+    width: 100%;
+    min-width: 0;
+
+    padding: 0.75rem 0;
+
+    border-bottom:
+        1px solid rgba(128, 128, 128, 0.25);
+}
+
+.knowledge-file-name {
+    flex: 1 1 auto;
+    min-width: 0;
+
+    overflow-wrap: anywhere;
+    word-break: break-word;
+
+    color: var(--text-color);
+}
+
+.knowledge-delete-form {
+    flex: 0 0 auto;
+
+    margin: 0;
+    padding: 0;
+
+    width: auto;
+}
+
+.knowledge-delete-button {
+    width: auto;
+    max-width: 100%;
+
+    margin: 0;
+
+    white-space: nowrap;
+}
 
 
     /* ================= CHAT LAYOUT ================= */
@@ -749,6 +794,24 @@
         .chat-message.bot,
         .chat-message.assistant {
             max-width: 95%;
+        }
+
+        .knowledge-file-row {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 0.65rem;
+        }
+
+        .knowledge-file-name {
+            width: 100%;
+        }
+
+        .knowledge-delete-form {
+            width: 100%;
+        }
+
+        .knowledge-delete-button {
+            width: 100%;
         }
     }
 
