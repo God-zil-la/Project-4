@@ -1,8 +1,29 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}AI Assistant - Build Your Own AI Assistants{% endblock %}
 
 {% block content %}
+
+<!-- ================= SPLASH / INTRO ================= -->
+<div id="web-splash" class="web-splash" aria-hidden="true">
+    <div class="web-splash-inner">
+        <img
+            src="{% static 'images/ai-assistant-logo.png' %}"
+            alt="AI Assistant"
+            class="web-splash-logo"
+        >
+
+        <div class="web-splash-text">
+            AI Assistant
+        </div>
+
+        <div class="web-splash-subtext">
+            BY MR.HU$$E
+        </div>
+    </div>
+</div>
+
 <section style="
     display: flex;
     justify-content: center;
@@ -123,9 +144,9 @@
 
         <!-- PRICING -->
         <div id="pricing" style="
-    margin-top: 3rem;
-    width: 100%;
-">
+            margin-top: 3rem;
+            width: 100%;
+        ">
             <h2 style="
                 margin-bottom: 0.5rem;
                 color: var(--accent-color);
@@ -216,14 +237,17 @@
                         <li>✔️ Conversation history</li>
                         <li>✔️ Knowledge uploads</li>
                         <li>✔️ Full analytics</li>
+
                         <li>
                             🔜 Advanced assistant customization
                             — Coming soon
                         </li>
+
                         <li>
                             🔜 Website widget & public chatbot
                             — Coming soon
                         </li>
+
                         <li>✔️ Priority support</li>
                     </ul>
                 </div>
@@ -258,14 +282,17 @@
                         <li>✔️ Unlimited chats</li>
                         <li>✔️ API access</li>
                         <li>✔️ Discord integration</li>
+
                         <li>
                             🔜 Remove AI Assistant branding
                             — Coming soon
                         </li>
+
                         <li>
                             🔜 Advanced customization
                             — Coming soon
                         </li>
+
                         <li>✔️ Priority support</li>
                     </ul>
                 </div>
@@ -359,6 +386,123 @@
 </section>
 
 <style>
+
+    /* ================= WEB SPLASH ================= */
+
+    .web-splash {
+        display: none;
+        position: fixed;
+        inset: 0;
+        z-index: 99999;
+
+        align-items: center;
+        justify-content: center;
+
+        background: var(--bg-color);
+        color: var(--text-color);
+
+        opacity: 1;
+
+        transition:
+            opacity 0.5s ease,
+            visibility 0.5s ease;
+    }
+
+    .web-splash.show {
+        display: flex;
+    }
+
+    .web-splash.hide {
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+    }
+
+    .web-splash-inner {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+
+        text-align: center;
+
+        animation: splashIntro 0.8s ease forwards;
+    }
+
+    .web-splash-logo {
+        width: min(220px, 55vw);
+        height: auto;
+
+        display: block;
+
+        border-radius: 28px;
+
+        filter:
+            drop-shadow(0 0 14px rgba(21, 131, 157, 0.35))
+            drop-shadow(0 0 28px rgba(21, 131, 157, 0.18));
+    }
+
+    .web-splash-text {
+        margin-top: 1.25rem;
+
+        font-size: clamp(1.7rem, 5vw, 2.5rem);
+        font-weight: 800;
+        letter-spacing: 0.04em;
+
+        color: var(--accent-color);
+    }
+
+    .web-splash-subtext {
+        margin-top: 0.25rem;
+
+        font-size: 0.85rem;
+        font-weight: 700;
+        letter-spacing: 0.18em;
+
+        color: var(--text-color);
+        opacity: 0.75;
+    }
+
+    @keyframes splashIntro {
+
+        0% {
+            opacity: 0;
+            transform: scale(0.86);
+        }
+
+        100% {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+    }
+
+    @media (max-width: 550px) {
+
+        .web-splash-logo {
+            width: min(190px, 58vw);
+            border-radius: 24px;
+        }
+
+        .web-splash-text {
+            margin-top: 1rem;
+        }
+
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+
+        .web-splash,
+        .web-splash-inner {
+            animation: none;
+            transition: none;
+        }
+
+    }
+
+
+    /* ================= EXISTING HOME STYLES ================= */
+
     ul li:hover {
         transform: scale(1.02);
         transition: transform 0.3s ease;
@@ -382,5 +526,87 @@
         background: var(--button-hover);
         transform: scale(1.05);
     }
+
 </style>
+
+
+<script>
+
+    (function () {
+
+        const splash =
+            document.getElementById("web-splash");
+
+        if (!splash) {
+            return;
+        }
+
+        const splashAlreadyShown =
+            sessionStorage.getItem(
+                "aiAssistantSplashShown"
+            );
+
+        /*
+         * Show only once per browser session.
+         * If sessionStorage is unavailable,
+         * the page still works normally.
+         */
+        if (splashAlreadyShown) {
+
+            splash.remove();
+            return;
+
+        }
+
+        try {
+
+            sessionStorage.setItem(
+                "aiAssistantSplashShown",
+                "true"
+            );
+
+        } catch (error) {
+
+            console.warn(
+                "Splash session storage unavailable.",
+                error
+            );
+
+        }
+
+        splash.classList.add("show");
+        splash.setAttribute(
+            "aria-hidden",
+            "false"
+        );
+
+        const reducedMotion =
+            window.matchMedia(
+                "(prefers-reduced-motion: reduce)"
+            ).matches;
+
+        const displayTime =
+            reducedMotion ? 650 : 1700;
+
+        window.setTimeout(() => {
+
+            splash.classList.add("hide");
+
+            splash.setAttribute(
+                "aria-hidden",
+                "true"
+            );
+
+            window.setTimeout(() => {
+
+                splash.remove();
+
+            }, reducedMotion ? 0 : 550);
+
+        }, displayTime);
+
+    })();
+
+</script>
+
 {% endblock %}
