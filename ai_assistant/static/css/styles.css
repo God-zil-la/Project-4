@@ -85,6 +85,48 @@ nav ul {
   width: 100%;
 }
 
+/* ================= NAV LOGO ================= */
+
+.nav-logo-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+}
+
+nav a.nav-logo-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 72px;
+  height: 72px;
+  padding: 0;
+  margin: 0;
+
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  backdrop-filter: none;
+
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+nav a.nav-logo-link:hover {
+  background: transparent;
+  box-shadow: none;
+  transform: scale(1.06);
+}
+
+.nav-logo {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 16px;
+}
+
 /* ================= MAIN CONTENT AREA ================= */
 main {
   flex: 1 0 auto;
@@ -176,6 +218,23 @@ button:hover,
     text-align: center;
     font-size: 0.85rem;
     margin: 0;
+  }
+
+  .nav-logo-item {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+
+  nav a.nav-logo-link {
+    width: 68px;
+    height: 68px;
+    padding: 0;
+    margin: 0 auto;
+  }
+
+  .nav-logo {
+    width: 100%;
+    height: 100%;
   }
 
   main {

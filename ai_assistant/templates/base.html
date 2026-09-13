@@ -19,8 +19,19 @@
 
   <title>{% block title %}AI Assistant{% endblock %}</title>
 
-  <link rel="stylesheet" href="{% static 'css/styles.css' %}?v=2">
-  <link rel="icon" href="{% static 'images/favicon.ico' %}">
+  <link rel="stylesheet" href="{% static 'css/styles.css' %}?v=3">
+
+  <!-- Favicon -->
+  <link
+    rel="icon"
+    type="image/png"
+    href="{% static 'images/ai-assistant-logo.png' %}"
+  >
+
+  <link
+    rel="apple-touch-icon"
+    href="{% static 'images/ai-assistant-logo.png' %}"
+  >
 
   {% block extra_css %}{% endblock %}
 
@@ -31,6 +42,21 @@
   <nav>
 
     <ul>
+
+      <!-- AI Assistant logo -->
+      <li class="nav-logo-item">
+        <a
+          href="/"
+          class="nav-logo-link"
+          aria-label="AI Assistant Home"
+        >
+          <img
+            src="{% static 'images/ai-assistant-logo.png' %}"
+            alt="AI Assistant"
+            class="nav-logo"
+          >
+        </a>
+      </li>
 
       {% if user.is_authenticated %}
 
@@ -54,7 +80,16 @@
 
       <li style="position:relative;">
 
-        <a href="#" class="nav-btn" onclick="document.getElementById('logout-form').submit(); return false;">
+        <a
+          href="#"
+          class="nav-btn"
+          onclick="
+            document
+              .getElementById('logout-form')
+              .submit();
+            return false;
+          "
+        >
           Logout
 
           {% if messages %}
@@ -72,10 +107,13 @@
 
         </a>
 
-        <form id="logout-form" method="POST" action="{% url 'accounts:logout' %}" style="display:none;">
-
+        <form
+          id="logout-form"
+          method="POST"
+          action="{% url 'accounts:logout' %}"
+          style="display:none;"
+        >
           {% csrf_token %}
-
         </form>
 
       </li>
@@ -114,51 +152,66 @@
 
     {% if message.tags == "success" %}
 
-    <div class="alert alert-success" style="
-          background:#d4edda;
-          color:#155724;
-          border:1px solid #c3e6cb;
-        ">
+    <div
+      class="alert alert-success"
+      style="
+        background:#d4edda;
+        color:#155724;
+        border:1px solid #c3e6cb;
+      "
+    >
       {{ message }}
     </div>
 
     {% elif message.tags == "info" %}
 
-    <div class="alert alert-info" style="
-          background:#d1ecf1;
-          color:#0c5460;
-          border:1px solid #bee5eb;
-        ">
+    <div
+      class="alert alert-info"
+      style="
+        background:#d1ecf1;
+        color:#0c5460;
+        border:1px solid #bee5eb;
+      "
+    >
       {{ message }}
     </div>
 
     {% elif message.tags == "warning" %}
 
-    <div class="alert alert-warning" style="
-          background:#fff3cd;
-          color:#856404;
-          border:1px solid #ffeeba;
-        ">
+    <div
+      class="alert alert-warning"
+      style="
+        background:#fff3cd;
+        color:#856404;
+        border:1px solid #ffeeba;
+      "
+    >
       {{ message }}
     </div>
 
     {% elif message.tags == "danger" or message.tags == "error" %}
 
-    <div class="alert alert-danger" style="
-          background:#f8d7da;
-          color:#721c24;
-          border:1px solid #f5c6cb;
-        ">
+    <div
+      class="alert alert-danger"
+      style="
+        background:#f8d7da;
+        color:#721c24;
+        border:1px solid #f5c6cb;
+      "
+    >
       {{ message }}
     </div>
 
     {% else %}
 
-    <div class="alert alert-info" style="
-          background:#d1ecf1;
-          color:#0c5460;
-          border:1px solid #bee5eb;
-        ">
+    <div
+      class="alert alert-info"
+      style="
+        background:#d1ecf1;
+        color:#0c5460;
+        border:1px solid #bee5eb;
+      "
+    >
       {{ message }}
     </div>
 
@@ -170,7 +223,11 @@
 
   {% endif %}
 
-  <button id="toggleTheme" class="toggle-theme" aria-label="Toggle theme">
+  <button
+    id="toggleTheme"
+    class="toggle-theme"
+    aria-label="Toggle theme"
+  >
     <span id="theme-icon">🌙</span>
   </button>
 
@@ -182,15 +239,21 @@
 
   <footer>
     <p>
-      &copy; {% now "Y" %} AI Assistant. All rights reserved.
+      &copy; {% now "Y" %} AI Assistant.
+      All rights reserved.
     </p>
   </footer>
 
   <script>
 
-    const toggleButton = document.getElementById("toggleTheme");
-    const icon = document.getElementById("theme-icon");
-    const html = document.documentElement;
+    const toggleButton =
+      document.getElementById("toggleTheme");
+
+    const icon =
+      document.getElementById("theme-icon");
+
+    const html =
+      document.documentElement;
 
     function updateIcon() {
 
@@ -205,7 +268,8 @@
 
     toggleButton?.addEventListener("click", () => {
 
-      const isDark = html.classList.toggle("dark");
+      const isDark =
+        html.classList.toggle("dark");
 
       localStorage.setItem(
         "theme",
