@@ -126,11 +126,9 @@
                 minmax(200px, 1fr)
             );
             gap: 1rem;
-            margin-bottom: 1.5rem;
         ">
 
             <div class="dashboard-card">
-
                 <h3>
                     💬 AI Messages
                 </h3>
@@ -138,12 +136,10 @@
                 <p>
                     {{ message_count }} / {{ message_limit }} this month
                 </p>
-
             </div>
 
 
             <div class="dashboard-card">
-
                 <h3>
                     🤖 AI Assistants
                 </h3>
@@ -151,12 +147,10 @@
                 <p>
                     {{ bot_count }} / {{ bot_limit }}
                 </p>
-
             </div>
 
 
             <div class="dashboard-card">
-
                 <h3>
                     📚 Knowledge Base
                 </h3>
@@ -165,12 +159,10 @@
                     {{ knowledge_used_display }} /
                     {{ knowledge_limit_display }}
                 </p>
-
             </div>
 
 
             <div class="dashboard-card">
-
                 <h3>
                     🗨️ Chats
                 </h3>
@@ -178,101 +170,7 @@
                 <p>
                     Unlimited
                 </p>
-
             </div>
-
-        </div>
-
-
-        <!-- PLAN FEATURES -->
-
-        <div style="
-            border: 2px solid var(--accent-color);
-            border-radius: 12px;
-            padding: 1rem;
-        ">
-
-            <h2 style="
-                margin-top: 0;
-                color: var(--accent-color);
-            ">
-                Features
-            </h2>
-
-
-            {% if user.profile.effective_plan == 'free' %}
-
-            <ul style="
-                padding-left: 1.2rem;
-                font-weight: 600;
-                line-height: 1.8;
-            ">
-                <li>✔️ AI chat</li>
-                <li>✔️ Knowledge uploads</li>
-                <li>✔️ Conversation history</li>
-                <li>✔️ Basic analytics</li>
-                <li>🔒 Full analytics — Premium</li>
-                <li>🔒 API access — Pro</li>
-                <li>🔒 Discord integration — Pro</li>
-                <li>
-                    🔜 Website widget & public chatbot
-                    — Coming soon
-                </li>
-            </ul>
-
-
-            {% elif user.profile.effective_plan == 'premium' %}
-
-            <ul style="
-                padding-left: 1.2rem;
-                font-weight: 600;
-                line-height: 1.8;
-            ">
-                <li>✔️ AI chat</li>
-                <li>✔️ Knowledge uploads</li>
-                <li>✔️ Conversation history</li>
-                <li>✔️ Full analytics</li>
-                <li>🔒 API access — Pro</li>
-                <li>🔒 Discord integration — Pro</li>
-                <li>
-                    🔜 Website widget & public chatbot
-                    — Coming soon
-                </li>
-                <li>
-                    🔜 Advanced assistant customization
-                    — Coming soon
-                </li>
-            </ul>
-
-
-            {% elif user.profile.effective_plan == 'pro' %}
-
-            <ul style="
-                padding-left: 1.2rem;
-                font-weight: 600;
-                line-height: 1.8;
-            ">
-                <li>✔️ AI chat</li>
-                <li>✔️ Knowledge uploads</li>
-                <li>✔️ Conversation history</li>
-                <li>✔️ Full analytics</li>
-                <li>✔️ API access</li>
-                <li>✔️ Discord integration</li>
-                <li>
-                    🔜 Website widget & public chatbot
-                    — Coming soon
-                </li>
-                <li>
-                    🔜 Remove AI Assistant branding
-                    — Coming soon
-                </li>
-                <li>
-                    🔜 Advanced customization
-                    — Coming soon
-                </li>
-            </ul>
-
-            {% endif %}
 
         </div>
 
@@ -299,17 +197,11 @@
     .dashboard-btn {
         background-color: var(--button-bg);
         color: var(--button-text);
-
         padding: 0.75rem 1.25rem;
-
         border-radius: 8px;
-
         text-decoration: none;
-
         display: inline-block;
-
         transition: all 0.3s ease;
-
         font-weight: 600;
     }
 
