@@ -52,11 +52,23 @@
 </div>
 
 
-<h2 style="text-align: center; margin-bottom: 0.5rem;">
-    📚 Knowledge for {{ bot.name }}
-</h2>
-<p style="text-align: center; margin-bottom: 1rem;">
-    Add documents your assistant can use when answering your questions.
+<div class="knowledge-heading">
+    <h2>
+        📚 Knowledge for {{ bot.name }}
+    </h2>
+
+    <button
+        type="button"
+        id="knowledge-info-button"
+        class="knowledge-info-button"
+        aria-label="How does Knowledge Upload work?"
+    >
+        ⓘ How does it work?
+    </button>
+</div>
+
+<p class="knowledge-description">
+    Add documents or text your assistant can use when answering your questions.
 </p>
 
 {% if knowledge_files %}
@@ -132,6 +144,76 @@
     </button>
 
 </form>
+
+<dialog id="knowledge-info-dialog">
+    <div class="knowledge-info-content">
+
+        <div class="knowledge-info-header">
+            <h3>📚 How does Knowledge Upload work?</h3>
+
+            <button
+                type="button"
+                id="knowledge-info-close"
+                class="knowledge-info-close"
+                aria-label="Close"
+            >
+                ×
+            </button>
+        </div>
+
+        <p>
+            Knowledge Upload lets you give
+            <strong>{{ bot.name }}</strong>
+            custom information that it can use when answering questions.
+        </p>
+
+        <p>
+            You can upload a
+            <strong>TXT, PDF or DOCX</strong>
+            document, or paste text manually. The content is processed
+            and added to this bot's knowledge base.
+        </p>
+
+        <h4>Good examples</h4>
+
+        <ul>
+            <li>FAQs</li>
+            <li>Product information</li>
+            <li>Instructions and manuals</li>
+            <li>Company documentation</li>
+            <li>Policies and procedures</li>
+            <li>Guides and reference material</li>
+        </ul>
+
+        <div class="knowledge-info-note">
+            <strong>💡 Bot-specific knowledge</strong>
+            <p>
+                Knowledge uploaded here belongs to
+                <strong>{{ bot.name }}</strong>.
+                This means each of your bots can have its own
+                documents and information.
+            </p>
+        </div>
+
+        <div class="knowledge-security-note">
+            <strong>🔒 Security</strong>
+            <p>
+                Only upload information you have permission to use.
+                Never upload passwords, API keys, access tokens
+                or other secrets.
+            </p>
+        </div>
+
+        <button
+            type="button"
+            id="knowledge-info-done"
+            class="knowledge-info-done"
+        >
+            Got it
+        </button>
+
+    </div>
+</dialog>
 
 <style>
     /* ================= CHAT MESSAGES ================= */
@@ -606,6 +688,157 @@
             max-width: 95%;
         }
     }
+
+    /* ================= KNOWLEDGE INFO ================= */
+
+.knowledge-heading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
+}
+
+.knowledge-heading h2 {
+    margin: 0;
+}
+
+.knowledge-description {
+    text-align: center;
+    margin-bottom: 1rem;
+}
+
+.knowledge-info-button {
+    padding: 0.45rem 0.75rem;
+    border: 1px solid var(--button-border);
+    background: var(--button-bg);
+    color: var(--button-text);
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.9rem;
+    box-shadow: var(--button-shadow);
+    transition: all 0.2s ease;
+}
+
+.knowledge-info-button:hover {
+    background: var(--button-hover);
+    transform: scale(1.03);
+}
+
+#knowledge-info-dialog {
+    width: min(92vw, 600px);
+    max-height: 85vh;
+    overflow-y: auto;
+    padding: 0;
+    border: 1px solid var(--button-border);
+    border-radius: 16px;
+    background: var(--nav-bg);
+    color: var(--text-color);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+}
+
+#knowledge-info-dialog::backdrop {
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(3px);
+}
+
+.knowledge-info-content {
+    padding: 1.5rem;
+    line-height: 1.6;
+}
+
+.knowledge-info-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.knowledge-info-header h3 {
+    margin: 0;
+    color: var(--accent-color);
+}
+
+.knowledge-info-close {
+    flex: 0 0 auto;
+    border: none;
+    background: transparent;
+    color: var(--text-color);
+    font-size: 1.8rem;
+    line-height: 1;
+    cursor: pointer;
+    box-shadow: none;
+}
+
+.knowledge-info-close:hover {
+    background: transparent;
+    transform: scale(1.1);
+    box-shadow: none;
+}
+
+.knowledge-info-content h4 {
+    margin-bottom: 0.5rem;
+}
+
+.knowledge-info-content ul {
+    padding-left: 1.4rem;
+}
+
+.knowledge-info-note,
+.knowledge-security-note {
+    margin-top: 1rem;
+    padding: 1rem;
+    border: 1px solid var(--button-border);
+    border-radius: 12px;
+    background: rgba(128, 128, 128, 0.08);
+}
+
+.knowledge-info-note p,
+.knowledge-security-note p {
+    margin: 0.4rem 0 0;
+}
+
+.knowledge-security-note {
+    border-color: rgba(255, 193, 7, 0.45);
+}
+
+.knowledge-info-done {
+    width: 100%;
+    margin-top: 1.25rem;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--button-border);
+    background: var(--button-bg);
+    color: var(--button-text);
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: var(--button-shadow);
+}
+
+.knowledge-info-done:hover {
+    background: var(--button-hover);
+}
+
+@media (max-width: 480px) {
+    .knowledge-heading {
+        flex-direction: column;
+    }
+
+    .knowledge-info-button {
+        width: 100%;
+        max-width: 300px;
+    }
+
+    #knowledge-info-dialog {
+        width: calc(100vw - 24px);
+        max-width: none;
+    }
+
+    .knowledge-info-content {
+        padding: 1.1rem;
+    }
+}
 </style>
 
 <dialog id="conversation-action-dialog">
@@ -632,6 +865,65 @@
 
 <script>
     document.addEventListener("DOMContentLoaded", () => {
+        const knowledgeInfoButton =
+            document.getElementById("knowledge-info-button");
+
+        const knowledgeInfoDialog =
+            document.getElementById("knowledge-info-dialog");
+
+        const knowledgeInfoClose =
+            document.getElementById("knowledge-info-close");
+
+        const knowledgeInfoDone =
+            document.getElementById("knowledge-info-done");
+
+        if (
+            knowledgeInfoButton
+            && knowledgeInfoDialog
+        ) {
+            knowledgeInfoButton.addEventListener(
+                "click",
+                () => {
+                    knowledgeInfoDialog.showModal();
+                }
+            );
+        }
+
+        if (
+            knowledgeInfoClose
+            && knowledgeInfoDialog
+        ) {
+            knowledgeInfoClose.addEventListener(
+                "click",
+                () => {
+                    knowledgeInfoDialog.close();
+                }
+            );
+        }
+
+        if (
+            knowledgeInfoDone
+            && knowledgeInfoDialog
+        ) {
+            knowledgeInfoDone.addEventListener(
+                "click",
+                () => {
+                    knowledgeInfoDialog.close();
+                }
+            );
+        }
+
+        if (knowledgeInfoDialog) {
+            knowledgeInfoDialog.addEventListener(
+                "click",
+                (event) => {
+                    if (event.target === knowledgeInfoDialog) {
+                        knowledgeInfoDialog.close();
+                    }
+                }
+            );
+        }
+
         const chatForm =
             document.getElementById("chat-form");
 
@@ -951,8 +1243,11 @@
                 }
 
                 botConversations.forEach((conversation) => {
-                    const item = document.createElement("div");
-                    item.className = "conversation-item";
+                    const item =
+                        document.createElement("div");
+
+                    item.className =
+                        "conversation-item";
 
                     if (
                         conversation.conversation_id
@@ -964,28 +1259,42 @@
                     item.dataset.conversationId =
                         conversation.conversation_id;
 
-                    const content = document.createElement("button");
-                    content.type = "button";
-                    content.className = "conversation-content";
+                    const content =
+                        document.createElement("button");
 
-                    const title = document.createElement("span");
-                    title.className = "conversation-item-title";
+                    content.type = "button";
+                    content.className =
+                        "conversation-content";
+
+                    const title =
+                        document.createElement("span");
+
+                    title.className =
+                        "conversation-item-title";
+
                     title.textContent =
                         conversation.title || "New Chat";
 
-                    const count = document.createElement("span");
-                    count.className = "conversation-item-count";
+                    const count =
+                        document.createElement("span");
+
+                    count.className =
+                        "conversation-item-count";
+
                     count.textContent =
                         `${conversation.message_count} messages`;
 
                     content.appendChild(title);
                     content.appendChild(count);
 
-                    content.addEventListener("click", () => {
-                        loadConversation(
-                            conversation.conversation_id
-                        );
-                    });
+                    content.addEventListener(
+                        "click",
+                        () => {
+                            loadConversation(
+                                conversation.conversation_id
+                            );
+                        }
+                    );
 
                     const menuButton =
                         document.createElement("button");
@@ -995,13 +1304,17 @@
                         "conversation-menu-button";
 
                     menuButton.textContent = "⋮";
+
                     menuButton.setAttribute(
                         "aria-label",
                         "Conversation options"
                     );
 
-                    const menu = document.createElement("div");
-                    menu.className = "conversation-menu";
+                    const menu =
+                        document.createElement("div");
+
+                    menu.className =
+                        "conversation-menu";
 
                     const renameButton =
                         document.createElement("button");
@@ -1123,8 +1436,6 @@
             }
         );
 
-
-  
         conversationDialog.addEventListener(
             "cancel",
             (event) => {
@@ -1141,7 +1452,9 @@
                     return;
                 }
 
-                if (pendingConversationAction === "rename") {
+                if (
+                    pendingConversationAction === "rename"
+                ) {
                     const cleanTitle =
                         conversationDialogInput.value.trim();
 
@@ -1151,7 +1464,8 @@
                     }
 
                     try {
-                        conversationDialogConfirm.disabled = true;
+                        conversationDialogConfirm.disabled =
+                            true;
 
                         const response = await fetch(
                             `/bots/api/conversations/${pendingConversation.conversation_id}/`,
@@ -1188,18 +1502,23 @@
                         );
 
                     } finally {
-                        conversationDialogConfirm.disabled = false;
+                        conversationDialogConfirm.disabled =
+                            false;
                     }
 
                     return;
                 }
 
-                if (pendingConversationAction === "delete") {
+                if (
+                    pendingConversationAction === "delete"
+                ) {
                     try {
-                        conversationDialogConfirm.disabled = true;
+                        conversationDialogConfirm.disabled =
+                            true;
 
                         const conversationId =
-                            pendingConversation.conversation_id;
+                            pendingConversation
+                                .conversation_id;
 
                         const response = await fetch(
                             `/bots/api/conversations/${conversationId}/`,
@@ -1239,11 +1558,13 @@
                         );
 
                     } finally {
-                        conversationDialogConfirm.disabled = false;
+                        conversationDialogConfirm.disabled =
+                            false;
                     }
                 }
             }
         );
+
         async function createConversation() {
             try {
                 newChatButton.disabled = true;
@@ -1434,7 +1755,6 @@
         }
 
         loadConversations();
-
     });
 </script>
 
