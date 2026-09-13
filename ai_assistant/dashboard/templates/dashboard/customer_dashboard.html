@@ -3,7 +3,6 @@
 {% block title %}Dashboard - AI Assistant{% endblock %}
 
 {% block content %}
-
 <section style="
     display: flex;
     justify-content: center;
@@ -40,7 +39,6 @@
             </p>
         </div>
 
-
         <!-- CURRENT PLAN -->
         <div style="
             border: 2px solid var(--accent-color);
@@ -60,65 +58,49 @@
             </h3>
 
             {% if user.profile.effective_plan == 'free' %}
-
             <p style="font-weight: 600;">
                 Free includes 1 AI assistant, 150 AI messages per month,
                 10 MB Knowledge Base, and unlimited chats.
             </p>
 
-            <a
-                href="{% url 'payments:billing' %}"
-                class="dashboard-btn"
-            >
+            <a href="{% url 'payments:billing' %}" class="dashboard-btn">
                 Upgrade Plan
             </a>
 
             {% elif user.profile.effective_plan == 'premium' %}
-
             <p style="font-weight: 600;">
                 Premium includes 5 AI assistants, 3,000 AI messages per month,
                 250 MB Knowledge Base, and unlimited chats.
             </p>
 
-            <a
-                href="{% url 'payments:billing' %}"
-                class="dashboard-btn"
-            >
+            <a href="{% url 'payments:billing' %}" class="dashboard-btn">
                 Upgrade to Pro
             </a>
 
-            <a
-                href="{% url 'payments:billing' %}"
-                class="dashboard-btn secondary-btn"
-            >
+            <a href="{% url 'payments:billing' %}" class="dashboard-btn secondary-btn">
                 Manage Plan
             </a>
 
             {% elif user.profile.effective_plan == 'pro' %}
-
             <p style="font-weight: 600;">
                 Pro includes 15 AI assistants, 10,000 AI messages per month,
                 1 GB Knowledge Base, and unlimited chats.
             </p>
 
-            <a
-                href="{% url 'payments:billing' %}"
-                class="dashboard-btn"
-            >
+            <a href="{% url 'payments:billing' %}" class="dashboard-btn">
                 Manage Plan
             </a>
-
             {% endif %}
         </div>
 
-
+        <!-- USAGE -->
         <!-- USAGE -->
         <div style="
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
-            margin-bottom: 1.5rem;
-        ">
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+">
 
             <div class="dashboard-card">
                 <h3>💬 AI Messages</h3>
@@ -137,8 +119,7 @@
             <div class="dashboard-card">
                 <h3>📚 Knowledge Base</h3>
                 <p>
-                    {{ knowledge_used_display }} /
-                    {{ knowledge_limit_display }}
+                    {{ knowledge_used_display }} / {{ knowledge_limit_display }}
                 </p>
             </div>
 
@@ -150,7 +131,6 @@
             </div>
 
         </div>
-
 
         <!-- GET STARTED -->
         <div style="
@@ -182,22 +162,15 @@
                 gap: 1rem;
                 margin-top: 1rem;
             ">
-                <a
-                    href="{% url 'bots:create' %}"
-                    class="dashboard-btn"
-                >
+                <a href="{% url 'bots:create' %}" class="dashboard-btn">
                     Create AI Assistant
                 </a>
 
-                <a
-                    href="{% url 'bots:my-bots' %}"
-                    class="dashboard-btn secondary-btn"
-                >
+                <a href="{% url 'bots:my-bots' %}" class="dashboard-btn secondary-btn">
                     My AI Assistants
                 </a>
             </div>
         </div>
-
 
         <!-- PLAN FEATURES -->
         <div style="
@@ -213,12 +186,11 @@
             </h2>
 
             {% if user.profile.effective_plan == 'free' %}
-
             <ul style="
-                padding-left: 1.2rem;
-                font-weight: 600;
-                line-height: 1.8;
-            ">
+                    padding-left: 1.2rem;
+                    font-weight: 600;
+                    line-height: 1.8;
+                ">
                 <li>✔️ AI chat</li>
                 <li>✔️ Knowledge uploads</li>
                 <li>✔️ Conversation history</li>
@@ -230,12 +202,11 @@
             </ul>
 
             {% elif user.profile.effective_plan == 'premium' %}
-
             <ul style="
-                padding-left: 1.2rem;
-                font-weight: 600;
-                line-height: 1.8;
-            ">
+                    padding-left: 1.2rem;
+                    font-weight: 600;
+                    line-height: 1.8;
+                ">
                 <li>✔️ AI chat</li>
                 <li>✔️ Knowledge uploads</li>
                 <li>✔️ Conversation history</li>
@@ -247,12 +218,11 @@
             </ul>
 
             {% elif user.profile.effective_plan == 'pro' %}
-
             <ul style="
-                padding-left: 1.2rem;
-                font-weight: 600;
-                line-height: 1.8;
-            ">
+                    padding-left: 1.2rem;
+                    font-weight: 600;
+                    line-height: 1.8;
+                ">
                 <li>✔️ AI chat</li>
                 <li>✔️ Knowledge uploads</li>
                 <li>✔️ Conversation history</li>
@@ -263,100 +233,13 @@
                 <li>🔜 Remove AI Assistant branding — Coming soon</li>
                 <li>🔜 Advanced customization — Coming soon</li>
             </ul>
-
             {% endif %}
         </div>
-
-
-        <!-- ANDROID APP -->
-        <div class="android-app-card">
-
-            <div class="android-app-header">
-
-                <div class="android-icon">
-                    🤖
-                </div>
-
-                <div>
-                    <h2>
-                        AI Assistant for Android
-                    </h2>
-
-                    <p class="android-subtitle">
-                        Your AI assistants, wherever you go.
-                    </p>
-                </div>
-
-            </div>
-
-            <p class="android-description">
-                Access your AI assistants directly from your Android device.
-                Manage assistants, knowledge, chats, analytics, and your account
-                using the same AI Assistant account you use on the web.
-            </p>
-
-            <div class="android-features">
-                <span>✓ Same account</span>
-                <span>✓ AI assistants</span>
-                <span>✓ Knowledge Base</span>
-                <span>✓ Chats & analytics</span>
-            </div>
-
-            <div class="android-download">
-
-                <span
-                    class="google-play-btn disabled"
-                    aria-disabled="true"
-                >
-                    <span class="google-play-icon">
-                        ▶
-                    </span>
-
-                    <span class="google-play-text">
-                        <small>GET IT ON</small>
-                        <strong>Google Play</strong>
-                    </span>
-                </span>
-
-                <p class="play-status">
-                    Google Play access will be enabled after verification.
-                </p>
-
-            </div>
-
-        </div>
-
-
-        <!-- SUPPORT -->
-        <div class="support-card">
-
-            <h2>
-                Need help?
-            </h2>
-
-            <p>
-                Questions or problems with AI Assistant,
-                your account, billing, or the Android app?
-            </p>
-
-            <a
-                href="mailto:support@myaiassistantapp.se"
-                class="support-email"
-            >
-                ✉ support@myaiassistantapp.se
-            </a>
-
-        </div>
-
 
     </div>
 </section>
 
-
 <style>
-
-    /* ================= DASHBOARD ================= */
-
     .dashboard-card {
         border: 2px solid var(--accent-color);
         border-radius: 12px;
@@ -388,228 +271,5 @@
     .secondary-btn {
         border: 2px solid var(--accent-color);
     }
-
-
-    /* ================= ANDROID APP ================= */
-
-    .android-app-card {
-        margin-top: 1.5rem;
-        padding: 1.25rem;
-        border: 2px solid var(--accent-color);
-        border-radius: 12px;
-        background: var(--nav-bg);
-        color: var(--text-color);
-    }
-
-    .android-app-header {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-    }
-
-    .android-icon {
-        width: 58px;
-        height: 58px;
-        flex: 0 0 58px;
-
-        display: flex;
-        align-items: center;
-        justify-content: center;
-
-        border: 2px solid var(--accent-color);
-        border-radius: 14px;
-
-        background: var(--button-bg);
-
-        font-size: 1.8rem;
-    }
-
-    .android-app-header h2 {
-        margin: 0;
-        color: var(--accent-color);
-    }
-
-    .android-subtitle {
-        margin: 0.25rem 0 0;
-        font-weight: 600;
-        opacity: 0.85;
-    }
-
-    .android-description {
-        margin: 1.25rem 0;
-        font-weight: 600;
-        line-height: 1.6;
-    }
-
-    .android-features {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.6rem;
-        margin-bottom: 1.25rem;
-    }
-
-    .android-features span {
-        padding: 0.45rem 0.7rem;
-        border: 1px solid var(--accent-color);
-        border-radius: 999px;
-        font-size: 0.9rem;
-        font-weight: 600;
-        background: var(--button-bg);
-        color: var(--button-text);
-    }
-
-    .android-download {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        gap: 1rem;
-    }
-
-    .google-play-btn {
-        min-width: 170px;
-
-        display: inline-flex;
-        align-items: center;
-        gap: 0.7rem;
-
-        padding: 0.6rem 1rem;
-
-        border-radius: 9px;
-        border: 2px solid var(--accent-color);
-
-        background: var(--button-bg);
-        color: var(--button-text);
-
-        text-decoration: none;
-
-        box-sizing: border-box;
-    }
-
-    .google-play-btn.disabled {
-        opacity: 0.65;
-        cursor: not-allowed;
-        user-select: none;
-    }
-
-    .google-play-icon {
-        font-size: 1.5rem;
-        line-height: 1;
-    }
-
-    .google-play-text {
-        display: flex;
-        flex-direction: column;
-        line-height: 1.05;
-    }
-
-    .google-play-text small {
-        font-size: 0.65rem;
-        font-weight: 600;
-        letter-spacing: 0.04rem;
-    }
-
-    .google-play-text strong {
-        font-size: 1.15rem;
-    }
-
-    .play-status {
-        margin: 0;
-        font-size: 0.9rem;
-        font-weight: 600;
-        opacity: 0.8;
-    }
-
-
-    /* ================= SUPPORT ================= */
-
-    .support-card {
-        margin-top: 1.5rem;
-        padding: 1.25rem;
-
-        border: 2px solid var(--accent-color);
-        border-radius: 12px;
-
-        background: var(--nav-bg);
-        color: var(--text-color);
-    }
-
-    .support-card h2 {
-        margin-top: 0;
-        margin-bottom: 0.5rem;
-        color: var(--accent-color);
-    }
-
-    .support-card p {
-        margin-top: 0;
-        margin-bottom: 1rem;
-
-        font-weight: 600;
-        line-height: 1.6;
-    }
-
-    .support-email {
-        display: inline-block;
-
-        padding: 0.75rem 1rem;
-
-        border-radius: 8px;
-
-        background: var(--button-bg);
-        color: var(--button-text);
-
-        border: 2px solid var(--accent-color);
-
-        text-decoration: none;
-        font-weight: 700;
-
-        transition: all 0.3s ease;
-    }
-
-    .support-email:hover {
-        background: var(--button-hover);
-        transform: scale(1.03);
-    }
-
-
-    /* ================= MOBILE ================= */
-
-    @media (max-width: 550px) {
-
-        .android-app-header {
-            align-items: flex-start;
-        }
-
-        .android-icon {
-            width: 50px;
-            height: 50px;
-            flex-basis: 50px;
-            font-size: 1.5rem;
-        }
-
-        .android-download {
-            flex-direction: column;
-            align-items: stretch;
-        }
-
-        .google-play-btn {
-            width: 100%;
-            justify-content: center;
-        }
-
-        .play-status {
-            text-align: center;
-        }
-
-        .support-email {
-            display: block;
-            width: 100%;
-            box-sizing: border-box;
-            text-align: center;
-            overflow-wrap: anywhere;
-        }
-
-    }
-
 </style>
-
 {% endblock %}
