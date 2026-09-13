@@ -63,7 +63,7 @@
         class="knowledge-info-button"
         aria-label="How does Knowledge Upload work?"
     >
-        ⓘ How does it work?
+        ⓘ What is Knowledge?
     </button>
 </div>
 
@@ -149,7 +149,7 @@
     <div class="knowledge-info-content">
 
         <div class="knowledge-info-header">
-            <h3>📚 How does Knowledge Upload work?</h3>
+            <h3>📚 What is Knowledge?</h3>
 
             <button
                 type="button"
@@ -162,45 +162,108 @@
         </div>
 
         <p>
-            Knowledge Upload lets you give
-            <strong>{{ bot.name }}</strong>
-            custom information that it can use when answering questions.
+            <strong>Knowledge lets you teach your AI Assistant about information
+            that is important to you, your business, your products, your documents
+            or anything else you want this bot to know.</strong>
         </p>
 
         <p>
-            You can upload a
-            <strong>TXT, PDF or DOCX</strong>
-            document, or paste text manually. The content is processed
-            and added to this bot's knowledge base.
+            Simply upload a <strong>PDF, DOCX or TXT</strong> file.
+            Your assistant reads the content and adds it to this bot's knowledge.
         </p>
 
-        <h4>Good examples</h4>
+        <p>
+            When you later ask a question, the bot can use information from your
+            uploaded documents to give you a more relevant and useful answer.
+        </p>
+
+        <h4>💡 Simple example</h4>
+
+        <p>
+            Imagine you create a customer support bot for your business.
+        </p>
+
+        <p>
+            You upload a document containing your
+            <strong>
+                products, prices, delivery information, return policy
+                and frequently asked questions.
+            </strong>
+        </p>
+
+        <p>
+            A user can then ask:
+        </p>
+
+        <div class="knowledge-example-question">
+            “How long does delivery take?”
+        </div>
+
+        <p>
+            Instead of relying only on general AI knowledge,
+            your assistant can use the information
+            <strong>you uploaded</strong>
+            to answer the question.
+        </p>
+
+        <h4>📄 What can I upload?</h4>
 
         <ul>
-            <li>FAQs</li>
-            <li>Product information</li>
+            <li>Product and service information</li>
+            <li>FAQs and customer support information</li>
             <li>Instructions and manuals</li>
-            <li>Company documentation</li>
+            <li>Company information</li>
             <li>Policies and procedures</li>
-            <li>Guides and reference material</li>
+            <li>Guides and documentation</li>
+            <li>Notes and reference material</li>
         </ul>
 
+        <p>
+            Supported file types:
+            <strong>PDF, DOCX and TXT</strong>
+        </p>
+
         <div class="knowledge-info-note">
-            <strong>💡 Bot-specific knowledge</strong>
+            <strong>🤖 Each bot can know different things</strong>
+
             <p>
-                Knowledge uploaded here belongs to
-                <strong>{{ bot.name }}</strong>.
-                This means each of your bots can have its own
-                documents and information.
+                Knowledge is connected to the bot you upload it to.
+            </p>
+
+            <p>
+                For example, you could have one bot that knows everything
+                about your products, another bot for technical support,
+                and another bot that uses completely different documents.
+            </p>
+
+            <p>
+                Uploading or deleting knowledge from this bot does
+                <strong>not</strong>
+                change the knowledge used by your other bots.
+            </p>
+        </div>
+
+        <div class="knowledge-info-note">
+            <strong>🔄 You are in control</strong>
+
+            <p>
+                You can upload more documents whenever you want to give
+                your assistant more information.
+            </p>
+
+            <p>
+                You can also delete uploaded knowledge when you no longer
+                want this bot to use it.
             </p>
         </div>
 
         <div class="knowledge-security-note">
-            <strong>🔒 Security</strong>
+            <strong>🔒 Before you upload</strong>
+
             <p>
                 Only upload information you have permission to use.
-                Never upload passwords, API keys, access tokens
-                or other secrets.
+                Do not upload passwords, API keys, access tokens,
+                payment details or other secrets.
             </p>
         </div>
 
@@ -736,6 +799,15 @@
     background: var(--nav-bg);
     color: var(--text-color);
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+}
+
+.knowledge-example-question {
+    margin: 0.75rem 0 1rem;
+    padding: 0.9rem 1rem;
+    border-left: 3px solid var(--accent-color);
+    background: rgba(128, 128, 128, 0.08);
+    font-weight: 700;
+    font-style: italic;
 }
 
 #knowledge-info-dialog::backdrop {
