@@ -39,7 +39,9 @@ ALLOWED_HOSTS = [
     "localhost",
     "127.0.0.1",
     ".ngrok-free.app",
-    ".herokuapp.com",
+    "https://*.herokuapp.com",
+    "https://myaiassistantapp.se"
+    "https://www.myaiassistantapp.se",
 ]
 
 extra_hosts = os.getenv("ALLOWED_HOSTS", "")
