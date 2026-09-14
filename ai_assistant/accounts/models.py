@@ -11,6 +11,19 @@ def current_month_start():
     return today.replace(day=1)
 
 
+class FileDeletionJob(models.Model):
+    """Survives account removal until storage deletion succeeds."""
+    name = models.CharField(max_length=500, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+
+class DeletionFollowUp(models.Model):
+    """Minimum contact/provider reference for manual third-party erasure."""
+    email = models.EmailField(blank=True)
+    stripe_customer_id = models.CharField(max_length=255, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+
 class UserProfile(models.Model):
     """Extended profile model linked to Django's User."""
 

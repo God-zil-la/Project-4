@@ -611,15 +611,7 @@ def delete_knowledge(request, bot_id, knowledge_id):
     )
 
     if request.method == "POST":
-        if knowledge.file:
-            try:
-                knowledge.file.delete(save=False)
-            except Exception:
-                logger.exception(
-                    "Failed to delete knowledge file %s",
-                    knowledge.file.name,
-                )
-
+        # Storage cleanup is queued by post_delete and retried if it fails.
         knowledge.delete()
 
         messages.success(

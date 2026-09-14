@@ -4,10 +4,12 @@ from django.contrib.auth import views as auth_views
 from ai_assistant.accounts.forms import CustomPasswordResetForm
 from . import views
 from .api_views import PublicChatAPIView
+from .deletion_views import confirm_delete_account
 
 app_name = 'accounts'
 
 urlpatterns = [
+    path('delete/', confirm_delete_account, name='delete_account'),
     path('register/', views.register, name='register'),
     
     path(

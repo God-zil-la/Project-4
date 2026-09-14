@@ -1,0 +1,15 @@
+{% extends "delete_account.html" %}
+{% block deletion_intro %}<p>Confirm below to permanently delete your account and application data. For help with access or billing, you can <a href="{% url 'delete_account' %}">request deletion through support</a>.</p>{% endblock %}
+{% block email_request %}{% endblock %}
+{% block deletion_action %}
+<section class="deletion-action" aria-labelledby="confirm-title">
+  <h2 id="confirm-title">Confirm permanent account deletion</h2>
+  <p>You are deleting the account <strong>{{ user.username }}</strong>. Read what is deleted and what may remain below before continuing. To leave this page without deleting anything, <a href="{% url 'dashboard:home' %}">return to your dashboard</a>.</p>
+  <form method="post" action="{% url 'accounts:delete_account' %}">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Permanently delete my account</button>
+  </form>
+  <p>Forgot your password? <a href="{% url 'accounts:password_reset' %}">Reset it</a> or <a href="{% url 'delete_account' %}">request deletion by email</a>.</p>
+</section>
+{% endblock %}
