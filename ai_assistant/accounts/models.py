@@ -37,6 +37,30 @@ class UserProfile(models.Model):
         (PLAN_PRO, "Pro"),
     ]
 
+    COMPLIMENTARY_NONE = ""
+    COMPLIMENTARY_PREMIUM = PLAN_PREMIUM
+    COMPLIMENTARY_PRO = PLAN_PRO
+
+    COMPLIMENTARY_PLAN_CHOICES = [
+        (COMPLIMENTARY_NONE, "None"),
+        (COMPLIMENTARY_PREMIUM, "Premium"),
+        (COMPLIMENTARY_PRO, "Pro"),
+    ]
+
+    COMPLIMENTARY_REASON_REVIEWER = "reviewer"
+    COMPLIMENTARY_REASON_FAMILY = "family"
+    COMPLIMENTARY_REASON_FRIEND = "friend"
+    COMPLIMENTARY_REASON_TESTER = "tester"
+    COMPLIMENTARY_REASON_OTHER = "other"
+
+    COMPLIMENTARY_REASON_CHOICES = [
+        (COMPLIMENTARY_REASON_REVIEWER, "App reviewer"),
+        (COMPLIMENTARY_REASON_FAMILY, "Family"),
+        (COMPLIMENTARY_REASON_FRIEND, "Friend"),
+        (COMPLIMENTARY_REASON_TESTER, "Tester"),
+        (COMPLIMENTARY_REASON_OTHER, "Other"),
+    ]
+
     user = models.OneToOneField(
         User,
         on_delete=models.CASCADE,
@@ -85,6 +109,27 @@ class UserProfile(models.Model):
         null=True,
     )
 
+    # Complimentary access is independent of Stripe.
+    # complimentary_until = NULL means permanent access.
+    complimentary_plan = models.CharField(
+        max_length=20,
+        choices=COMPLIMENTARY_PLAN_CHOICES,
+        blank=True,
+        default=COMPLIMENTARY_NONE,
+    )
+
+    complimentary_reason = models.CharField(
+        max_length=20,
+        choices=COMPLIMENTARY_REASON_CHOICES,
+        blank=True,
+        default="",
+    )
+
+    complimentary_until = models.DateTimeField(
+        blank=True,
+        null=True,
+    )
+
     monthly_message_count = models.IntegerField(
         default=0
     )
@@ -100,8 +145,25 @@ class UserProfile(models.Model):
     )
 
     @property
-    def effective_plan(self):
-        """A known access end is enforced even when the final webhook is late."""
+    def has_complimentary_access(self):
+        """Return True when complimentary access is currently valid."""
+        if self.complimentary_plan not in {
+            self.PLAN_PREMIUM,
+            self.PLAN_PRO,
+        }:
+            return False
+
+        if (
+            self.complimentary_until
+            and self.complimentary_until <= timezone.now()
+        ):
+            return False
+
+        return True
+
+    @property
+    def subscription_plan(self):
+        """Return the plan currently granted by normal subscription state."""
         if (
             self.stripe_subscription_id
             and self.stripe_subscription_status
@@ -119,8 +181,30 @@ class UserProfile(models.Model):
         return self.plan
 
     @property
+    def effective_plan(self):
+        """Return the highest currently valid account entitlement."""
+        subscription_plan = self.subscription_plan
+
+        if not self.has_complimentary_access:
+            return subscription_plan
+
+        plan_rank = {
+            self.PLAN_FREE: 0,
+            self.PLAN_PREMIUM: 1,
+            self.PLAN_PRO: 2,
+        }
+
+        if (
+            plan_rank[self.complimentary_plan]
+            > plan_rank[subscription_plan]
+        ):
+            return self.complimentary_plan
+
+        return subscription_plan
+
+    @property
     def has_paid_plan(self):
-        """Return True for Premium or Pro users."""
+        """Return True for effective Premium or Pro access."""
         return self.effective_plan in {
             self.PLAN_PREMIUM,
             self.PLAN_PRO,

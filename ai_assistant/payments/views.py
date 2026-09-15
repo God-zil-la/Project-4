@@ -32,6 +32,13 @@ from .recovery import recovery_reason, recovery_source, replacement_parameters, 
 logger = logging.getLogger(__name__)
 
 
+def is_complimentary_access(profile):
+    return (
+        profile.has_complimentary_access
+        and not has_existing_subscription(profile)
+    )
+
+
 def log_change_failure(action, stage, error):
     """Never log exception messages, provider payloads, or credentials."""
     from .changes import ChangeBlocked
@@ -327,6 +334,18 @@ class CreateCheckoutSessionView(View):
             # only retry the same request, including after a worker restart.
             with transaction.atomic():
                 profile = UserProfile.objects.select_for_update().get(user=request.user)
+
+                if is_complimentary_access(profile):
+                    return JsonResponse(
+                        {
+                            "error": (
+                                "This account already has complimentary access. "
+                                "No subscription purchase is required."
+                            )
+                        },
+                        status=409,
+                    )
+
                 if SubscriptionChange.objects.filter(profile=profile).exclude(status__in=["complete", "removed", "failed"]).exists():
                     return JsonResponse({"error": "Resolve your saved subscription change before starting checkout."}, status=409)
                 if SubscriptionRecovery.objects.filter(profile=profile, completed=False).exists():
@@ -343,6 +362,18 @@ class CreateCheckoutSessionView(View):
                 })
             with transaction.atomic():
                 profile = UserProfile.objects.select_for_update().get(user=request.user)
+
+                if is_complimentary_access(profile):
+                    return JsonResponse(
+                        {
+                            "error": (
+                                "This account already has complimentary access. "
+                                "No subscription purchase is required."
+                            )
+                        },
+                        status=409,
+                    )
+
                 attempt = CheckoutAttempt.objects.get(profile=profile)
                 if SubscriptionChange.objects.filter(profile=profile).exclude(status__in=["complete", "removed", "failed"]).exists():
                     return JsonResponse({"error": "Resolve your saved subscription change before starting checkout."}, status=409)
@@ -593,6 +624,7 @@ class CreateCheckoutSessionView(View):
 def billing(request):
     """Render billing actions according to account and configuration state."""
     profile = request.user.profile
+    complimentary_access = is_complimentary_access(profile)
     refresh_failed = False
     recovery_message = ""
     recovery_options = []
@@ -626,10 +658,15 @@ def billing(request):
             refresh_failed = True
             profile.refresh_from_db()
             messages.error(request, "Billing status could not be refreshed. Showing the last confirmed status; please try again shortly.")
-    elif not profile.stripe_subscription_id and not profile.stripe_customer_id:
+    elif (
+        not complimentary_access
+        and not profile.stripe_subscription_id
+        and not profile.stripe_customer_id
+    ):
         with transaction.atomic():
             profile = UserProfile.objects.select_for_update().get(user=request.user)
             clear_subscription(profile)
+    complimentary_access = is_complimentary_access(profile)
     existing_subscription = has_existing_subscription(profile)
     pending_recovery = SubscriptionRecovery.objects.filter(profile=profile, completed=False).first()
     if pending_recovery:
@@ -663,6 +700,7 @@ def billing(request):
         "payments/billing.html",
         {
             "existing_subscription": existing_subscription,
+            "complimentary_access": complimentary_access,
             "recovery_message": recovery_message,
             "recovery_options": recovery_options,
             "recovery_replacement": recovery_replacement,
@@ -681,14 +719,15 @@ def billing(request):
             "change_effective_date": timezone.datetime.fromtimestamp(change.source["end"], tz=timezone.get_current_timezone()) if changing else None,
             "retry_token": change_token(change.action) if changing else "",
             "retry_url": reverse("payments:" + change.action + "_subscription") if changing else "",
-            "show_management": existing_subscription,
+            "show_management": existing_subscription and not complimentary_access,
             "can_manage_subscription": bool(
-                existing_subscription
+                not complimentary_access
+                and existing_subscription
                 and profile.stripe_customer_id
                 and settings.STRIPE_SECRET_KEY
             ),
             "billing_unavailable_reason": billing_unavailable_reason,
-            "can_checkout": bool(settings.STRIPE_SECRET_KEY and settings.STRIPE_PUBLIC_KEY) and not existing_subscription and not refresh_failed and not pending_recovery and not changing,
+            "can_checkout": bool(settings.STRIPE_SECRET_KEY and settings.STRIPE_PUBLIC_KEY) and not existing_subscription and not complimentary_access and not refresh_failed and not pending_recovery and not changing,
             "STRIPE_PUBLIC_KEY": (
                 settings.STRIPE_PUBLIC_KEY
             ),

@@ -32,9 +32,39 @@ class UserProfileAdmin(admin.ModelAdmin):
 
     list_display = (
         'user',
+        'plan',
+        'effective_plan_display',
+        'complimentary_plan',
+        'complimentary_reason',
+        'complimentary_until',
+        'complimentary_active',
         'is_subscribed',
         'monthly_message_count',
         'message_count_period_start',
     )
-    search_fields = ('user__username',)
-    readonly_fields = ('api_key',)
+
+    list_filter = (
+        'plan',
+        'complimentary_plan',
+        'complimentary_reason',
+        'is_subscribed',
+    )
+
+    search_fields = (
+        'user__username',
+        'user__email',
+    )
+
+    readonly_fields = (
+        'api_key',
+        'effective_plan_display',
+        'complimentary_active',
+    )
+
+    @admin.display(description='Effective plan')
+    def effective_plan_display(self, obj):
+        return obj.effective_plan.title()
+
+    @admin.display(boolean=True, description='Complimentary active')
+    def complimentary_active(self, obj):
+        return obj.has_complimentary_access

@@ -201,6 +201,16 @@
         {% endif %}
       {% endif %}
 
+    {% elif complimentary_access %}
+
+      <p class="status">
+        Pro access is active on this account.
+      </p>
+
+      <p class="muted">
+        No Stripe subscription is required for this account.
+      </p>
+
     {% elif billing_profile.stripe_subscription_status == 'canceled' or billing_profile.stripe_subscription_status == 'incomplete_expired' %}
 
       <p class="status">
@@ -265,7 +275,7 @@
 
       <p role="status">{{ billing_unavailable_reason }}</p>
 
-    {% elif not can_checkout and not existing_subscription %}
+    {% elif not can_checkout and not existing_subscription and not complimentary_access %}
 
       <p role="status">
         Checkout is unavailable in this environment. Please contact support.
@@ -455,6 +465,13 @@
           </form>
 
 
+        {% elif complimentary_access and billing_profile.is_pro %}
+
+          <p class="muted">
+            Your account already includes complimentary Pro access.
+          </p>
+
+
         {% elif can_checkout %}
 
           <button
@@ -564,6 +581,13 @@
             </button>
 
           </form>
+
+
+        {% elif complimentary_access and billing_profile.is_pro %}
+
+          <button class="billing-button" disabled>
+            Current plan
+          </button>
 
 
         {% elif can_checkout %}
