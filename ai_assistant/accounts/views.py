@@ -11,7 +11,7 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.contrib import messages
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
-from django.db import transaction
+from django.db import IntegrityError, transaction
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
 from django.contrib.auth.password_validation import validate_password
@@ -136,7 +136,7 @@ def delete_bot(request, bot_id):
 def register(request):
     """Register a new user and send an email verification link."""
     if request.method == 'POST':
-        username = request.POST.get('username', '').strip()
+        username = User.normalize_username(request.POST.get('username', '').strip())
         email = request.POST.get('email', '').strip()
         password = request.POST.get('password', '')
         password2 = request.POST.get('password2', '')
@@ -169,7 +169,7 @@ def register(request):
                 }
             )
 
-        if User.objects.filter(username=username).exists():
+        if User.objects.filter(username__iexact=username).exists():
             messages.error(
                 request,
                 "Username already exists. Please choose another."
@@ -221,15 +221,29 @@ def register(request):
 
         origin = public_origin(request)
 
-        user = User.objects.create_user(
-            username=username,
-            email=email,
-            password=password
-        )
+        try:
+            with transaction.atomic():
+                user = User.objects.create_user(
+                    username=username,
+                    email=email,
+                    password=password,
+                    is_active=False,
+                )
+        except IntegrityError:
+            # A concurrent registration may have claimed this name after validation.
+            if not User.objects.filter(username__iexact=username).exists():
+                raise
+            messages.error(
+                request,
+                "Username already exists. Please choose another."
+            )
+            return render(
+                request,
+                'accounts/register.html',
+                {'username': username, 'email': email}
+            )
 
         # The account stays inactive until the email address is verified.
-        user.is_active = False
-        user.save(update_fields=['is_active'])
 
         uid = urlsafe_base64_encode(
             force_bytes(user.pk)

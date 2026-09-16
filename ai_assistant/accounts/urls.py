@@ -1,7 +1,10 @@
 from django.urls import path, reverse_lazy
 from django.contrib.auth import views as auth_views
 
-from ai_assistant.accounts.forms import CustomPasswordResetForm
+from ai_assistant.accounts.forms import (
+    CaseInsensitiveAuthenticationForm,
+    CustomPasswordResetForm,
+)
 from . import views
 from .api_views import PublicChatAPIView
 from .deletion_views import confirm_delete_account
@@ -23,6 +26,7 @@ urlpatterns = [
     path(
         'login/',
         auth_views.LoginView.as_view(
+            authentication_form=CaseInsensitiveAuthenticationForm,
             template_name='accounts/login.html',
             redirect_authenticated_user=True
         ),

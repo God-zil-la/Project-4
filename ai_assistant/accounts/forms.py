@@ -1,10 +1,29 @@
 from django import forms
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
-from django.contrib.auth.forms import PasswordResetForm
+from django.contrib.auth.forms import AuthenticationForm, PasswordResetForm
 from django.template.loader import render_to_string
 from django.core.mail import EmailMultiAlternatives
 from django.urls import reverse
+
+
+class CaseInsensitiveAuthenticationForm(AuthenticationForm):
+    """Resolve the stored username, then use Django's normal authentication."""
+
+    def clean(self):
+        username = self.cleaned_data.get("username")
+        if username:
+            try:
+                user = User.objects.get(username__iexact=username)
+            except User.DoesNotExist:
+                # Let Django handle unknown users, including its timing mitigation.
+                pass
+            except User.MultipleObjectsReturned:
+                # Never guess which legacy account the user intended to access.
+                raise self.get_invalid_login_error()
+            else:
+                self.cleaned_data["username"] = user.username
+        return super().clean()
 
 
 class RegisterForm(forms.ModelForm):
@@ -24,6 +43,15 @@ class RegisterForm(forms.ModelForm):
     class Meta:
         model = User
         fields = ['username', 'email']
+
+    def clean_username(self):
+        username = User.normalize_username(self.cleaned_data["username"])
+        if User.objects.filter(username__iexact=username).exists():
+            raise ValidationError(
+                "Username already exists. Please choose another.",
+                code="unique",
+            )
+        return username
 
     def clean_password2(self):
         """Validate that the two password fields match."""
