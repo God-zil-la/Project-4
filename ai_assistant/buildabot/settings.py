@@ -54,6 +54,8 @@ if extra_hosts:
 
 CSRF_TRUSTED_ORIGINS = [
     "https://*.herokuapp.com",
+]
+CORS_ALLOWED_ORIGINS = [
     "http://localhost:8081",
 ]
 # ─────────────────────────────────────────────────────────────────────────────
