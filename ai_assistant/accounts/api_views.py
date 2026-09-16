@@ -1,3 +1,16 @@
+from django.conf import settings
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError
+from django.core.mail import EmailMultiAlternatives
+from django.core.validators import validate_email
+from django.db import IntegrityError, transaction
+from django.template.loader import render_to_string
+from django.urls import reverse
+from django.utils.encoding import force_bytes
+from django.utils.http import urlsafe_base64_encode
+from django.contrib.auth import authenticate
+from django.contrib.auth.models import User
+from rest_framework.authtoken.models import Token
 from ai_assistant.bots.request_validation import validate_request_object
 from rest_framework import status
 from rest_framework.permissions import AllowAny
@@ -5,6 +18,11 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from ai_assistant.accounts.models import UserProfile
+from ai_assistant.accounts.email_utils import (
+    public_origin,
+    send_account_email,
+)
+from ai_assistant.accounts.tokens import account_activation_token
 from ai_assistant.bots.chat_service import (
     ChatRateLimitError,
     ChatServiceError,
@@ -12,6 +30,199 @@ from ai_assistant.bots.chat_service import (
     process_bot_message,
 )
 from ai_assistant.bots.models import Bot
+
+class IOSLoginAPIView(APIView):
+    """Authenticate native app users with case-insensitive usernames."""
+
+    permission_classes = [AllowAny]
+    authentication_classes = []
+
+    def post(self, request, *args, **kwargs):
+        username = str(request.data.get("username", "")).strip()
+        password = request.data.get("password", "")
+
+        if not username or not password:
+            return Response(
+                {"error": "Username and password are required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            user = User.objects.get(username__iexact=username)
+        except (User.DoesNotExist, User.MultipleObjectsReturned):
+            return Response(
+                {"error": "Invalid username or password."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        authenticated_user = authenticate(
+            request=request,
+            username=user.username,
+            password=password,
+        )
+
+        if authenticated_user is None:
+            return Response(
+                {"error": "Invalid username or password."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        token, _ = Token.objects.get_or_create(
+            user=authenticated_user,
+        )
+
+        return Response(
+            {
+                "token": token.key,
+                "username": authenticated_user.username,
+            },
+            status=status.HTTP_200_OK,
+        )
+
+class IOSRegisterAPIView(APIView):
+    """Register native app users with email verification."""
+
+    permission_classes = [AllowAny]
+    authentication_classes = []
+
+    def post(self, request, *args, **kwargs):
+        username = User.normalize_username(
+            str(request.data.get("username", "")).strip()
+        )
+        email = str(request.data.get("email", "")).strip()
+        password = request.data.get("password", "")
+        password2 = request.data.get("password2", "")
+
+        if not all([username, email, password, password2]):
+            return Response(
+                {"error": "All fields are required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if password != password2:
+            return Response(
+                {"error": "Passwords do not match."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if User.objects.filter(username__iexact=username).exists():
+            return Response(
+                {
+                    "error": (
+                        "Username already exists. "
+                        "Please choose another."
+                    ),
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if User.objects.filter(email__iexact=email).exists():
+            return Response(
+                {
+                    "error": (
+                        "An account with this email address "
+                        "already exists."
+                    ),
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            validate_email(email)
+            validate_password(
+                password,
+                User(username=username, email=email),
+            )
+        except ValidationError as exc:
+            return Response(
+                {"errors": exc.messages},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            with transaction.atomic():
+                user = User.objects.create_user(
+                    username=username,
+                    email=email,
+                    password=password,
+                    is_active=False,
+                )
+        except IntegrityError:
+            if not User.objects.filter(
+                username__iexact=username
+            ).exists():
+                raise
+
+            return Response(
+                {
+                    "error": (
+                        "Username already exists. "
+                        "Please choose another."
+                    ),
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        origin = public_origin(request)
+
+        uid = urlsafe_base64_encode(
+            force_bytes(user.pk)
+        )
+        token = account_activation_token.make_token(user)
+
+        activation_path = reverse(
+            "accounts:activate",
+            kwargs={
+                "uidb64": uid,
+                "token": token,
+            },
+        )
+
+        activation_url = f"{origin}{activation_path}"
+
+        context = {
+            "user": user,
+            "domain": origin.split("://", 1)[1],
+            "activation_url": activation_url,
+        }
+
+        subject = "Verify your email - AI Assistant"
+
+        text_content = render_to_string(
+            "accounts/activation_email.txt",
+            context,
+        )
+
+        html_content = render_to_string(
+            "accounts/activation_email.html",
+            context,
+        )
+
+        email_message = EmailMultiAlternatives(
+            subject,
+            text_content,
+            settings.DEFAULT_FROM_EMAIL,
+            [email],
+        )
+        email_message.attach_alternative(
+            html_content,
+            "text/html",
+        )
+
+        transaction.on_commit(
+            lambda: send_account_email(email_message)
+        )
+
+        return Response(
+            {
+                "message": (
+                    "Account created. "
+                    "Please verify your email."
+                ),
+                "email": email,
+            },
+            status=status.HTTP_201_CREATED,
+        )        
 
 
 class PublicChatAPIView(APIView):
