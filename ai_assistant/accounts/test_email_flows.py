@@ -294,3 +294,12 @@ class AccountEmailTests(TestCase):
             public_origin(),
             "https://accounts.example.org",
         )
+
+class ProductionEmailDomainTests(TestCase):
+    def test_default_public_base_url_uses_custom_domain(self):
+        from django.conf import settings
+
+        self.assertEqual(
+            settings.PUBLIC_BASE_URL,
+            "https://www.myaiassistantapp.se",
+        )

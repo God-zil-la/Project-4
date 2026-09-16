@@ -238,7 +238,11 @@ EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
 DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "AI Bot Assistants <aibotassistants@gmail.com>")
 EMAIL_TIMEOUT = int(os.getenv("EMAIL_TIMEOUT", "15"))
 # Explicit canonical origin; never trust a request host or the Sites database for email links.
-PUBLIC_BASE_URL = os.getenv("PUBLIC_BASE_URL", "")
+
+PUBLIC_BASE_URL = os.getenv(
+    "PUBLIC_BASE_URL",
+    "https://www.myaiassistantapp.se",
+)
 PASSWORD_RESET_TIMEOUT = 3600
 
 
