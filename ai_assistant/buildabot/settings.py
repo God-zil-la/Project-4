@@ -54,6 +54,7 @@ if extra_hosts:
 
 CSRF_TRUSTED_ORIGINS = [
     "https://*.herokuapp.com",
+    "http://localhost:8081",
 ]
 # ─────────────────────────────────────────────────────────────────────────────
 # Installed Apps
@@ -78,6 +79,7 @@ INSTALLED_APPS = [
     # Third-party
     'rest_framework',
     'rest_framework.authtoken',
+    'corsheaders',
 ]
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -86,6 +88,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',  # For serving static files in production
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',

@@ -16,6 +16,7 @@ django-extensions==4.1
 django-sslserver==0.22
 django-storages==1.14.6
 djangorestframework==3.16.0
+django-cors-headers==4.9.0
 Flask==3.0.3
 git-filter-repo==2.47.0
 google-api-core==2.25.0
