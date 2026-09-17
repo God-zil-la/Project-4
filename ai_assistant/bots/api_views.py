@@ -20,6 +20,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.exceptions import PermissionDenied
 
 from ai_assistant.bots.chat_service import (
     ChatRateLimitError,
@@ -41,7 +42,8 @@ from ai_assistant.bots.serializers import (
 class BotListCreateAPIView(generics.ListCreateAPIView):
     """
     List all bots owned by the authenticated user
-    and allow new bots to be created.
+    and allow new bots to be created within the
+    user's plan limit.
     """
 
     serializer_class = BotSerializer
@@ -55,8 +57,36 @@ class BotListCreateAPIView(generics.ListCreateAPIView):
         )
 
     def perform_create(self, serializer):
+        user = self.request.user
+        profile = user.profile
+        plan = profile.effective_plan
+
+        bot_limits = {
+            "free": 1,
+            "premium": 5,
+            "pro": 15,
+        }
+
+        bot_limit = bot_limits.get(
+            plan,
+            1,
+        )
+
+        bot_count = Bot.objects.filter(
+            owner=user
+        ).count()
+
+        if bot_count >= bot_limit:
+            raise PermissionDenied(
+                detail=(
+                    f"Your {plan.capitalize()} plan allows "
+                    f"up to {bot_limit} AI assistant"
+                    f"{'s' if bot_limit != 1 else ''}."
+                )
+            )
+
         serializer.save(
-            owner=self.request.user
+            owner=user
         )
 
 
