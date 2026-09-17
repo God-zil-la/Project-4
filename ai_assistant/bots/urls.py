@@ -1,3 +1,4 @@
+from .parity_api import DashboardAPIView, AnalyticsAPIView, KnowledgeAPIView, KnowledgeDetailAPIView
 from django.urls import path
 from rest_framework.authtoken.views import obtain_auth_token
 
@@ -16,6 +17,10 @@ app_name = "bots"
 
 
 urlpatterns = [
+    path("api/dashboard/", DashboardAPIView.as_view(), name="native-dashboard"),
+    path("api/analytics/", AnalyticsAPIView.as_view(), name="native-analytics"),
+    path("api/bots/<int:bot_id>/knowledge/", KnowledgeAPIView.as_view(), name="native-knowledge"),
+    path("api/bots/<int:bot_id>/knowledge/<int:knowledge_id>/", KnowledgeDetailAPIView.as_view(), name="native-knowledge-detail"),
     # Regular views
     path(
         "my-bots/",

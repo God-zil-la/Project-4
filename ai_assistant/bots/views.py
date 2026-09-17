@@ -483,53 +483,7 @@ def ajax_chat(request, bot_id):
 
 @login_required
 def analytics_dashboard(request):
-    bots = Bot.objects.filter(
-        owner=request.user
-    )
-
-    bot_data = {
-        "labels": [],
-        "counts": [],
-    }
-
-    for bot in bots:
-        bot_data["labels"].append(
-            bot.name
-        )
-
-        bot_data["counts"].append(
-            ChatMessage.objects.filter(
-                bot=bot,
-                user=request.user,
-            ).count()
-        )
-
-    messages_over_time = (
-        ChatMessage.objects.filter(
-            user=request.user
-        )
-        .annotate(
-            day=TruncDate("timestamp")
-        )
-        .values("day")
-        .annotate(
-            count=Count("id")
-        )
-        .order_by("day")
-    )
-
-    time_data = {
-        "labels": [],
-        "counts": [],
-    }
-
-    for item in messages_over_time:
-        time_data["labels"].append(
-            item["day"].isoformat()
-        )
-        time_data["counts"].append(
-            item["count"]
-        )
+    bot_data, time_data = analytics_data(request.user)
 
     return render(
         request,
@@ -857,3 +811,56 @@ def discord_setup(request, bot_id):
             "api_token": token.key,
         },
     )
+
+
+def analytics_data(user):
+    """The two existing end-user analytics datasets."""
+    bots = Bot.objects.filter(
+        owner=user
+    )
+
+    bot_data = {
+        "labels": [],
+        "counts": [],
+    }
+
+    for bot in bots:
+        bot_data["labels"].append(
+            bot.name
+        )
+
+        bot_data["counts"].append(
+            ChatMessage.objects.filter(
+                bot=bot,
+                user=user,
+            ).count()
+        )
+
+    messages_over_time = (
+        ChatMessage.objects.filter(
+            user=user
+        )
+        .annotate(
+            day=TruncDate("timestamp")
+        )
+        .values("day")
+        .annotate(
+            count=Count("id")
+        )
+        .order_by("day")
+    )
+
+    time_data = {
+        "labels": [],
+        "counts": [],
+    }
+
+    for item in messages_over_time:
+        time_data["labels"].append(
+            item["day"].isoformat()
+        )
+        time_data["counts"].append(
+            item["count"]
+        )
+
+    return bot_data, time_data

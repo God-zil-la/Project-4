@@ -18,7 +18,37 @@ def dashboard(request):
     """
     Customer dashboard with real account usage.
     """
-    user = request.user
+    context = dashboard_data(request.user)
+
+    return render(
+        request,
+        "dashboard/customer_dashboard.html",
+        context,
+    )
+
+
+# Custom error triggers used for testing error pages.
+
+
+def trigger_400(request):
+    raise SuspiciousOperation(
+        "Manually triggered 400"
+    )
+
+
+def trigger_403(request):
+    raise PermissionDenied(
+        "Manually triggered 403"
+    )
+
+
+def trigger_500(request):
+    raise Exception(
+        "Manually triggered 500"
+    )
+
+def dashboard_data(user):
+    """The existing dashboard values, shared by web and native clients."""
     profile = user.profile
     plan = profile.effective_plan
 
@@ -98,7 +128,7 @@ def dashboard(request):
             f"{knowledge_mb:.2f} MB"
         )
 
-    context = {
+    return {
         "current_plan": plan,
         "message_count": message_count,
         "message_limit": message_limit,
@@ -111,30 +141,3 @@ def dashboard(request):
             limits["knowledge_display"]
         ),
     }
-
-    return render(
-        request,
-        "dashboard/customer_dashboard.html",
-        context,
-    )
-
-
-# Custom error triggers used for testing error pages.
-
-
-def trigger_400(request):
-    raise SuspiciousOperation(
-        "Manually triggered 400"
-    )
-
-
-def trigger_403(request):
-    raise PermissionDenied(
-        "Manually triggered 403"
-    )
-
-
-def trigger_500(request):
-    raise Exception(
-        "Manually triggered 500"
-    )

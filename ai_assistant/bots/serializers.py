@@ -13,11 +13,23 @@ class BotSerializer(serializers.ModelSerializer):
             "personality",
             "category",
             "owner",
+            "created_at",
         ]
         read_only_fields = [
             "id",
             "owner",
+            "created_at",
         ]
+
+
+    def validate_name(self, value):
+        owner = self.context["request"].user
+        duplicates = Bot.objects.filter(owner=owner, name=value)
+        if self.instance:
+            duplicates = duplicates.exclude(pk=self.instance.pk)
+        if duplicates.exists():
+            raise serializers.ValidationError("You already have a bot with this name. Please choose a different name.")
+        return value
 
 
 class ChatMessageSerializer(serializers.ModelSerializer):

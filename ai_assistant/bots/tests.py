@@ -407,7 +407,7 @@ class KnowledgeUploadTests(TestCase):
 
     def test_downgrade_keeps_existing_knowledge_but_blocks_new_uploads(self):
         self.user.profile.is_subscribed = False
-        self.user.profile.subscription_plan = "free"
+        self.user.profile.plan = "free"
         self.user.profile.save()
 
         self.existing.source_size_bytes = 20 * 1024 * 1024
