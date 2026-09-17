@@ -8,6 +8,7 @@ from ai_assistant.accounts.forms import (
 from . import views
 from .api_views import (
     IOSLoginAPIView,
+    IOSMeAPIView,
     IOSRegisterAPIView,
     PublicChatAPIView,
 )
@@ -87,6 +88,12 @@ urlpatterns = [
         'api/login/',
         IOSLoginAPIView.as_view(),
         name='ios-login-api',
+    ),
+
+    path(
+        'api/me/',
+        IOSMeAPIView.as_view(),
+        name='ios-me-api',
     ),
 
     path(

@@ -156,3 +156,34 @@ class IOSAuthAPITests(TestCase):
 
         self.assertEqual(response.status_code, 400)
         self.assertEqual(User.objects.count(), 1)
+
+    def test_me_returns_authenticated_user(self):
+        token = Token.objects.create(user=self.user)
+
+        response = self.client.get(
+            reverse("accounts:ios-me-api"),
+            HTTP_AUTHORIZATION=f"Token {token.key}",
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.json(),
+            {
+                "username": "Funcy92",
+            },
+        )
+
+    def test_me_rejects_missing_token(self):
+        response = self.client.get(
+            reverse("accounts:ios-me-api"),
+        )
+
+        self.assertEqual(response.status_code, 401)
+
+    def test_me_rejects_invalid_token(self):
+        response = self.client.get(
+            reverse("accounts:ios-me-api"),
+            HTTP_AUTHORIZATION="Token invalid-token",
+        )
+
+        self.assertEqual(response.status_code, 401)

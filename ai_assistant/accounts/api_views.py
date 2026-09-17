@@ -13,7 +13,7 @@ from django.contrib.auth.models import User
 from rest_framework.authtoken.models import Token
 from ai_assistant.bots.request_validation import validate_request_object
 from rest_framework import status
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -75,6 +75,19 @@ class IOSLoginAPIView(APIView):
             {
                 "token": token.key,
                 "username": authenticated_user.username,
+            },
+            status=status.HTTP_200_OK,
+        )
+
+class IOSMeAPIView(APIView):
+    """Return the authenticated native app user."""
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        return Response(
+            {
+                "username": request.user.username,
             },
             status=status.HTTP_200_OK,
         )
