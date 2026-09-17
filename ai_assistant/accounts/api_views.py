@@ -85,9 +85,13 @@ class IOSMeAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, *args, **kwargs):
+        profile = request.user.profile
+
         return Response(
             {
                 "username": request.user.username,
+                "email": request.user.email,
+                "plan": profile.effective_plan,
             },
             status=status.HTTP_200_OK,
         )

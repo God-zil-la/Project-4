@@ -10,11 +10,11 @@ from rest_framework.authtoken.models import Token
 @override_settings(PUBLIC_BASE_URL="https://accounts.example.org")
 class IOSAuthAPITests(TestCase):
     password = "Strong-Test-Password-194!"
-    variants = ("Funcy92", "funcy92", "FUNCY92", "FuNcY92")
+    variants = ("CaseTestUser92", "casetestuser92", "CASETESTUSER92", "CaSeTeStUsEr92")
 
     def setUp(self):
         self.user = User.objects.create_user(
-            username="Funcy92",
+            username="CaseTestUser92",
             email="member@example.org",
             password=self.password,
         )
@@ -50,16 +50,16 @@ class IOSAuthAPITests(TestCase):
                 response = self.login(username)
 
                 self.assertEqual(response.status_code, 200)
-                self.assertEqual(response.json()["username"], "Funcy92")
+                self.assertEqual(response.json()["username"], "CaseTestUser92")
 
                 self.user.refresh_from_db()
 
-                self.assertEqual(self.user.username, "Funcy92")
+                self.assertEqual(self.user.username, "CaseTestUser92")
                 self.assertEqual(User.objects.count(), 1)
 
     def test_successful_login_reuses_same_token(self):
-        first_response = self.login("Funcy92")
-        second_response = self.login("funcy92")
+        first_response = self.login("CaseTestUser92")
+        second_response = self.login("casetestuser92")
 
         self.assertEqual(first_response.status_code, 200)
         self.assertEqual(second_response.status_code, 200)
@@ -74,7 +74,7 @@ class IOSAuthAPITests(TestCase):
         )
 
     def test_wrong_password_is_rejected(self):
-        response = self.login("FUNCY92", "incorrect")
+        response = self.login("CASETESTUSER92", "incorrect")
 
         self.assertEqual(response.status_code, 400)
         self.assertNotIn("token", response.json())
@@ -83,7 +83,7 @@ class IOSAuthAPITests(TestCase):
         self.user.is_active = False
         self.user.save()
 
-        response = self.login("funcy92")
+        response = self.login("casetestuser92")
 
         self.assertEqual(response.status_code, 400)
         self.assertNotIn("token", response.json())
@@ -101,7 +101,7 @@ class IOSAuthAPITests(TestCase):
         self.assertTrue(hasattr(user, "profile"))
 
     def test_registration_rejects_case_insensitive_duplicate_username(self):
-        response = self.register(username="fUnCy92")
+        response = self.register(username="cAsEtEsTuSeR92")
 
         self.assertEqual(response.status_code, 400)
         self.assertEqual(User.objects.count(), 1)
@@ -169,9 +169,26 @@ class IOSAuthAPITests(TestCase):
         self.assertEqual(
             response.json(),
             {
-                "username": "Funcy92",
+                "username": "CaseTestUser92",
+                "email": "member@example.org",
+                "plan": "free",
             },
         )
+
+    def test_me_returns_effective_complimentary_plan(self):
+        self.user.profile.complimentary_plan = "pro"
+        self.user.profile.complimentary_until = None
+        self.user.profile.save()
+
+        token = Token.objects.create(user=self.user)
+
+        response = self.client.get(
+            reverse("accounts:ios-me-api"),
+            HTTP_AUTHORIZATION=f"Token {token.key}",
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["plan"], "pro")
 
     def test_me_rejects_missing_token(self):
         response = self.client.get(
