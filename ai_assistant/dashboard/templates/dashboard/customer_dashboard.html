@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load humanize %}
 
 {% block title %}Dashboard - AI Assistant{% endblock %}
 
@@ -134,7 +135,7 @@
                 </h3>
 
                 <p>
-                    {{ message_count }} / {{ message_limit }} this month
+                    {{ message_count|intcomma }} / {{ message_limit|intcomma }} this month
                 </p>
             </div>
 
