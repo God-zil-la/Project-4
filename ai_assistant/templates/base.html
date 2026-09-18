@@ -260,10 +260,14 @@
         </span>
 
         <span
-          class="footer-play-btn disabled"
+          class="footer-google-play-badge"
           aria-disabled="true"
         >
-          Get it on Google Play
+          <img
+            src="{% static 'images/google-play-badge.png' %}"
+            alt="Get it on Google Play"
+            height="44"
+          >
         </span>
 
       </div>
@@ -359,7 +363,8 @@
       gap: 12px;
     }
 
-    .footer-app-store-badge {
+    .footer-app-store-badge,
+    .footer-google-play-badge {
       display: inline-flex;
       flex-shrink: 0;
       cursor: not-allowed;
@@ -382,26 +387,12 @@
       color: var(--accent-color);
     }
 
-    .footer-play-btn {
-      display: inline-block;
-
-      padding: 0.65rem 1rem;
-
-      border-radius: 8px;
-      border: 2px solid var(--accent-color);
-
-      background: var(--button-bg);
-      color: var(--button-text);
-
-      font-weight: 700;
-
-      white-space: nowrap;
-    }
-
-    .footer-play-btn.disabled {
-      opacity: 0.65;
-      cursor: not-allowed;
-      user-select: none;
+    /* Compensate for the official PNG's transparent padding (41px per side). */
+    .footer-google-play-badge img {
+      display: block;
+      height: 65.476px;
+      width: auto;
+      margin: -10.738px;
     }
 
     /* ================= MOBILE ================= */
@@ -419,13 +410,6 @@
       .footer-left,
       .footer-right {
         justify-content: center;
-      }
-
-      .footer-play-btn {
-        width: 100%;
-        max-width: 280px;
-        box-sizing: border-box;
-        text-align: center;
       }
 
     }
