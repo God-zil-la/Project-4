@@ -5,7 +5,7 @@ from xml.etree import ElementTree
 from django.test import SimpleTestCase, override_settings
 from django.urls import reverse
 
-
+@override_settings(SECURE_SSL_REDIRECT=False)
 class PublicSEOTests(SimpleTestCase):
     def test_sitemap_is_valid_xml_with_only_public_canonical_urls(self):
         response = self.client.get('/sitemap.xml')

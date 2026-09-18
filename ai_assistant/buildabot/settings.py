@@ -89,6 +89,7 @@ INSTALLED_APPS = [
 # ─────────────────────────────────────────────────────────────────────────────
 
 MIDDLEWARE = [
+    'ai_assistant.buildabot.middleware.CanonicalHostMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',  # For serving static files in production
