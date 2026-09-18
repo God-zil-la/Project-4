@@ -6,8 +6,11 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.views.generic import TemplateView
 from ai_assistant.dashboard import views as dashboard_views
+from . import seo
 
 urlpatterns = [
+    path('sitemap.xml', seo.sitemap, name='sitemap'),
+    path('robots.txt', seo.robots, name='robots'),
     path('delete-account/', TemplateView.as_view(template_name='delete_account.html'), name='delete_account'),
     path('privacy/', TemplateView.as_view(template_name='privacy.html'), name='privacy'),
     path('admin/', admin.site.urls),
