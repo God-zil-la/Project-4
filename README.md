@@ -1,14 +1,16 @@
 ﻿# 🤖 AI Assistant Platform
 
+> **Current platform status — September 2026:** Production web app live on `www.myaiassistantapp.se`; native Expo/React Native Android app in Google Play Closed Testing; Stripe production billing in Live Mode; iOS distribution pending Apple Developer Program activation.
+
 > A production-focused AI SaaS platform for creating, customizing, training, managing, and integrating specialized AI assistants.
 
-**AI Assistant Platform** is a full-stack SaaS application built with **Django**, **OpenAI**, **Stripe**, **PostgreSQL**, **Redis**, and **Discord**.
+**AI Assistant Platform** is a full-stack SaaS application built with **Django**, **OpenAI**, **Stripe**, **PostgreSQL**, and Redis-compatible infrastructure. **Discord integration is planned for U5** rather than presented as a currently released customer feature.
 
-The platform allows users to create purpose-built AI assistants, extend them with their own documents and knowledge, maintain separate conversations, monitor AI usage, manage subscription plans, connect assistants to Discord, and access supported functionality through secure web and API interfaces.
+The platform allows users to create purpose-built AI assistants, extend them with their own documents and Knowledge, maintain separate conversations, monitor AI usage, manage subscription plans, and use the supported web and native mobile clients. Customer-facing Discord integration and API Access are planned for U5.
 
 Unlike a simple chatbot project, the application is designed as a complete multi-user AI product with account plans, usage quotas, subscription lifecycle management, Retrieval-Augmented Generation (RAG), persistent conversations, analytics, API authentication, external integrations, production security controls, automated regression testing, and cloud deployment.
 
-The web application is the first production client. The same Django backend is designed to support additional clients, including the planned Android application, without duplicating the core AI, account, subscription, conversation, or knowledge logic.
+The production platform now has both a web client and a native mobile client. The Expo/React Native Android application uses the same Django backend so accounts, assistants, conversations, Knowledge, quotas, analytics, and entitlement rules remain shared across clients.
 
 ---
 
@@ -20,11 +22,13 @@ The AI Assistant Platform is deployed on Heroku and uses the production Django a
 
 **Live application:**
 
-[https://ai-assistants-8c06fcfeab86-6fbe77963620.herokuapp.com/](https://ai-assistants-8c06fcfeab86-6fbe77963620.herokuapp.com/)
+[https://www.myaiassistantapp.se/](https://www.myaiassistantapp.se/)
+
+The Django application is hosted on Heroku behind the production custom domain.
 
 The hosted environment is used throughout final release validation and is updated as completed backend changes pass automated and production-level verification.
 
-The application currently uses **Stripe Test Mode** while payment and subscription behaviour is being fully validated. Stripe Live Mode is intentionally reserved for the final pre-launch payment configuration step.
+The production web application is configured with **Stripe Live Mode**. Test Mode remains reserved for safe development and payment-flow validation and is kept separate from production credentials, Price IDs, webhooks, and Checkout configuration.
 
 ---
 
@@ -44,15 +48,15 @@ The application currently uses **Stripe Test Mode** while payment and subscripti
 - 💾 Account-wide Knowledge storage quotas
 - ⚡ Plan-aware request rate limiting
 - 🧩 Plan-aware assistant limits
-- 🔐 Secure API-key authentication
+- 🔐 Protected backend/native API authentication
 - 🛡️ Ownership validation across assistants, conversations, Knowledge, and API access
 - 💳 Free, Premium, and Pro subscription plans
 - 🔁 Stripe upgrade, downgrade, cancellation, recovery, and webhook workflows
 - 📉 Safe downgrade behaviour that preserves existing user content
 - 🧾 Stripe Checkout and Customer Portal integration
 - ⚡ Redis-backed production rate-limit architecture
-- 🎮 Bring Your Own Discord Bot (BYOB) integration
-- 📦 Downloadable Discord Bridge package with setup documentation
+- 🎮 Discord BYOB integration planned for U5
+- 📦 Discord Bridge/setup package planned for U5
 - 👤 Registration, email verification, login, logout, and password recovery
 - ✉️ Transactional account and subscription email workflows
 - 📈 User dashboard and analytics
@@ -63,7 +67,7 @@ The application currently uses **Stripe Test Mode** while payment and subscripti
 - 🗄️ PostgreSQL production database architecture
 - 🧪 Extensive automated regression testing
 - 🔒 Production-oriented security and fail-closed configuration controls
-- 📲 Shared-backend architecture prepared for a future Android client
+- 📲 Native Expo/React Native Android client using the shared Django backend
 
 ---
 
@@ -73,7 +77,7 @@ The application currently uses **Stripe Test Mode** while payment and subscripti
 | --- | ---: | ---: | ---: | ---: | :---: | :---: |
 | **Free** | **$0/month** | 1 | 150/month | 10 MB | — | — |
 | **Premium** | **$29/month** | 5 | 3,000/month | 250 MB | — | — |
-| **Pro** | **$59/month** | 15 | 10,000/month | 1 GB | ✅ | ✅ |
+| **Pro** | **$59/month** | 15 | 10,000/month | 1 GB | Planned U5 | Planned U5 |
 
 All plans support persistent conversations and unlimited stored chats.
 
@@ -85,34 +89,98 @@ When a user moves to a lower plan, existing assistants, conversations, and Knowl
 
 ## 🧭 Current Release Status
 
-The core web platform is substantially complete and is in final v1.0 release validation.
+The platform is actively deployed and has moved beyond a web-only release candidate.
 
-Major completed areas include:
+### Web
 
-- AI assistant creation and management
-- Persistent conversation management
-- Shared AI chat processing
-- Category and domain enforcement
-- Custom Knowledge and Retrieval-Augmented Generation
-- PDF, DOCX, and TXT Knowledge ingestion
-- Account-wide monthly AI quotas
-- Account-wide Knowledge storage quotas
-- Free, Premium, and Pro entitlement enforcement
-- Stripe subscription lifecycle handling
-- Upgrade and downgrade behaviour
-- Safe preservation of user content during plan changes
-- Public API authentication and access control
-- Discord Bridge integration
-- Dashboard and analytics
-- Registration and account email workflows
-- Password recovery
-- Error handling
-- Automated backend regression coverage
-- Heroku deployment and production database migrations
+- Production site: **https://www.myaiassistantapp.se/**
+- Django backend hosted on Heroku
+- Production custom domain and HTTPS in use
+- Stripe production configuration uses **Live Mode**
+- Free, Premium, and Pro plan limits are enforced by the backend
+- Dashboard, analytics, account flows, assistants, chat, and Knowledge are available through the web client
+- SEO endpoints include `sitemap.xml`, `robots.txt`, canonical URLs, Privacy, and public account-deletion information
 
-Remaining pre-launch work is intentionally limited to final documentation, regression/security/configuration review, and the final Stripe Live Mode production switch.
+### Native Android
 
-The Android application is planned as the next client after the web v1.0 release and will use the same backend, user accounts, assistants, conversations, Knowledge, quotas, and entitlement data.
+The dedicated mobile application is built with **Expo / React Native** and is no longer a planned WebView client.
+
+- Package: `com.mrhusse.aiassistant`
+- Google Play track: **Closed Testing (Alpha)**
+- Current tested release: **versionCode 4 / versionName 1.0.0**
+- Play release name: **1.2 - Native Bug Fixes**
+- Signed with the approved production upload key
+- Existing closed-test users can update through the Google Play test listing
+- The app shares the production Django backend and account data with the web application
+- Native areas include authentication, Dashboard, Analytics, assistant management/chat, Knowledge access, and Account functionality
+- The v4 release includes Android keyboard/chat layout fixes plus Analytics date and Message Count fixes
+
+### iOS
+
+The React Native codebase is designed to support iOS as well as Android. The first iOS distribution is intentionally parked until the Apple Developer Program membership required for device/TestFlight distribution is active. Platform-specific keyboard and device behaviour will be physically verified on iPhone during that release cycle.
+
+### Source Repositories
+
+- Web/backend: `https://github.com/God-zil-la/Project-4`
+- Native mobile: `https://github.com/God-zil-la/ai-assistant-mobile`
+
+Development now proceeds as complete upgrade packages: each upgrade is implemented, tested, regression-checked, released, and closed before the next package begins.
+
+---
+
+## 📱 Native Mobile Application
+
+AI Assistant Platform now includes a dedicated **Expo / React Native** mobile application rather than wrapping the production website in a WebView.
+
+The mobile client communicates with the same Django backend used by the web application. This keeps business rules authoritative on the server and prevents the mobile client from becoming a separate copy of the product logic.
+
+### Shared Platform Data
+
+A user can work with the same platform data across supported clients:
+
+- User account and authentication state
+- Effective Free, Premium, or Pro entitlement
+- AI assistants
+- Persistent conversations and messages
+- Knowledge sources
+- Monthly AI usage
+- Assistant and Knowledge limits
+- Dashboard information
+- Analytics information
+- Backend ownership and security rules
+
+### Android Distribution
+
+The Android app is currently distributed through Google Play Closed Testing.
+
+| Item | Current Status |
+| --- | --- |
+| Framework | Expo / React Native |
+| Android package | `com.mrhusse.aiassistant` |
+| Play track | Closed Testing (Alpha) |
+| versionCode | 4 |
+| versionName | 1.0.0 |
+| Release name | `1.2 - Native Bug Fixes` |
+| Backend | Production Django API |
+| WebView | No — dedicated native client |
+
+Closed-test updates may be reached through the tester's Google Play listing. Production distribution will be handled separately when the application is ready to leave testing.
+
+### Android v4 Validation Focus
+
+The current v4 build specifically addresses:
+
+- Chat layout while the Android keyboard is open
+- Keyboard open/close behaviour in short and long conversations
+- Multiline message composition and sending
+- Response visibility after sending
+- Analytics date presentation on smaller screens
+- Live Analytics Message Count presentation
+- General native UI stability
+
+### iOS Direction
+
+Because the client is React Native, the same application codebase provides the foundation for iOS. iOS distribution will begin after the required Apple Developer membership is active, followed by registered-device builds and TestFlight validation.
 
 ---
 
@@ -128,7 +196,7 @@ All current product limits, pricing, and release information are documented in t
 
 # ✨ Features
 
-AI Assistant Platform combines specialized artificial intelligence, persistent conversations, Retrieval-Augmented Generation (RAG), account-level usage controls, subscription management, analytics, secure API access, and Discord integration in a single Django-based SaaS platform.
+AI Assistant Platform combines specialized artificial intelligence, persistent conversations, the current Retrieval-Augmented Generation (RAG) implementation, account-level usage controls, subscription management, analytics, and protected backend/native interfaces in a single Django-based SaaS platform. Customer-facing Discord integration and API Access are planned for U5.
 
 The system is designed around shared backend services rather than isolated feature implementations. Web chat, supported API access, usage accounting, Knowledge retrieval, plan enforcement, and external integrations reuse the same core business rules wherever practical.
 
@@ -138,7 +206,7 @@ This architecture allows the platform to grow without requiring separate impleme
 
 ## 🤖 AI Assistants
 
-Users can create and manage specialized AI assistants with their own identity, category, personality, behaviour, conversations, and Knowledge.
+Users can create and manage specialized AI assistants with their own identity, category, conversations, and Knowledge. Expanded personality, instructions, behaviour, and appearance controls are assigned to **U1 — Assistant Customization**.
 
 Each assistant belongs to its owner and is isolated from assistants belonging to other accounts.
 
@@ -147,8 +215,8 @@ Each assistant belongs to its owner and is isolated from assistants belonging to
 - Create custom AI assistants
 - Edit existing assistants
 - Delete assistants
-- Configure assistant names and behaviour
-- Configure personalities and instructions
+- Configure assistant names and current supported settings
+- Expanded personality, instructions, behaviour, and appearance controls are planned for U1
 - Organize assistants by category
 - Apply category-specific domain rules
 - Maintain separate conversations for each assistant
@@ -184,6 +252,8 @@ General-purpose categories can bypass unnecessary domain classification when a s
 ---
 
 ## 📚 Knowledge Base & RAG
+
+This section describes the **current Knowledge/RAG implementation**. The broader **Knowledge Base / RAG 2.0** work is assigned to U2.
 
 Each assistant can be extended with user-provided Knowledge through a Retrieval-Augmented Generation (RAG) pipeline.
 
@@ -340,7 +410,7 @@ The shared service coordinates core behaviour such as:
 
 Centralizing this workflow reduces duplicated AI logic and helps keep behaviour consistent across different interfaces.
 
-The same architecture is intended to support the future Android client while continuing to use the existing Django backend.
+The native Android client uses this same architecture and existing Django backend.
 
 ---
 
@@ -486,9 +556,7 @@ Hosted Redis connectivity remains part of the final production configuration ver
 
 Subscription management is implemented with Stripe for the web platform.
 
-The application currently remains intentionally configured for **Stripe Test Mode** while final release validation is completed.
-
-Stripe Live Mode is a deliberate final pre-launch step and will only be enabled after the complete payment, subscription, configuration, and security flow has passed final verification.
+The production application is configured for **Stripe Live Mode**. Stripe Test Mode remains available only for isolated development and validation workflows; production credentials, Price IDs, webhooks, and Checkout configuration are kept separate.
 
 ### Current Subscription Plans
 
@@ -496,7 +564,7 @@ Stripe Live Mode is a deliberate final pre-launch step and will only be enabled 
 | --- | ---: | ---: | ---: | ---: | :---: | :---: |
 | **Free** | **$0 USD** | 1 | 150/month | 10 MB | — | — |
 | **Premium** | **$29 USD** | 5 | 3,000/month | 250 MB | — | — |
-| **Pro** | **$59 USD** | 15 | 10,000/month | 1 GB | ✅ | ✅ |
+| **Pro** | **$59 USD** | 15 | 10,000/month | 1 GB | Planned U5 | Planned U5 |
 
 The Free plan does not require a paid Stripe subscription.
 
@@ -563,28 +631,17 @@ When a paid subscription ends and the account returns to Free:
 
 This avoids destructive subscription behaviour while still enforcing the limits of the active plan.
 
-### Stripe Test Mode
+### Stripe Development & Production Modes
 
-Stripe Test Mode is intentionally used during development and release validation.
+The production web application is configured with **Stripe Live Mode**.
 
-This allows subscription workflows to be tested without accepting real customer payments.
+Stripe Test Mode remains available only for isolated development and regression validation. Test credentials, Test Price IDs, test webhooks, and test Checkout configuration must remain separate from production.
 
-Before public launch, the production payment environment must be switched deliberately to Stripe Live Mode, including:
-
-- Live Stripe secret and publishable keys
-- Live Premium Price ID
-- Live Pro Price ID
-- Live webhook endpoint and signing secret
-- Production Checkout configuration
-- Production Customer Portal configuration
-- Verification that no Test Mode Price IDs or credentials remain in the live payment configuration
-- A controlled real-payment validation after the Live Mode switch
-
-Test credentials and Test Mode configuration must not remain active for real customer payments.
+The production configuration uses Live credentials, Live Price IDs, production webhook configuration, Checkout, and Customer Portal settings. Development and automated tests must never create real customer charges.
 
 ### Android Billing
 
-The planned Android client will use the same Django backend, user accounts, assistants, conversations, Knowledge, quotas, and entitlement system.
+The native Android client uses the same Django backend, user accounts, assistants, conversations, Knowledge, quotas, analytics, and entitlement system.
 
 Android in-app subscription purchases are planned to use **Google Play Billing** rather than routing Android in-app purchases through Stripe.
 
@@ -592,105 +649,13 @@ The backend will remain the authoritative source for the user's effective entitl
 
 ---
 
-## 🤖 Discord Integration
+## 🤖 Discord Integration — U5 Roadmap
 
-Pro users can connect an AI assistant to a user-owned Discord bot through the platform's **Bring Your Own Bot (BYOB)** integration.
+Discord integration is assigned to **U5 — Discord Integration + API Access** and should be treated as roadmap work rather than a currently released customer feature.
 
-The Discord integration does not require the SaaS platform to host a dedicated Discord worker for every customer. Instead, the user creates and owns the Discord bot while a downloadable bridge communicates securely with the AI Assistant Platform backend.
+The planned direction is a **Bring Your Own Bot (BYOB)** workflow for eligible accounts. U5 is intended to cover the complete customer-facing package, including setup guidance, Discord application/bot configuration, required intents and permissions, secure token handling, assistant binding, connection status and diagnostics, usage/limits, and the bridge/API path required for Discord messages to reach the selected AI assistant.
 
-### Plan Availability
-
-| Plan | Discord Integration |
-| --- | :---: |
-| **Free** | — |
-| **Premium** | — |
-| **Pro** | ✅ |
-
-Discord integration is a **Pro-only** feature.
-
-Plan enforcement is performed by the backend rather than relying only on hidden buttons or frontend restrictions.
-
-### Bring Your Own Bot Workflow
-
-The integration follows this general flow:
-
-    Discord User
-         │
-         ▼
-    User-Owned Discord Bot
-         │
-         ▼
-    Downloaded Discord Bridge
-         │
-         ▼
-    AI Assistant Platform API
-         │
-         ▼
-    Selected AI Assistant
-         │
-         ▼
-    Central AI Processing Service
-         │
-         ├── Plan enforcement
-         ├── Monthly AI quota
-         ├── Rate limiting
-         ├── Domain enforcement
-         ├── Knowledge retrieval
-         ├── Conversation context
-         └── OpenAI processing
-         │
-         ▼
-    Discord Response
-
-This architecture allows Discord messages to use the same assistant behaviour and backend AI-processing rules as supported platform chat requests.
-
-### Included Discord Features
-
-The Pro integration includes:
-
-- Bring Your Own Discord Bot
-- Downloadable Discord Bridge package
-- Generated configuration
-- Setup Guide
-- Commands Guide
-- Discord Invite Generator
-- Secure communication with the Django backend
-- Assistant selection
-- API authentication
-- Backend plan enforcement
-- Shared AI quota enforcement
-- Shared Knowledge retrieval
-- Shared domain behaviour
-- Windows support
-- macOS support
-- Linux support
-
-### Downloadable Bridge Package
-
-The generated Discord Bridge package contains the files required to connect the user's Discord bot to the platform.
-
-The package includes configuration and supporting documentation so the bridge can run outside the Heroku web process.
-
-This keeps customer-owned Discord credentials out of a shared permanent Discord worker and allows the user to control their own Discord bot deployment.
-
-### End-to-End Validation
-
-The Discord workflow has been validated end-to-end using a real Discord bot connection:
-
-    Discord
-       ↓
-    Downloaded Bridge
-       ↓
-    Django Backend
-       ↓
-    Selected AI Assistant
-       ↓
-    AI Response
-       ↓
-    Discord
-
-This verifies that Discord is not merely represented by setup UI; the bridge can communicate with the live backend and return assistant responses to Discord.
-
+Earlier prototypes, experiments, or partial backend work do not make the complete Discord product feature released. The U5 package must be implemented, tested end-to-end, regression-checked, deployed, and released before this README describes Discord as generally available.
 ---
 
 ## 📊 Dashboard & Analytics
@@ -768,7 +733,7 @@ The platform supports:
 - Account plan tracking
 - Subscription entitlement tracking
 - Monthly AI usage tracking
-- API-key management
+- Protected backend/native authentication
 - Transactional account emails
 
 ### Registration & Verification
@@ -807,113 +772,42 @@ This means hiding a button is never treated as sufficient protection for a restr
 
 ## 🔌 API & External Integrations
 
-The platform exposes protected API functionality for supported external clients and integrations.
+The platform already uses protected backend API functionality for supported first-party/native client communication.
 
-The public chat API is a **Pro-only** capability.
+A **customer-facing API Access product** is assigned to **U5 — Discord Integration + API Access** and is not yet described as a released customer feature.
 
-### Plan Availability
+### Current Backend Role
 
-| Plan | Public API |
-| --- | :---: |
-| **Free** | — |
-| **Premium** | — |
-| **Pro** | ✅ |
+The native Android application communicates with the Django backend so the same server-side ownership, plan, quota, Knowledge, conversation, analytics, and security rules remain authoritative across clients.
 
-Backend entitlement checks protect API access so a Free or Premium account cannot gain Pro API functionality simply by calling the endpoint directly.
+### Planned U5 API Access
 
-### API Architecture
+U5 is intended to add the complete customer-facing API package, including:
 
-Supported API requests connect to the same core AI-processing architecture used by the web platform.
+- Account API-key management
+- Secure key rotation
+- Assistant invocation
+- Plan/entitlement enforcement
+- Usage and rate limits
+- Request validation
+- Ownership validation
+- Documentation and examples
+- Integration with the U5 Discord workflow
 
-This helps prevent separate clients from bypassing important backend rules.
-
-A supported AI request can pass through controls including:
-
-    External Client
-          │
-          ▼
-    Protected API Endpoint
-          │
-          ├── API-key authentication
-          ├── Active-user validation
-          ├── Pro entitlement validation
-          ├── Request validation
-          ├── Assistant ownership validation
-          └── Conversation ownership validation
-          │
-          ▼
-    Central AI Processing Service
-          │
-          ├── Monthly AI quota
-          ├── Request-rate protection
-          ├── Domain enforcement
-          ├── Knowledge retrieval
-          ├── Conversation context
-          ├── OpenAI processing
-          └── Usage accounting
-          │
-          ▼
-    API Response
-
-### API Security
-
-Implemented API protections include:
-
-- API-key authentication
-- Pro-plan entitlement enforcement
-- Active-user validation
-- Request-body shape validation
-- Bot identifier validation
-- Assistant ownership validation
-- Conversation ownership validation
-- Protected chat endpoints
-- Monthly quota enforcement through shared backend services
-- Rate-limit enforcement
-- Sanitized client-facing errors
-- Safe API-key rotation support
-
-API keys are credentials and must be treated accordingly.
-
-They are not intended to be exposed in public interfaces, administrative list displays, source control, screenshots, or documentation.
-
-### API Key Management
-
-Users with the appropriate entitlement can use account-specific API credentials for supported integrations.
-
-API keys can be rotated when necessary without changing ownership of the underlying assistants or account data.
+Earlier protected endpoints, adapters, tests, or internal API work should not be interpreted as the complete public API product being generally available.
 
 ### Integrated Services
-
-The platform integrates with several external services and infrastructure components:
 
 | Integration | Purpose |
 | --- | --- |
 | **OpenAI API** | AI responses and Knowledge embeddings |
 | **Stripe** | Web subscription and billing infrastructure |
-| **Discord** | Pro BYOB assistant integration |
-| **Django REST Framework** | Protected API interfaces |
+| **Django REST Framework** | Protected backend/native interfaces |
 | **Redis-compatible cache** | Production-oriented rate-limit infrastructure |
 | **PostgreSQL** | Production relational database |
 | **Heroku** | Cloud deployment platform |
 
-### Shared Backend Architecture
-
-External clients are designed to reuse the existing Django backend rather than reimplementing account, assistant, Knowledge, quota, or subscription logic.
-
-This is important for future clients as well.
-
-The planned Android application will therefore use the same core platform data:
-
-- Same user account
-- Same assistants
-- Same conversations
-- Same Knowledge
-- Same monthly AI usage
-- Same account entitlements
-- Same backend security rules
-
-The web application, Discord bridge, API clients, and future Android client are different interfaces to the same core platform rather than separate AI products.
-
+The web application and native mobile client are interfaces to the same core platform rather than separate AI products.
 ---
 
 ## 🎨 User Experience
@@ -1006,7 +900,7 @@ The browser interface is not treated as the security boundary.
 
 Frontend controls improve the user experience, while authentication, authorization, plan restrictions, quotas, ownership validation, and sensitive business rules are enforced by the Django backend.
 
-This allows additional clients, including the planned Android application, to reuse the same backend rules without depending on web-interface behaviour.
+This allows the native Android client and future supported clients to reuse the same backend rules without depending on web-interface behaviour.
 
 ---
 
@@ -1060,13 +954,13 @@ Implemented controls include:
 - Protected state-changing operations
 - Safe redirects and controlled error handling
 
-### API Security
+### Backend / Native API Security
 
-Protected API functionality includes:
+Protected backend/native API functionality includes:
 
 - API-key authentication
 - Active-user validation
-- Pro-plan entitlement enforcement
+- Plan/entitlement enforcement where applicable
 - Assistant ownership validation
 - Conversation ownership validation
 - Request validation
@@ -1074,7 +968,7 @@ Protected API functionality includes:
 - Request-rate enforcement
 - Sanitized client-facing errors
 
-API credentials are treated as secrets and are not intended for public display or source-control storage.
+Backend/native credentials and provider secrets are treated as secrets and are not intended for public display or source-control storage. Customer-facing API-key management is planned for U5.
 
 ### Knowledge Security & Reliability
 
@@ -1130,7 +1024,7 @@ Redis-compatible caching is implemented for production-oriented rate-limit stora
 
 Local development can use the configured local-memory fallback.
 
-Hosted Redis connectivity remains subject to final production-environment verification before public launch.
+Redis-compatible caching remains part of the production-oriented rate-limit architecture and should be revalidated whenever production infrastructure or cache configuration changes.
 
 ### Stripe Security
 
@@ -1151,9 +1045,7 @@ Implemented protections include:
 - Retryable provider-failure handling
 - Sanitized payment-provider errors
 
-The application remains intentionally in **Stripe Test Mode** during final release validation.
-
-Stripe Live Mode will be configured as a separate final pre-launch step so Test Mode credentials, Price IDs, webhook configuration, and Checkout settings are not accidentally used for real customer payments.
+The production application uses **Stripe Live Mode**. Test credentials and Test Mode Price IDs remain isolated from production configuration.
 
 ### Secret Management
 
@@ -1223,13 +1115,13 @@ Regression coverage includes areas such as:
 - Preservation of existing content
 - Error handling
 
-The exact final release test count will be documented after the complete pre-launch regression suite has been run, rather than presenting an outdated intermediate test total as the current project-wide result.
+Historical and targeted test counts are treated as development checkpoints. A future release should document its own complete regression result when that release is prepared.
 
-### Final Pre-Launch Verification
+### Production Release Verification
 
 The core security and reliability controls are implemented.
 
-The final release process still includes a dedicated production-focused verification pass covering:
+Production releases use a dedicated verification pass covering:
 
 - Complete regression test suite
 - Django production settings
@@ -1244,7 +1136,7 @@ The final release process still includes a dedicated production-focused verifica
 - Database migrations
 - Final live smoke testing
 
-Stripe Live Mode is intentionally handled only after the application has passed the preceding Test Mode and production-configuration checks.
+Stripe Live Mode is active in production; Test Mode remains isolated for development and regression validation.
 
 ---
 
@@ -1280,7 +1172,7 @@ Users can switch between themes while continuing to use the same application fun
 
 ## 🤖 Create an AI Assistant
 
-Authenticated users can create specialized AI assistants by configuring properties such as name, category, personality, and behaviour.
+Authenticated users can create specialized AI assistants using the settings currently exposed by the product. Expanded personality, instructions, behaviour, and appearance controls are planned for **U1 — Assistant Customization**.
 
 Assistant creation is subject to the active account plan:
 
@@ -1358,16 +1250,11 @@ Quota validation occurs before expensive extraction and embedding processing whe
 
 ---
 
-## 🤖 Discord Integration
+## 🤖 Discord Integration — Planned U5
 
-Pro users can connect an assistant to a user-owned Discord bot through the downloadable Bring Your Own Bot (BYOB) bridge.
+Discord is part of the **U5** upgrade package. The intended design uses a customer-owned Discord bot connected securely to the AI Assistant backend.
 
-The bridge communicates with the Django backend so Discord requests can use the platform's existing assistant configuration, Knowledge, AI processing, quota enforcement, and security controls.
-
-Discord integration is available on the **Pro plan**.
-
-**Historical screenshot:** The original Discord screenshot demonstrated an earlier end-user conversation with an AI assistant. The original screenshot remains preserved in the project history.
-
+Any historical Discord screenshots or earlier bridge experiments should be interpreted as development history, not as proof that the complete U5 customer feature is currently released.
 ---
 
 ## 💳 Plans & Membership
@@ -1378,7 +1265,7 @@ AI Assistant Platform provides three account plans:
 | --- | ---: | ---: | ---: | ---: | :---: | :---: |
 | **Free** | **$0/month** | 1 | 150/month | 10 MB | — | — |
 | **Premium** | **$29/month** | 5 | 3,000/month | 250 MB | — | — |
-| **Pro** | **$59/month** | 15 | 10,000/month | 1 GB | ✅ | ✅ |
+| **Pro** | **$59/month** | 15 | 10,000/month | 1 GB | Planned U5 | Planned U5 |
 
 Chats remain unlimited across all plans.
 
@@ -1392,9 +1279,7 @@ The screenshot below was captured during development and may contain historical 
 
 Paid web subscriptions are processed through Stripe Checkout.
 
-The application currently remains intentionally configured for **Stripe Test Mode** during final release validation.
-
-Before public launch, Stripe will be deliberately switched to Live Mode using production credentials, current Live Price IDs, a production webhook configuration, and production Checkout settings.
+The production web application is configured with **Stripe Live Mode**, including production credentials, Live Price IDs, production webhook configuration, and production Checkout settings. Test Mode remains separate for safe development validation.
 
 **Historical screenshot:** An earlier Stripe sandbox screenshot showed a Pro Bot Plan priced at USD 15.00. That amount is historical and does **not** represent the current Pro price of **$59/month**. The original screenshot remains preserved in the project history.
 
@@ -1732,7 +1617,7 @@ The AI Assistant Platform has been continuously tested throughout development us
 
 Validation covers both expected behaviour and important failure paths.
 
-The final project-wide release test count will be recorded after the complete pre-launch regression suite has been executed. Earlier targeted test counts are treated as development checkpoints rather than the final total for the application.
+Earlier targeted test counts are treated as development checkpoints rather than a permanent project-wide total. Each major release should record its own applicable regression result.
 
 ---
 
@@ -1764,7 +1649,7 @@ Automated testing includes areas such as:
 - Usage accounting
 - API authentication
 - API authorization
-- Pro-only API access
+- API entitlement/authorization groundwork
 - Request validation
 - Rate limiting
 - Stripe Checkout workflows
@@ -1800,7 +1685,7 @@ This includes targeted regression coverage for:
 - Pro-to-Premium continuation
 - Paid-to-Free continuation
 - Lower-plan assistant creation restrictions
-- Public API plan enforcement
+- API entitlement/authorization groundwork
 - Stripe subscription behaviour
 
 The project has also passed focused regression suites for account, assistant, payment, Knowledge, API, and continuation behaviour during development.
@@ -1836,11 +1721,11 @@ As a result, warning or error log output can appear during a successful test run
 
 The important assertion is that the application rejects the operation correctly and preserves valid application state.
 
-### Final Release Regression
+### Release Regression
 
-Before public v1.0 release, the complete automated suite will be executed again against the final release code.
+For future major releases, the applicable automated suite should be executed against the release code.
 
-The final validation pass will record:
+A release validation pass should record:
 
 - Total discovered tests
 - Total executed tests
@@ -2007,9 +1892,9 @@ An over-limit Knowledge addition was correctly blocked with the applicable plan 
 
 This verifies that an over-limit request does not leave partially persisted Knowledge behind.
 
-### API Testing
+### Backend/API Groundwork Testing
 
-API validation includes:
+Backend/API groundwork validation includes:
 
 - API-key authentication
 - Active-account validation
@@ -2021,29 +1906,12 @@ API validation includes:
 - Plan-restricted access
 - Sanitized error responses
 
-Direct Free-plan access to the Pro-only public API has been verified as blocked by the backend rather than merely hidden by the frontend.
+Protected backend/API experiments include entitlement and ownership checks. The complete customer-facing API Access product remains part of U5.
 
-### Discord End-to-End Testing
+### Discord / API Roadmap Validation
 
-The Bring Your Own Bot Discord integration has been tested end-to-end.
+Earlier Discord/API experiments and backend tests are development history. The complete customer-facing Discord and API Access package belongs to **U5** and will receive its own end-to-end and regression validation before the affected release.
 
-The verified flow includes:
-
-    Discord User
-         ↓
-    User-Owned Discord Bot
-         ↓
-    Downloaded Bridge
-         ↓
-    Django Backend
-         ↓
-    Selected AI Assistant
-         ↓
-    AI Response
-         ↓
-    Discord
-
-This confirms that the Discord integration can communicate with the platform backend and return assistant responses through the user-owned bot.
 
 ### Stripe Testing
 
@@ -2073,9 +1941,9 @@ The current web pricing is:
 | **Premium** | $29/month |
 | **Pro** | $59/month |
 
-Stripe remains intentionally in **Test Mode** until the final production-payment stage.
+Those payment-flow checks were performed in Stripe Test Mode during development. The **current production web application uses Stripe Live Mode**.
 
-Test credentials, Test Price IDs, Test webhooks, and Test Checkout configuration must not remain as the production payment configuration when real customer payments are enabled.
+Test credentials, Test Price IDs, test webhooks, and test Checkout configuration remain isolated from the current Live Mode production configuration.
 
 ---
 
@@ -2093,17 +1961,17 @@ Hosted verification has included areas such as:
 - Knowledge persistence behaviour
 - Live application responses after deployment
 
-This is distinct from the final release audit.
+This remains distinct from release-specific production verification.
 
-The final audit will validate the complete production configuration as one release candidate rather than assuming that individually successful development deployments automatically prove the entire application is launch-ready.
+Release-specific verification validates the complete production configuration rather than assuming that individually successful development deployments prove every later release.
 
 ---
 
-## 🔐 Final Security & Configuration Audit
+## 🔐 Production Security & Configuration Verification
 
-A dedicated final pre-launch audit remains part of the release process.
+A dedicated production security/configuration verification remains part of the release process.
 
-The audit will cover:
+The verification covers:
 
 - Complete automated regression suite
 - Production Django settings
@@ -2124,33 +1992,17 @@ The audit will cover:
 - Stripe configuration
 - Final hosted smoke testing
 
-Any partially exposed test credentials identified during the audit should be rotated before release even when they cannot process real customer payments.
+Any exposed or partially exposed credentials identified during release verification should be rotated as appropriate.
 
 ---
 
-## 💳 Final Stripe Live Mode Validation
+## 💳 Stripe Production Validation
 
-Stripe Live Mode is intentionally the **last payment-specific pre-launch step**.
+The production web application is already configured with **Stripe Live Mode**.
 
-Only after the application has passed the preceding regression, security, and configuration checks will the production payment configuration be enabled.
+Development payment-flow testing remains isolated in Stripe Test Mode. Production verification should confirm that Live credentials, Live Price IDs, the production webhook endpoint/signing secret, Checkout configuration, Customer Portal behaviour, subscription entitlement, cancellation, and billing behaviour remain correct after payment-related changes.
 
-The final Stripe production pass will verify:
-
-1. Live Stripe secret key
-2. Live Stripe publishable key
-3. Live Premium Price ID
-4. Live Pro Price ID
-5. Production webhook endpoint
-6. Live webhook signing secret
-7. Production Checkout configuration
-8. Production billing portal behaviour
-9. Removal of Test Mode payment configuration from the production environment
-10. Controlled real-payment verification
-11. Correct subscription entitlement after payment
-12. Correct cancellation and billing behaviour
-
-The application will not be considered ready to accept real customer payments until this Live Mode verification is complete.
-
+Real customer payments must never be used merely to replace tests that can safely be performed in Test Mode.
 ---
 
 ## ✅ Validation Status
@@ -2174,18 +2026,18 @@ The remaining validation work is intentionally concentrated into the final relea
     Stripe Live Mode configuration
               │
               ▼
-    Controlled production payment
+    Production payment configuration verification
               │
               ▼
-         Web v1.0 Release
+         Web production release
 
-The final test totals and production-verification results will be documented after that release pass has actually been completed.
+Release-specific test totals and production-verification results should be documented for the release being validated.
 
 ---
 
 # 🛠️ Technology Stack
 
-AI Assistant Platform is built as a Django-based SaaS application with a responsive web frontend, OpenAI-powered AI processing, Retrieval-Augmented Generation (RAG), Stripe subscription infrastructure, PostgreSQL persistence, Redis-compatible caching, protected APIs, and Discord integration.
+AI Assistant Platform is built as a Django-based SaaS application with a responsive web frontend, a native Expo/React Native mobile client, OpenAI-powered AI processing, the current Retrieval-Augmented Generation (RAG) implementation, Stripe subscription infrastructure, PostgreSQL persistence, Redis-compatible caching, and protected backend/native APIs. Customer-facing Discord integration and API Access are planned for U5.
 
 The architecture separates user-facing interfaces from backend business rules so authentication, ownership, plan entitlements, quotas, Knowledge retrieval, and AI processing can be reused by supported clients.
 
@@ -2225,7 +2077,7 @@ The Django backend is responsible for:
 - API authorization
 - Subscription entitlement
 - Stripe webhook processing
-- Discord bridge communication
+- Discord bridge communication (U5 preparatory work)
 - Administrative functionality
 
 Important business rules are enforced server-side rather than depending on frontend visibility or client behaviour.
@@ -2258,11 +2110,11 @@ The current web client includes:
 - Account management
 - Analytics
 - Subscription and billing interfaces
-- Discord setup interfaces
-- API account functionality
+- Discord setup interfaces (planned U5)
+- Protected backend/native API communication
 - User feedback and validation messages
 
-The future Android client is intended to consume the same backend platform rather than duplicate these business rules independently.
+The native Android client consumes the same backend platform rather than duplicating these business rules independently.
 
 ---
 
@@ -2376,7 +2228,7 @@ Monthly quotas control the amount of AI processing available during the calendar
 
 Production-oriented configuration uses Redis-compatible caching rather than intentionally relying on per-process local memory.
 
-Final hosted Redis connectivity is part of the pre-launch production verification and is not claimed as verified until that check has actually been completed.
+Hosted Redis connectivity should be verified as part of production infrastructure checks whenever the relevant configuration changes.
 
 ---
 
@@ -2388,7 +2240,7 @@ Final hosted Redis connectivity is part of the pre-launch production verificatio
 | Stripe Checkout | Paid-plan Checkout flow |
 | Stripe Billing Portal | Customer billing management |
 | Stripe Webhooks | Signed subscription-event processing |
-| Stripe Test Mode | Development and pre-launch payment validation |
+| Stripe Test Mode | Isolated development and regression validation |
 
 ### Subscription Architecture
 
@@ -2418,38 +2270,24 @@ The integration includes:
 
 ### Current Payment Environment
 
-The production web application remains intentionally restricted to **Stripe Test Mode** during final release preparation.
+The production web application uses **Stripe Live Mode**. Test Mode is reserved for isolated development and regression validation.
 
-Stripe Live Mode is not enabled yet.
-
-The final pre-launch payment step will replace Test Mode configuration with the corresponding production configuration, including:
-
-- Live publishable key
-- Live secret key
-- Live Premium Price ID
-- Live Pro Price ID
-- Live webhook endpoint configuration
-- Live webhook signing secret
-- Production Checkout configuration
-
-A controlled real-payment test will then verify the complete production subscription workflow.
+Production payment configuration includes the Live publishable/secret keys, Live Premium and Pro Price IDs, production webhook configuration/signing secret, Checkout configuration, and Customer Portal configuration. Payment-related changes should be verified safely in Test Mode first and then smoke-checked against production configuration without creating unnecessary real charges.
 
 ---
 
-## 🤖 Discord Integration
+## 🤖 Discord Integration — U5 Roadmap
 
-| Technology | Purpose |
+The Discord stack below represents the **planned U5 architecture**, not a currently released customer feature.
+
+| Planned Technology | Purpose |
 | --- | --- |
 | discord.py | Discord bot communication |
-| Discord Developer Portal | User-owned bot configuration |
-| Bring Your Own Bot (BYOB) | User-controlled Discord deployment |
-| Platform API | Communication between bridge and Django backend |
+| Discord Developer Portal | Customer-owned bot configuration |
+| Bring Your Own Bot (BYOB) | Customer-controlled Discord deployment |
+| Platform API | Planned bridge communication with Django |
 
-Discord is implemented as a Pro-only external integration.
-
-Users run the downloadable Discord bridge with their own Discord bot rather than relying on a permanent shared Discord worker inside the Heroku web process.
-
-The bridge communicates with the same backend assistant architecture used by the platform.
+The intended U5 design uses a downloadable/customer-run bridge with the customer's own Discord bot. The complete setup flow, security, diagnostics, entitlement/usage enforcement, documentation, and end-to-end validation remain U5 roadmap work.
 
 ---
 
@@ -2499,7 +2337,7 @@ The project has an active Heroku deployment.
 Production URL:
 
 ```text
-https://ai-assistants-8c06fcfeab86-6fbe77963620.herokuapp.com
+https://www.myaiassistantapp.se/
 ```
 
 Recent backend releases, including the account-wide monthly AI quota and account-wide Knowledge storage quota work, have been deployed and validated against the hosted application.
@@ -2512,11 +2350,11 @@ The production web process is started with Gunicorn:
 web: gunicorn ai_assistant.buildabot.wsgi --log-file -
 ```
 
-The downloadable Discord bridge is not deployed as a permanent Heroku Discord worker.
+The planned U5 Discord architecture does not require a permanent shared Discord worker in the Heroku web process.
 
 ### Release Verification
 
-Although important backend changes have already been deployed and live-tested, the complete production configuration will receive one final release audit before web v1.0 is declared launch-ready.
+The web application is already live in production. Future releases receive release-specific regression, configuration, infrastructure, and smoke verification.
 
 ---
 
@@ -2593,7 +2431,7 @@ A future migration to a newer major OpenAI Python client should be handled as a 
 
 Local development can use the configured Django local-memory cache where appropriate.
 
-Hosted Redis connectivity will be explicitly checked during the final production audit.
+Hosted Redis connectivity will be explicitly checked during the production infrastructure verification.
 
 ### Document Processing
 
@@ -2819,7 +2657,7 @@ This provides several benefits:
 
 The architecture is also important for future platform expansion.
 
-For example, the planned Android application can reuse the existing account, assistant, conversation, Knowledge, quota, and subscription architecture instead of rebuilding the entire SaaS backend separately.
+For example, the native Android application can reuse the existing account, assistant, conversation, Knowledge, quota, and subscription architecture instead of rebuilding the entire SaaS backend separately.
 
 ---
 
@@ -2827,7 +2665,7 @@ For example, the planned Android application can reuse the existing account, ass
 
 The AI Assistant Platform follows Django's **Model–View–Template (MVT)** architecture and is divided into focused applications for accounts, AI assistants, analytics, payments, and infrastructure.
 
-The backend is designed so the current web interface, public API, Discord integration, and future Android client can reuse the same account, entitlement, Knowledge, conversation, and AI-processing logic.
+The backend is designed so the current web and native Android clients reuse the same account, entitlement, Knowledge, conversation, and AI-processing logic. The same architecture is intended to support the customer-facing API and Discord integration planned for U5.
 
 ---
 
@@ -2838,7 +2676,7 @@ The backend is designed so the current web interface, public API, Discord integr
                               │
                ┌──────────────┼──────────────┐
                ▼              ▼              ▼
-          Web Interface    Public API    Future Android App
+          Web Interface    Public API    Native Android App
                │              │              │
                └──────────────┼──────────────┘
                               ▼
@@ -2880,7 +2718,7 @@ The project is divided into several Django applications, each responsible for a 
 
 ### 👤 Accounts
 
-The `accounts` application manages identity, account state, plan information, and API access.
+The `accounts` application manages identity, account state, plan information, and authentication/entitlement data used by supported clients. Customer-facing API Access is planned for U5.
 
 #### Responsibilities
 
@@ -2894,8 +2732,8 @@ The `accounts` application manages identity, account state, plan information, an
 - Effective-plan calculation
 - Stripe customer references
 - Stripe subscription references
-- Public API-key authentication
-- Secure API-key rotation
+- API authentication/authorization groundwork
+- Secure customer API-key rotation planned for U5
 - Account-level monthly AI usage state
 
 The account layer provides plan and entitlement information used throughout the rest of the platform.
@@ -2931,7 +2769,7 @@ The `bots` application contains the main AI functionality and assistant-processi
 - Redis-backed rate limiting
 - Public API endpoints
 - API request validation
-- Pro-only API entitlement
+- API entitlement/authorization groundwork
 - Discord integration
 - AI regression testing
 
@@ -2983,9 +2821,9 @@ The `payments` application contains the Stripe subscription infrastructure used 
 - Subscription recovery and reconciliation
 - Stripe Test Mode workflows
 
-Stripe remains intentionally configured in **Test Mode** during the final release-preparation stage.
+Stripe Test Mode remains available for isolated development/regression work; the production web application uses **Stripe Live Mode**.
 
-Stripe Live Mode will be configured only after the rest of the production audit has passed.
+Stripe Live Mode is already configured in production and should be revalidated after payment-related production changes.
 
 ---
 
@@ -3279,7 +3117,7 @@ Redis-compatible caching is part of the production rate-limiting architecture.
 
 Local development can use Django's local-memory cache where configured.
 
-Final hosted Redis connectivity validation remains part of the pre-launch production audit.
+Hosted Redis connectivity should be included in production infrastructure verification after relevant configuration changes.
 
 ---
 
@@ -3384,11 +3222,11 @@ The same preservation principle applies to existing Knowledge.
 
 OpenAI is used by the active application for AI processing and embeddings.
 
-Stripe is intentionally still in **Test Mode** while the final release audit is completed.
+Stripe production billing is configured in **Live Mode**. Test Mode is reserved for isolated development and regression validation.
 
 The web application is already deployed on Heroku, including recent monthly AI quota and Knowledge storage changes.
 
-Redis remains part of the configured production architecture, but hosted Redis connectivity will be explicitly confirmed during the final release audit.
+Redis remains part of the configured production-oriented rate-limit architecture and is included in infrastructure verification.
 
 ---
 
@@ -3487,19 +3325,56 @@ Reusable services, isolated configuration, automated regression tests, and Djang
 
 ### Future Client Support
 
-The shared backend is designed to support additional clients, including the planned Android application, without rebuilding the core SaaS logic separately.
+The shared backend is designed to support additional clients, including the native Android application, without rebuilding the core SaaS logic separately.
+
+---
+
+## 📌 Documentation Status Convention
+
+To avoid mixing historical development work with released product functionality, this README uses three status concepts:
+
+- **Current** — implemented and part of the presently documented product/client state.
+- **Historical** — earlier screenshots, prototypes, tests, or development checkpoints retained for project history.
+- **Roadmap** — planned work that must not be presented as released until its upgrade package is completed and shipped.
+
+The U1-U5 items below are **Roadmap** work unless a later release section explicitly marks an upgrade as completed.
+
+---
+
+# 🧭 Product Upgrade Roadmap
+
+The next major product work is organized into complete upgrade packages. Related UI, backend/API work, tests, regression coverage, and release work are grouped together so the same systems are not repeatedly reopened for small disconnected changes.
+
+| Upgrade | Package | Main Direction |
+| --- | --- | --- |
+| **U1** | Assistant Customization | Personality, instructions, behaviour, appearance, plan-aware controls, and related assistant configuration work |
+| **U2** | Knowledge Base / RAG 2.0 | Improved retrieval, embeddings/RAG, multiple documents, assistant-specific Knowledge, isolation, and related usage/storage improvements |
+| **U3** | Website Widget / Public Chatbot | Embeddable customer website widget, public visitor chat, per-assistant widget settings, and backend enforcement |
+| **U4** | Advanced Customization + Branding | Expanded design/behaviour customization and paid-plan removal of AI Assistant branding where applicable |
+| **U5** | Discord Integration + API Access | Discord setup/bridge workflow, connection status and diagnostics, account API keys, assistant invocation, limits, documentation, and examples |
+
+### Upgrade Release Rule
+
+Each package follows the same sequence:
+
+1. Group the main feature with technically related improvements.
+2. Implement the complete package.
+3. Run focused and regression validation.
+4. Deploy/build the affected clients and backend.
+5. Perform release smoke testing.
+6. Close the upgrade before beginning the next package.
+
+New feature ideas are assigned to the most appropriate not-yet-started upgrade, or to a later upgrade when they do not belong in U1-U5.
 
 ---
 
 # 🛣️ Roadmap
 
-AI Assistant Platform is approaching its first web production release.
+AI Assistant Platform has a live production web application and a native Android client distributed through Google Play Closed Testing.
 
-The core v1 backend, account system, AI assistant workflows, Knowledge system, subscriptions, API, Discord integration, analytics, and plan enforcement are substantially implemented.
+The current core platform includes account management, assistant CRUD/chat, the existing Knowledge/RAG implementation, analytics, plan enforcement, and Stripe Live Mode billing on the web.
 
-The remaining web-release work is focused on final regression testing, production configuration verification, infrastructure validation, and the deliberate Stripe Live Mode switch.
-
-After the web platform is launch-ready, development can continue with the Android client and selected v2 platform improvements.
+The next major product work is organized into the U1-U5 upgrade packages above. Features assigned to those packages are roadmap work and must not be interpreted as already released merely because supporting backend experiments, earlier prototypes, or historical documentation exist.
 
 ---
 
@@ -3589,17 +3464,17 @@ Current v1 does not provide OCR for scanned or image-only PDFs.
 
 ---
 
-### API & Security
+### Backend API & Security
 
-- REST API
-- Public API-key authentication
-- Secure API-key rotation
+- Protected REST endpoints for supported backend/native communication
+- API authentication/authorization groundwork
+- Secure customer API-key rotation planned for U5
 - Active-user validation
 - Request-shape validation
 - Assistant ownership validation
 - Conversation ownership validation
-- Pro-only API entitlement
-- API-key protection in Django Admin
+- API entitlement/authorization groundwork
+- Customer API-key exposure protection planned for U5
 - CSRF protection for browser workflows
 - Environment-based secret configuration
 - Plan-aware short-term rate limiting
@@ -3625,7 +3500,7 @@ Current request-rate limits:
 - User-owned Discord bot configuration
 - Shared Django AI backend
 - End-to-end Discord response flow verified
-- No permanent Discord worker required in the Heroku web application
+- Planned U5 architecture does not require a permanent shared Discord worker in the Heroku web application
 
 The Discord bridge allows a user's own Discord bot to communicate with the same backend assistant logic used by the platform.
 
@@ -3695,7 +3570,7 @@ Development validation has included automated and live regression coverage for a
 
 Recent focused verification has included passing account, bot, payment, Knowledge, and continuation regression suites.
 
-The final complete regression count will be documented after the pre-launch full-suite run.
+Release-specific regression results should be documented for the release being validated.
 
 Additional development checks have included:
 
@@ -3746,13 +3621,13 @@ Verify the final production environment, including:
 - Production Redis connectivity
 - Deployment configuration
 
-Any partially exposed test credentials identified during the audit should be rotated before release.
+Any partially exposed test credentials identified during the audit should be rotated before the affected release.
 
-### 3. Stripe Live Mode
+### 3. Stripe Production Verification
 
-Stripe Live Mode is intentionally the final payment-specific pre-launch step.
+Stripe Live Mode is already active in production; payment-related releases should verify the production configuration after safe Test Mode regression testing.
 
-The production switch will include:
+Payment-related production verification includes:
 
 - Live publishable key
 - Live secret key
@@ -3762,43 +3637,36 @@ The production switch will include:
 - Live webhook signing secret
 - Production Checkout configuration
 - Production Billing Portal configuration
-- Removal of Test Mode payment configuration from production
-- Controlled real-payment verification
+- Confirmation that Test Mode values are not used by production
+- Safe production smoke verification without unnecessary real charges
 
-The platform should not accept real customer payments until this verification has completed successfully.
+The production platform already uses Live Mode; payment-related changes must preserve a valid, isolated production configuration.
 
-### 4. Web v1.0 Release
+### 4. Web Production Release
 
-After the regression, security, configuration, infrastructure, and payment checks pass, the current web application can be treated as the first production-ready release.
+The web application is already live. Future web releases follow the same regression, security, configuration, infrastructure, payment (when affected), deployment, and smoke-verification discipline.
 
 ---
 
-## Planned Next 📌
+## Current Native Android Client ✅
 
 ### Android Application
 
-After the web v1.0 release, the next major client is the Android application.
+The Android client is now implemented as a dedicated **Expo / React Native** application and is distributed through **Google Play Closed Testing (Alpha)**.
 
-The Android client is planned to reuse the same Django backend and user data rather than becoming an independent platform.
+Current release information:
 
-Planned Android areas include:
+- Package: `com.mrhusse.aiassistant`
+- `versionCode 4`
+- `versionName 1.0.0`
+- Play release: `1.2 - Native Bug Fixes`
+- Shared production Django backend
+- Shared accounts, assistants, conversations, Knowledge, usage, analytics, and entitlement rules
+- Native authentication, Dashboard, Analytics, assistant management/chat, Knowledge access, and Account functionality
 
-- Registration and authentication
-- Existing account access
-- Assistant management
-- AI chat
-- Persistent conversations
-- Knowledge management
-- Account and plan information
-- Shared backend entitlement
-- Google Play Billing
-- Subscription synchronization
-- Android-specific UI
-- Google Play release preparation
-- Store listing
-- Policy and disclosure requirements
+The current v4 release includes Android chat/keyboard layout fixes and Analytics date/Message Count fixes.
 
-The goal is for web and Android users to access the same account, assistants, conversations, Knowledge, and backend services.
+Google Play Billing and broader store-launch work remain separate from the fact that the native client itself is already implemented and in Closed Testing.
 
 ---
 
@@ -3898,7 +3766,7 @@ Future infrastructure work can include:
 - Operational alerting
 - Performance monitoring
 
-Redis connectivity itself is not being deferred as a future feature; production connectivity verification is part of the current web pre-launch audit.
+Redis connectivity is production infrastructure and should be revalidated after relevant hosted configuration changes.
 
 ---
 
@@ -3906,7 +3774,7 @@ Redis connectivity itself is not being deferred as a future feature; production 
 
 The long-term goal is to develop AI Assistant Platform into a commercially viable multi-client AI service where individuals and businesses can create, customize, equip with their own Knowledge, and manage specialized AI assistants.
 
-The web platform and planned Android application are designed to share the same:
+The web platform and native Android application are designed to share the same:
 
 - Django backend
 - User accounts
@@ -3966,7 +3834,7 @@ The result is not only an AI chat interface, but a complete application architec
 - 🚦 Account-wide monthly AI quotas
 - 📦 Account-wide Knowledge storage quotas
 - ⚡ Plan-aware short-term rate limiting
-- 🔐 Public API-key authentication
+- 🔐 Customer API-key authentication planned for U5
 - 🛡️ Ownership and entitlement validation
 - 💳 Free, Premium, and Pro plan architecture
 - 💳 Stripe subscription infrastructure
@@ -3976,7 +3844,7 @@ The result is not only an AI chat interface, but a complete application architec
 - 🌙 Dark and Light themes
 - 📱 Responsive web interface
 - 🧩 Modular Django architecture
-- 📲 Planned Android client using the same backend and account data
+- 📲 Native Android client using the same backend and account data
 
 ---
 
@@ -4020,7 +3888,7 @@ Potential users include:
 - Teams working with their own Knowledge
 - Individuals who want to create and manage specialized assistants
 
-The longer-term product direction is for the same account, assistants, conversations, Knowledge, plan entitlement, and backend services to be available across the web platform and future Android client.
+The longer-term product direction is for the same account, assistants, conversations, Knowledge, plan entitlement, and backend services to be available across the web platform and native Android client.
 
 ---
 
@@ -4074,7 +3942,7 @@ Shared Backend Logic
 OpenAI / Knowledge / Database
 ```
 
-The same approach also provides a foundation for the planned Android client.
+The same approach also provides a foundation for the native Android client.
 
 ---
 
@@ -4307,7 +4175,7 @@ The Redis-oriented architecture therefore required attention to:
 
 The Redis architecture and automated coverage are implemented.
 
-Final hosted Redis connectivity verification remains part of the pre-launch production audit.
+Hosted Redis connectivity remains part of production infrastructure verification.
 
 ---
 
@@ -4336,7 +4204,7 @@ Signed webhook events are validated and processed defensively.
 
 Processed event identifiers support idempotency so repeated delivery does not intentionally duplicate state transitions.
 
-Stripe remains intentionally in **Test Mode** until the final production-payment step.
+The production web application uses **Stripe Live Mode**; Test Mode is isolated for development and regression validation.
 
 ---
 
@@ -4371,60 +4239,18 @@ This separates entitlement from destructive data deletion.
 
 ---
 
-### 🔐 Public API Security
+### 🔐 Customer API Security — Planned U5
 
-Providing external API access creates a different security boundary from normal browser authentication.
+Customer-facing API Access belongs to **U5**. Earlier API authentication/authorization work provides useful backend groundwork, but the complete customer API must not be described as generally available until U5 is released.
 
-The public API required:
-
-- API-key authentication
-- Active-user validation
-- Pro-plan entitlement
-- Strict request-shape validation
-- Safe identifier handling
-- Assistant ownership checks
-- Conversation ownership checks
-- Secure API-key rotation
-- Protection against accidental key exposure in Django Admin
-
-One important lesson was that secrets need protection from more than source control.
-
-They must also be protected from:
-
-- Logs
-- Debug output
-- Administrative interfaces
-- Error responses
-- Accidental template exposure
-
+The planned security model includes account API keys, active-user and entitlement checks, strict request validation, assistant/conversation ownership checks, usage/rate limits, safe errors, key rotation, and protection against credential exposure in logs, admin interfaces, templates, and client code.
 ---
 
-### 🎮 Discord Integration
+### 🎮 Discord Integration — Planned U5
 
-The Discord integration uses a **Bring Your Own Bot (BYOB)** approach.
+The BYOB Discord architecture documented during development is preparatory work for **U5**, not a claim that the complete customer feature is currently released.
 
-Instead of requiring all customers to share a central Discord bot, users can configure their own Discord bot and connect it to the platform.
-
-```text
-Discord
-   │
-   ▼
-User-Owned Bot
-   │
-   ▼
-Discord Bridge
-   │
-   ▼
-Django API
-   │
-   ▼
-Shared AI Backend
-```
-
-This keeps the primary AI logic inside Django while allowing users to control their own Discord bot configuration.
-
-The downloadable bridge runs separately from the Heroku web process.
-
+The intended flow remains: customer-owned Discord bot → bridge/API path → Django backend → shared AI service. The complete setup workflow, security, diagnostics, entitlement/usage enforcement, documentation, and end-to-end release validation belong to U5.
 ---
 
 ### ☁️ Deployment and Environment Differences
@@ -4446,7 +4272,7 @@ Areas requiring particular attention included:
 
 The Heroku deployment has already been updated with recent backend work, including the monthly AI quota and Knowledge storage changes.
 
-The remaining deployment work is now a **final release-wide audit**, not a separate unfinished backend-validation branch.
+Future deployment work uses **release-wide verification** rather than treating production readiness as a one-time assumption.
 
 ---
 
@@ -4808,11 +4634,11 @@ The webhook design includes:
 - Stale-event reconciliation
 - Retryable provider failures
 
-Stripe remains intentionally in **Test Mode** during the current pre-launch stage.
+The production web application uses **Stripe Live Mode**; Test Mode remains isolated for development and regression validation.
 
-Live Mode will be configured only as the final payment step after the broader production audit passes.
+Live Mode is already active in production and remains subject to release-specific configuration verification.
 
-The planned Android client is expected to use Google Play Billing for Android in-app subscription purchasing, with backend entitlement synchronization keeping account access consistent.
+The native Android client is implemented. Android in-app subscription purchasing is planned to use Google Play Billing, with backend entitlement synchronization keeping account access consistent.
 
 ---
 
@@ -4833,22 +4659,13 @@ This avoids surprising destructive behaviour during subscription changes.
 
 ---
 
-## Public API Keys
+## Customer API Keys — Planned U5
 
-The public API uses dedicated API keys rather than exposing browser authentication credentials.
+Dedicated customer API-key management is planned for **U5 — Discord Integration + API Access**.
 
-API security includes:
+Earlier API-key models, endpoints, or security experiments should be treated as preparatory/historical backend work. The released U5 package is intended to include account key management and rotation, assistant invocation, ownership and entitlement enforcement, usage/rate limits, safe errors, documentation, and examples.
 
-- Active-user validation
-- Pro-plan entitlement
-- Request validation
-- Ownership checks
-- Safe identifier handling
-- API-key rotation
-- Restricted API-key exposure in Django Admin
-
-Public API keys are also separate from the server-side OpenAI credential.
-
+The server-side OpenAI credential remains a separate secret and must never be exposed as a customer API key.
 ---
 
 ## Environment-Based Secrets
@@ -4865,26 +4682,15 @@ Environment configuration is used for values such as:
 - Redis configuration
 - Email credentials
 
-Secret handling remains part of the final production audit before release.
+Secret handling remains part of ongoing production and release verification.
 
 ---
 
-## Bring Your Own Bot (BYOB)
+## Bring Your Own Bot (BYOB) — Planned U5
 
-Discord integration follows a Bring Your Own Bot approach.
+BYOB is the planned direction for the **U5 Discord integration**. Customers are intended to connect their own Discord bot while the primary AI processing remains inside Django.
 
-Users can connect their own Discord bot while primary AI processing remains inside the Django backend.
-
-This provides:
-
-- User ownership of the Discord bot
-- Independent Discord configuration
-- Separation between Discord and core AI logic
-- Reuse of the existing backend
-- Flexibility for different Discord communities
-
-The downloadable bridge remains separate from the Heroku web process.
-
+The complete customer-facing bridge/setup workflow is roadmap work until U5 has been implemented, tested end-to-end, deployed, and released.
 ---
 
 ## Responsive Web Interface
@@ -4896,7 +4702,7 @@ The web interface is designed to work across:
 - Tablet
 - Mobile browsers
 
-Responsive layouts allow the current web client to remain usable across device sizes while a dedicated Android client is developed separately after web v1.0.
+Responsive layouts keep the web client usable across device sizes. A dedicated Expo/React Native Android client is already implemented and distributed through Google Play Closed Testing.
 
 ---
 
@@ -4925,7 +4731,7 @@ Coverage includes important areas such as:
 
 Intermediate targeted-suite counts are not treated as the final project-wide regression total.
 
-The final complete test count will be recorded after the full pre-launch regression run.
+A complete test count should be recorded for any future release-wide regression run.
 
 ---
 
@@ -5298,34 +5104,15 @@ The application includes production configuration checks so a process-local cach
 
 These limits protect against short-term request bursts and are separate from the monthly AI quota.
 
-Final hosted Redis connectivity verification remains part of the pre-launch production audit.
+Hosted Redis connectivity remains part of production infrastructure verification.
 
 ---
 
-## 💳 Stripe Test Mode
+## 💳 Stripe Live Production & Safe Development
 
-Stripe must remain in **Test Mode** during ordinary development, automated testing, and the remaining pre-launch verification.
+The production web application uses **Stripe Live Mode**.
 
-The web subscription architecture supports:
-
-- Free accounts
-- Premium subscriptions
-- Pro subscriptions
-- Stripe Checkout
-- Stripe Billing Portal
-- Signed webhooks
-- Subscription synchronization
-- Upgrade handling
-- Scheduled downgrade handling
-- Cancellation
-- Cancel-at-period-end behaviour
-- Subscription recovery
-- Webhook idempotency
-- Customer validation
-- Subscription ownership validation
-- Price validation
-
-### Current Web Pricing
+Current web pricing:
 
 | Plan | Monthly Price |
 | --- | ---: |
@@ -5333,45 +5120,13 @@ The web subscription architecture supports:
 | **Premium** | $29 USD |
 | **Pro** | $59 USD |
 
-Development and automated tests must not use real customer payments.
+Production and development payment environments are intentionally separated.
 
-Stripe credentials, Price IDs, and webhook secrets must be supplied through environment configuration.
+For development and automated regression testing, use Stripe Test Mode credentials and test payment methods. These tests must not create real customer charges.
 
-### Test Mode vs. Live Mode
+Production uses the corresponding Live Mode configuration, including Live credentials, Live Price IDs, production webhook configuration, Checkout, and Customer Portal settings.
 
-The release process is intentionally:
-
-```text
-Stripe Test Mode
-       │
-       ▼
-Subscription Regression Tests
-       │
-       ▼
-Production / Security Audit
-       │
-       ▼
-Live Stripe Configuration
-       │
-       ▼
-Controlled Real Payment
-       │
-       ▼
-Production Payments Enabled
-```
-
-Stripe Live Mode is a deliberate **final pre-launch step**.
-
-Production must not be left with:
-
-- Test secret keys
-- Test publishable keys
-- Test Price IDs
-- Test webhook secrets
-- Test webhook endpoints/configuration
-
-once real customer payments are enabled.
-
+Secrets, Price IDs, and webhook signing secrets must be supplied through environment configuration and must not be committed to source control.
 ---
 
 ## 🔄 Subscription Downgrade Behaviour
@@ -5393,24 +5148,11 @@ This behaviour should also be preserved during local and regression testing.
 
 ---
 
-## 🤖 Discord Integration
+## 🤖 Discord Integration — Planned U5
 
-Discord integration is available to **Pro** accounts through the downloadable **Bring Your Own Bot (BYOB)** bridge.
+The complete Discord customer workflow is planned for **U5 — Discord Integration + API Access**.
 
-To configure Discord:
-
-1. Create a Discord application and bot in the Discord Developer Portal.
-2. Enable the required Gateway Intents.
-3. Download the Discord Bridge package from the platform.
-4. Configure the bridge with the required Discord bot token and platform API credentials.
-5. Invite the bot to the intended Discord server.
-6. Run the bridge process outside the Heroku web application.
-7. Send a Discord message and verify that the selected AI assistant responds.
-
-Discord bot tokens and platform API credentials must remain private and must not be committed to source control.
-
-For the complete BYOB architecture, supported features, security model, and validated end-to-end flow, see the main **Discord Integration** section earlier in this README.
-
+The intended package includes setup/bridge workflow, connection state and diagnostics, secure credentials, assistant selection, backend enforcement, documentation, and end-to-end validation. Until U5 is completed and released, Discord should not be presented as a currently available production feature.
 ---
 
 ## 🧪 Run Automated Tests
@@ -5434,7 +5176,7 @@ Additional focused regression tests have also been used for newer functionality,
 
 Do not treat an older intermediate test count as the final project-wide regression total.
 
-The final full-suite test result and final test count should be documented after the complete pre-launch regression run.
+A future release-wide regression run should document its own full-suite result and test count.
 
 Some tests intentionally exercise failure paths and can therefore generate warning or error log output while still passing correctly.
 
@@ -5450,7 +5192,7 @@ python -X utf8 manage.py check --settings=ai_assistant.buildabot.test_settings
 
 A successful result should report no system-check issues.
 
-The final release audit should also run the appropriate checks against the release configuration rather than relying only on the isolated test settings.
+The release-specific verification should also run the appropriate checks against the release configuration rather than relying only on the isolated test settings.
 
 ---
 
@@ -5480,7 +5222,7 @@ Run Ruff against the project as part of development and release validation.
 
 The exact invocation can follow the repository's normal Ruff workflow.
 
-The goal is to confirm that the current Python source passes the project's configured code-quality checks before release.
+The goal is to confirm that the current Python source passes the project's configured code-quality checks before the affected release.
 
 ---
 
@@ -5559,44 +5301,24 @@ The application is already deployed on Heroku.
 Production URL:
 
 ```text
-https://ai-assistants-8c06fcfeab86-6fbe77963620.herokuapp.com
+https://www.myaiassistantapp.se/
 ```
 
 Recent backend work, including the account-wide monthly AI message quota and Knowledge storage quota, has already been deployed and live-tested.
 
 The hosted environment is therefore **not** intentionally frozen on an older backend version.
 
-````markdown id="wz4k8p"
-The remaining process is now:
+The production web application is live at the custom domain above and uses Stripe Live Mode.
 
-```text
-Full Regression Test
-        │
-        ▼
-Security & Configuration Audit
-        │
-        ▼
-Hosted Infrastructure Verification
-        │
-        ▼
-Stripe Live Mode
-        │
-        ▼
-Controlled Real Payment Test
-        │
-        ▼
-Web v1.0
-```
-
-Stripe is still intentionally in Test Mode until the final payment step.
+Future releases continue to follow the project's package workflow: implement the complete upgrade, run focused and regression validation, deploy/build affected clients, perform smoke testing, and close the package before beginning the next major upgrade.
 
 Redis production connectivity remains one of the explicit checks in the final audit.
 
 ---
 
-## 🔐 Pre-Launch Configuration Rules
+## 🔐 Production Release Configuration Rules
 
-Before declaring the web application production-ready, verify that:
+For production releases and relevant infrastructure changes, verify that:
 
 - `DEBUG` is disabled in production
 - Production host configuration is correct
@@ -5614,7 +5336,7 @@ Before declaring the web application production-ready, verify that:
 - No secrets appear in templates or client-side JavaScript
 - Partially exposed development/test secrets are rotated where required
 
-The final release audit is intended to verify these conditions once, against the release candidate, before the web application is declared v1.0 launch-ready.
+These checks are ongoing release/operations safeguards for the already-live production web application; they are not evidence that the project is still waiting for an initial v1.0 launch.
 
 ---
 
