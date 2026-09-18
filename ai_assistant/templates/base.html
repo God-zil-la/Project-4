@@ -249,6 +249,17 @@
       <div class="footer-right">
 
         <span
+          class="footer-app-store-badge"
+          aria-disabled="true"
+        >
+          <img
+            src="{% static 'images/download-on-the-app-store.svg' %}"
+            alt="Download on the App Store"
+            height="44"
+          >
+        </span>
+
+        <span
           class="footer-play-btn disabled"
           aria-disabled="true"
         >
@@ -320,7 +331,7 @@
       margin: 0 auto;
 
       display: grid;
-      grid-template-columns: 1fr auto 1fr;
+      grid-template-columns: 1fr auto auto;
       align-items: center;
 
       gap: 1rem;
@@ -343,6 +354,22 @@
     .footer-right {
       display: flex;
       justify-content: flex-end;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .footer-app-store-badge {
+      display: inline-flex;
+      flex-shrink: 0;
+      cursor: not-allowed;
+      user-select: none;
+    }
+
+    .footer-app-store-badge img {
+      display: block;
+      height: 44px;
+      width: auto;
     }
 
     .footer-link {
@@ -379,7 +406,7 @@
 
     /* ================= MOBILE ================= */
 
-    @media (max-width: 700px) {
+    @media (max-width: 1000px) {
 
       .footer-inner {
         grid-template-columns: 1fr;
