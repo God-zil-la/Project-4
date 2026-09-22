@@ -5,7 +5,7 @@
 
 {% block content %}
 
-<h1>Chat with {{ bot.name }}</h1>
+<h1>{% if bot.avatar_symbol %}<span aria-hidden="true">{{ bot.avatar_symbol }}</span> {% endif %}Chat with {{ bot.name }}</h1>
 
 <div class="playground-chat-layout">
 

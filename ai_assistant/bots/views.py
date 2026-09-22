@@ -39,6 +39,8 @@ from .models import (
     KnowledgeChunk,
 )
 from .forms import BotForm, KnowledgeBaseForm
+from django.core.exceptions import ValidationError
+from .assistant_validation import save_assistant
 from .utils import extract_text, chunk_text
 from ai_assistant.bots.chat_service import (
     ChatRateLimitError,
@@ -112,39 +114,18 @@ def create_bot(request):
         return redirect("bots:list")
 
     if request.method == "POST":
-        form = BotForm(request.POST)
+        form = BotForm(request.POST, user=request.user)
 
         if form.is_valid():
-            duplicate_exists = Bot.objects.filter(
-                owner=request.user,
-                name=form.cleaned_data["name"],
-            ).exists()
-
-            if duplicate_exists:
-                messages.error(
-                    request,
-                    (
-                        "You already have a bot with this name. "
-                        "Please choose a different name."
-                    ),
-                )
-
-                return render(
-                    request,
-                    "bots/create_bot.html",
-                    {"form": form},
-                )
-
             bot = form.save(commit=False)
             bot.owner = request.user
-            bot.save()
-
-            messages.success(
-                request,
-                "Bot created successfully!",
-            )
-
-            return redirect("bots:my-bots")
+            try:
+                save_assistant(bot)
+            except ValidationError as error:
+                form.add_error("name", error)
+            else:
+                messages.success(request, "Bot created successfully!")
+                return redirect("bots:my-bots")
 
         messages.error(
             request,
@@ -152,7 +133,7 @@ def create_bot(request):
         )
 
     else:
-        form = BotForm()
+        form = BotForm(user=request.user)
 
     return render(
         request,
@@ -256,19 +237,19 @@ def edit_bot(request, bot_id):
         form = BotForm(
             request.POST,
             instance=bot,
+            user=request.user,
         )
 
         if form.is_valid():
             edited_bot = form.save(commit=False)
             edited_bot.owner = request.user
-            edited_bot.save()
-
-            messages.success(
-                request,
-                "Bot updated successfully!",
-            )
-
-            return redirect("bots:list")
+            try:
+                save_assistant(edited_bot)
+            except ValidationError as error:
+                form.add_error("name", error)
+            else:
+                messages.success(request, "Bot updated successfully!")
+                return redirect("bots:list")
 
         messages.error(
             request,
@@ -276,7 +257,7 @@ def edit_bot(request, bot_id):
         )
 
     else:
-        form = BotForm(instance=bot)
+        form = BotForm(instance=bot, user=request.user)
 
     return render(
         request,

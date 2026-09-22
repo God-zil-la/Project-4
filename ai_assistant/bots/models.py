@@ -8,6 +8,7 @@ import uuid
 
 from django.contrib.auth.models import User
 from django.db import models
+from .customization import TONE_CHOICES, LENGTH_CHOICES, ICON_CHOICES, ICON_SYMBOLS
 
 
 class KnowledgeBase(models.Model):
@@ -204,6 +205,14 @@ class Bot(models.Model):
                 name="unique_bot_per_user",
             )
         ]
+
+    response_tone = models.CharField(max_length=12, choices=TONE_CHOICES, default='default')
+    response_length = models.CharField(max_length=8, choices=LENGTH_CHOICES, default='default')
+    avatar_icon = models.CharField(max_length=9, choices=ICON_CHOICES, default='default')
+
+    @property
+    def avatar_symbol(self):
+        return ICON_SYMBOLS.get(self.avatar_icon, '')
 
     def __str__(self):
         return self.name

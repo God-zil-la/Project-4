@@ -206,7 +206,7 @@ class AIQualityTests(TestCase):
         )
 
         self.assertIn(
-            "[No relevant knowledge found.]",
+            "No relevant Knowledge Base context was retrieved for this request.",
             api.call_args.kwargs[
                 "messages"
             ][0]["content"],

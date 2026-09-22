@@ -7,6 +7,7 @@ import numpy as np
 import openai
 
 from .models import KnowledgeChunk
+from .customization import response_preferences
 
 
 EMBEDDING_MODEL = "text-embedding-3-small"
@@ -2077,7 +2078,7 @@ Bot description:
 {description or "[No description provided.]"}
 
 Bot personality / instructions:
-{personality}
+{personality}{response_preferences(bot)}
 
 Follow the configured personality and instructions when they do
 not conflict with safety, category restrictions, or authoritative

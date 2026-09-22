@@ -1,0 +1,21 @@
+<fieldset class="assistant-preferences">
+  <legend>Response preferences &amp; appearance</legend>
+  <div class="form-group">
+    <label for="{{ form.response_tone.id_for_label }}">{{ form.response_tone.label }}</label>
+    {{ form.response_tone }}
+    <p id="{{ form.response_tone.auto_id }}_helptext">{{ form.response_tone.help_text }}</p>
+    {{ form.response_tone.errors }}
+  </div>
+  <div class="form-group">
+    <label for="{{ form.response_length.id_for_label }}">{{ form.response_length.label }}</label>
+    {{ form.response_length }}
+    <p id="{{ form.response_length.auto_id }}_helptext">{{ form.response_length.help_text }}</p>
+    {{ form.response_length.errors }}
+  </div>
+  <div class="form-group">
+    <label for="{{ form.avatar_icon.id_for_label }}">{{ form.avatar_icon.label }}</label>
+    {{ form.avatar_icon }}
+    <p id="{{ form.avatar_icon.auto_id }}_helptext">{{ form.avatar_icon.help_text }}</p>
+    {{ form.avatar_icon.errors }}
+  </div>
+</fieldset>

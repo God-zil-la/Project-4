@@ -36,7 +36,7 @@
 
     <li class="bot-card">
 
-        <h3>{{ bot.name }}</h3>
+        <h3>{% if bot.avatar_symbol %}<span aria-hidden="true">{{ bot.avatar_symbol }}</span> {% endif %}{{ bot.name }}</h3>
 
         <p>{{ bot.description }}</p>
 

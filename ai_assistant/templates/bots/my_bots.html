@@ -12,7 +12,7 @@
 <ul class="bot-list">
     {% for bot in bots %}
     <li class="bot-card">
-        <h3>{{ bot.name }}</h3>
+        <h3>{% if bot.avatar_symbol %}<span aria-hidden="true">{{ bot.avatar_symbol }}</span> {% endif %}{{ bot.name }}</h3>
         <p>{{ bot.description }}</p>
         <small>Created on {{ bot.created_at|date:"F j, Y" }}</small>
         <div style="margin-top: 1rem;">

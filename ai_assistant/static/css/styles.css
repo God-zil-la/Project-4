@@ -296,6 +296,32 @@ footer {
 }
 
 /* ================= FORMS ================= */
+.bot-form .assistant-preferences {
+  min-width: 0;
+  border: 1px solid var(--button-border);
+  border-radius: 12px;
+  padding: 1rem;
+}
+
+.bot-form .assistant-preferences legend {
+  font-weight: 700;
+  padding: 0 .25rem;
+}
+
+.bot-form .assistant-preferences .form-group + .form-group {
+  margin-top: 1.25rem;
+}
+
+.bot-form .assistant-preferences select {
+  font: inherit;
+  color: var(--text-color);
+  background: var(--bg-color);
+  border: 1px solid var(--button-border);
+  border-radius: 8px;
+  padding: .65rem;
+  margin-bottom: .5rem;
+}
+
 form {
   display: flex;
   flex-direction: column;
