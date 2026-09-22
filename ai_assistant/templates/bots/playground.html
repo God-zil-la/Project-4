@@ -31,15 +31,24 @@
 
         <div id="chat-box"></div>
 
+        <p
+            id="language-chat-hint"
+            class="language-chat-hint"
+            hidden
+        >
+            🌍 You can chat in many languages — just write in the language you prefer.
+        </p>
+
         <form id="chat-form" method="post" autocomplete="off">
             {% csrf_token %}
 
             <input
-    id="chat-input"
-    type="text"
-    name="message"
-    placeholder="Message {{ bot.name }}..."
-    required />
+                id="chat-input"
+                type="text"
+                name="message"
+                placeholder="Message {{ bot.name }}..."
+                required
+            />
 
             <button type="submit">
                 Send
@@ -109,7 +118,11 @@
 </div>
 {% endif %}
 
-<form method="post" enctype="multipart/form-data" class="upload-knowledge-container">
+<form
+    method="post"
+    enctype="multipart/form-data"
+    class="upload-knowledge-container"
+>
     {% csrf_token %}
 
     {% if messages %}
@@ -124,24 +137,34 @@
 
     <div class="form-group">
 
-        <label for="{{ knowledge_form.file.id_for_label }}" style="font-weight: bold;">
+        <label
+            for="{{ knowledge_form.file.id_for_label }}"
+            style="font-weight: bold;"
+        >
             Upload File (.txt, .pdf, .docx):
         </label>
 
         {{ knowledge_form.file }}
 
         {% for error in knowledge_form.file.errors %}
-        <div class="error" style="
-                    color: red;
-                    margin-top: 5px;
-                ">
+        <div
+            class="error"
+            style="
+                color: red;
+                margin-top: 5px;
+            "
+        >
             {{ error }}
         </div>
         {% endfor %}
 
     </div>
 
-    <button type="submit" class="btn btn-primary" style="margin-top: 0.5rem;">
+    <button
+        type="submit"
+        class="btn btn-primary"
+        style="margin-top: 0.5rem;"
+    >
         Upload Knowledge
     </button>
 
@@ -164,9 +187,11 @@
         </div>
 
         <p>
-            <strong>Knowledge lets you teach your AI Assistant about information
-            that is important to you, your business, your products, your documents
-            or anything else you want this bot to know.</strong>
+            <strong>
+                Knowledge lets you teach your AI Assistant about information
+                that is important to you, your business, your products,
+                your documents or anything else you want this bot to know.
+            </strong>
         </p>
 
         <p>
@@ -365,47 +390,47 @@
     }
 
     .knowledge-file-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
 
-    width: 100%;
-    min-width: 0;
+        width: 100%;
+        min-width: 0;
 
-    padding: 0.75rem 0;
+        padding: 0.75rem 0;
 
-    border-bottom:
-        1px solid rgba(128, 128, 128, 0.25);
-}
+        border-bottom:
+            1px solid rgba(128, 128, 128, 0.25);
+    }
 
-.knowledge-file-name {
-    flex: 1 1 auto;
-    min-width: 0;
+    .knowledge-file-name {
+        flex: 1 1 auto;
+        min-width: 0;
 
-    overflow-wrap: anywhere;
-    word-break: break-word;
+        overflow-wrap: anywhere;
+        word-break: break-word;
 
-    color: var(--text-color);
-}
+        color: var(--text-color);
+    }
 
-.knowledge-delete-form {
-    flex: 0 0 auto;
+    .knowledge-delete-form {
+        flex: 0 0 auto;
 
-    margin: 0;
-    padding: 0;
+        margin: 0;
+        padding: 0;
 
-    width: auto;
-}
+        width: auto;
+    }
 
-.knowledge-delete-button {
-    width: auto;
-    max-width: 100%;
+    .knowledge-delete-button {
+        width: auto;
+        max-width: 100%;
 
-    margin: 0;
+        margin: 0;
 
-    white-space: nowrap;
-}
+        white-space: nowrap;
+    }
 
 
     /* ================= CHAT LAYOUT ================= */
@@ -608,6 +633,19 @@
         margin-bottom: 10px;
         border-radius: 12px;
         box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+    }
+
+    .language-chat-hint {
+        margin: 0 0 0.75rem;
+        padding: 0.65rem 0.85rem;
+        border: 1px solid var(--button-border);
+        border-radius: 10px;
+        background: rgba(128, 128, 128, 0.08);
+        color: var(--text-color);
+        font-size: 0.9rem;
+        line-height: 1.4;
+        text-align: center;
+        opacity: 0.85;
     }
 
     #chat-form {
@@ -815,185 +853,206 @@
         }
     }
 
+
     /* ================= KNOWLEDGE INFO ================= */
 
-.knowledge-heading {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 0.75rem;
-    margin-bottom: 0.5rem;
-}
-
-.knowledge-heading h2 {
-    margin: 0;
-}
-
-.knowledge-description {
-    text-align: center;
-    margin-bottom: 1rem;
-}
-
-.knowledge-info-button {
-    padding: 0.45rem 0.75rem;
-    border: 1px solid var(--button-border);
-    background: var(--button-bg);
-    color: var(--button-text);
-    cursor: pointer;
-    font-weight: 600;
-    font-size: 0.9rem;
-    box-shadow: var(--button-shadow);
-    transition: all 0.2s ease;
-}
-
-.knowledge-info-button:hover {
-    background: var(--button-hover);
-    transform: scale(1.03);
-}
-
-#knowledge-info-dialog {
-    width: min(92vw, 600px);
-    max-height: 85vh;
-    overflow-y: auto;
-    padding: 0;
-    border: 1px solid var(--button-border);
-    border-radius: 16px;
-    background: var(--nav-bg);
-    color: var(--text-color);
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
-}
-
-.knowledge-example-question {
-    margin: 0.75rem 0 1rem;
-    padding: 0.9rem 1rem;
-    border-left: 3px solid var(--accent-color);
-    background: rgba(128, 128, 128, 0.08);
-    font-weight: 700;
-    font-style: italic;
-}
-
-#knowledge-info-dialog::backdrop {
-    background: rgba(0, 0, 0, 0.7);
-    backdrop-filter: blur(3px);
-}
-
-.knowledge-info-content {
-    padding: 1.5rem;
-    line-height: 1.6;
-}
-
-.knowledge-info-header {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 1rem;
-    margin-bottom: 1rem;
-}
-
-.knowledge-info-header h3 {
-    margin: 0;
-    color: var(--accent-color);
-}
-
-.knowledge-info-close {
-    flex: 0 0 auto;
-    border: none;
-    background: transparent;
-    color: var(--text-color);
-    font-size: 1.8rem;
-    line-height: 1;
-    cursor: pointer;
-    box-shadow: none;
-}
-
-.knowledge-info-close:hover {
-    background: transparent;
-    transform: scale(1.1);
-    box-shadow: none;
-}
-
-.knowledge-info-content h4 {
-    margin-bottom: 0.5rem;
-}
-
-.knowledge-info-content ul {
-    padding-left: 1.4rem;
-}
-
-.knowledge-info-note,
-.knowledge-security-note {
-    margin-top: 1rem;
-    padding: 1rem;
-    border: 1px solid var(--button-border);
-    border-radius: 12px;
-    background: rgba(128, 128, 128, 0.08);
-}
-
-.knowledge-info-note p,
-.knowledge-security-note p {
-    margin: 0.4rem 0 0;
-}
-
-.knowledge-security-note {
-    border-color: rgba(255, 193, 7, 0.45);
-}
-
-.knowledge-info-done {
-    width: 100%;
-    margin-top: 1.25rem;
-    padding: 0.75rem 1rem;
-    border: 1px solid var(--button-border);
-    background: var(--button-bg);
-    color: var(--button-text);
-    font-weight: 700;
-    cursor: pointer;
-    box-shadow: var(--button-shadow);
-}
-
-.knowledge-info-done:hover {
-    background: var(--button-hover);
-}
-
-@media (max-width: 480px) {
     .knowledge-heading {
-        flex-direction: column;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .knowledge-heading h2 {
+        margin: 0;
+    }
+
+    .knowledge-description {
+        text-align: center;
+        margin-bottom: 1rem;
     }
 
     .knowledge-info-button {
-        width: 100%;
-        max-width: 300px;
+        padding: 0.45rem 0.75rem;
+        border: 1px solid var(--button-border);
+        background: var(--button-bg);
+        color: var(--button-text);
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 0.9rem;
+        box-shadow: var(--button-shadow);
+        transition: all 0.2s ease;
+    }
+
+    .knowledge-info-button:hover {
+        background: var(--button-hover);
+        transform: scale(1.03);
     }
 
     #knowledge-info-dialog {
-        width: calc(100vw - 24px);
-        max-width: none;
+        width: min(92vw, 600px);
+        max-height: 85vh;
+        overflow-y: auto;
+        padding: 0;
+        border: 1px solid var(--button-border);
+        border-radius: 16px;
+        background: var(--nav-bg);
+        color: var(--text-color);
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+    }
+
+    .knowledge-example-question {
+        margin: 0.75rem 0 1rem;
+        padding: 0.9rem 1rem;
+        border-left: 3px solid var(--accent-color);
+        background: rgba(128, 128, 128, 0.08);
+        font-weight: 700;
+        font-style: italic;
+    }
+
+    #knowledge-info-dialog::backdrop {
+        background: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(3px);
     }
 
     .knowledge-info-content {
-        padding: 1.1rem;
+        padding: 1.5rem;
+        line-height: 1.6;
     }
-}
+
+    .knowledge-info-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .knowledge-info-header h3 {
+        margin: 0;
+        color: var(--accent-color);
+    }
+
+    .knowledge-info-close {
+        flex: 0 0 auto;
+        border: none;
+        background: transparent;
+        color: var(--text-color);
+        font-size: 1.8rem;
+        line-height: 1;
+        cursor: pointer;
+        box-shadow: none;
+    }
+
+    .knowledge-info-close:hover {
+        background: transparent;
+        transform: scale(1.1);
+        box-shadow: none;
+    }
+
+    .knowledge-info-content h4 {
+        margin-bottom: 0.5rem;
+    }
+
+    .knowledge-info-content ul {
+        padding-left: 1.4rem;
+    }
+
+    .knowledge-info-note,
+    .knowledge-security-note {
+        margin-top: 1rem;
+        padding: 1rem;
+        border: 1px solid var(--button-border);
+        border-radius: 12px;
+        background: rgba(128, 128, 128, 0.08);
+    }
+
+    .knowledge-info-note p,
+    .knowledge-security-note p {
+        margin: 0.4rem 0 0;
+    }
+
+    .knowledge-security-note {
+        border-color: rgba(255, 193, 7, 0.45);
+    }
+
+    .knowledge-info-done {
+        width: 100%;
+        margin-top: 1.25rem;
+        padding: 0.75rem 1rem;
+        border: 1px solid var(--button-border);
+        background: var(--button-bg);
+        color: var(--button-text);
+        font-weight: 700;
+        cursor: pointer;
+        box-shadow: var(--button-shadow);
+    }
+
+    .knowledge-info-done:hover {
+        background: var(--button-hover);
+    }
+
+    @media (max-width: 480px) {
+        .knowledge-heading {
+            flex-direction: column;
+        }
+
+        .knowledge-info-button {
+            width: 100%;
+            max-width: 300px;
+        }
+
+        #knowledge-info-dialog {
+            width: calc(100vw - 24px);
+            max-width: none;
+        }
+
+        .knowledge-info-content {
+            padding: 1.1rem;
+        }
+    }
 </style>
 
 <dialog id="conversation-action-dialog">
     <div class="conversation-dialog-content">
-        <h3 id="conversation-dialog-title" class="conversation-dialog-title">
+
+        <h3
+            id="conversation-dialog-title"
+            class="conversation-dialog-title"
+        >
             Conversation
         </h3>
 
-        <p id="conversation-dialog-message" class="conversation-dialog-message"></p>
+        <p
+            id="conversation-dialog-message"
+            class="conversation-dialog-message"
+        ></p>
 
-        <input type="text" id="conversation-dialog-input" maxlength="200" autocomplete="off">
+        <input
+            type="text"
+            id="conversation-dialog-input"
+            maxlength="200"
+            autocomplete="off"
+        >
 
         <div class="conversation-dialog-actions">
-            <button type="button" id="conversation-dialog-cancel">
+
+            <button
+                type="button"
+                id="conversation-dialog-cancel"
+            >
                 Cancel
             </button>
 
-            <button type="button" id="conversation-dialog-confirm">
+            <button
+                type="button"
+                id="conversation-dialog-confirm"
+            >
                 Save
             </button>
+
         </div>
     </div>
 </dialog>
@@ -1068,6 +1127,11 @@
         const chatBox =
             document.getElementById("chat-box");
 
+        const languageChatHint =
+            document.getElementById(
+                "language-chat-hint"
+            );
+
         const conversationList =
             document.getElementById(
                 "conversation-list"
@@ -1120,14 +1184,29 @@
 
         let currentConversationId = null;
 
+
+        function setLanguageChatHintVisible(
+            isVisible
+        ) {
+            if (!languageChatHint) {
+                return;
+            }
+
+            languageChatHint.hidden =
+                !isVisible;
+        }
+
+
         function escapeHtml(text) {
             const div =
                 document.createElement("div");
 
-            div.textContent = String(text);
+            div.textContent =
+                String(text);
 
             return div.innerHTML;
         }
+
 
         function renderMessage(text) {
             let safeText =
@@ -1154,6 +1233,7 @@
             return safeText;
         }
 
+
         function getSenderLabel(sender) {
             if (
                 sender === "bot"
@@ -1165,7 +1245,11 @@
             return "User";
         }
 
-        function appendMessage(sender, text) {
+
+        function appendMessage(
+            sender,
+            text
+        ) {
             const messageDiv =
                 document.createElement("div");
 
@@ -1200,6 +1284,7 @@
                 chatBox.scrollHeight;
         }
 
+
         function setActiveConversationButton() {
             const buttons =
                 conversationList.querySelectorAll(
@@ -1215,6 +1300,7 @@
             });
         }
 
+
         function closeConversationDialog() {
             conversationDialog.close();
 
@@ -1222,16 +1308,23 @@
             pendingConversation = null;
 
             conversationDialogInput.value = "";
-            conversationDialogInput.style.display = "block";
+            conversationDialogInput.style.display =
+                "block";
 
             conversationDialogConfirm.classList.remove(
                 "delete-mode"
             );
         }
 
-        function openRenameDialog(conversation) {
-            pendingConversationAction = "rename";
-            pendingConversation = conversation;
+
+        function openRenameDialog(
+            conversation
+        ) {
+            pendingConversationAction =
+                "rename";
+
+            pendingConversation =
+                conversation;
 
             conversationDialogTitle.textContent =
                 "Rename conversation";
@@ -1239,7 +1332,9 @@
             conversationDialogMessage.textContent =
                 "Enter a new name for this conversation.";
 
-            conversationDialogInput.style.display = "block";
+            conversationDialogInput.style.display =
+                "block";
+
             conversationDialogInput.value =
                 conversation.title || "";
 
@@ -1256,12 +1351,19 @@
             conversationDialogInput.select();
         }
 
-        function openDeleteDialog(conversation) {
-            pendingConversationAction = "delete";
-            pendingConversation = conversation;
+
+        function openDeleteDialog(
+            conversation
+        ) {
+            pendingConversationAction =
+                "delete";
+
+            pendingConversation =
+                conversation;
 
             const title =
-                conversation.title || "New Chat";
+                conversation.title
+                || "New Chat";
 
             conversationDialogTitle.textContent =
                 "Delete conversation";
@@ -1282,15 +1384,24 @@
             conversationDialog.showModal();
         }
 
+
         async function loadConversation(
             conversationId
         ) {
             if (!conversationId) {
                 currentConversationId = null;
+
                 conversationTitle.textContent =
                     "Conversation";
+
                 chatBox.innerHTML = "";
+
+                setLanguageChatHintVisible(
+                    true
+                );
+
                 setActiveConversationButton();
+
                 return;
             }
 
@@ -1328,6 +1439,10 @@
                     }
                 );
 
+                setLanguageChatHintVisible(
+                    data.messages.length === 0
+                );
+
                 setActiveConversationButton();
 
             } catch (error) {
@@ -1337,6 +1452,7 @@
                 );
             }
         }
+
 
         async function loadConversations(
             preferredConversationId = null
@@ -1355,7 +1471,8 @@
                 const conversations =
                     await response.json();
 
-                conversationList.innerHTML = "";
+                conversationList.innerHTML =
+                    "";
 
                 const botConversations =
                     conversations.filter(
@@ -1374,153 +1491,220 @@
                         + "</p>";
 
                     await loadConversation(null);
+
                     return;
                 }
 
-                botConversations.forEach((conversation) => {
-                    const item =
-                        document.createElement("div");
+                botConversations.forEach(
+                    (conversation) => {
+                        const item =
+                            document.createElement(
+                                "div"
+                            );
 
-                    item.className =
-                        "conversation-item";
+                        item.className =
+                            "conversation-item";
 
-                    if (
-                        conversation.conversation_id
-                        === currentConversationId
-                    ) {
-                        item.classList.add("active");
+                        if (
+                            conversation.conversation_id
+                            === currentConversationId
+                        ) {
+                            item.classList.add(
+                                "active"
+                            );
+                        }
+
+                        item.dataset.conversationId =
+                            conversation.conversation_id;
+
+                        const content =
+                            document.createElement(
+                                "button"
+                            );
+
+                        content.type =
+                            "button";
+
+                        content.className =
+                            "conversation-content";
+
+                        const title =
+                            document.createElement(
+                                "span"
+                            );
+
+                        title.className =
+                            "conversation-item-title";
+
+                        title.textContent =
+                            conversation.title
+                            || "New Chat";
+
+                        const count =
+                            document.createElement(
+                                "span"
+                            );
+
+                        count.className =
+                            "conversation-item-count";
+
+                        count.textContent =
+                            `${conversation.message_count} messages`;
+
+                        content.appendChild(
+                            title
+                        );
+
+                        content.appendChild(
+                            count
+                        );
+
+                        content.addEventListener(
+                            "click",
+                            () => {
+                                loadConversation(
+                                    conversation
+                                        .conversation_id
+                                );
+                            }
+                        );
+
+                        const menuButton =
+                            document.createElement(
+                                "button"
+                            );
+
+                        menuButton.type =
+                            "button";
+
+                        menuButton.className =
+                            "conversation-menu-button";
+
+                        menuButton.textContent =
+                            "⋮";
+
+                        menuButton.setAttribute(
+                            "aria-label",
+                            "Conversation options"
+                        );
+
+                        const menu =
+                            document.createElement(
+                                "div"
+                            );
+
+                        menu.className =
+                            "conversation-menu";
+
+                        const renameButton =
+                            document.createElement(
+                                "button"
+                            );
+
+                        renameButton.type =
+                            "button";
+
+                        renameButton.textContent =
+                            "Rename";
+
+                        renameButton.addEventListener(
+                            "click",
+                            async (event) => {
+                                event.stopPropagation();
+
+                                menu.classList.remove(
+                                    "open"
+                                );
+
+                                await renameConversation(
+                                    conversation
+                                );
+                            }
+                        );
+
+                        const deleteButton =
+                            document.createElement(
+                                "button"
+                            );
+
+                        deleteButton.type =
+                            "button";
+
+                        deleteButton.textContent =
+                            "Delete";
+
+                        deleteButton.className =
+                            "conversation-delete-button";
+
+                        deleteButton.addEventListener(
+                            "click",
+                            async (event) => {
+                                event.stopPropagation();
+
+                                menu.classList.remove(
+                                    "open"
+                                );
+
+                                await deleteConversation(
+                                    conversation
+                                );
+                            }
+                        );
+
+                        menu.appendChild(
+                            renameButton
+                        );
+
+                        menu.appendChild(
+                            deleteButton
+                        );
+
+                        menuButton.addEventListener(
+                            "click",
+                            (event) => {
+                                event.stopPropagation();
+
+                                document
+                                    .querySelectorAll(
+                                        ".conversation-menu.open"
+                                    )
+                                    .forEach(
+                                        (openMenu) => {
+                                            if (
+                                                openMenu !== menu
+                                            ) {
+                                                openMenu
+                                                    .classList
+                                                    .remove(
+                                                        "open"
+                                                    );
+                                            }
+                                        }
+                                    );
+
+                                menu.classList.toggle(
+                                    "open"
+                                );
+                            }
+                        );
+
+                        item.appendChild(
+                            content
+                        );
+
+                        item.appendChild(
+                            menuButton
+                        );
+
+                        item.appendChild(
+                            menu
+                        );
+
+                        conversationList.appendChild(
+                            item
+                        );
                     }
-
-                    item.dataset.conversationId =
-                        conversation.conversation_id;
-
-                    const content =
-                        document.createElement("button");
-
-                    content.type = "button";
-                    content.className =
-                        "conversation-content";
-
-                    const title =
-                        document.createElement("span");
-
-                    title.className =
-                        "conversation-item-title";
-
-                    title.textContent =
-                        conversation.title || "New Chat";
-
-                    const count =
-                        document.createElement("span");
-
-                    count.className =
-                        "conversation-item-count";
-
-                    count.textContent =
-                        `${conversation.message_count} messages`;
-
-                    content.appendChild(title);
-                    content.appendChild(count);
-
-                    content.addEventListener(
-                        "click",
-                        () => {
-                            loadConversation(
-                                conversation.conversation_id
-                            );
-                        }
-                    );
-
-                    const menuButton =
-                        document.createElement("button");
-
-                    menuButton.type = "button";
-                    menuButton.className =
-                        "conversation-menu-button";
-
-                    menuButton.textContent = "⋮";
-
-                    menuButton.setAttribute(
-                        "aria-label",
-                        "Conversation options"
-                    );
-
-                    const menu =
-                        document.createElement("div");
-
-                    menu.className =
-                        "conversation-menu";
-
-                    const renameButton =
-                        document.createElement("button");
-
-                    renameButton.type = "button";
-                    renameButton.textContent = "Rename";
-
-                    renameButton.addEventListener(
-                        "click",
-                        async (event) => {
-                            event.stopPropagation();
-
-                            menu.classList.remove("open");
-
-                            await renameConversation(
-                                conversation
-                            );
-                        }
-                    );
-
-                    const deleteButton =
-                        document.createElement("button");
-
-                    deleteButton.type = "button";
-                    deleteButton.textContent = "Delete";
-                    deleteButton.className =
-                        "conversation-delete-button";
-
-                    deleteButton.addEventListener(
-                        "click",
-                        async (event) => {
-                            event.stopPropagation();
-
-                            menu.classList.remove("open");
-
-                            await deleteConversation(
-                                conversation
-                            );
-                        }
-                    );
-
-                    menu.appendChild(renameButton);
-                    menu.appendChild(deleteButton);
-
-                    menuButton.addEventListener(
-                        "click",
-                        (event) => {
-                            event.stopPropagation();
-
-                            document
-                                .querySelectorAll(
-                                    ".conversation-menu.open"
-                                )
-                                .forEach((openMenu) => {
-                                    if (openMenu !== menu) {
-                                        openMenu.classList.remove(
-                                            "open"
-                                        );
-                                    }
-                                });
-
-                            menu.classList.toggle("open");
-                        }
-                    );
-
-                    item.appendChild(content);
-                    item.appendChild(menuButton);
-                    item.appendChild(menu);
-
-                    conversationList.appendChild(item);
-                });
+                );
 
                 let conversationToLoad =
                     preferredConversationId;
@@ -1556,13 +1740,24 @@
             }
         }
 
-        function renameConversation(conversation) {
-            openRenameDialog(conversation);
+
+        function renameConversation(
+            conversation
+        ) {
+            openRenameDialog(
+                conversation
+            );
         }
 
-        function deleteConversation(conversation) {
-            openDeleteDialog(conversation);
+
+        function deleteConversation(
+            conversation
+        ) {
+            openDeleteDialog(
+                conversation
+            );
         }
+
 
         conversationDialogCancel.addEventListener(
             "click",
@@ -1571,30 +1766,38 @@
             }
         );
 
+
         conversationDialog.addEventListener(
             "cancel",
             (event) => {
                 event.preventDefault();
+
                 closeConversationDialog();
             }
         );
+
 
         conversationDialogConfirm.addEventListener(
             "click",
             async () => {
                 if (!pendingConversation) {
                     closeConversationDialog();
+
                     return;
                 }
 
                 if (
-                    pendingConversationAction === "rename"
+                    pendingConversationAction
+                    === "rename"
                 ) {
                     const cleanTitle =
-                        conversationDialogInput.value.trim();
+                        conversationDialogInput
+                            .value
+                            .trim();
 
                     if (!cleanTitle) {
                         conversationDialogInput.focus();
+
                         return;
                     }
 
@@ -1602,21 +1805,24 @@
                         conversationDialogConfirm.disabled =
                             true;
 
-                        const response = await fetch(
-                            `/bots/api/conversations/${pendingConversation.conversation_id}/`,
-                            {
-                                method: "PATCH",
-                                headers: {
-                                    "Content-Type":
-                                        "application/json",
-                                    "X-CSRFToken":
-                                        getCookie("csrftoken"),
-                                },
-                                body: JSON.stringify({
-                                    title: cleanTitle,
-                                }),
-                            }
-                        );
+                        const response =
+                            await fetch(
+                                `/bots/api/conversations/${pendingConversation.conversation_id}/`,
+                                {
+                                    method: "PATCH",
+                                    headers: {
+                                        "Content-Type":
+                                            "application/json",
+                                        "X-CSRFToken":
+                                            getCookie(
+                                                "csrftoken"
+                                            ),
+                                    },
+                                    body: JSON.stringify({
+                                        title: cleanTitle,
+                                    }),
+                                }
+                            );
 
                         if (!response.ok) {
                             throw new Error(
@@ -1645,7 +1851,8 @@
                 }
 
                 if (
-                    pendingConversationAction === "delete"
+                    pendingConversationAction
+                    === "delete"
                 ) {
                     try {
                         conversationDialogConfirm.disabled =
@@ -1655,16 +1862,19 @@
                             pendingConversation
                                 .conversation_id;
 
-                        const response = await fetch(
-                            `/bots/api/conversations/${conversationId}/`,
-                            {
-                                method: "DELETE",
-                                headers: {
-                                    "X-CSRFToken":
-                                        getCookie("csrftoken"),
-                                },
-                            }
-                        );
+                        const response =
+                            await fetch(
+                                `/bots/api/conversations/${conversationId}/`,
+                                {
+                                    method: "DELETE",
+                                    headers: {
+                                        "X-CSRFToken":
+                                            getCookie(
+                                                "csrftoken"
+                                            ),
+                                    },
+                                }
+                            );
 
                         if (!response.ok) {
                             throw new Error(
@@ -1676,10 +1886,18 @@
                             currentConversationId
                             === conversationId
                         ) {
-                            currentConversationId = null;
-                            chatBox.innerHTML = "";
+                            currentConversationId =
+                                null;
+
+                            chatBox.innerHTML =
+                                "";
+
                             conversationTitle.textContent =
                                 "New Chat";
+
+                            setLanguageChatHintVisible(
+                                true
+                            );
                         }
 
                         closeConversationDialog();
@@ -1700,27 +1918,31 @@
             }
         );
 
+
         async function createConversation() {
             try {
-                newChatButton.disabled = true;
+                newChatButton.disabled =
+                    true;
 
-                const response = await fetch(
-                    "/bots/api/conversations/",
-                    {
-                        method: "POST",
-                        headers: {
-                            "Content-Type":
-                                "application/json",
-                            "X-CSRFToken":
-                                getCookie(
-                                    "csrftoken"
-                                ),
-                        },
-                        body: JSON.stringify({
-                            bot_id: Number(botId),
-                        }),
-                    }
-                );
+                const response =
+                    await fetch(
+                        "/bots/api/conversations/",
+                        {
+                            method: "POST",
+                            headers: {
+                                "Content-Type":
+                                    "application/json",
+                                "X-CSRFToken":
+                                    getCookie(
+                                        "csrftoken"
+                                    ),
+                            },
+                            body: JSON.stringify({
+                                bot_id:
+                                    Number(botId),
+                            }),
+                        }
+                    );
 
                 if (!response.ok) {
                     throw new Error(
@@ -1734,10 +1956,16 @@
                 currentConversationId =
                     conversation.conversation_id;
 
-                chatBox.innerHTML = "";
+                chatBox.innerHTML =
+                    "";
+
+                setLanguageChatHintVisible(
+                    true
+                );
 
                 conversationTitle.textContent =
-                    conversation.title || "New Chat";
+                    conversation.title
+                    || "New Chat";
 
                 await loadConversations(
                     conversation.conversation_id
@@ -1757,47 +1985,60 @@
                 );
 
             } finally {
-                newChatButton.disabled = false;
+                newChatButton.disabled =
+                    false;
             }
         }
 
-        async function sendMessage(userMessage) {
+
+        async function sendMessage(
+            userMessage
+        ) {
             const cleanMessage =
-                String(userMessage).trim();
+                String(userMessage)
+                    .trim();
 
             if (!cleanMessage) {
                 return;
             }
+
+            setLanguageChatHintVisible(
+                false
+            );
 
             appendMessage(
                 "user",
                 cleanMessage
             );
 
-            chatInput.value = "";
-            chatInput.disabled = true;
+            chatInput.value =
+                "";
+
+            chatInput.disabled =
+                true;
 
             try {
-                const response = await fetch(
-                    `/bots/${botId}/ajax_chat/`,
-                    {
-                        method: "POST",
-                        headers: {
-                            "Content-Type":
-                                "application/json",
-                            "X-CSRFToken":
-                                getCookie(
-                                    "csrftoken"
-                                ),
-                        },
-                        body: JSON.stringify({
-                            message:
-                                cleanMessage,
-                            conversation_id:
-                                currentConversationId,
-                        }),
-                    }
-                );
+                const response =
+                    await fetch(
+                        `/bots/${botId}/ajax_chat/`,
+                        {
+                            method: "POST",
+                            headers: {
+                                "Content-Type":
+                                    "application/json",
+                                "X-CSRFToken":
+                                    getCookie(
+                                        "csrftoken"
+                                    ),
+                            },
+                            body: JSON.stringify({
+                                message:
+                                    cleanMessage,
+                                conversation_id:
+                                    currentConversationId,
+                            }),
+                        }
+                    );
 
                 const data =
                     await response.json();
@@ -1825,13 +2066,18 @@
                     "Network error. Please try again."
                 );
 
-                console.error(error);
+                console.error(
+                    error
+                );
 
             } finally {
-                chatInput.disabled = false;
+                chatInput.disabled =
+                    false;
+
                 chatInput.focus();
             }
         }
+
 
         chatForm.addEventListener(
             "submit",
@@ -1844,20 +2090,25 @@
             }
         );
 
+
         newChatButton.addEventListener(
             "click",
             createConversation
         );
 
+
         function getCookie(name) {
-            let cookieValue = null;
+            let cookieValue =
+                null;
 
             if (
                 document.cookie
                 && document.cookie !== ""
             ) {
                 const cookies =
-                    document.cookie.split(";");
+                    document.cookie.split(
+                        ";"
+                    );
 
                 for (
                     let index = 0;
@@ -1888,6 +2139,7 @@
 
             return cookieValue;
         }
+
 
         loadConversations();
     });
