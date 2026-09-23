@@ -18,6 +18,7 @@ from .knowledge_utils import (
     render_system_message,
     search_relevant_chunks,
     append_source_list,
+    strip_source_list,
 )
 from .models import ChatMessage, Conversation
 
@@ -231,7 +232,7 @@ def _build_retrieval_context(conversation):
     lines = []
     for item in reversed(previous):
         # Server provenance from earlier answers must not become a retrieval instruction.
-        content = item.message.split("**Källor i sökunderlaget**", 1)[0]
+        content = strip_source_list(item.message)
         lines.append(f"{item.sender}: {content[:500]}")
     return "\n".join(lines)[-3000:]
 
@@ -643,7 +644,8 @@ def process_bot_message(
         )
 
         response_text = append_source_list(
-            response_text, knowledge_result.get("sources", [])
+            response_text, knowledge_result.get("sources", []),
+            heading=knowledge_result.get("source_heading", "Sources used"),
         )
 
         response_usage = response.get(
