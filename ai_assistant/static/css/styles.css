@@ -755,7 +755,7 @@ body {
 
 .site-nav {
   width: 100%;
-  padding: 0.65rem 1rem;
+  padding: 0.65rem 0;
   background: var(--nav-bg);
   border-bottom: 1px solid var(--button-border);
   box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
@@ -763,7 +763,7 @@ body {
 }
 
 .site-nav-links {
-  width: min(1600px, 100%);
+  width: min(1600px, calc(100% - 1rem));
   max-width: none;
   margin: 0 auto;
   padding: 0;
@@ -779,6 +779,8 @@ body {
   min-width: 0;
   margin: 0;
   padding: 0;
+  display: flex;
+  align-items: stretch;
 }
 
 .site-nav-links a {
@@ -786,6 +788,7 @@ body {
   align-items: center;
   justify-content: center;
   min-height: 36px;
+  height: 36px;
   margin: 0;
   padding: 0.5rem 0.8rem;
   border: 1px solid var(--button-border);
@@ -810,6 +813,8 @@ body {
 
 .nav-logout {
   position: relative;
+  height: 36px;
+  align-self: stretch;
 }
 
 .nav-message-dot {
@@ -825,7 +830,7 @@ body {
    matching the established desktop screenshots instead of floating. */
 .theme-strip {
   width: 100%;
-  padding: 0.22rem 0.65rem;
+  padding: 0.22rem 0;
   background: var(--nav-bg);
   border-bottom: 1px solid var(--button-border);
   flex-shrink: 0;
@@ -842,8 +847,11 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid var(--accent-color);
-  border-radius: 2px;
+  border-top: 1px solid var(--accent-color);
+  border-bottom: 1px solid var(--accent-color);
+  border-left: 0;
+  border-right: 0;
+  border-radius: 0;
   background: var(--button-bg);
   color: var(--button-text);
   box-shadow: none;
@@ -858,11 +866,17 @@ body {
   transform: none;
 }
 
-/* Do not compete with page-specific main widths. Pages such as Dashboard,
-   Create/Edit and Playground intentionally choose wider app layouts. */
+/* Keep every page shell close to the viewport edges while preserving each
+   page's own max-width rules. This keeps full-width page headers aligned
+   with the screenshots on desktop, tablet and mobile. */
 :where(.site-main) {
   flex: 1 0 auto;
-  width: 100%;
+}
+
+body > main.site-main {
+  width: calc(100% - 1rem);
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .site-messages {
@@ -955,14 +969,14 @@ body {
 
 .footer-center p {
   margin: 0.15rem 0 0;
-  font-size: 0.68rem;
+  font-size: 0.82rem;
   font-weight: 600;
   opacity: 0.78;
 }
 
 .footer-link {
   color: var(--text-color);
-  font-size: 0.7rem;
+  font-size: 0.84rem;
   font-weight: 700;
   text-decoration: none;
 }
@@ -997,8 +1011,8 @@ body {
    compact tablets to very large displays. */
 @media (min-width: 551px) and (max-width: 760px) {
   .site-nav {
-    padding-left: 0.5rem;
-    padding-right: 0.5rem;
+    padding-left: 0;
+    padding-right: 0;
   }
 
   .site-nav-links {
@@ -1042,7 +1056,7 @@ body {
   }
 
   .theme-strip {
-    padding: 0.2rem 0.65rem;
+    padding: 0.2rem 0;
   }
 
   #toggleTheme.toggle-theme {
@@ -1075,11 +1089,11 @@ body {
   }
 
   .footer-link {
-    font-size: 0.64rem;
+    font-size: 0.78rem;
   }
 
   .footer-center p {
-    font-size: 0.6rem;
+    font-size: 0.74rem;
   }
 
   .footer-app-store-badge img {
