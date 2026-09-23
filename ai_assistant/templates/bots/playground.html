@@ -80,10 +80,10 @@
     Add documents or text your assistant can use when answering your questions.
 </p>
 
-{% if knowledge_files %}
 <div class="upload-knowledge-container" style="margin-bottom: 1rem;">
     <h3 style="margin-top: 0;">Uploaded Knowledge</h3>
 
+    <div id="knowledge-list">
     {% for knowledge in knowledge_files %}
 
     <div class="knowledge-file-row">
@@ -114,11 +114,15 @@
 
     </div>
 
+    {% empty %}<p>No uploaded knowledge yet.</p>
     {% endfor %}
+    </div>
+    <p id="knowledge-status" role="status" aria-live="polite" aria-atomic="true"></p>
+    <button id="knowledge-refresh" type="button" class="btn">Refresh knowledge</button>
 </div>
-{% endif %}
 
 <form
+    id="knowledge-upload-form"
     method="post"
     enctype="multipart/form-data"
     class="upload-knowledge-container"
@@ -1184,6 +1188,122 @@
 
         let currentConversationId = null;
 
+        // Session-authenticated Knowledge API. A failed write is never retried automatically.
+        const kbForm = document.getElementById('knowledge-upload-form');
+        const kbInput = kbForm.querySelector('input[type=file]');
+        const kbSubmit = kbForm.querySelector('button[type=submit]');
+        const kbList = document.getElementById('knowledge-list');
+        const kbStatus = document.getElementById('knowledge-status');
+        const kbRefresh = document.getElementById('knowledge-refresh');
+        const kbUrl = `/bots/api/bots/${encodeURIComponent(botId)}/knowledge/`;
+        let kbBusy = false, kbRecovery = false, kbAlive = true, kbGeneration = 0;
+        window.addEventListener('pagehide', () => { kbAlive = false; kbGeneration++; });
+        window.addEventListener('pageshow', event => { if (event.persisted) { kbAlive = true; kbBusy = false; loadKnowledge(); } });
+        const validKnowledge = row => row && Number.isInteger(row.id) && row.id > 0 && typeof row.name === 'string';
+        function kbControls() {
+            kbSubmit.disabled = kbBusy || kbRecovery || !kbInput.files.length;
+            kbInput.disabled = kbBusy || kbRecovery;
+            kbRefresh.disabled = kbBusy;
+            kbList.querySelectorAll('button').forEach(button => { button.disabled = kbBusy || kbRecovery; });
+            kbForm.setAttribute('aria-busy', String(kbBusy));
+        }
+        kbInput.addEventListener('change', kbControls);
+        function kbMessage(message, error = false) {
+            kbStatus.setAttribute('role', error ? 'alert' : 'status');
+            kbStatus.textContent = message;
+        }
+        async function kbRequest(method, url, body) {
+            const controller = new AbortController();
+            const timer = setTimeout(() => controller.abort(), method === 'POST' ? 180000 : 30000);
+            try {
+                const response = await fetch(url, {
+                    method, credentials: 'same-origin', signal: controller.signal,
+                    headers: { Accept: 'application/json', 'X-CSRFToken': kbForm.querySelector('[name=csrfmiddlewaretoken]').value },
+                    ...(body ? { body } : {})
+                });
+                const data = response.status === 204 ? null : await response.json().catch(() => null);
+                if (!response.ok) throw Object.assign(new Error('Knowledge request failed.'), { status: response.status, data });
+                if (response.redirected || response.status !== ({ GET: 200, POST: 201, DELETE: 204 })[method]) throw new Error('Invalid success response.');
+                return data;
+            } finally { clearTimeout(timer); }
+        }
+        function kbErrorText(value) {
+            if (typeof value === 'string') return value;
+            if (Array.isArray(value)) return value.map(kbErrorText).join(' ');
+            if (value && typeof value === 'object') return Object.values(value).map(kbErrorText).join(' ');
+            return '';
+        }
+        function kbFailure(error, action) {
+            const code = error.data?.code;
+            const processing = error.status === 503 && ['embedding_failed', 'storage_failed'].includes(code);
+            if (!error.status || (error.status >= 500 && !processing)) {
+                kbRecovery = true;
+                kbMessage(`${action} could not be confirmed. Refresh and check Uploaded Knowledge before trying again.`, true);
+            } else if (error.status === 413) kbMessage('This document exceeds the processing limit. Choose a smaller document.', true);
+            else if (error.status === 403 && code === 'knowledge_quota_exceeded') kbMessage(`Knowledge storage limit reached${error.data.plan ? ` for your ${error.data.plan} plan` : ''}. Delete documents or review your plan before trying again.`, true);
+            else if (error.status === 403) kbMessage('Permission denied. Reload the page to check your session and CSRF protection.', true);
+            else if (error.status === 401) kbMessage('Your session has expired. Please sign in again.', true);
+            else if (error.status === 404) kbMessage('This assistant or document was not found. Refresh knowledge.', true);
+            else if (processing) kbMessage('Document processing failed. Your file is still selected; try uploading again manually.', true);
+            else kbMessage(kbErrorText(error.data?.errors || error.data?.error) || 'The request failed. Please try again manually.', true);
+        }
+        let kbFiles = [];
+        function renderKnowledge(files) {
+            kbFiles = files;
+            kbList.replaceChildren();
+            if (!files.length) { const empty = document.createElement('p'); empty.textContent = 'No uploaded knowledge yet.'; kbList.append(empty); }
+            files.forEach(item => {
+                const row = document.createElement('div'); row.className = 'knowledge-file-row';
+                const name = document.createElement('span'); name.className = 'knowledge-file-name'; name.textContent = item.name;
+                const button = document.createElement('button'); button.type = 'button'; button.className = 'btn btn-danger knowledge-delete-button'; button.textContent = 'Delete'; button.setAttribute('aria-label', `Delete ${item.name}`);
+                button.addEventListener('click', async () => {
+                    if (kbBusy || kbRecovery || !window.confirm(`Delete "${item.name}" from this assistant?`)) return;
+                    const scope = kbGeneration;
+                    kbBusy = true; kbControls(); kbMessage('Deleting knowledge…');
+                    try {
+                        await kbRequest('DELETE', `${kbUrl}${item.id}/`);
+                        if (!kbAlive || scope !== kbGeneration) return;
+                        renderKnowledge(files.filter(file => file.id !== item.id));
+                        kbMessage('Knowledge deleted successfully.');
+                    } catch (error) { if (kbAlive && scope === kbGeneration) kbFailure(error, 'Deletion'); }
+                    finally { if (kbAlive && scope === kbGeneration) { kbBusy = false; kbControls(); kbRefresh.focus(); } }
+                });
+                row.append(name, button); kbList.append(row);
+            });
+        }
+        async function loadKnowledge() {
+            if (kbBusy) return;
+            const scope = kbGeneration;
+            kbBusy = true; kbControls(); kbMessage('Loading knowledge…');
+            try {
+                const data = await kbRequest('GET', kbUrl);
+                if (!data || !Array.isArray(data.files) || !data.files.every(validKnowledge)) throw new Error('Invalid list response.');
+                if (!kbAlive || scope !== kbGeneration) return;
+                renderKnowledge(data.files); kbRecovery = false;
+                kbMessage('Knowledge list updated. Check whether your document is present before uploading again.');
+            } catch (error) {
+                if (kbAlive && scope === kbGeneration) { kbRecovery = true; kbMessage('Unable to refresh knowledge. Check your session and connection, then refresh again.', true); }
+            } finally { if (kbAlive && scope === kbGeneration) { kbBusy = false; kbControls(); } }
+        }
+        kbRefresh.addEventListener('click', loadKnowledge);
+        kbForm.addEventListener('submit', async event => {
+            event.preventDefault();
+            if (kbBusy || kbRecovery || !kbInput.files.length) return;
+            const scope = kbGeneration;
+            const body = new FormData(kbForm);
+            kbBusy = true; kbControls(); kbMessage('Uploading and processing…');
+            try {
+                const row = await kbRequest('POST', kbUrl, body);
+                if (!validKnowledge(row)) throw new Error('Invalid upload response.');
+                if (!kbAlive || scope !== kbGeneration) return;
+                renderKnowledge([row, ...kbFiles.filter(item => item.id !== row.id)]);
+                kbInput.value = ''; kbMessage('Knowledge uploaded and processed successfully!');
+            } catch (error) { if (kbAlive && scope === kbGeneration) kbFailure(error, 'Upload'); }
+            finally { if (kbAlive && scope === kbGeneration) { kbBusy = false; kbControls(); kbRefresh.focus(); } }
+        });
+        loadKnowledge();
+
+
 
         function setLanguageChatHintVisible(
             isVisible
@@ -1209,8 +1329,11 @@
 
 
         function renderMessage(text) {
-            let safeText =
-                escapeHtml(text);
+            text = String(text);
+            // Only the reserved server footer gets filename unescaping; never parse it as markup.
+            const footer = text.match(/\n\n\*\*Källor i sökunderlaget\*\*\n((?:- [^\n]+ \(KB \d+\)(?:\n|$))+)$/);
+            const sourceText = footer ? footer[1].replace(/\\([\\`*_{}\[\]()#!|])/g, '$1').replace(/&(amp|lt|gt);/g, (_, entity) => ({ amp: '&', lt: '<', gt: '>' })[entity]) : '';
+            let safeText = escapeHtml(footer ? text.slice(0, footer.index) : text);
 
             safeText = safeText
                 .replace(
@@ -1230,7 +1353,7 @@
                     "<br>"
                 );
 
-            return safeText;
+            return safeText + (footer ? '<br><br><strong>Källor i sökunderlaget</strong><br>' + escapeHtml(sourceText).replace(/\n/g, '<br>') : '');
         }
 
 

@@ -162,3 +162,52 @@ class ParityAPITests(TestCase):
         self.assertFalse(KnowledgeBase.objects.exists())
         self.assertFalse(KnowledgeChunk.objects.exists())
         self.assertFalse([p for p in Path(self.media.name).rglob('*') if p.is_file()])
+
+
+    @patch('ai_assistant.bots.knowledge_service.generate_embedding_batches', return_value=[[0.1, 0.2]])
+    def test_session_knowledge_crud_with_csrf(self, embeddings):
+        from django.middleware.csrf import _get_new_csrf_string
+        browser = APIClient(enforce_csrf_checks=True)
+        browser.force_login(self.user)
+        csrf = _get_new_csrf_string()
+        browser.cookies['csrftoken'] = csrf
+        self.assertEqual(browser.get(self.url).data, {'files': []})
+        response = browser.post(self.url, {'file': self.document()}, format='multipart', HTTP_X_CSRFTOKEN=csrf)
+        self.assertEqual(response.status_code, 201, response.data)
+        self.assertEqual(set(response.data), {'id', 'name'})
+        detail = f"{self.url}{response.data['id']}/"
+        denied = browser.delete(detail)
+        self.assertEqual(denied.status_code, 403)
+        self.assertNotEqual(denied.data.get('code'), 'knowledge_quota_exceeded')
+        deleted = browser.delete(detail, HTTP_X_CSRFTOKEN=csrf)
+        self.assertEqual(deleted.status_code, 204)
+        self.assertEqual(deleted.content, b'')
+        self.assertEqual(browser.get(self.url).data, {'files': []})
+
+    def test_session_and_token_processing_error_contracts(self):
+        from django.middleware.csrf import _get_new_csrf_string
+        from .knowledge_errors import KnowledgeProcessingError, KnowledgeQuotaError
+        browser = APIClient(enforce_csrf_checks=True)
+        browser.force_login(self.user)
+        csrf = _get_new_csrf_string()
+        browser.cookies['csrftoken'] = csrf
+        cases = [(400, 'empty_content'), (400, 'encrypted_document'),
+                 (400, 'extraction_failed'), (413, 'processing_limit'),
+                 (503, 'embedding_failed'), (503, 'storage_failed')]
+        for client in [browser, self.client]:
+            for status, code in cases:
+                with self.subTest(session=client is browser, code=code), patch(
+                    'ai_assistant.bots.parity_api.upload_knowledge',
+                    side_effect=KnowledgeProcessingError('Public failure', code, status)
+                ):
+                    response = client.post(self.url, {'file': self.document()}, format='multipart', HTTP_X_CSRFTOKEN=csrf)
+                    self.assertEqual(response.status_code, status)
+                    self.assertEqual(response.data, {'error': 'Public failure', 'code': code})
+            with patch('ai_assistant.bots.parity_api.upload_knowledge', side_effect=KnowledgeQuotaError({'plan': 'free'})):
+                response = client.post(self.url, {'file': self.document()}, format='multipart', HTTP_X_CSRFTOKEN=csrf)
+                self.assertEqual(response.status_code, 403)
+                self.assertEqual(response.data['code'], 'knowledge_quota_exceeded')
+                self.assertEqual(response.data['plan'], 'free')
+            response = client.post(self.url, {}, format='multipart', HTTP_X_CSRFTOKEN=csrf)
+            self.assertEqual(response.status_code, 400)
+            self.assertIn('__all__', response.data['errors'])
