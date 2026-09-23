@@ -118,7 +118,7 @@
     {% endfor %}
     </div>
     <p id="knowledge-status" role="status" aria-live="polite" aria-atomic="true"></p>
-    <button id="knowledge-refresh" type="button" class="btn">Refresh knowledge</button>
+    <button id="knowledge-refresh" type="button" class="btn">Refresh file list</button>
 </div>
 
 <form
@@ -148,7 +148,11 @@
             Upload File (.txt, .pdf, .docx):
         </label>
 
-        {{ knowledge_form.file }}
+        <span hidden>{{ knowledge_form.file }}</span>
+        <button id="knowledge-choose-file" type="button" class="btn"
+                aria-describedby="knowledge-file-name">Choose file</button>
+        <span id="knowledge-file-name" role="status" aria-live="polite"
+              style="overflow-wrap: anywhere;">No file selected</span>
 
         {% for error in knowledge_form.file.errors %}
         <div
@@ -1191,6 +1195,8 @@
         // Session-authenticated Knowledge API. A failed write is never retried automatically.
         const kbForm = document.getElementById('knowledge-upload-form');
         const kbInput = kbForm.querySelector('input[type=file]');
+        const kbChoose = document.getElementById('knowledge-choose-file');
+        const kbFilename = document.getElementById('knowledge-file-name');
         const kbSubmit = kbForm.querySelector('button[type=submit]');
         const kbList = document.getElementById('knowledge-list');
         const kbStatus = document.getElementById('knowledge-status');
@@ -1203,10 +1209,13 @@
         function kbControls() {
             kbSubmit.disabled = kbBusy || kbRecovery || !kbInput.files.length;
             kbInput.disabled = kbBusy || kbRecovery;
+            kbChoose.disabled = kbInput.disabled;
+            kbFilename.textContent = kbInput.files[0]?.name || 'No file selected';
             kbRefresh.disabled = kbBusy;
             kbList.querySelectorAll('button').forEach(button => { button.disabled = kbBusy || kbRecovery; });
             kbForm.setAttribute('aria-busy', String(kbBusy));
         }
+        kbChoose.addEventListener('click', () => kbInput.click());
         kbInput.addEventListener('change', kbControls);
         function kbMessage(message, error = false) {
             kbStatus.setAttribute('role', error ? 'alert' : 'status');
@@ -1243,7 +1252,7 @@
             else if (error.status === 403 && code === 'knowledge_quota_exceeded') kbMessage(`Knowledge storage limit reached${error.data.plan ? ` for your ${error.data.plan} plan` : ''}. Delete documents or review your plan before trying again.`, true);
             else if (error.status === 403) kbMessage('Permission denied. Reload the page to check your session and CSRF protection.', true);
             else if (error.status === 401) kbMessage('Your session has expired. Please sign in again.', true);
-            else if (error.status === 404) kbMessage('This assistant or document was not found. Refresh knowledge.', true);
+            else if (error.status === 404) kbMessage('This assistant or document was not found. Refresh file list.', true);
             else if (processing) kbMessage('Document processing failed. Your file is still selected; try uploading again manually.', true);
             else kbMessage(kbErrorText(error.data?.errors || error.data?.error) || 'The request failed. Please try again manually.', true);
         }

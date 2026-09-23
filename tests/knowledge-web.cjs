@@ -93,28 +93,59 @@ const footer = names => 'Useful answer.\n\n**Källor i sökunderlaget**\n' + nam
       return fulfill(route, { data });
     });
     const upload = () => page.getByRole('button', { name: 'Upload Knowledge', exact: true });
-    const refresh = () => page.getByRole('button', { name: 'Refresh knowledge', exact: true });
+    const refresh = () => page.getByRole('button', { name: 'Refresh file list', exact: true });
     async function open() {
       await page.goto(origin);
       if (!web) await page.getByRole('button', { name: 'Knowledge Base', exact: true }).first().click();
       await page.getByText('Knowledge list updated.', { exact: false }).waitFor();
     }
-    async function pick() {
-      const file = { name: 'upload.txt', mimeType: 'text/plain', buffer: Buffer.from('A useful fact.') };
+    async function pick(name = 'upload.txt') {
+      const file = { name, mimeType: 'text/plain', buffer: Buffer.from('A useful fact.') };
       if (web) await page.locator('#knowledge-upload-form input[type=file]').setInputFiles(file);
       else { const chooser = page.waitForEvent('filechooser'); await page.getByRole('button', { name: 'Choose document', exact: true }).click(); await (await chooser).setFiles(file); }
     }
-    const retained = async () => web ? assert.equal(await page.locator('#knowledge-upload-form input[type=file]').evaluate(el => el.files.length), 1) : assert.ok(await page.getByText('upload.txt', { exact: true }).count());
+    const filename = () => page.locator('#knowledge-file-name');
+    const retained = async () => {
+      assert.equal(await page.locator('#knowledge-upload-form input[type=file]').evaluate(el => el.files.length), 1);
+      assert.equal(await filename().textContent(), 'upload.txt');
+    };
     async function check(message) { await page.getByText(message, { exact: false }).first().waitFor(); passed++; }
     await open(); await check('No uploaded knowledge yet.');
+    assert.ok(await refresh().isVisible());
+    assert.equal(await page.getByText(/Refresh knowledge/i).count(), 0);
+    const choose = page.getByRole('button', { name: 'Choose file', exact: true });
+    assert.ok(await choose.isVisible());
+    assert.equal(await filename().textContent(), 'No file selected');
+    assert.equal(await choose.getAttribute('aria-describedby'), 'knowledge-file-name');
+    assert.equal(await filename().getAttribute('role'), 'status');
+    assert.equal(await page.locator('#knowledge-upload-form input[type=file]').isVisible(), false);
+    let dialogs = 0;
+    const onDialog = dialog => { dialogs++; dialog.dismiss(); };
+    page.on('dialog', onDialog);
+    const hostile = 'Å_日本 & <img src=x onerror=alert(1)> \"quoted\".txt';
+    for (const key of ['Enter', 'Space']) {
+      await choose.focus();
+      const chooser = page.waitForEvent('filechooser');
+      await page.keyboard.press(key);
+      await (await chooser).setFiles({ name: hostile, mimeType: 'text/plain', buffer: Buffer.from('Fact') });
+      assert.equal(await filename().textContent(), hostile);
+      assert.equal(await filename().locator('*').count(), 0);
+    }
+    assert.equal(dialogs, 0);
+    page.off('dialog', onDialog);
+    await page.locator('#knowledge-upload-form input[type=file]').setInputFiles([]);
+    assert.equal(await filename().textContent(), 'No file selected');
+    passed += 3;
     files = [{ id: 1, name: 'Existing.txt' }]; await refresh().click(); await check('Existing.txt');
-    await pick(); mode = { status: 201, data: { id: 2, name: 'upload.txt' }, delay: true };
+    await pick(); await retained(); mode = { status: 201, data: { id: 2, name: 'upload.txt' }, delay: true };
     await upload().evaluate(el => { el.click(); el.click(); });
     await check('Uploading and processing…');
-    assert.equal(posts, 1); assert.ok(await refresh().isDisabled());
+    assert.equal(posts, 1); assert.ok(await refresh().isDisabled()); assert.ok(await choose.isDisabled());
     assert.ok(await page.getByRole('button', { name: 'Delete Existing.txt', exact: true }).isDisabled());
     release(); await check('Knowledge uploaded and processed successfully!');
     assert.ok(await upload().isDisabled());
+    assert.equal(await filename().textContent(), 'No file selected');
+    assert.equal(await page.locator('#knowledge-upload-form input[type=file]').evaluate(el => el.files.length), 0); passed++;
     page.once('dialog', dialog => dialog.dismiss()); await page.getByRole('button', { name: 'Delete upload.txt', exact: true }).click(); assert.equal(deletes, 0); passed++;
     deleteMode = { status: 204, delay: true };
     page.once('dialog', dialog => dialog.accept()); await page.getByRole('button', { name: 'Delete upload.txt', exact: true }).click();
@@ -142,7 +173,7 @@ const footer = names => 'Useful answer.\n\n**Källor i sökunderlaget**\n' + nam
       mode = uncertain; await page.evaluate(short => { window.__shortKnowledgeTimeout = short; }, !!uncertain.timeout); const before = posts; await upload().click(); await check('Upload could not be confirmed.');
       await retained(); assert.ok(await upload().isDisabled()); assert.equal(posts, before + 1);
       getFail = true; await refresh().click(); await check(web ? 'Unable to refresh knowledge.' : 'The service is temporarily unavailable.'); assert.ok(await upload().isDisabled());
-      getFail = false; await refresh().click(); await check('Knowledge list updated.'); assert.equal(await upload().isDisabled(), false);
+      getFail = false; await refresh().click(); await check('Knowledge list updated.'); assert.equal(await upload().isDisabled(), false); await retained();
     }
     await page.evaluate(() => { window.__shortKnowledgeTimeout = false; });
     mode = { abort: true }; await upload().click(); await check('Upload could not be confirmed.');
@@ -192,7 +223,7 @@ const footer = names => 'Useful answer.\n\n**Källor i sökunderlaget**\n' + nam
       await page.goto(origin); await page.getByRole('button', { name: 'Dark theme', exact: true }).click();
       await page.getByRole('button', { name: 'Knowledge Base', exact: true }).first().click(); await check('Knowledge list updated.');
       await page.screenshot({ path: path.join(temp, 'knowledge-dark.png'), fullPage: true });
-      await pick(); mode = { status: 401, data: { detail: 'Invalid token' } }; await upload().click(); await check('Welcome Back');
+      await pick(); await retained(); mode = { status: 401, data: { detail: 'Invalid token' } }; await upload().click(); await check('Welcome Back');
       assert.equal(await page.evaluate(() => localStorage.getItem('auth_token')), null);
     }
     assert.deepEqual(errors, []);
