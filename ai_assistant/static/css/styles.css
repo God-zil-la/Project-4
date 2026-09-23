@@ -11,6 +11,7 @@
   --bg-color: #f6f2eb;
   --text-color: #3a3228;
   --nav-bg: #ebe4d8;
+  --nav-bg-solid: #ebe4d8;
   --button-bg: #e9dfcf;
   --button-text: #3a3228;
   --button-hover: #d8cdbb;
@@ -27,6 +28,7 @@ html.dark {
   --bg-color: #0a0f1f;
   --text-color: #e0e6f0;
   --nav-bg: linear-gradient(135deg, #0b1b3f, #0a1026);
+  --nav-bg-solid: #0b1b3f;
   --button-bg: #162447;
   --button-text: #ffffff;
   --button-hover: #1f3268;
@@ -733,4 +735,365 @@ ul.errorlist {
   background-color: #fff3cd;
   border-color: #ffeeba;
   color: #856404;
+}
+
+/* =====================================================================
+   APP SHELL — shared visual system used by every web page
+   ===================================================================== */
+
+/* Keep the first paint stable. The theme class is set in <head> before
+   this stylesheet is parsed, so normal page navigation does not animate
+   through an intermediate light/dark state. */
+html,
+body {
+  transition: none;
+}
+
+body {
+  min-height: 100dvh;
+}
+
+.site-nav {
+  width: 100%;
+  padding: 0.65rem 1rem;
+  background: var(--nav-bg);
+  border-bottom: 1px solid var(--button-border);
+  box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
+  flex-shrink: 0;
+}
+
+.site-nav-links {
+  width: min(1600px, 100%);
+  max-width: none;
+  margin: 0 auto;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: nowrap;
+  gap: 0.7rem;
+  list-style: none;
+}
+
+.site-nav-links li {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+}
+
+.site-nav-links a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 36px;
+  margin: 0;
+  padding: 0.5rem 0.8rem;
+  border: 1px solid var(--button-border);
+  border-radius: 4px;
+  background: var(--button-bg);
+  color: var(--button-text);
+  box-shadow: var(--button-shadow);
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1.15;
+  text-align: center;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.site-nav-links a:hover,
+.site-nav-links a:focus-visible {
+  background: var(--button-hover);
+  border-color: var(--accent-color);
+  transform: translateY(-1px);
+}
+
+.nav-logout {
+  position: relative;
+}
+
+.nav-message-dot {
+  width: 7px;
+  height: 7px;
+  margin-left: 0.35rem;
+  display: inline-block;
+  border-radius: 50%;
+  background: #ff5c5c;
+}
+
+/* Theme control stays in the horizontal strip directly below the nav,
+   matching the established desktop screenshots instead of floating. */
+.theme-strip {
+  width: 100%;
+  padding: 0.22rem 0.65rem;
+  background: var(--nav-bg);
+  border-bottom: 1px solid var(--button-border);
+  flex-shrink: 0;
+}
+
+#toggleTheme.toggle-theme {
+  position: static;
+  width: 100%;
+  max-width: none;
+  min-height: 27px;
+  height: 27px;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--accent-color);
+  border-radius: 2px;
+  background: var(--button-bg);
+  color: var(--button-text);
+  box-shadow: none;
+  font-size: 0.72rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+#toggleTheme.toggle-theme:hover,
+#toggleTheme.toggle-theme:focus-visible {
+  background: var(--button-hover);
+  transform: none;
+}
+
+/* Do not compete with page-specific main widths. Pages such as Dashboard,
+   Create/Edit and Playground intentionally choose wider app layouts. */
+:where(.site-main) {
+  flex: 1 0 auto;
+  width: 100%;
+}
+
+.site-messages {
+  width: min(1600px, calc(100% - 2rem));
+  margin: 0.65rem auto 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.site-alert {
+  padding: 0.6rem 0.75rem;
+  border-radius: 7px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.site-alert-success {
+  background: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.site-alert-info {
+  background: #d1ecf1;
+  color: #0c5460;
+  border: 1px solid #bee5eb;
+}
+
+.site-alert-warning {
+  background: #fff3cd;
+  color: #856404;
+  border: 1px solid #ffeeba;
+}
+
+.site-alert-danger {
+  background: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+.site-footer {
+  width: 100%;
+  margin-top: auto;
+  padding: 0.75rem 1rem;
+  background: var(--footer-bg);
+  color: var(--text-color);
+  border-top: 1px solid var(--button-border);
+  box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.05);
+  flex-shrink: 0;
+}
+
+.footer-inner {
+  width: min(1600px, 100%);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 1rem;
+}
+
+.footer-left,
+.footer-right {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+}
+
+.footer-left {
+  justify-content: flex-start;
+}
+
+.footer-right {
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.footer-center {
+  text-align: center;
+  white-space: nowrap;
+}
+
+.footer-policy-links {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+}
+
+.footer-center p {
+  margin: 0.15rem 0 0;
+  font-size: 0.68rem;
+  font-weight: 600;
+  opacity: 0.78;
+}
+
+.footer-link {
+  color: var(--text-color);
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.footer-link:hover,
+.footer-link:focus-visible {
+  color: var(--accent-color);
+}
+
+.footer-app-store-badge,
+.footer-google-play-badge {
+  display: inline-flex;
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.footer-app-store-badge img {
+  display: block;
+  width: auto;
+  height: 34px;
+}
+
+/* The official Google Play PNG contains transparent padding. */
+.footer-google-play-badge img {
+  display: block;
+  width: auto;
+  height: 50.6px;
+  margin: -8.3px;
+}
+
+/* Desktop starts at 551px. Keep the nav as one row all the way from
+   compact tablets to very large displays. */
+@media (min-width: 551px) and (max-width: 760px) {
+  .site-nav {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
+
+  .site-nav-links {
+    gap: 0.3rem;
+  }
+
+  .site-nav-links a {
+    padding: 0.45rem 0.48rem;
+    font-size: 0.67rem;
+  }
+}
+
+/* Mobile is deliberately only 0–550px. */
+@media (max-width: 550px) {
+  .site-nav {
+    padding: 0.55rem 0.65rem;
+  }
+
+  .site-nav-links {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.35rem 0;
+    width: 100%;
+  }
+
+  .site-nav-links li {
+    width: 100%;
+  }
+
+  .site-nav-links li:last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+  }
+
+  .site-nav-links a {
+    width: 100%;
+    min-height: 34px;
+    padding: 0.45rem 0.35rem;
+    border-radius: 3px;
+    font-size: 0.68rem;
+    white-space: normal;
+  }
+
+  .theme-strip {
+    padding: 0.2rem 0.65rem;
+  }
+
+  #toggleTheme.toggle-theme {
+    min-height: 25px;
+    height: 25px;
+  }
+
+  .site-messages {
+    width: calc(100% - 1.3rem);
+    margin-top: 0.5rem;
+  }
+
+  .footer-inner {
+    grid-template-columns: 1fr;
+    gap: 0.55rem;
+    text-align: center;
+  }
+
+  .footer-left,
+  .footer-right {
+    justify-content: center;
+  }
+
+  .footer-center {
+    white-space: normal;
+  }
+
+  .footer-policy-links {
+    flex-wrap: wrap;
+  }
+
+  .footer-link {
+    font-size: 0.64rem;
+  }
+
+  .footer-center p {
+    font-size: 0.6rem;
+  }
+
+  .footer-app-store-badge img {
+    height: 31px;
+  }
+
+  .footer-google-play-badge img {
+    height: 46.1px;
+    margin: -7.55px;
+  }
+}
+
+@media (max-width: 360px) {
+  .site-nav-links a {
+    font-size: 0.63rem;
+  }
 }

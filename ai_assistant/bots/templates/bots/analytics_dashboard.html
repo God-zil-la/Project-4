@@ -4,7 +4,7 @@
 {% block title %}Analytics Dashboard - AI Assistant{% endblock %}
 
 {% block content %}
-<main class="analytics-dashboard container" role="main" aria-label="Analytics Dashboard">
+<section class="analytics-dashboard container" aria-label="Analytics Dashboard">
 
     <header class="dashboard-header">
         <h1>📊 Analytics Dashboard</h1>
@@ -37,7 +37,7 @@
         </canvas>
     </section>
 
-</main>
+</section>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
@@ -46,16 +46,19 @@ document.addEventListener('DOMContentLoaded', function () {
     const root = document.documentElement;
     const isDark = root.classList.contains('dark');
 
-    const bgColor = isDark ? '#1e1e1e' : '#ffffff';
-    const textColor = isDark ? '#eeeeee' : '#222222';
-    const mutedColor = isDark ? '#cccccc' : '#555555';
+    const styles = getComputedStyle(root);
+    const bgColor = styles.getPropertyValue('--nav-bg-solid').trim()
+        || (isDark ? '#0b1b3f' : '#ebe4d8');
+    const textColor = styles.getPropertyValue('--text-color').trim();
+    const mutedColor = textColor;
     const gridColor = isDark
         ? 'rgba(255,255,255,0.1)'
         : 'rgba(0,0,0,0.05)';
     const gridSubColor = isDark
         ? 'rgba(255,255,255,0.05)'
         : 'rgba(0,0,0,0.03)';
-    const tooltipBg = isDark ? '#2a2a2a' : '#ffffff';
+    const tooltipBg = isDark ? '#162447' : '#f6f2eb';
+    const accentColor = styles.getPropertyValue('--accent-color').trim() || '#15839d';
 
     const botData = JSON.parse(
         `{{ bot_data|default:"{}"|escapejs }}`
@@ -199,7 +202,7 @@ document.addEventListener('DOMContentLoaded', function () {
         'botUsageChart',
         'Messages by Assistant',
         botData,
-        'rgba(240, 165, 0, 0.85)',
+        accentColor,
         'Name'
     );
 
@@ -207,85 +210,105 @@ document.addEventListener('DOMContentLoaded', function () {
         'timeUsageChart',
         'Messages Over Time',
         timeData,
-        'rgba(54, 162, 235, 0.85)',
+        accentColor,
         'Date'
     );
 });
 </script>
 
 <style>
-:root {
-    --text-color: #222;
-    --text-color-muted: #555;
-    --chart-bg: #f8f8f8;
-}
-
-.dark {
-    --text-color: #EEE;
-    --text-color-muted: #CCC;
-    --chart-bg: #1e1e1e;
-}
-
-.container {
-    max-width: 900px;
-    margin: 2rem auto 4rem;
-    padding: 0 1rem;
+.analytics-dashboard.container {
+    width: min(1600px, 100%);
+    max-width: none;
+    margin: 0 auto;
+    padding: 0;
 }
 
 .dashboard-header {
-    text-align: center;
-    margin-bottom: 3rem;
-}
-
-.dashboard-header h1,
-.dashboard-intro,
-.chart-title {
-    color: var(--text-color);
-    transition: color 0.3s ease;
-}
-
-.dashboard-intro {
-    font-size: 1.1rem;
-    font-weight: 500;
-    color: var(--text-color-muted);
+    margin-bottom: 0.8rem;
+    padding: 0.9rem 1rem;
+    background: var(--nav-bg);
+    border: 1px solid var(--button-border);
+    border-radius: 14px;
 }
 
 .dashboard-header h1 {
-    font-size: 2.5rem;
-    font-weight: 800;
-    margin-bottom: 0.25rem;
+    margin: 0;
+    color: var(--accent-color);
+    font-size: clamp(1.45rem, 2.2vw, 2rem);
+    line-height: 1.15;
+}
+
+.dashboard-intro {
+    margin: 0.25rem 0 0;
+    color: var(--text-color);
+    font-size: 0.82rem;
+    font-weight: 600;
+    opacity: 0.8;
 }
 
 .chart-section {
-    margin-bottom: 4rem;
+    margin: 0 0 0.8rem;
+    padding: 0.85rem;
+    background: var(--nav-bg);
+    border: 1px solid var(--button-border);
+    border-radius: 14px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.05);
 }
 
 .chart-title {
-    font-size: 1.8rem;
-    margin-bottom: 1rem;
-    font-weight: 700;
+    margin: 0 0 0.65rem;
+    color: var(--accent-color);
+    font-size: 0.95rem;
+    font-weight: 800;
 }
 
-canvas {
+.chart-section canvas {
+    display: block;
     width: 100% !important;
-    height: 400px !important;
-    border-radius: 16px;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
-    padding: 1rem;
-    background-color: var(--chart-bg);
+    height: 360px !important;
+    padding: 0.65rem;
+    background: var(--nav-bg);
+    border: 1px solid var(--button-border);
+    border-radius: 10px;
+    box-shadow: none;
 }
 
-@media (max-width: 600px) {
+@media (min-width: 1200px) {
+    .analytics-dashboard.container {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.8rem;
+    }
+
+    .dashboard-header {
+        grid-column: 1 / -1;
+        margin-bottom: 0;
+    }
+
+    .chart-section {
+        margin-bottom: 0;
+    }
+}
+
+@media (max-width: 550px) {
+    .dashboard-header,
+    .chart-section {
+        padding: 0.75rem;
+        border-radius: 12px;
+    }
+
     .dashboard-header h1 {
-        font-size: 1.8rem;
+        font-size: 1.3rem;
     }
 
-    .chart-title {
-        font-size: 1.4rem;
+    .dashboard-intro {
+        font-size: 0.7rem;
     }
 
-    canvas {
-        height: 320px !important;
+    .chart-section canvas {
+        height: 300px !important;
+        padding: 0.4rem;
     }
 }
 </style>

@@ -7,19 +7,7 @@
     margin: 0 auto;
     padding: 60px 25px;
     color: var(--text-color);
-    animation: discordFadePage 0.5s ease;
 }
-
-@keyframes discordFadePage {
-    from {
-        opacity: 0;
-    }
-
-    to {
-        opacity: 1;
-    }
-}
-
 
 /* ==========================================================
    Hero
@@ -81,23 +69,6 @@
         transform 0.25s ease,
         box-shadow 0.25s ease;
 
-    animation: discordFadeUp 0.45s ease forwards;
-}
-
-.discord-page .step:nth-child(1) {
-    animation-delay: 0.05s;
-}
-
-.discord-page .step:nth-child(2) {
-    animation-delay: 0.15s;
-}
-
-.discord-page .step:nth-child(3) {
-    animation-delay: 0.25s;
-}
-
-.discord-page .step:nth-child(4) {
-    animation-delay: 0.35s;
 }
 
 .discord-page .step:hover {
@@ -288,23 +259,6 @@
     width: 100%;
     margin: 0;
     text-align: center;
-}
-
-
-/* ==========================================================
-   Animation
-   ========================================================== */
-
-@keyframes discordFadeUp {
-    from {
-        opacity: 0;
-        transform: translateY(25px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
 }
 
 
