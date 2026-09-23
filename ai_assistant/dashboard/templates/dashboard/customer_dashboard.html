@@ -5,220 +5,968 @@
 
 {% block content %}
 
-<section style="
-    display: flex;
-    justify-content: center;
-    padding: 2rem 1rem;
-">
-    <div style="
-        background: var(--nav-bg);
-        padding: 1.5rem;
-        border-radius: 16px;
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
-        max-width: 1000px;
-        width: 100%;
-    ">
+<section class="dashboard-page">
 
-        <div style="
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-            margin-bottom: 2rem;
-        ">
-            <h1 style="
-                margin: 0;
-                color: var(--accent-color);
-            ">
-                Dashboard
-            </h1>
+    <!-- ================= HEADER ================= -->
 
-            <p style="
-                margin: 0;
-                font-weight: 600;
-            ">
+    <header class="dashboard-header">
+
+        <div class="dashboard-heading">
+            <h1>Dashboard</h1>
+
+            <p>
                 Welcome back, {{ user.first_name|default:user.username }}.
                 Manage your AI assistants, usage, knowledge, and subscription.
             </p>
         </div>
 
+        <div class="dashboard-plan-badge">
+            <span>Current Plan</span>
 
-        <!-- CURRENT PLAN -->
-
-        <div style="
-            border: 2px solid var(--accent-color);
-            border-radius: 12px;
-            padding: 1rem;
-            margin-bottom: 1.5rem;
-        ">
-            <h2 style="
-                margin-top: 0;
-                color: var(--accent-color);
-            ">
-                Current Plan
-            </h2>
-
-            <h3 style="margin-bottom: 0.5rem;">
+            <strong>
                 {{ user.profile.effective_plan|title }}
-            </h3>
+            </strong>
+        </div>
+
+    </header>
+
+
+    <!-- ================= MAIN DASHBOARD ================= -->
+
+    <div class="dashboard-layout">
+
+        <!-- ================= PLAN ================= -->
+
+        <section class="dashboard-panel dashboard-plan-panel">
+
+            <div class="dashboard-panel-heading">
+                <div>
+                    <span class="dashboard-eyebrow">
+                        Subscription
+                    </span>
+
+                    <h2>
+                        {{ user.profile.effective_plan|title }} Plan
+                    </h2>
+                </div>
+
+                <span class="dashboard-plan-icon">
+                    {% if user.profile.effective_plan == 'pro' %}
+                        🚀
+                    {% elif user.profile.effective_plan == 'premium' %}
+                        💎
+                    {% else %}
+                        🆓
+                    {% endif %}
+                </span>
+            </div>
 
 
             {% if user.profile.effective_plan == 'free' %}
 
-            <p style="font-weight: 600;">
-                Free includes 1 AI assistant, 150 AI messages per month,
-                10 MB Knowledge Base, and unlimited chats.
-            </p>
+                <p class="dashboard-plan-description">
+                    Free includes 1 AI assistant, 150 AI messages per month,
+                    10 MB Knowledge Base, and unlimited chats.
+                </p>
 
-            <a
-                href="{% url 'payments:billing' %}"
-                class="dashboard-btn"
-            >
-                Upgrade Plan
-            </a>
+                <div class="dashboard-plan-actions">
+
+                    <a
+                        href="{% url 'payments:billing' %}"
+                        class="dashboard-btn"
+                    >
+                        Upgrade Plan
+                    </a>
+
+                </div>
 
 
             {% elif user.profile.effective_plan == 'premium' %}
 
-            <p style="font-weight: 600;">
-                Premium includes 5 AI assistants, 3,000 AI messages per month,
-                250 MB Knowledge Base, and unlimited chats.
-            </p>
+                <p class="dashboard-plan-description">
+                    Premium includes 5 AI assistants, 3,000 AI messages per month,
+                    250 MB Knowledge Base, and unlimited chats.
+                </p>
 
-            <a
-                href="{% url 'payments:billing' %}"
-                class="dashboard-btn"
-            >
-                Upgrade to Pro
-            </a>
+                <div class="dashboard-plan-actions">
 
-            <a
-                href="{% url 'payments:billing' %}"
-                class="dashboard-btn secondary-btn"
-            >
-                Manage Plan
-            </a>
+                    <a
+                        href="{% url 'payments:billing' %}"
+                        class="dashboard-btn"
+                    >
+                        Upgrade to Pro
+                    </a>
+
+                    <a
+                        href="{% url 'payments:billing' %}"
+                        class="dashboard-btn secondary-btn"
+                    >
+                        Manage Plan
+                    </a>
+
+                </div>
 
 
             {% elif user.profile.effective_plan == 'pro' %}
 
-            <p style="font-weight: 600;">
-                Pro includes 15 AI assistants, 10,000 AI messages per month,
-                1 GB Knowledge Base, and unlimited chats.
-            </p>
+                <p class="dashboard-plan-description">
+                    Pro includes 15 AI assistants, 10,000 AI messages per month,
+                    1 GB Knowledge Base, and unlimited chats.
+                </p>
 
-            <a
-                href="{% url 'payments:billing' %}"
-                class="dashboard-btn"
-            >
-                Manage Plan
-            </a>
+                <div class="dashboard-plan-actions">
+
+                    <a
+                        href="{% url 'payments:billing' %}"
+                        class="dashboard-btn"
+                    >
+                        Manage Plan
+                    </a>
+
+                </div>
 
             {% endif %}
 
-        </div>
-
-
-        <!-- USAGE -->
-
-        <div style="
-            display: grid;
-            grid-template-columns: repeat(
-                auto-fit,
-                minmax(200px, 1fr)
-            );
-            gap: 1rem;
-        ">
-
-            <div class="dashboard-card">
-                <h3>
-                    💬 AI Messages
-                </h3>
-
-                <p>
-                    {{ message_count|intcomma }} / {{ message_limit|intcomma }} this month
-                </p>
-            </div>
-
-
-            <div class="dashboard-card">
-                <h3>
-                    🤖 AI Assistants
-                </h3>
-
-                <p>
-                    {{ bot_count }} / {{ bot_limit }}
-                </p>
-            </div>
-
-
-            <div class="dashboard-card">
-                <h3>
-                    📚 Knowledge Base
-                </h3>
-
-                <p>
-                    {{ knowledge_used_display }} /
-                    {{ knowledge_limit_display }}
-                </p>
-            </div>
-
-
-            <div class="dashboard-card">
-                <h3>
-                    🗨️ Chats
-                </h3>
-
-                <p>
-                    Unlimited
-                </p>
-            </div>
-
-        </div>
-
-        <section aria-labelledby="account-controls-title" style="margin-top:2rem;line-height:1.6;">
-            <h2 id="account-controls-title">Account settings</h2>
-            <a href="{% url 'accounts:delete_account' %}" class="dashboard-btn secondary-btn">Delete my account and data</a>
         </section>
+
+
+        <!-- ================= USAGE ================= -->
+
+        <section class="dashboard-usage">
+
+            <article class="dashboard-card">
+
+                <div class="dashboard-card-top">
+                    <span class="dashboard-card-icon">
+                        💬
+                    </span>
+
+                    <span class="dashboard-card-label">
+                        AI Messages
+                    </span>
+                </div>
+
+                <strong class="dashboard-card-value">
+                    {{ message_count|intcomma }}
+                </strong>
+
+                <span class="dashboard-card-meta">
+                    of {{ message_limit|intcomma }} this month
+                </span>
+
+            </article>
+
+
+            <article class="dashboard-card">
+
+                <div class="dashboard-card-top">
+                    <span class="dashboard-card-icon">
+                        🤖
+                    </span>
+
+                    <span class="dashboard-card-label">
+                        AI Assistants
+                    </span>
+                </div>
+
+                <strong class="dashboard-card-value">
+                    {{ bot_count }}
+                </strong>
+
+                <span class="dashboard-card-meta">
+                    of {{ bot_limit }}
+                </span>
+
+            </article>
+
+
+            <article class="dashboard-card">
+
+                <div class="dashboard-card-top">
+                    <span class="dashboard-card-icon">
+                        📚
+                    </span>
+
+                    <span class="dashboard-card-label">
+                        Knowledge Base
+                    </span>
+                </div>
+
+                <strong class="dashboard-card-value dashboard-card-value-small">
+                    {{ knowledge_used_display }}
+                </strong>
+
+                <span class="dashboard-card-meta">
+                    of {{ knowledge_limit_display }}
+                </span>
+
+            </article>
+
+
+            <article class="dashboard-card">
+
+                <div class="dashboard-card-top">
+                    <span class="dashboard-card-icon">
+                        🗨️
+                    </span>
+
+                    <span class="dashboard-card-label">
+                        Chats
+                    </span>
+                </div>
+
+                <strong class="dashboard-card-value dashboard-card-value-small">
+                    Unlimited
+                </strong>
+
+                <span class="dashboard-card-meta">
+                    Included with your plan
+                </span>
+
+            </article>
+
+        </section>
+
     </div>
+
+
+    <!-- ================= ACCOUNT ================= -->
+
+    <section
+        class="dashboard-account"
+        aria-labelledby="account-controls-title"
+    >
+
+        <div>
+            <span class="dashboard-eyebrow">
+                Account
+            </span>
+
+            <h2 id="account-controls-title">
+                Account settings
+            </h2>
+
+            <p>
+                Manage account access and your stored account data.
+            </p>
+        </div>
+
+        <a
+            href="{% url 'accounts:delete_account' %}"
+            class="dashboard-btn secondary-btn dashboard-delete-btn"
+        >
+            Delete my account and data
+        </a>
+
+    </section>
+
 </section>
 
 
 <style>
 
-    .dashboard-card {
-        border: 2px solid var(--accent-color);
-        border-radius: 12px;
-        padding: 1rem;
-        background: var(--nav-bg);
+    /* ==================================================
+       DASHBOARD PAGE
+       ================================================== */
+
+    main {
+        width: min(1600px, calc(100% - 2rem));
+        max-width: none;
+        margin: 1rem auto;
+        padding: 0;
+        background: transparent;
+        border-radius: 0;
+        box-shadow: none;
+        backdrop-filter: none;
     }
 
 
-    .dashboard-card h3 {
-        margin-top: 0;
+    .dashboard-page {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+
+    /* ==================================================
+       HEADER
+       ================================================== */
+
+    .dashboard-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+
+        padding: 1rem 1.25rem;
+
+        background: var(--nav-bg);
+
+        border: 1px solid var(--button-border);
+        border-radius: 14px;
+
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+    }
+
+
+    .dashboard-heading {
+        min-width: 0;
+    }
+
+
+    .dashboard-heading h1 {
+        margin: 0;
+        color: var(--accent-color);
+        font-size: clamp(1.65rem, 2.5vw, 2.3rem);
+        line-height: 1.15;
+    }
+
+
+    .dashboard-heading p {
+        margin: 0.35rem 0 0;
+        font-weight: 600;
+        line-height: 1.45;
+        opacity: 0.9;
+    }
+
+
+    .dashboard-plan-badge {
+        flex: 0 0 auto;
+
+        min-width: 135px;
+
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+
+        padding: 0.65rem 1rem;
+
+        border: 1px solid var(--accent-color);
+        border-radius: 12px;
+
+        background: var(--button-bg);
+
+        text-align: center;
+    }
+
+
+    .dashboard-plan-badge span {
+        font-size: 0.75rem;
+        font-weight: 700;
+        opacity: 0.75;
+    }
+
+
+    .dashboard-plan-badge strong {
+        color: var(--accent-color);
+        font-size: 1.1rem;
+    }
+
+
+    /* ==================================================
+       MAIN LAYOUT
+       ================================================== */
+
+    .dashboard-layout {
+        display: grid;
+        grid-template-columns:
+            minmax(300px, 0.9fr)
+            minmax(0, 2.1fr);
+
+        gap: 1rem;
+
+        min-width: 0;
+    }
+
+
+    .dashboard-panel {
+        min-width: 0;
+
+        background: var(--nav-bg);
+
+        border: 1px solid var(--button-border);
+        border-radius: 14px;
+
+        padding: 1.25rem;
+
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+    }
+
+
+    /* ==================================================
+       PLAN PANEL
+       ================================================== */
+
+    .dashboard-plan-panel {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+
+        border-color: var(--accent-color);
+    }
+
+
+    .dashboard-panel-heading {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 1rem;
+    }
+
+
+    .dashboard-eyebrow {
+        display: block;
+
+        margin-bottom: 0.2rem;
+
+        font-size: 0.75rem;
+        font-weight: 800;
+
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+
+        opacity: 0.65;
+    }
+
+
+    .dashboard-panel-heading h2 {
+        margin: 0;
         color: var(--accent-color);
     }
 
 
-    .dashboard-btn {
-        background-color: var(--button-bg);
-        color: var(--button-text);
-        padding: 0.75rem 1.25rem;
-        border-radius: 8px;
-        text-decoration: none;
-        display: inline-block;
-        transition: all 0.3s ease;
+    .dashboard-plan-icon {
+        flex: 0 0 auto;
+
+        width: 44px;
+        height: 44px;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        background: var(--button-bg);
+
+        border: 1px solid var(--button-border);
+        border-radius: 12px;
+
+        font-size: 1.35rem;
+    }
+
+
+    .dashboard-plan-description {
+        margin: 1rem 0;
         font-weight: 600;
+        line-height: 1.5;
+    }
+
+
+    .dashboard-plan-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.6rem;
+    }
+
+
+    /* ==================================================
+       USAGE CARDS
+       ================================================== */
+
+    .dashboard-usage {
+        min-width: 0;
+
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+
+        gap: 1rem;
+    }
+
+
+    .dashboard-card {
+        min-width: 0;
+
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+
+        padding: 1rem;
+
+        background: var(--nav-bg);
+
+        border: 1px solid var(--accent-color);
+        border-radius: 14px;
+
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.05);
+    }
+
+
+    .dashboard-card-top {
+        display: flex;
+        align-items: center;
+        gap: 0.55rem;
+    }
+
+
+    .dashboard-card-icon {
+        width: 36px;
+        height: 36px;
+
+        flex: 0 0 36px;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        background: var(--button-bg);
+
+        border: 1px solid var(--button-border);
+        border-radius: 9px;
+
+        font-size: 1rem;
+    }
+
+
+    .dashboard-card-label {
+        min-width: 0;
+
+        color: var(--accent-color);
+
+        font-size: 0.9rem;
+        font-weight: 800;
+
+        line-height: 1.2;
+    }
+
+
+    .dashboard-card-value {
+        display: block;
+
+        margin-top: 1rem;
+
+        font-size: clamp(1.7rem, 3vw, 2.5rem);
+        font-weight: 800;
+
+        line-height: 1;
+    }
+
+
+    .dashboard-card-value-small {
+        font-size: clamp(1.2rem, 2vw, 1.7rem);
+    }
+
+
+    .dashboard-card-meta {
+        display: block;
+
+        margin-top: 0.45rem;
+
+        font-size: 0.8rem;
+        font-weight: 600;
+
+        opacity: 0.75;
+    }
+
+
+    /* ==================================================
+       ACCOUNT
+       ================================================== */
+
+    .dashboard-account {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+
+        padding: 0.9rem 1.25rem;
+
+        background: var(--nav-bg);
+
+        border: 1px solid var(--button-border);
+        border-radius: 14px;
+
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.05);
+    }
+
+
+    .dashboard-account h2 {
+        margin: 0;
+        color: var(--accent-color);
+        font-size: 1.1rem;
+    }
+
+
+    .dashboard-account p {
+        margin: 0.2rem 0 0;
+        font-size: 0.85rem;
+        font-weight: 600;
+        opacity: 0.75;
+    }
+
+
+    /* ==================================================
+       BUTTONS
+       ================================================== */
+
+    .dashboard-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+
+        padding: 0.65rem 1rem;
+
+        background: var(--button-bg);
+        color: var(--button-text);
+
+        border: 1px solid var(--button-border);
+        border-radius: 8px;
+
+        text-decoration: none;
+
+        font-size: 0.9rem;
+        font-weight: 700;
+
+        transition:
+            background 0.2s ease,
+            transform 0.2s ease,
+            box-shadow 0.2s ease;
     }
 
 
     .dashboard-btn:hover {
         background: var(--button-hover);
-        transform: scale(1.03);
+        transform: translateY(-1px);
     }
 
 
     .secondary-btn {
-        border: 2px solid var(--accent-color);
+        border-color: var(--accent-color);
+    }
+
+
+    .dashboard-delete-btn {
+        flex: 0 0 auto;
+    }
+
+
+    /* ==================================================
+       LARGE SCREENS
+       ================================================== */
+
+    @media (min-width: 1400px) {
+
+        .dashboard-header {
+            padding: 1.15rem 1.5rem;
+        }
+
+
+        .dashboard-layout {
+            grid-template-columns:
+                minmax(340px, 0.8fr)
+                minmax(0, 2.2fr);
+        }
+
+
+        .dashboard-card {
+            min-height: 155px;
+        }
+
+    }
+
+
+    /* ==================================================
+       TABLET / SMALL DESKTOP
+       ================================================== */
+
+    @media (min-width: 901px) and (max-width: 1200px) {
+
+        .dashboard-layout {
+            grid-template-columns:
+                minmax(280px, 0.9fr)
+                minmax(0, 2.1fr);
+        }
+
+
+        .dashboard-usage {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+    }
+
+
+    /* ==================================================
+       TABLET 551px - 900px
+       ================================================== */
+
+    @media (min-width: 551px) and (max-width: 900px) {
+
+        main {
+            width: calc(100% - 1.5rem);
+            margin: 0.75rem auto;
+        }
+
+
+        .dashboard-layout {
+            grid-template-columns: 1fr;
+        }
+
+
+        .dashboard-usage {
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+        }
+
+
+        .dashboard-card {
+            padding: 0.8rem;
+        }
+
+
+        .dashboard-card-value {
+            font-size: 1.55rem;
+        }
+
+
+        .dashboard-card-value-small {
+            font-size: 1.05rem;
+        }
+
+
+        .dashboard-card-label {
+            font-size: 0.8rem;
+        }
+
+
+        .dashboard-card-meta {
+            font-size: 0.72rem;
+        }
+
+    }
+
+
+    /* ==================================================
+       MOBILE 0px - 550px
+       ================================================== */
+
+    @media (max-width: 550px) {
+
+        main {
+            width: 100%;
+            margin: 0;
+            padding: 0.65rem;
+        }
+
+
+        .dashboard-page {
+            gap: 0.65rem;
+        }
+
+
+        .dashboard-header {
+            align-items: flex-start;
+
+            padding: 0.85rem;
+
+            border-radius: 12px;
+        }
+
+
+        .dashboard-heading h1 {
+            font-size: 1.45rem;
+        }
+
+
+        .dashboard-heading p {
+            margin-top: 0.25rem;
+
+            font-size: 0.78rem;
+            line-height: 1.35;
+        }
+
+
+        .dashboard-plan-badge {
+            min-width: 90px;
+
+            padding: 0.45rem 0.55rem;
+
+            border-radius: 9px;
+        }
+
+
+        .dashboard-plan-badge span {
+            font-size: 0.62rem;
+        }
+
+
+        .dashboard-plan-badge strong {
+            font-size: 0.9rem;
+        }
+
+
+        .dashboard-layout {
+            grid-template-columns: 1fr;
+            gap: 0.65rem;
+        }
+
+
+        .dashboard-panel {
+            padding: 0.85rem;
+            border-radius: 12px;
+        }
+
+
+        .dashboard-panel-heading h2 {
+            font-size: 1.15rem;
+        }
+
+
+        .dashboard-plan-icon {
+            width: 38px;
+            height: 38px;
+
+            flex-basis: 38px;
+
+            font-size: 1.1rem;
+        }
+
+
+        .dashboard-plan-description {
+            margin: 0.65rem 0;
+
+            font-size: 0.8rem;
+            line-height: 1.4;
+        }
+
+
+        .dashboard-plan-actions {
+            gap: 0.4rem;
+        }
+
+
+        .dashboard-btn {
+            padding: 0.55rem 0.75rem;
+
+            font-size: 0.78rem;
+        }
+
+
+        .dashboard-usage {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+
+            gap: 0.65rem;
+        }
+
+
+        .dashboard-card {
+            min-height: 118px;
+
+            padding: 0.75rem;
+
+            border-radius: 11px;
+        }
+
+
+        .dashboard-card-top {
+            gap: 0.4rem;
+        }
+
+
+        .dashboard-card-icon {
+            width: 30px;
+            height: 30px;
+
+            flex-basis: 30px;
+
+            font-size: 0.85rem;
+        }
+
+
+        .dashboard-card-label {
+            font-size: 0.75rem;
+        }
+
+
+        .dashboard-card-value {
+            margin-top: 0.65rem;
+
+            font-size: 1.45rem;
+        }
+
+
+        .dashboard-card-value-small {
+            font-size: 1rem;
+        }
+
+
+        .dashboard-card-meta {
+            margin-top: 0.3rem;
+
+            font-size: 0.68rem;
+            line-height: 1.25;
+        }
+
+
+        .dashboard-account {
+            align-items: flex-start;
+
+            padding: 0.75rem 0.85rem;
+
+            border-radius: 12px;
+        }
+
+
+        .dashboard-account h2 {
+            font-size: 0.95rem;
+        }
+
+
+        .dashboard-account p {
+            display: none;
+        }
+
+
+        .dashboard-eyebrow {
+            font-size: 0.63rem;
+        }
+
+
+        .dashboard-delete-btn {
+            padding: 0.5rem 0.65rem;
+
+            font-size: 0.7rem;
+        }
+
+    }
+
+
+    /* ==================================================
+       VERY SMALL MOBILE
+       ================================================== */
+
+    @media (max-width: 360px) {
+
+        .dashboard-header {
+            flex-direction: column;
+        }
+
+
+        .dashboard-plan-badge {
+            width: 100%;
+
+            flex-direction: row;
+            gap: 0.4rem;
+        }
+
+
+        .dashboard-account {
+            flex-direction: column;
+        }
+
+
+        .dashboard-delete-btn {
+            width: 100%;
+        }
+
     }
 
 </style>
