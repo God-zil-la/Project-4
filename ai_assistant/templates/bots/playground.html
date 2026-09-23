@@ -793,10 +793,12 @@
 
     @media (max-width: 550px) {
         .playground-chat-layout {
-            grid-template-columns: 1fr;
+            grid-template-columns: minmax(0, 1fr);
         }
 
         .conversation-sidebar {
+            min-width: 0;
+            max-width: 100%;
             min-height: auto;
         }
 
