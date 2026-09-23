@@ -3,95 +3,319 @@
 {% block title %}Invalid Verification Link - AI Assistant{% endblock %}
 
 {% block content %}
+
+<section
+    class="account-status-page"
+    role="alert"
+    aria-live="polite"
+>
+
+    <div class="account-status-card">
+
+        <div class="account-status-icon account-status-icon-warning" aria-hidden="true">
+            !
+        </div>
+
+        <span class="account-status-eyebrow">
+            Email verification
+        </span>
+
+        <h1>
+            Verification Link Invalid or Expired
+        </h1>
+
+        <p class="account-status-message">
+            Sorry, this email verification link is no longer valid.
+        </p>
+
+        <p class="account-status-note">
+            The link may have expired or may be incomplete.
+            You can request a new verification email below.
+            If your account has already been verified, you can simply log in.
+        </p>
+
+        <div class="account-status-actions">
+
+            <a
+                href="{% url 'accounts:resend_activation' %}"
+                class="account-status-button"
+            >
+                Resend Verification Email
+            </a>
+
+            <a
+                href="{% url 'accounts:login' %}"
+                class="account-status-secondary-button"
+            >
+                Go to Login
+            </a>
+
+        </div>
+
+    </div>
+
+</section>
+
+
 <style>
-    .activation-invalid {
-        max-width: 600px;
-        margin: 3rem auto;
-        padding: 2rem;
-        background: var(--nav-bg);
-        border: 1px solid var(--button-border);
-        border-radius: 12px;
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
-        color: var(--text-color);
-        font-family: Arial, sans-serif;
+
+    main {
+        width: min(1600px, calc(100% - 2rem));
+        max-width: none;
+        margin: 1rem auto;
+        padding: 0;
+        background: transparent;
+        border-radius: 0;
+        box-shadow: none;
+        backdrop-filter: none;
+    }
+
+
+    .account-status-page {
+        min-height: min(560px, 65vh);
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        padding: 1rem;
+    }
+
+
+    .account-status-card {
+        width: min(620px, 100%);
+
+        padding: 1.5rem;
+
         text-align: center;
-    }
 
-    .activation-invalid h2 {
-        color: var(--accent-color);
-        margin-bottom: 1rem;
-        font-size: 1.8rem;
-        font-weight: 600;
-    }
-
-    .activation-invalid p {
+        background: var(--nav-bg);
         color: var(--text-color);
-        font-size: 1rem;
-        line-height: 1.5;
-        margin: 1rem 0;
+
+        border: 1px solid var(--button-border);
+        border-radius: 16px;
+
+        box-shadow:
+            0 8px 24px rgba(0, 0, 0, 0.08);
     }
 
-    .activation-invalid a {
-        display: inline-block;
-        margin-top: 0.5rem;
-        padding: 0.75rem 1.5rem;
+
+    .account-status-icon {
+        width: 58px;
+        height: 58px;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        margin: 0 auto 0.8rem;
+
+        border-radius: 50%;
+
+        font-size: 1.6rem;
+        font-weight: 900;
+    }
+
+
+    .account-status-icon-warning {
+        background: rgba(196, 125, 0, 0.12);
+
+        color: #b26a00;
+
+        border: 1px solid #b26a00;
+    }
+
+
+    html.dark .account-status-icon-warning {
+        color: #ffc46b;
+        border-color: #ffc46b;
+    }
+
+
+    .account-status-eyebrow {
+        display: block;
+
+        margin-bottom: 0.2rem;
+
+        color: var(--accent-color);
+
+        font-size: 0.68rem;
+        font-weight: 800;
+
+        text-transform: uppercase;
+        letter-spacing: 0.09em;
+    }
+
+
+    .account-status-card h1 {
+        margin: 0;
+
+        color: var(--accent-color);
+
+        font-size: clamp(1.6rem, 3vw, 2.2rem);
+        line-height: 1.2;
+    }
+
+
+    .account-status-message {
+        margin: 0.75rem 0 0;
+
+        font-size: 0.9rem;
+        font-weight: 700;
+        line-height: 1.5;
+    }
+
+
+    .account-status-note {
+        max-width: 500px;
+
+        margin: 0.5rem auto 1.1rem;
+
+        font-size: 0.78rem;
+        font-weight: 600;
+        line-height: 1.5;
+
+        opacity: 0.76;
+    }
+
+
+    .account-status-actions {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-wrap: wrap;
+
+        gap: 0.65rem;
+    }
+
+
+    .account-status-button,
+    .account-status-secondary-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+
+        min-width: 170px;
+
+        padding: 0.65rem 1rem;
+
+        border-radius: 8px;
+
+        font-size: 0.8rem;
+        font-weight: 700;
+
+        text-decoration: none;
+
+        transition:
+            background 0.2s ease,
+            transform 0.2s ease,
+            border-color 0.2s ease;
+    }
+
+
+    .account-status-button {
         background: var(--button-bg);
         color: var(--button-text);
+
+        border: 1px solid var(--accent-color);
+    }
+
+
+    .account-status-secondary-button {
+        background: transparent;
+        color: var(--text-color);
+
         border: 1px solid var(--button-border);
-        border-radius: 8px;
-        text-decoration: none;
-        font-weight: 600;
-        transition: all 0.3s ease;
     }
 
-    .activation-invalid a:hover {
+
+    .account-status-button:hover,
+    .account-status-secondary-button:hover {
         background: var(--button-hover);
-        color: var(--button-text);
-        text-decoration: none;
-        transform: scale(1.02);
+
+        border-color: var(--accent-color);
+
+        transform: translateY(-1px);
     }
 
-    @media (max-width: 400px) {
-        .activation-invalid {
-            padding: 1.5rem 1rem;
-        }
 
-        .activation-invalid h2 {
-            font-size: 1.5rem;
-        }
-
-        .activation-invalid a {
-            font-size: 0.95rem;
-        }
+    .account-status-button:focus-visible,
+    .account-status-secondary-button:focus-visible {
+        outline: 2px solid var(--accent-color);
+        outline-offset: 2px;
     }
+
+
+    @media (max-width: 550px) {
+
+        main {
+            width: 100%;
+            margin: 0;
+            padding: 0.65rem;
+        }
+
+
+        .account-status-page {
+            min-height: 60vh;
+
+            padding: 0.5rem;
+        }
+
+
+        .account-status-card {
+            padding: 1rem;
+
+            border-radius: 12px;
+        }
+
+
+        .account-status-icon {
+            width: 48px;
+            height: 48px;
+
+            font-size: 1.3rem;
+        }
+
+
+        .account-status-card h1 {
+            font-size: 1.4rem;
+        }
+
+
+        .account-status-message {
+            font-size: 0.8rem;
+        }
+
+
+        .account-status-note {
+            font-size: 0.7rem;
+        }
+
+
+        .account-status-actions {
+            display: grid;
+
+            grid-template-columns: 1fr;
+
+            width: 100%;
+        }
+
+
+        .account-status-button,
+        .account-status-secondary-button {
+            width: 100%;
+
+            min-width: 0;
+
+            box-sizing: border-box;
+
+            padding: 0.6rem;
+
+            font-size: 0.72rem;
+        }
+
+    }
+
 </style>
 
-<div class="activation-invalid" role="alert" aria-live="polite">
-    <h2>⚠️ Verification Link Invalid or Expired</h2>
-
-    <p>
-        Sorry, this email verification link is no longer valid.
-    </p>
-
-    <p>
-        The link may have expired or may be incomplete.
-    </p>
-
-    <p>
-        You can request a new verification email below.
-        If your account has already been verified, you can simply log in.
-    </p>
-
-    <p>
-        <a href="{% url 'accounts:resend_activation' %}">
-            Resend Verification Email
-        </a>
-    </p>
-
-    <p>
-        <a href="{% url 'accounts:login' %}">
-            Go to Login
-        </a>
-    </p>
-</div>
 {% endblock %}

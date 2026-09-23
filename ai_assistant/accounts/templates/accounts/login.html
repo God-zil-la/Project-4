@@ -3,25 +3,76 @@
 {% block title %}Login - AI Assistant{% endblock %}
 
 {% block content %}
-<section class="form-section">
-    <div class="form-wrapper">
-        <h2>Login</h2>
+
+<section class="auth-page">
+
+    <div class="auth-card">
+
+        <div class="auth-icon" aria-hidden="true">
+            🔐
+        </div>
+
+        <span class="auth-eyebrow">
+            Welcome back
+        </span>
+
+        <h1>
+            Log in
+        </h1>
+
+        <p class="auth-intro">
+            Sign in to access your AI assistants, conversations,
+            analytics and billing.
+        </p>
+
 
         {% if form.non_field_errors %}
-            <div class="form-error">
-                ❌ Username or password is incorrect.<br>
-                👉 If you don’t have an account,
-                <a href="{% url 'accounts:register' %}">register here</a>.<br>
-                🔐 Forgot your password?
-                <a href="{% url 'accounts:password_reset' %}">Reset it</a>.
+
+            <div
+                class="auth-error"
+                role="alert"
+            >
+                <strong>
+                    Login failed
+                </strong>
+
+                <span>
+                    Username or password is incorrect.
+                </span>
+
+                <span>
+                    If you don't have an account,
+                    <a href="{% url 'accounts:register' %}">
+                        register here
+                    </a>.
+                </span>
+
+                <span>
+                    Forgot your password?
+                    <a href="{% url 'accounts:password_reset' %}">
+                        Reset it
+                    </a>.
+                </span>
             </div>
+
         {% endif %}
 
-        <form method="post" action="{% url 'accounts:login' %}">
+
+        <form
+            method="post"
+            action="{% url 'accounts:login' %}"
+            class="auth-form"
+        >
+
             {% csrf_token %}
 
-            <div class="form-group">
-                <label for="id_username">Username:</label>
+
+            <div class="auth-field">
+
+                <label for="id_username">
+                    Username
+                </label>
+
                 <input
                     type="text"
                     name="username"
@@ -32,16 +83,31 @@
                 >
 
                 {% if form.username.errors %}
-                    <div class="form-error">
+
+                    <div
+                        class="field-error"
+                        role="alert"
+                    >
+
                         {% for error in form.username.errors %}
-                            ❌ {{ error }}
+                            <span>
+                                {{ error }}
+                            </span>
                         {% endfor %}
+
                     </div>
+
                 {% endif %}
+
             </div>
 
-            <div class="form-group">
-                <label for="id_password">Password:</label>
+
+            <div class="auth-field">
+
+                <label for="id_password">
+                    Password
+                </label>
+
                 <input
                     type="password"
                     name="password"
@@ -51,20 +117,44 @@
                 >
 
                 {% if form.password.errors %}
-                    <div class="form-error">
+
+                    <div
+                        class="field-error"
+                        role="alert"
+                    >
+
                         {% for error in form.password.errors %}
-                            ❌ {{ error }}
+                            <span>
+                                {{ error }}
+                            </span>
                         {% endfor %}
+
                     </div>
+
                 {% endif %}
+
             </div>
 
-            <button type="submit" class="nav-btn">
+
+            <button
+                type="submit"
+                class="auth-primary-button"
+            >
                 Log in
             </button>
+
         </form>
 
+
+        <div class="auth-divider">
+            <span>
+                Account help
+            </span>
+        </div>
+
+
         <div class="auth-links">
+
             <a href="{% url 'accounts:password_reset' %}">
                 Forgot Password?
             </a>
@@ -76,112 +166,445 @@
             <a href="{% url 'accounts:register' %}">
                 Create an Account
             </a>
+
         </div>
+
     </div>
+
 </section>
 
+
 <style>
-    .form-section {
+
+    main {
+        width: min(1600px, calc(100% - 2rem));
+        max-width: none;
+
+        margin: 1rem auto;
+        padding: 0;
+
+        background: transparent;
+
+        border-radius: 0;
+
+        box-shadow: none;
+        backdrop-filter: none;
+    }
+
+
+    .auth-page {
+        min-height: min(620px, 70vh);
+
         display: flex;
+        align-items: center;
         justify-content: center;
-        padding: 2rem 1rem;
+
+        padding: 1rem;
     }
 
-    .form-wrapper {
-        max-width: 400px;
-        width: 100%;
+
+    .auth-card {
+        width: min(460px, 100%);
+
+        padding: 1.4rem;
+
         background: var(--nav-bg);
-        padding: 2rem;
-        border-radius: 16px;
-        border: 1px solid var(--button-border);
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
         color: var(--text-color);
+
+        border: 1px solid var(--button-border);
+        border-radius: 16px;
+
+        box-shadow:
+            0 8px 24px rgba(0, 0, 0, 0.08);
     }
 
-    .form-wrapper h2 {
-        text-align: center;
-        margin-bottom: 1.5rem;
+
+    .auth-icon {
+        width: 54px;
+        height: 54px;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        margin: 0 auto 0.7rem;
+
+        background: rgba(21, 131, 157, 0.1);
+
+        border: 1px solid var(--accent-color);
+        border-radius: 14px;
+
+        font-size: 1.35rem;
+    }
+
+
+    .auth-eyebrow {
+        display: block;
+
+        margin-bottom: 0.2rem;
+
         color: var(--accent-color);
+
+        text-align: center;
+
+        font-size: 0.68rem;
+        font-weight: 800;
+
+        text-transform: uppercase;
+        letter-spacing: 0.09em;
     }
 
-    .form-group {
-        margin-bottom: 1.25rem;
+
+    .auth-card h1 {
+        margin: 0;
+
+        color: var(--accent-color);
+
+        text-align: center;
+
+        font-size: clamp(1.6rem, 3vw, 2.1rem);
+        line-height: 1.2;
+    }
+
+
+    .auth-intro {
+        max-width: 380px;
+
+        margin: 0.55rem auto 1rem;
+
+        text-align: center;
+
+        font-size: 0.76rem;
+        font-weight: 600;
+        line-height: 1.45;
+
+        opacity: 0.75;
+    }
+
+
+    /* ==================================================
+       FORM
+       ================================================== */
+
+    .auth-form {
+        margin: 0;
+    }
+
+
+    .auth-field {
         display: flex;
         flex-direction: column;
+
+        gap: 0.35rem;
+
+        margin-bottom: 0.8rem;
     }
 
-    .form-group label {
-        margin-bottom: 0.5rem;
-        font-weight: 600;
+
+    .auth-field label {
         color: var(--text-color);
+
+        font-size: 0.76rem;
+        font-weight: 800;
     }
 
-    .form-group input {
+
+    .auth-field input {
         width: 100%;
-        padding: 0.8rem;
+
+        box-sizing: border-box;
+
+        padding: 0.65rem 0.75rem;
+
+        background: var(--bg-color);
+        color: var(--text-color);
+
         border: 1px solid var(--button-border);
-        border-radius: 12px;
-        background-color: rgba(255, 255, 255, 0.02);
-        color: var(--text-color);
-        font-size: 1rem;
+        border-radius: 8px;
+
+        font: inherit;
+        font-size: 0.85rem;
+
+        transition:
+            border-color 0.2s ease,
+            box-shadow 0.2s ease;
     }
 
-    .form-group input:focus {
+
+    .auth-field input:focus {
         outline: none;
+
         border-color: var(--accent-color);
-        background-color: rgba(0, 0, 0, 0.02);
+
+        box-shadow:
+            0 0 0 2px rgba(21, 131, 157, 0.12);
     }
 
-    .form-wrapper .nav-btn {
+
+    /* ==================================================
+       BUTTON
+       ================================================== */
+
+    .auth-primary-button {
         width: 100%;
+
+        margin-top: 0.15rem;
+
+        padding: 0.65rem 0.8rem;
+
         background: var(--button-bg);
         color: var(--button-text);
-        border: 1px solid var(--button-border);
-        padding: 0.7rem 1.5rem;
-        border-radius: 0;
-        font-weight: 600;
+
+        border: 1px solid var(--accent-color);
+        border-radius: 8px;
+
+        font: inherit;
+        font-size: 0.8rem;
+        font-weight: 800;
+
         cursor: pointer;
-        box-shadow: var(--button-shadow);
-        transition: all 0.3s ease;
+
+        transition:
+            background 0.2s ease,
+            transform 0.2s ease;
     }
 
-    .form-wrapper .nav-btn:hover {
+
+    .auth-primary-button:hover {
         background: var(--button-hover);
-        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
-        transform: scale(1.05);
+
+        transform: translateY(-1px);
     }
 
-    .auth-links {
-        margin-top: 1.25rem;
+
+    .auth-primary-button:focus-visible {
+        outline: 2px solid var(--accent-color);
+        outline-offset: 2px;
+    }
+
+
+    /* ==================================================
+       ERRORS
+       ================================================== */
+
+    .auth-error {
         display: flex;
         flex-direction: column;
-        gap: 0.7rem;
+
+        gap: 0.25rem;
+
+        margin-bottom: 0.9rem;
+
+        padding: 0.7rem;
+
+        background: #f8d7da;
+        color: #721c24;
+
+        border: 1px solid #f5c6cb;
+        border-radius: 8px;
+
+        font-size: 0.7rem;
+        font-weight: 600;
+        line-height: 1.4;
+    }
+
+
+    .auth-error strong {
+        font-size: 0.75rem;
+    }
+
+
+    .auth-error a {
+        color: inherit;
+
+        font-weight: 800;
+
+        text-decoration: underline;
+    }
+
+
+    .field-error {
+        display: flex;
+        flex-direction: column;
+
+        gap: 0.15rem;
+
+        color: #c62828;
+
+        font-size: 0.68rem;
+        font-weight: 700;
+    }
+
+
+    html.dark .field-error {
+        color: #ff8a80;
+    }
+
+
+    /* ==================================================
+       LINKS
+       ================================================== */
+
+    .auth-divider {
+        position: relative;
+
+        margin: 1rem 0 0.8rem;
+
         text-align: center;
     }
 
-    .auth-links a,
-    .form-error a {
+
+    .auth-divider::before {
+        content: "";
+
+        position: absolute;
+
+        top: 50%;
+        left: 0;
+        right: 0;
+
+        height: 1px;
+
+        background: var(--button-border);
+    }
+
+
+    .auth-divider span {
+        position: relative;
+
+        display: inline-block;
+
+        padding: 0 0.5rem;
+
+        background: var(--nav-bg);
+
+        font-size: 0.65rem;
+        font-weight: 700;
+
+        opacity: 0.65;
+    }
+
+
+    .auth-links {
+        display: grid;
+
+        grid-template-columns:
+            repeat(3, minmax(0, 1fr));
+
+        gap: 0.45rem;
+    }
+
+
+    .auth-links a {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        min-height: 42px;
+
+        padding: 0.45rem;
+
+        background: rgba(128, 128, 128, 0.04);
         color: var(--accent-color);
-        text-decoration: underline;
-        font-weight: 600;
+
+        border: 1px solid var(--button-border);
+        border-radius: 8px;
+
+        text-align: center;
+
+        font-size: 0.65rem;
+        font-weight: 700;
+        line-height: 1.25;
+
+        text-decoration: none;
     }
 
-    .form-error {
-        margin-bottom: 1rem;
-        color: #721c24;
-        background: #f8d7da;
-        border: 1px solid #f5c6cb;
-        border-radius: 10px;
-        padding: 1rem;
-        font-weight: 600;
-        text-align: left;
-        line-height: 1.6;
+
+    .auth-links a:hover {
+        background: var(--button-hover);
+
+        border-color: var(--accent-color);
     }
 
-    @media (max-width: 400px) {
-        .form-wrapper {
-            padding: 1.5rem 1rem;
+
+    /* ==================================================
+       MOBILE
+       ================================================== */
+
+    @media (max-width: 550px) {
+
+        main {
+            width: 100%;
+
+            margin: 0;
+            padding: 0.65rem;
         }
+
+
+        .auth-page {
+            min-height: 60vh;
+
+            padding: 0.5rem;
+        }
+
+
+        .auth-card {
+            padding: 1rem;
+
+            border-radius: 12px;
+        }
+
+
+        .auth-icon {
+            width: 46px;
+            height: 46px;
+
+            font-size: 1.15rem;
+        }
+
+
+        .auth-card h1 {
+            font-size: 1.4rem;
+        }
+
+
+        .auth-intro {
+            font-size: 0.7rem;
+        }
+
+
+        .auth-field label {
+            font-size: 0.7rem;
+        }
+
+
+        .auth-field input {
+            padding: 0.6rem;
+
+            font-size: 0.8rem;
+        }
+
+
+        .auth-primary-button {
+            padding: 0.6rem;
+
+            font-size: 0.72rem;
+        }
+
+
+        .auth-links {
+            grid-template-columns: 1fr;
+        }
+
+
+        .auth-links a {
+            min-height: 36px;
+
+            font-size: 0.68rem;
+        }
+
     }
+
 </style>
+
 {% endblock %}

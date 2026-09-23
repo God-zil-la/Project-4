@@ -3,107 +3,301 @@
 {% block title %}Check Your Email - AI Assistant{% endblock %}
 
 {% block content %}
-<section class="form-section">
-    <div class="form-wrapper">
-        <h2>Check Your Email</h2>
 
-        <p>
+<section class="account-status-page">
+
+    <div class="account-status-card">
+
+        <div class="account-status-icon" aria-hidden="true">
+            ✉
+        </div>
+
+        <span class="account-status-eyebrow">
+            Email verification
+        </span>
+
+        <h1>
+            Check Your Email
+        </h1>
+
+        <p class="account-status-message">
             We've sent a verification link
             {% if email %}
                 to <strong>{{ email }}</strong>
             {% endif %}.
         </p>
 
-        <p>
-            Please open the email and click <strong>Verify Email</strong>
+        <p class="account-status-note">
+            Please open the email and click
+            <strong>Verify Email</strong>
             to activate your AI Assistant account.
         </p>
 
-        <p>
-            You won't be able to log in until your email address has been verified.
+        <p class="account-status-note">
+            You won't be able to log in until your email address
+            has been verified.
         </p>
 
-        <p class="helper-text">
-            Didn't receive the email? Check your spam or junk folder.
-        </p>
+        <div class="account-status-helper">
+            Didn't receive the email?
+            Check your spam or junk folder.
+        </div>
 
-        <a href="{% url 'accounts:login' %}" class="nav-btn">
+        <a
+            href="{% url 'accounts:login' %}"
+            class="account-status-button"
+        >
             Back to Login
         </a>
+
     </div>
+
 </section>
 
+
 <style>
-    .form-section {
+
+    main {
+        width: min(1600px, calc(100% - 2rem));
+        max-width: none;
+        margin: 1rem auto;
+        padding: 0;
+        background: transparent;
+        border-radius: 0;
+        box-shadow: none;
+        backdrop-filter: none;
+    }
+
+
+    .account-status-page {
+        min-height: min(560px, 65vh);
+
         display: flex;
+        align-items: center;
         justify-content: center;
-        padding: 2rem 1rem;
+
+        padding: 1rem;
     }
 
-    .form-wrapper {
-        max-width: 520px;
-        width: 100%;
-        padding: 2rem;
-        background: var(--nav-bg);
-        border: 1px solid var(--button-border);
-        border-radius: 12px;
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
-        color: var(--text-color);
+
+    .account-status-card {
+        width: min(620px, 100%);
+
+        padding: 1.5rem;
+
         text-align: center;
+
+        background: var(--nav-bg);
+        color: var(--text-color);
+
+        border: 1px solid var(--button-border);
+        border-radius: 16px;
+
+        box-shadow:
+            0 8px 24px rgba(0, 0, 0, 0.08);
     }
 
-    .form-wrapper h2 {
-        margin-bottom: 1rem;
+
+    .account-status-icon {
+        width: 58px;
+        height: 58px;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        margin: 0 auto 0.8rem;
+
+        background: rgba(21, 131, 157, 0.1);
+
         color: var(--accent-color);
-        font-size: 1.8rem;
-        font-weight: 600;
+
+        border: 1px solid var(--accent-color);
+        border-radius: 50%;
+
+        font-size: 1.35rem;
+        font-weight: 900;
     }
 
-    .form-wrapper p {
-        color: var(--text-color);
-        line-height: 1.6;
-        margin: 1rem 0;
+
+    .account-status-eyebrow {
+        display: block;
+
+        margin-bottom: 0.2rem;
+
+        color: var(--accent-color);
+
+        font-size: 0.68rem;
+        font-weight: 800;
+
+        text-transform: uppercase;
+        letter-spacing: 0.09em;
     }
 
-    .form-wrapper strong {
-        color: var(--text-color);
+
+    .account-status-card h1 {
+        margin: 0;
+
+        color: var(--accent-color);
+
+        font-size: clamp(1.6rem, 3vw, 2.2rem);
+        line-height: 1.2;
+    }
+
+
+    .account-status-message {
+        margin: 0.75rem 0 0;
+
+        font-size: 0.9rem;
         font-weight: 700;
+        line-height: 1.5;
     }
 
-    .helper-text {
-        margin-top: 1.75rem !important;
-        opacity: 0.75;
-        font-size: 0.95rem;
+
+    .account-status-note {
+        max-width: 500px;
+
+        margin: 0.5rem auto 0;
+
+        font-size: 0.78rem;
+        font-weight: 600;
+        line-height: 1.5;
+
+        opacity: 0.78;
     }
 
-    .nav-btn {
-        display: inline-block;
-        margin-top: 1rem;
-        padding: 0.75rem 1.5rem;
-        background: var(--button-bg);
-        color: var(--button-text);
+
+    .account-status-card strong {
+        color: var(--text-color);
+
+        font-weight: 800;
+    }
+
+
+    .account-status-helper {
+        max-width: 470px;
+
+        margin: 1rem auto;
+
+        padding: 0.65rem 0.75rem;
+
+        background: rgba(128, 128, 128, 0.05);
+
         border: 1px solid var(--button-border);
         border-radius: 8px;
-        text-decoration: none;
+
+        font-size: 0.72rem;
         font-weight: 600;
-        transition: all 0.3s ease;
+        line-height: 1.45;
+
+        opacity: 0.8;
     }
 
-    .nav-btn:hover {
-        background: var(--button-hover);
+
+    .account-status-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+
+        min-width: 170px;
+
+        padding: 0.65rem 1rem;
+
+        background: var(--button-bg);
         color: var(--button-text);
+
+        border: 1px solid var(--accent-color);
+        border-radius: 8px;
+
+        font-size: 0.8rem;
+        font-weight: 700;
+
         text-decoration: none;
-        transform: scale(1.02);
+
+        transition:
+            background 0.2s ease,
+            transform 0.2s ease;
     }
 
-    @media (max-width: 400px) {
-        .form-wrapper {
-            padding: 1.5rem 1rem;
+
+    .account-status-button:hover {
+        background: var(--button-hover);
+
+        transform: translateY(-1px);
+    }
+
+
+    .account-status-button:focus-visible {
+        outline: 2px solid var(--accent-color);
+        outline-offset: 2px;
+    }
+
+
+    @media (max-width: 550px) {
+
+        main {
+            width: 100%;
+            margin: 0;
+            padding: 0.65rem;
         }
 
-        .form-wrapper h2 {
-            font-size: 1.5rem;
+
+        .account-status-page {
+            min-height: 60vh;
+
+            padding: 0.5rem;
         }
+
+
+        .account-status-card {
+            padding: 1rem;
+
+            border-radius: 12px;
+        }
+
+
+        .account-status-icon {
+            width: 48px;
+            height: 48px;
+
+            font-size: 1.15rem;
+        }
+
+
+        .account-status-card h1 {
+            font-size: 1.4rem;
+        }
+
+
+        .account-status-message {
+            font-size: 0.8rem;
+        }
+
+
+        .account-status-note {
+            font-size: 0.7rem;
+        }
+
+
+        .account-status-helper {
+            font-size: 0.68rem;
+
+            padding: 0.55rem;
+        }
+
+
+        .account-status-button {
+            width: 100%;
+
+            min-width: 0;
+
+            padding: 0.6rem;
+
+            font-size: 0.72rem;
+        }
+
     }
+
 </style>
+
 {% endblock %}

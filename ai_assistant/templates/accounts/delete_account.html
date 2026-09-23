@@ -1,15 +1,612 @@
 {% extends "delete_account.html" %}
-{% block deletion_intro %}<p>Confirm below to permanently delete your account and application data. For help with access or billing, you can <a href="{% url 'delete_account' %}">request deletion through support</a>.</p>{% endblock %}
-{% block email_request %}{% endblock %}
+
+{% block deletion_intro %}
+<p class="account-delete-intro">
+    Confirm below to permanently delete your account and application data.
+    For help with access or billing, you can
+    <a href="{% url 'delete_account' %}">
+        request deletion through support
+    </a>.
+</p>
+{% endblock %}
+
+
+{% block email_request %}
+{% endblock %}
+
+
 {% block deletion_action %}
-<section class="deletion-action" aria-labelledby="confirm-title">
-  <h2 id="confirm-title">Confirm permanent account deletion</h2>
-  <p>You are deleting the account <strong>{{ user.username }}</strong>. Read what is deleted and what may remain below before continuing. To leave this page without deleting anything, <a href="{% url 'dashboard:home' %}">return to your dashboard</a>.</p>
-  <form method="post" action="{% url 'accounts:delete_account' %}">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Permanently delete my account</button>
-  </form>
-  <p>Forgot your password? <a href="{% url 'accounts:password_reset' %}">Reset it</a> or <a href="{% url 'delete_account' %}">request deletion by email</a>.</p>
+
+<section
+    class="account-delete-page"
+    aria-labelledby="confirm-title"
+>
+
+    <div class="account-delete-card">
+
+        <div class="account-delete-icon" aria-hidden="true">
+            🗑️
+        </div>
+
+
+        <div class="account-delete-content">
+
+            <span class="account-delete-eyebrow">
+                Account settings
+            </span>
+
+            <h2 id="confirm-title">
+                Delete your account?
+            </h2>
+
+            <p>
+                You are about to permanently delete the account
+                <strong>{{ user.username }}</strong>.
+            </p>
+
+            <div class="account-delete-warning">
+
+                <strong>
+                    This action cannot be undone.
+                </strong>
+
+                <p>
+                    Read the information below about what is deleted
+                    and what may remain before continuing.
+                </p>
+
+            </div>
+
+
+            <a
+                href="{% url 'dashboard:home' %}"
+                class="account-delete-back"
+            >
+                ← Return to Dashboard
+            </a>
+
+        </div>
+
+
+        <form
+            method="post"
+            action="{% url 'accounts:delete_account' %}"
+            class="account-delete-form"
+        >
+
+            {% csrf_token %}
+
+
+            <div class="account-delete-fields">
+                {{ form.as_p }}
+            </div>
+
+
+            <div class="account-delete-actions">
+
+                <a
+                    href="{% url 'dashboard:home' %}"
+                    class="account-delete-cancel"
+                >
+                    Cancel
+                </a>
+
+                <button
+                    type="submit"
+                    class="account-delete-confirm"
+                >
+                    🗑️ Permanently Delete Account
+                </button>
+
+            </div>
+
+        </form>
+
+
+        <div class="account-delete-help">
+
+            <span>
+                Forgot your password?
+            </span>
+
+            <a href="{% url 'accounts:password_reset' %}">
+                Reset password
+            </a>
+
+            <span aria-hidden="true">•</span>
+
+            <a href="{% url 'delete_account' %}">
+                Request deletion by email
+            </a>
+
+        </div>
+
+    </div>
+
 </section>
+
+
+<style>
+
+    /* ==================================================
+       DELETE ACCOUNT
+       ================================================== */
+
+    .account-delete-intro {
+        max-width: 900px;
+        margin: 0.5rem auto 1rem;
+
+        line-height: 1.5;
+        font-weight: 600;
+    }
+
+
+    .account-delete-page {
+        width: 100%;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+
+    .account-delete-card {
+        width: min(760px, 100%);
+
+        display: grid;
+
+        grid-template-columns:
+            auto
+            minmax(0, 1fr);
+
+        gap: 1rem;
+
+        padding: 1.25rem;
+
+        background: var(--nav-bg);
+
+        border: 1px solid var(--button-border);
+        border-radius: 14px;
+
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+    }
+
+
+    /* ==================================================
+       ICON
+       ================================================== */
+
+    .account-delete-icon {
+        width: 56px;
+        height: 56px;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        background: rgba(139, 0, 0, 0.1);
+
+        border: 1px solid #8b0000;
+        border-radius: 14px;
+
+        font-size: 1.6rem;
+    }
+
+
+    /* ==================================================
+       CONTENT
+       ================================================== */
+
+    .account-delete-content {
+        min-width: 0;
+    }
+
+
+    .account-delete-eyebrow {
+        display: block;
+
+        margin-bottom: 0.15rem;
+
+        font-size: 0.7rem;
+        font-weight: 800;
+
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+
+        opacity: 0.65;
+    }
+
+
+    .account-delete-content h2 {
+        margin: 0;
+
+        color: var(--accent-color);
+
+        font-size: clamp(1.45rem, 3vw, 2rem);
+        line-height: 1.2;
+    }
+
+
+    .account-delete-content > p {
+        margin: 0.55rem 0 0;
+
+        font-weight: 600;
+        line-height: 1.45;
+    }
+
+
+    .account-delete-warning {
+        margin-top: 0.8rem;
+
+        padding: 0.75rem 0.85rem;
+
+        background: rgba(139, 0, 0, 0.08);
+
+        border-left: 3px solid #8b0000;
+        border-radius: 7px;
+    }
+
+
+    .account-delete-warning strong {
+        color: #8b0000;
+    }
+
+
+    html.dark .account-delete-warning strong {
+        color: #ff8a80;
+    }
+
+
+    .account-delete-warning p {
+        margin: 0.3rem 0 0;
+
+        font-size: 0.82rem;
+        line-height: 1.4;
+    }
+
+
+    .account-delete-back {
+        display: inline-flex;
+
+        margin-top: 0.75rem;
+
+        color: var(--accent-color);
+
+        font-size: 0.8rem;
+        font-weight: 700;
+
+        text-decoration: none;
+    }
+
+
+    .account-delete-back:hover {
+        text-decoration: underline;
+    }
+
+
+    /* ==================================================
+       FORM
+       ================================================== */
+
+    .account-delete-form {
+        grid-column: 1 / -1;
+
+        margin: 0;
+
+        padding-top: 0.2rem;
+    }
+
+
+    .account-delete-fields {
+        padding: 0.85rem;
+
+        background: rgba(128, 128, 128, 0.04);
+
+        border: 1px solid var(--button-border);
+        border-radius: 10px;
+    }
+
+
+    .account-delete-fields p {
+        margin: 0;
+    }
+
+
+    .account-delete-fields p + p {
+        margin-top: 0.75rem;
+    }
+
+
+    .account-delete-fields label {
+        display: block;
+
+        margin-bottom: 0.35rem;
+
+        font-size: 0.82rem;
+        font-weight: 800;
+    }
+
+
+    .account-delete-fields input,
+    .account-delete-fields select,
+    .account-delete-fields textarea {
+        width: 100%;
+        max-width: 100%;
+
+        padding: 0.65rem 0.75rem;
+
+        background: var(--bg-color);
+        color: var(--text-color);
+
+        border: 1px solid var(--button-border);
+        border-radius: 8px;
+
+        font: inherit;
+
+        box-sizing: border-box;
+    }
+
+
+    .account-delete-fields input:focus,
+    .account-delete-fields select:focus,
+    .account-delete-fields textarea:focus {
+        outline: 2px solid var(--accent-color);
+        outline-offset: 1px;
+    }
+
+
+    .account-delete-fields .helptext {
+        display: block;
+
+        margin-top: 0.3rem;
+
+        font-size: 0.7rem;
+
+        opacity: 0.7;
+    }
+
+
+    .account-delete-fields .errorlist {
+        margin: 0.3rem 0 0;
+        padding-left: 1.2rem;
+
+        color: #c62828;
+
+        font-size: 0.75rem;
+        font-weight: 700;
+    }
+
+
+    html.dark .account-delete-fields .errorlist {
+        color: #ff8a80;
+    }
+
+
+    /* ==================================================
+       ACTIONS
+       ================================================== */
+
+    .account-delete-actions {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+
+        gap: 0.65rem;
+
+        margin-top: 0.85rem;
+    }
+
+
+    .account-delete-cancel,
+    .account-delete-confirm {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+
+        min-width: 170px;
+
+        padding: 0.65rem 1rem;
+
+        border-radius: 8px;
+
+        font-size: 0.82rem;
+        font-weight: 700;
+
+        text-decoration: none;
+
+        cursor: pointer;
+    }
+
+
+    .account-delete-cancel {
+        background: var(--button-bg);
+        color: var(--button-text);
+
+        border: 1px solid var(--button-border);
+    }
+
+
+    .account-delete-confirm {
+        background: linear-gradient(
+            145deg,
+            #8b0000,
+            #5a0000
+        );
+
+        color: #ffffff;
+
+        border: 1px solid transparent;
+    }
+
+
+    .account-delete-cancel:hover {
+        background: var(--button-hover);
+    }
+
+
+    .account-delete-confirm:hover {
+        background: linear-gradient(
+            145deg,
+            #a80000,
+            #6b0000
+        );
+    }
+
+
+    /* ==================================================
+       HELP
+       ================================================== */
+
+    .account-delete-help {
+        grid-column: 1 / -1;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        flex-wrap: wrap;
+
+        gap: 0.4rem;
+
+        padding-top: 0.2rem;
+
+        font-size: 0.75rem;
+
+        opacity: 0.85;
+    }
+
+
+    .account-delete-help a {
+        color: var(--accent-color);
+
+        font-weight: 700;
+
+        text-decoration: none;
+    }
+
+
+    .account-delete-help a:hover {
+        text-decoration: underline;
+    }
+
+
+    /* ==================================================
+       MOBILE
+       ================================================== */
+
+    @media (max-width: 550px) {
+
+        .account-delete-intro {
+            font-size: 0.78rem;
+        }
+
+
+        .account-delete-card {
+            grid-template-columns:
+                auto
+                minmax(0, 1fr);
+
+            gap: 0.75rem;
+
+            padding: 0.9rem;
+
+            border-radius: 12px;
+        }
+
+
+        .account-delete-icon {
+            width: 42px;
+            height: 42px;
+
+            border-radius: 10px;
+
+            font-size: 1.2rem;
+        }
+
+
+        .account-delete-content h2 {
+            font-size: 1.25rem;
+        }
+
+
+        .account-delete-content > p {
+            font-size: 0.78rem;
+        }
+
+
+        .account-delete-warning {
+            padding: 0.6rem;
+        }
+
+
+        .account-delete-warning p {
+            font-size: 0.7rem;
+        }
+
+
+        .account-delete-fields {
+            padding: 0.7rem;
+        }
+
+
+        .account-delete-actions {
+            gap: 0.5rem;
+        }
+
+
+        .account-delete-cancel,
+        .account-delete-confirm {
+            flex: 1;
+
+            min-width: 0;
+
+            padding: 0.55rem 0.6rem;
+
+            font-size: 0.7rem;
+        }
+
+
+        .account-delete-help {
+            font-size: 0.68rem;
+        }
+
+    }
+
+
+    @media (max-width: 380px) {
+
+        .account-delete-card {
+            grid-template-columns: 1fr;
+        }
+
+
+        .account-delete-icon {
+            margin: 0 auto;
+        }
+
+
+        .account-delete-content {
+            text-align: center;
+        }
+
+
+        .account-delete-warning {
+            text-align: left;
+        }
+
+
+        .account-delete-actions {
+            flex-direction: column;
+        }
+
+
+        .account-delete-cancel,
+        .account-delete-confirm {
+            width: 100%;
+        }
+
+    }
+
+</style>
+
 {% endblock %}

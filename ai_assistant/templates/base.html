@@ -18,11 +18,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <title>{% block title %}AI Assistant{% endblock %}</title>
+
   {% block canonical %}{% endblock %}
 
-  <link rel="stylesheet" href="{% static 'css/styles.css' %}?v=3">
+  <link
+    rel="stylesheet"
+    href="{% static 'css/styles.css' %}?v=3"
+  >
 
-  <!-- Favicon -->
   <link
     rel="icon"
     type="image/png"
@@ -38,213 +41,250 @@
 
 </head>
 
+
 <body>
 
-  <nav>
+  <!-- ==================================================
+       NAVIGATION
+       ================================================== -->
 
-    <ul>
+  <nav class="site-nav">
 
-      {% if user.is_authenticated %}
+    <div class="site-nav-inner">
 
-      <li>
-        <a href="/dashboard/">Dashboard</a>
-      </li>
-
-      <li>
-        <a href="/bots/">My AI Assistants</a>
-      </li>
-
-      <li>
-        <a href="/payments/">Billing</a>
-      </li>
-
-      <li>
-        <a href="{% url 'bots:analytics' %}">
-          Analytics
-        </a>
-      </li>
-
-      <li style="position:relative;">
-
-        <a
-          href="#"
-          class="nav-btn"
-          onclick="
-            document
-              .getElementById('logout-form')
-              .submit();
-            return false;
-          "
+      <a
+        href="{% if user.is_authenticated %}/dashboard/{% else %}/{% endif %}"
+        class="site-brand"
+        aria-label="AI Assistant"
+      >
+        <img
+          src="{% static 'images/ai-assistant-logo.png' %}"
+          alt=""
+          class="site-brand-logo"
         >
-          Logout
 
-          {% if messages %}
-          <span style="
-              display:inline-block;
-              width:10px;
-              height:10px;
-              background:#ff5c5c;
-              border-radius:50%;
-              margin-left:6px;
-              vertical-align:middle;
-            ">
-          </span>
-          {% endif %}
+        <span class="site-brand-text">
+          AI Assistant
+        </span>
+      </a>
 
-        </a>
 
-        <form
-          id="logout-form"
-          method="POST"
-          action="{% url 'accounts:logout' %}"
-          style="display:none;"
-        >
-          {% csrf_token %}
-        </form>
+      <ul class="site-nav-links">
 
-      </li>
+        {% if user.is_authenticated %}
 
-      {% else %}
+          <li>
+            <a href="/dashboard/">
+              Dashboard
+            </a>
+          </li>
 
-      <li>
-        <a href="/">Home</a>
-      </li>
+          <li>
+            <a href="/bots/">
+              My AI Assistants
+            </a>
+          </li>
 
-      <li>
-        <a href="/accounts/login/">Login</a>
-      </li>
+          <li>
+            <a href="/payments/">
+              Billing
+            </a>
+          </li>
 
-      <li>
-        <a href="/accounts/register/">Register</a>
-      </li>
+          <li>
+            <a href="{% url 'bots:analytics' %}">
+              Analytics
+            </a>
+          </li>
 
-      {% endif %}
+          <li>
 
-    </ul>
+            <a
+              href="#"
+              class="nav-logout"
+              onclick="
+                document
+                  .getElementById('logout-form')
+                  .submit();
+                return false;
+              "
+            >
+              Logout
+
+              {% if messages %}
+                <span
+                  class="nav-message-dot"
+                  aria-hidden="true"
+                ></span>
+              {% endif %}
+            </a>
+
+            <form
+              id="logout-form"
+              method="POST"
+              action="{% url 'accounts:logout' %}"
+              hidden
+            >
+              {% csrf_token %}
+            </form>
+
+          </li>
+
+        {% else %}
+
+          <li>
+            <a href="/">
+              Home
+            </a>
+          </li>
+
+          <li>
+            <a href="/accounts/login/">
+              Login
+            </a>
+          </li>
+
+          <li>
+            <a href="/accounts/register/">
+              Register
+            </a>
+          </li>
+
+        {% endif %}
+
+      </ul>
+
+    </div>
 
   </nav>
 
-  <!-- Messages -->
+
+  <!-- ==================================================
+       MESSAGES
+       ================================================== -->
 
   {% if messages %}
 
-  <div style="
-      max-width:800px;
-      margin:2rem auto;
-      padding:0 1rem;
-    ">
+    <div class="site-messages">
 
-    {% for message in messages %}
+      {% for message in messages %}
 
-    {% if message.tags == "success" %}
+        {% if message.tags == "success" %}
 
-    <div
-      class="alert alert-success"
-      style="
-        background:#d4edda;
-        color:#155724;
-        border:1px solid #c3e6cb;
-      "
-    >
-      {{ message }}
+          <div class="site-alert site-alert-success">
+            {{ message }}
+          </div>
+
+        {% elif message.tags == "info" %}
+
+          <div class="site-alert site-alert-info">
+            {{ message }}
+          </div>
+
+        {% elif message.tags == "warning" %}
+
+          <div class="site-alert site-alert-warning">
+            {{ message }}
+          </div>
+
+        {% elif message.tags == "danger" or message.tags == "error" %}
+
+          <div class="site-alert site-alert-danger">
+            {{ message }}
+          </div>
+
+        {% else %}
+
+          <div class="site-alert site-alert-info">
+            {{ message }}
+          </div>
+
+        {% endif %}
+
+      {% endfor %}
+
     </div>
-
-    {% elif message.tags == "info" %}
-
-    <div
-      class="alert alert-info"
-      style="
-        background:#d1ecf1;
-        color:#0c5460;
-        border:1px solid #bee5eb;
-      "
-    >
-      {{ message }}
-    </div>
-
-    {% elif message.tags == "warning" %}
-
-    <div
-      class="alert alert-warning"
-      style="
-        background:#fff3cd;
-        color:#856404;
-        border:1px solid #ffeeba;
-      "
-    >
-      {{ message }}
-    </div>
-
-    {% elif message.tags == "danger" or message.tags == "error" %}
-
-    <div
-      class="alert alert-danger"
-      style="
-        background:#f8d7da;
-        color:#721c24;
-        border:1px solid #f5c6cb;
-      "
-    >
-      {{ message }}
-    </div>
-
-    {% else %}
-
-    <div
-      class="alert alert-info"
-      style="
-        background:#d1ecf1;
-        color:#0c5460;
-        border:1px solid #bee5eb;
-      "
-    >
-      {{ message }}
-    </div>
-
-    {% endif %}
-
-    {% endfor %}
-
-  </div>
 
   {% endif %}
+
+
+  <!-- ==================================================
+       THEME TOGGLE
+       ================================================== -->
 
   <button
     id="toggleTheme"
     class="toggle-theme"
+    type="button"
     aria-label="Toggle theme"
+    title="Toggle theme"
   >
     <span id="theme-icon">🌙</span>
   </button>
 
-  <main>
+
+  <!-- ==================================================
+       MAIN CONTENT
+       ================================================== -->
+
+  <main class="site-main">
 
     {% block content %}{% endblock %}
 
   </main>
+
+
+  <!-- ==================================================
+       FOOTER
+       ================================================== -->
 
   <footer class="site-footer">
 
     <div class="footer-inner">
 
       <div class="footer-left">
+
         <a
           href="mailto:support@myaiassistantapp.se"
           class="footer-link"
         >
           ✉ support@myaiassistantapp.se
         </a>
+
       </div>
 
+
       <div class="footer-center">
-        <a href="{% url 'privacy' %}" class="footer-link">Privacy Policy</a>
-        <span aria-hidden="true"> · </span>
-        <a href="{% url 'delete_account' %}" class="footer-link">Delete account</a>
+
+        <div class="footer-policy-links">
+
+          <a
+            href="{% url 'privacy' %}"
+            class="footer-link"
+          >
+            Privacy Policy
+          </a>
+
+          <span aria-hidden="true">
+            ·
+          </span>
+
+          <a
+            href="{% url 'delete_account' %}"
+            class="footer-link"
+          >
+            Delete account
+          </a>
+
+        </div>
+
         <p>
           &copy; {% now "Y" %} AI Assistant.
           All rights reserved.
         </p>
+
       </div>
+
 
       <div class="footer-right">
 
@@ -276,6 +316,11 @@
 
   </footer>
 
+
+  <!-- ==================================================
+       THEME SCRIPT
+       ================================================== -->
+
   <script>
 
     const toggleButton =
@@ -287,6 +332,7 @@
     const html =
       document.documentElement;
 
+
     function updateIcon() {
 
       icon.textContent =
@@ -296,7 +342,9 @@
 
     }
 
+
     updateIcon();
+
 
     toggleButton?.addEventListener("click", () => {
 
@@ -314,102 +362,617 @@
 
   </script>
 
+
   {% block extra_js %}{% endblock %}
+
 
   <style>
 
-    /* ================= FOOTER ================= */
+    /* ==================================================
+       GLOBAL SHELL
+       ================================================== */
+
+    body {
+      margin: 0;
+    }
+
+
+    .site-main {
+      width: min(1600px, calc(100% - 2rem));
+      max-width: none;
+
+      margin: 1rem auto;
+      padding: 0;
+
+      background: transparent;
+
+      border-radius: 0;
+
+      box-shadow: none;
+      backdrop-filter: none;
+    }
+
+
+    /* ==================================================
+       NAVIGATION
+       ================================================== */
+
+    .site-nav {
+      position: relative;
+      z-index: 100;
+
+      width: 100%;
+
+      background: var(--nav-bg);
+
+      border-bottom:
+        1px solid var(--accent-color);
+
+      box-shadow:
+        0 3px 12px rgba(0, 0, 0, 0.06);
+    }
+
+
+    .site-nav-inner {
+      width: min(1600px, calc(100% - 2rem));
+
+      margin: 0 auto;
+
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+
+      gap: 1rem;
+
+      min-height: 62px;
+    }
+
+
+    .site-brand {
+      display: inline-flex;
+      align-items: center;
+
+      gap: 0.55rem;
+
+      flex: 0 0 auto;
+
+      color: var(--text-color);
+
+      text-decoration: none;
+
+      font-weight: 800;
+    }
+
+
+    .site-brand-logo {
+      width: 34px;
+      height: 34px;
+
+      object-fit: contain;
+
+      border-radius: 8px;
+    }
+
+
+    .site-brand-text {
+      color: var(--accent-color);
+
+      font-size: 0.95rem;
+    }
+
+
+    .site-nav-links {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+
+      flex-wrap: wrap;
+
+      gap: 0.45rem;
+
+      margin: 0;
+      padding: 0;
+
+      list-style: none;
+    }
+
+
+    .site-nav-links li {
+      margin: 0;
+      padding: 0;
+    }
+
+
+    .site-nav-links a {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+
+      min-height: 36px;
+
+      padding: 0.5rem 0.75rem;
+
+      background: var(--button-bg);
+      color: var(--button-text);
+
+      border:
+        1px solid var(--button-border);
+
+      border-radius: 8px;
+
+      font-size: 0.76rem;
+      font-weight: 700;
+
+      text-decoration: none;
+
+      white-space: nowrap;
+
+      transition:
+        background 0.2s ease,
+        border-color 0.2s ease,
+        transform 0.2s ease;
+    }
+
+
+    .site-nav-links a:hover {
+      background: var(--button-hover);
+
+      border-color:
+        var(--accent-color);
+
+      transform:
+        translateY(-1px);
+    }
+
+
+    .nav-logout {
+      position: relative;
+    }
+
+
+    .nav-message-dot {
+      width: 8px;
+      height: 8px;
+
+      display: inline-block;
+
+      margin-left: 0.35rem;
+
+      background: #ff5c5c;
+
+      border-radius: 50%;
+    }
+
+
+    /* ==================================================
+       MESSAGES
+       ================================================== */
+
+    .site-messages {
+      width: min(1600px, calc(100% - 2rem));
+
+      margin: 0.75rem auto 0;
+
+      display: flex;
+      flex-direction: column;
+
+      gap: 0.5rem;
+    }
+
+
+    .site-alert {
+      padding: 0.65rem 0.8rem;
+
+      border-radius: 8px;
+
+      font-size: 0.78rem;
+      font-weight: 700;
+      line-height: 1.4;
+    }
+
+
+    .site-alert-success {
+      background: #d4edda;
+      color: #155724;
+
+      border: 1px solid #c3e6cb;
+    }
+
+
+    .site-alert-info {
+      background: #d1ecf1;
+      color: #0c5460;
+
+      border: 1px solid #bee5eb;
+    }
+
+
+    .site-alert-warning {
+      background: #fff3cd;
+      color: #856404;
+
+      border: 1px solid #ffeeba;
+    }
+
+
+    .site-alert-danger {
+      background: #f8d7da;
+      color: #721c24;
+
+      border: 1px solid #f5c6cb;
+    }
+
+
+    /* ==================================================
+       THEME BUTTON
+       ================================================== */
+
+    .toggle-theme {
+      position: fixed;
+
+      right: 1rem;
+      bottom: 1rem;
+
+      z-index: 200;
+
+      width: 42px;
+      height: 42px;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      padding: 0;
+
+      background: var(--button-bg);
+      color: var(--button-text);
+
+      border: 1px solid var(--accent-color);
+      border-radius: 50%;
+
+      box-shadow:
+        0 5px 16px rgba(0, 0, 0, 0.15);
+
+      cursor: pointer;
+
+      font-size: 1rem;
+    }
+
+
+    .toggle-theme:hover {
+      background: var(--button-hover);
+    }
+
+
+    /* ==================================================
+       FOOTER
+       ================================================== */
 
     .site-footer {
-      margin-top: 2rem;
-      padding: 1.25rem 1rem;
+      margin-top: 1rem;
+
+      padding: 0.85rem 1rem;
 
       background: var(--nav-bg);
       color: var(--text-color);
 
-      border-top: 1px solid var(--accent-color);
+      border-top:
+        1px solid var(--accent-color);
     }
 
+
     .footer-inner {
-      max-width: 1200px;
+      width: min(1600px, 100%);
+
       margin: 0 auto;
 
       display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
+
+      grid-template-columns:
+        minmax(0, 1fr)
+        auto
+        minmax(0, 1fr);
+
       align-items: center;
 
       gap: 1rem;
     }
 
+
     .footer-left {
+      min-width: 0;
+
       display: flex;
       justify-content: flex-start;
     }
 
+
     .footer-center {
       text-align: center;
+
+      white-space: nowrap;
     }
 
-    .footer-center p {
-      margin: 0;
-      font-weight: 600;
+
+    .footer-policy-links {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      gap: 0.35rem;
     }
+
+
+    .footer-center p {
+      margin: 0.2rem 0 0;
+
+      font-size: 0.7rem;
+      font-weight: 600;
+
+      opacity: 0.75;
+    }
+
 
     .footer-right {
       display: flex;
       justify-content: flex-end;
       align-items: center;
+
       flex-wrap: wrap;
-      gap: 12px;
+
+      gap: 10px;
     }
 
-    .footer-app-store-badge,
-    .footer-google-play-badge {
-      display: inline-flex;
-      flex-shrink: 0;
-      cursor: not-allowed;
-      user-select: none;
-    }
-
-    .footer-app-store-badge img {
-      display: block;
-      height: 44px;
-      width: auto;
-    }
 
     .footer-link {
       color: var(--text-color);
+
+      font-size: 0.72rem;
+      font-weight: 700;
+
       text-decoration: none;
-      font-weight: 600;
     }
+
 
     .footer-link:hover {
       color: var(--accent-color);
     }
 
-    /* Compensate for the official PNG's transparent padding (41px per side). */
-    .footer-google-play-badge img {
-      display: block;
-      height: 65.476px;
-      width: auto;
-      margin: -10.738px;
+
+    .footer-app-store-badge,
+    .footer-google-play-badge {
+      display: inline-flex;
+
+      flex-shrink: 0;
+
+      cursor: not-allowed;
+
+      user-select: none;
     }
 
-    /* ================= MOBILE ================= */
+
+    .footer-app-store-badge img {
+      display: block;
+
+      height: 36px;
+      width: auto;
+    }
+
+
+    /* Official PNG contains transparent padding. */
+
+    .footer-google-play-badge img {
+      display: block;
+
+      height: 53.57px;
+      width: auto;
+
+      margin: -8.785px;
+    }
+
+
+    /* ==================================================
+       TABLET
+       ================================================== */
 
     @media (max-width: 1000px) {
+
+      .site-nav-inner {
+        flex-direction: column;
+
+        align-items: stretch;
+
+        gap: 0.55rem;
+
+        padding: 0.6rem 0;
+      }
+
+
+      .site-brand {
+        justify-content: center;
+      }
+
+
+      .site-nav-links {
+        justify-content: center;
+      }
+
 
       .footer-inner {
         grid-template-columns: 1fr;
 
         text-align: center;
-
-        gap: 0.9rem;
       }
+
 
       .footer-left,
       .footer-right {
         justify-content: center;
+      }
+
+
+      .footer-center {
+        white-space: normal;
+      }
+
+    }
+
+
+    /* ==================================================
+       MOBILE
+       ================================================== */
+
+    @media (max-width: 550px) {
+
+      .site-main {
+        width: 100%;
+
+        margin: 0;
+
+        padding: 0.65rem;
+
+        box-sizing: border-box;
+      }
+
+
+      .site-nav-inner {
+        width: 100%;
+
+        padding:
+          0.55rem
+          0.65rem;
+
+        box-sizing: border-box;
+      }
+
+
+      .site-brand {
+        justify-content: center;
+      }
+
+
+      .site-brand-logo {
+        width: 30px;
+        height: 30px;
+      }
+
+
+      .site-brand-text {
+        font-size: 0.85rem;
+      }
+
+
+      .site-nav-links {
+        display: grid;
+
+        grid-template-columns:
+          repeat(2, minmax(0, 1fr));
+
+        gap: 0.35rem;
+
+        width: 100%;
+      }
+
+
+      .site-nav-links li {
+        min-width: 0;
+      }
+
+
+      .site-nav-links a {
+        width: 100%;
+
+        min-height: 34px;
+
+        padding: 0.45rem 0.4rem;
+
+        box-sizing: border-box;
+
+        font-size: 0.68rem;
+
+        white-space: normal;
+
+        text-align: center;
+      }
+
+
+      .site-messages {
+        width: calc(100% - 1.3rem);
+
+        margin-top: 0.55rem;
+      }
+
+
+      .site-alert {
+        padding: 0.55rem 0.65rem;
+
+        font-size: 0.68rem;
+      }
+
+
+      .toggle-theme {
+        right: 0.65rem;
+        bottom: 0.65rem;
+
+        width: 38px;
+        height: 38px;
+      }
+
+
+      .site-footer {
+        margin-top: 0.65rem;
+
+        padding: 0.75rem 0.65rem;
+      }
+
+
+      .footer-inner {
+        gap: 0.65rem;
+      }
+
+
+      .footer-link {
+        font-size: 0.66rem;
+      }
+
+
+      .footer-center p {
+        font-size: 0.62rem;
+      }
+
+
+      .footer-app-store-badge img {
+        height: 32px;
+      }
+
+
+      .footer-google-play-badge img {
+        height: 47.62px;
+
+        margin: -7.81px;
+      }
+
+    }
+
+
+    /* ==================================================
+       VERY SMALL MOBILE
+       ================================================== */
+
+    @media (max-width: 360px) {
+
+      .site-brand-text {
+        display: none;
+      }
+
+
+      .site-nav-links a {
+        font-size: 0.64rem;
+      }
+
+
+      .footer-policy-links {
+        flex-wrap: wrap;
       }
 
     }

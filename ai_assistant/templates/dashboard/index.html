@@ -2,525 +2,618 @@
 {% load static %}
 
 {% block title %}AI Assistant - Build Your Own AI Assistants{% endblock %}
-{% block canonical %}<link rel="canonical" href="https://www.myaiassistantapp.se/">{% endblock %}
+
+{% block canonical %}
+<link rel="canonical" href="https://www.myaiassistantapp.se/">
+{% endblock %}
+
 
 {% block content %}
 
 {% if user.is_authenticated %}
 
-<section style="
-    display: flex;
-    justify-content: center;
-    padding: 2rem 1rem;
-">
-    <div style="
-        background: var(--nav-bg);
-        padding: 1.5rem;
-        border-radius: 16px;
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
-        max-width: 900px;
-        width: 100%;
-    ">
+<!-- ==================================================
+     LOGGED-IN HOME
+     ================================================== -->
 
-        <div style="
-            margin-bottom: 2rem;
-        ">
-            <h1 style="
-                margin: 0 0 0.5rem;
-                color: var(--accent-color);
-            ">
-                Welcome back, {{ user.first_name|default:user.username }} 👋
+<section class="home-app">
+
+    <header class="home-app-header">
+
+        <div>
+            <span class="home-eyebrow">
+                AI Assistant
+            </span>
+
+            <h1>
+                Welcome back,
+                {{ user.first_name|default:user.username }} 👋
             </h1>
 
-            <p style="
-                margin: 0;
-                font-weight: 600;
-                line-height: 1.6;
-            ">
-                What would you like to do?
+            <p>
+                Manage your assistants, conversations,
+                analytics and subscription from one place.
             </p>
         </div>
 
 
-        <!-- CURRENT PLAN -->
-        <div style="
-            border: 2px solid var(--accent-color);
-            border-radius: 12px;
-            padding: 1rem;
-            margin-bottom: 1.5rem;
-        ">
-            <h2 style="
-                margin-top: 0;
-                margin-bottom: 0.5rem;
-                color: var(--accent-color);
-            ">
-                Current Plan
-            </h2>
+        <div class="home-plan-badge">
+
+            <span>
+                Current plan
+            </span>
 
             <strong>
                 {{ user.profile.effective_plan|title }}
             </strong>
-        </div>
-
-
-        <!-- QUICK ACTIONS -->
-        <div class="home-actions">
-
-            <a
-                href="{% url 'bots:my-bots' %}"
-                class="home-action-card"
-            >
-                <span class="home-action-icon">
-                    🤖
-                </span>
-
-                <span>
-                    <strong>My AI Assistants</strong>
-                    <small>
-                        View and manage your assistants
-                    </small>
-                </span>
-            </a>
-
-
-            <a
-                href="{% url 'bots:create' %}"
-                class="home-action-card"
-            >
-                <span class="home-action-icon">
-                    ➕
-                </span>
-
-                <span>
-                    <strong>Create AI Assistant</strong>
-                    <small>
-                        Build a new AI assistant
-                    </small>
-                </span>
-            </a>
-
-
-            <a
-                href="{% url 'bots:analytics' %}"
-                class="home-action-card"
-            >
-                <span class="home-action-icon">
-                    📊
-                </span>
-
-                <span>
-                    <strong>Analytics</strong>
-                    <small>
-                        View usage and activity
-                    </small>
-                </span>
-            </a>
-
-
-            <a
-                href="{% url 'payments:billing' %}"
-                class="home-action-card"
-            >
-                <span class="home-action-icon">
-                    💳
-                </span>
-
-                <span>
-                    <strong>Billing</strong>
-                    <small>
-                        Manage your plan
-                    </small>
-                </span>
-            </a>
 
         </div>
 
+    </header>
 
-        <!-- DASHBOARD -->
-        <div style="
-            margin-top: 1.5rem;
-            text-align: center;
-        ">
-            <a
-                href="/dashboard/"
-                class="nav-btn home-dashboard-btn"
-            >
-                Open Dashboard
-            </a>
-        </div>
+
+    <div class="home-app-grid">
+
+        <!-- MY ASSISTANTS -->
+
+        <a
+            href="{% url 'bots:my-bots' %}"
+            class="home-app-card"
+        >
+
+            <span class="home-app-icon">
+                🤖
+            </span>
+
+            <div>
+                <h2>
+                    My AI Assistants
+                </h2>
+
+                <p>
+                    View, chat with and manage your assistants.
+                </p>
+            </div>
+
+            <span class="home-card-arrow">
+                →
+            </span>
+
+        </a>
+
+
+        <!-- CREATE -->
+
+        <a
+            href="{% url 'bots:create' %}"
+            class="home-app-card"
+        >
+
+            <span class="home-app-icon">
+                ➕
+            </span>
+
+            <div>
+                <h2>
+                    Create Assistant
+                </h2>
+
+                <p>
+                    Build and customize a new AI assistant.
+                </p>
+            </div>
+
+            <span class="home-card-arrow">
+                →
+            </span>
+
+        </a>
+
+
+        <!-- ANALYTICS -->
+
+        <a
+            href="{% url 'bots:analytics' %}"
+            class="home-app-card"
+        >
+
+            <span class="home-app-icon">
+                📊
+            </span>
+
+            <div>
+                <h2>
+                    Analytics
+                </h2>
+
+                <p>
+                    Review usage, activity and conversations.
+                </p>
+            </div>
+
+            <span class="home-card-arrow">
+                →
+            </span>
+
+        </a>
+
+
+        <!-- BILLING -->
+
+        <a
+            href="{% url 'payments:billing' %}"
+            class="home-app-card"
+        >
+
+            <span class="home-app-icon">
+                💳
+            </span>
+
+            <div>
+                <h2>
+                    Billing
+                </h2>
+
+                <p>
+                    Manage your plan and subscription.
+                </p>
+            </div>
+
+            <span class="home-card-arrow">
+                →
+            </span>
+
+        </a>
 
     </div>
+
+
+    <div class="home-dashboard-strip">
+
+        <div>
+
+            <strong>
+                Account overview
+            </strong>
+
+            <span>
+                See your plan limits and current usage.
+            </span>
+
+        </div>
+
+
+        <a
+            href="/dashboard/"
+            class="home-dashboard-button"
+        >
+            Open Dashboard →
+        </a>
+
+    </div>
+
 </section>
 
 
 {% else %}
 
 
-<section style="
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 2rem 1rem;
-    text-align: center;
-">
+<!-- ==================================================
+     PUBLIC HOME
+     ================================================== -->
 
-    <div style="
-        background: var(--nav-bg);
-        padding: 1.5rem;
-        border-radius: 16px;
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
-        max-width: 800px;
-        width: 100%;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-    ">
+<section class="public-home">
 
-        <!-- HERO -->
-        <h1 style="
-            margin-bottom: 1rem;
-            color: var(--accent-color);
-        ">
-            Powerful AI assistants. Simple pricing.
-        </h1>
+    <!-- HERO -->
 
-        <p style="
-            max-width: 700px;
-            margin: 0 auto;
-            font-weight: 600;
-            line-height: 1.6;
-        ">
-            Create AI assistants for your personal projects,
-            studies, documents, customer support, or business.
-            Add your own knowledge, keep your conversations
-            organized, and start chatting in minutes.
-        </p>
+    <section class="public-hero">
+
+        <div class="public-hero-copy">
+
+            <span class="home-eyebrow">
+                Your AI. Your knowledge.
+            </span>
+
+            <h1>
+                Powerful AI assistants.
+                <span>Simple pricing.</span>
+            </h1>
+
+            <p>
+                Create AI assistants for personal projects,
+                studies, documents, customer support or business.
+                Add your own knowledge, organize conversations
+                and start chatting in minutes.
+            </p>
 
 
-        <!-- WHAT YOU CAN DO -->
-        <div style="
-            margin-top: 2rem;
-            width: 100%;
-        ">
+            <div class="public-hero-actions">
 
-            <h2 style="
-                margin-bottom: 1rem;
-                color: var(--accent-color);
-            ">
-                What You Can Do
-            </h2>
+                <a
+                    href="{% url 'accounts:register' %}"
+                    class="public-primary-button"
+                >
+                    Get Started Free
+                </a>
 
-            <ul style="
-                list-style: none;
-                padding: 0;
-                max-width: 700px;
-                margin: 0 auto;
-                text-align: left;
-            ">
+                <a
+                    href="#pricing"
+                    class="public-secondary-button"
+                >
+                    View Plans
+                </a>
 
-                <li style="margin-bottom: 1.5rem;">
-
-                    🤖 <strong>Create your own AI assistants</strong>
-
-                    <p style="
-                        margin: 0.5rem 0 0;
-                        font-weight: 600;
-                        line-height: 1.5;
-                    ">
-                        Build personalized AI assistants for
-                        work, studies, personal projects, hobbies,
-                        customer support, or your business.
-                    </p>
-
-                </li>
+            </div>
 
 
-                <li style="margin-bottom: 1.5rem;">
-
-                    📚 <strong>Add your own knowledge</strong>
-
-                    <p style="
-                        margin: 0.5rem 0 0;
-                        font-weight: 600;
-                        line-height: 1.5;
-                    ">
-                        Upload documents and information so your
-                        assistants can answer using knowledge
-                        that matters to you or your business.
-                    </p>
-
-                </li>
-
-
-                <li style="margin-bottom: 1.5rem;">
-
-                    💬 <strong>Keep unlimited conversations</strong>
-
-                    <p style="
-                        margin: 0.5rem 0 0;
-                        font-weight: 600;
-                        line-height: 1.5;
-                    ">
-                        Start separate conversations with your
-                        assistants and return to your chat history
-                        whenever you need it.
-                    </p>
-
-                </li>
-
-
-                <li style="margin-bottom: 1.5rem;">
-
-                    📊 <strong>Understand your AI usage</strong>
-
-                    <p style="
-                        margin: 0.5rem 0 0;
-                        font-weight: 600;
-                        line-height: 1.5;
-                    ">
-                        View usage and conversation analytics to
-                        understand how your assistants are being used.
-                    </p>
-
-                </li>
-
-            </ul>
+            <small class="public-hero-note">
+                No credit card required for the Free plan.
+            </small>
 
         </div>
 
 
-        <!-- PRICING -->
-        <div
-            id="pricing"
-            style="
-                margin-top: 3rem;
-                width: 100%;
-            "
-        >
+        <div class="public-hero-panel">
 
-            <h2 style="
-                margin-bottom: 0.5rem;
-                color: var(--accent-color);
-            ">
-                Plans & Pricing
-            </h2>
+            <div class="hero-panel-header">
 
-            <p style="
-                max-width: 650px;
-                margin: 0 auto 1.5rem;
-                font-weight: 600;
-                line-height: 1.5;
-            ">
-                Start for free and upgrade when you need more
-                assistants, messages, storage, or advanced features.
-            </p>
+                <span>
+                    AI Assistant
+                </span>
+
+                <span class="hero-status">
+                    ● Ready
+                </span>
+
+            </div>
 
 
-            <div style="
-                display: flex;
-                flex-direction: column;
-                gap: 1.5rem;
-                text-align: left;
-                max-width: 700px;
-                margin: 0 auto;
-            ">
+            <div class="hero-assistant-row">
 
+                <span class="hero-assistant-icon">
+                    🤖
+                </span>
 
-                <!-- FREE -->
-                <div style="
-                    border: 2px solid var(--accent-color);
-                    border-radius: 12px;
-                    padding: 1rem;
-                    background: var(--nav-bg);
-                ">
+                <div>
+                    <strong>
+                        Your Assistant
+                    </strong>
 
-                    <h3>
-                        🆓 Free — $0/month
-                    </h3>
-
-                    <p style="
-                        margin-top: 0;
-                        font-weight: 600;
-                    ">
-                        A simple way to create your first AI assistant.
-                    </p>
-
-                    <ul style="
-                        margin: 0;
-                        padding-left: 1.2rem;
-                    ">
-                        <li>✔️ 1 AI assistant</li>
-                        <li>✔️ 150 AI messages per month</li>
-                        <li>✔️ 10 MB Knowledge Base</li>
-                        <li>✔️ Unlimited chats</li>
-                        <li>✔️ Conversation history</li>
-                        <li>✔️ Knowledge uploads</li>
-                        <li>✔️ Basic analytics</li>
-                        <li>✔️ Basic assistant naming</li>
-                        <li>✔️ AI Assistant branding</li>
-                    </ul>
-
-                </div>
-
-
-                <!-- PREMIUM -->
-                <div style="
-                    border: 2px solid var(--accent-color);
-                    border-radius: 12px;
-                    padding: 1rem;
-                    background: var(--nav-bg);
-                ">
-
-                    <h3>
-                        💎 Premium — $29 USD/month
-                    </h3>
-
-                    <p style="
-                        margin-top: 0;
-                        font-weight: 600;
-                    ">
-                        For individuals, creators, and small businesses
-                        that need more capacity and flexibility.
-                    </p>
-
-                    <ul style="
-                        margin: 0;
-                        padding-left: 1.2rem;
-                    ">
-                        <li>✔️ 5 AI assistants</li>
-                        <li>✔️ 3,000 AI messages per month</li>
-                        <li>✔️ 250 MB Knowledge Base</li>
-                        <li>✔️ Unlimited chats</li>
-                        <li>✔️ Conversation history</li>
-                        <li>✔️ Knowledge uploads</li>
-                        <li>✔️ Full analytics</li>
-
-                        <li>
-                            🔜 Advanced assistant customization
-                            — Coming soon
-                        </li>
-
-                        <li>
-                            🔜 Website widget & public chatbot
-                            — Coming soon
-                        </li>
-
-                        <li>✔️ Priority support</li>
-
-                    </ul>
-
-                </div>
-
-
-                <!-- PRO -->
-                <div style="
-                    border: 2px solid var(--accent-color);
-                    border-radius: 12px;
-                    padding: 1rem;
-                    background: var(--nav-bg);
-                ">
-
-                    <h3>
-                        🚀 Pro — $59 USD/month
-                    </h3>
-
-                    <p style="
-                        margin-top: 0;
-                        font-weight: 600;
-                    ">
-                        For power users and businesses that need
-                        higher limits, integrations, and developer access.
-                    </p>
-
-                    <ul style="
-                        margin: 0;
-                        padding-left: 1.2rem;
-                    ">
-
-                        <li>✔️ Everything in Premium</li>
-                        <li>✔️ 15 AI assistants</li>
-                        <li>✔️ 10,000 AI messages per month</li>
-                        <li>✔️ 1 GB Knowledge Base</li>
-                        <li>✔️ Unlimited chats</li>
-                        <li>✔️ API access</li>
-                        <li>✔️ Discord integration</li>
-
-                        <li>
-                            🔜 Remove AI Assistant branding
-                            — Coming soon
-                        </li>
-
-                        <li>
-                            🔜 Advanced customization
-                            — Coming soon
-                        </li>
-
-                        <li>✔️ Priority support</li>
-
-                    </ul>
-
+                    <small>
+                        Customized for your needs
+                    </small>
                 </div>
 
             </div>
 
+
+            <div class="hero-feature-row">
+                <span>📚</span>
+                <div>
+                    <strong>Knowledge Base</strong>
+                    <small>Use your own documents</small>
+                </div>
+            </div>
+
+
+            <div class="hero-feature-row">
+                <span>💬</span>
+                <div>
+                    <strong>Conversations</strong>
+                    <small>Keep chats organized</small>
+                </div>
+            </div>
+
+
+            <div class="hero-feature-row">
+                <span>📊</span>
+                <div>
+                    <strong>Analytics</strong>
+                    <small>Understand your usage</small>
+                </div>
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- FEATURES -->
+
+    <section class="public-section">
+
+        <div class="public-section-heading">
+
+            <span class="home-eyebrow">
+                Features
+            </span>
+
+            <h2>
+                What You Can Do
+            </h2>
+
         </div>
 
 
-        <!-- FINAL CTA -->
-        <div style="
-            margin-top: 3rem;
-            width: 100%;
-        ">
+        <div class="feature-grid">
 
-            <h2 style="
-                margin-bottom: 0.5rem;
-                color: var(--accent-color);
-            ">
-                Start building your AI assistant today
+            <article class="feature-card">
+
+                <span class="feature-icon">
+                    🤖
+                </span>
+
+                <h3>
+                    Create AI assistants
+                </h3>
+
+                <p>
+                    Build personalized assistants for work,
+                    studies, hobbies, support or business.
+                </p>
+
+            </article>
+
+
+            <article class="feature-card">
+
+                <span class="feature-icon">
+                    📚
+                </span>
+
+                <h3>
+                    Add your knowledge
+                </h3>
+
+                <p>
+                    Upload information and documents so your
+                    assistants can answer using your own material.
+                </p>
+
+            </article>
+
+
+            <article class="feature-card">
+
+                <span class="feature-icon">
+                    💬
+                </span>
+
+                <h3>
+                    Unlimited conversations
+                </h3>
+
+                <p>
+                    Start separate conversations and return to your
+                    chat history whenever you need it.
+                </p>
+
+            </article>
+
+
+            <article class="feature-card">
+
+                <span class="feature-icon">
+                    📊
+                </span>
+
+                <h3>
+                    Usage analytics
+                </h3>
+
+                <p>
+                    View usage and conversation analytics to
+                    understand how your assistants are being used.
+                </p>
+
+            </article>
+
+        </div>
+
+    </section>
+
+
+    <!-- PRICING -->
+
+    <section
+        id="pricing"
+        class="public-section pricing-section"
+    >
+
+        <div class="public-section-heading">
+
+            <span class="home-eyebrow">
+                Plans
+            </span>
+
+            <h2>
+                Plans & Pricing
             </h2>
 
-            <p style="
-                max-width: 650px;
-                margin: 0 auto;
-                font-weight: 600;
-                line-height: 1.5;
-            ">
-                No credit card required for the Free plan.
-                Create your account and get started in minutes.
+            <p>
+                Start for free and upgrade when you need
+                more assistants, messages, storage or features.
             </p>
 
         </div>
 
 
-        <!-- CTA BUTTONS -->
-        <div style="
-            margin-top: 2rem;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 1rem;
-            width: 100%;
-            max-width: 300px;
-        ">
+        <div class="pricing-grid">
 
-            <a
-                href="{% url 'accounts:register' %}"
-                class="nav-btn"
-            >
-                Get Started Free
-            </a>
+            <!-- FREE -->
 
-            <a
-                href="#pricing"
-                class="nav-btn btn-premium"
-            >
-                View Premium & Pro
-            </a>
+            <article class="pricing-card">
+
+                <div class="pricing-card-heading">
+
+                    <span class="pricing-icon">
+                        🆓
+                    </span>
+
+                    <div>
+                        <h3>
+                            Free
+                        </h3>
+
+                        <strong class="pricing-price">
+                            $0
+                            <small>/month</small>
+                        </strong>
+                    </div>
+
+                </div>
+
+
+                <p class="pricing-description">
+                    A simple way to create your first AI assistant.
+                </p>
+
+
+                <ul>
+                    <li>✔️ 1 AI assistant</li>
+                    <li>✔️ 150 AI messages per month</li>
+                    <li>✔️ 10 MB Knowledge Base</li>
+                    <li>✔️ Unlimited chats</li>
+                    <li>✔️ Conversation history</li>
+                    <li>✔️ Knowledge uploads</li>
+                    <li>✔️ Basic analytics</li>
+                    <li>✔️ Basic assistant naming</li>
+                    <li>✔️ AI Assistant branding</li>
+                </ul>
+
+            </article>
+
+
+            <!-- PREMIUM -->
+
+            <article class="pricing-card pricing-highlight">
+
+                <span class="pricing-badge">
+                    Popular
+                </span>
+
+
+                <div class="pricing-card-heading">
+
+                    <span class="pricing-icon">
+                        💎
+                    </span>
+
+                    <div>
+                        <h3>
+                            Premium
+                        </h3>
+
+                        <strong class="pricing-price">
+                            $29
+                            <small>USD/month</small>
+                        </strong>
+                    </div>
+
+                </div>
+
+
+                <p class="pricing-description">
+                    For individuals, creators and small businesses
+                    that need more capacity and flexibility.
+                </p>
+
+
+                <ul>
+                    <li>✔️ 5 AI assistants</li>
+                    <li>✔️ 3,000 AI messages per month</li>
+                    <li>✔️ 250 MB Knowledge Base</li>
+                    <li>✔️ Unlimited chats</li>
+                    <li>✔️ Conversation history</li>
+                    <li>✔️ Knowledge uploads</li>
+                    <li>✔️ Full analytics</li>
+                    <li>🔜 Advanced assistant customization — Coming soon</li>
+                    <li>🔜 Website widget & public chatbot — Coming soon</li>
+                    <li>✔️ Priority support</li>
+                </ul>
+
+            </article>
+
+
+            <!-- PRO -->
+
+            <article class="pricing-card">
+
+                <div class="pricing-card-heading">
+
+                    <span class="pricing-icon">
+                        🚀
+                    </span>
+
+                    <div>
+                        <h3>
+                            Pro
+                        </h3>
+
+                        <strong class="pricing-price">
+                            $59
+                            <small>USD/month</small>
+                        </strong>
+                    </div>
+
+                </div>
+
+
+                <p class="pricing-description">
+                    For power users and businesses that need
+                    higher limits, integrations and developer access.
+                </p>
+
+
+                <ul>
+                    <li>✔️ Everything in Premium</li>
+                    <li>✔️ 15 AI assistants</li>
+                    <li>✔️ 10,000 AI messages per month</li>
+                    <li>✔️ 1 GB Knowledge Base</li>
+                    <li>✔️ Unlimited chats</li>
+                    <li>✔️ API access</li>
+                    <li>✔️ Discord integration</li>
+                    <li>🔜 Remove AI Assistant branding — Coming soon</li>
+                    <li>🔜 Advanced customization — Coming soon</li>
+                    <li>✔️ Priority support</li>
+                </ul>
+
+            </article>
 
         </div>
 
-    </div>
+    </section>
+
+
+    <!-- FINAL CTA -->
+
+    <section class="public-final-cta">
+
+        <div>
+
+            <span class="home-eyebrow">
+                Start for free
+            </span>
+
+            <h2>
+                Build your AI assistant today
+            </h2>
+
+            <p>
+                Create your account and start building in minutes.
+            </p>
+
+        </div>
+
+
+        <a
+            href="{% url 'accounts:register' %}"
+            class="public-primary-button"
+        >
+            Get Started Free
+        </a>
+
+    </section>
 
 </section>
 
@@ -529,136 +622,1000 @@
 
 <style>
 
-    /* ================= HOME ================= */
+    /* ==================================================
+       PAGE
+       ================================================== */
 
-    ul li:hover {
-        transform: scale(1.02);
-        transition: transform 0.3s ease;
+    main {
+        width: min(1600px, calc(100% - 2rem));
+        max-width: none;
+        margin: 1rem auto;
+        padding: 0;
+        background: transparent;
+        border-radius: 0;
+        box-shadow: none;
+        backdrop-filter: none;
     }
 
 
-    a.nav-btn {
-        background-color: var(--button-bg);
-        color: var(--button-text);
+    .home-eyebrow {
+        display: block;
 
-        padding: 0.75rem 1.5rem;
+        margin-bottom: 0.2rem;
 
-        border-radius: 8px;
+        color: var(--accent-color);
 
-        text-decoration: none;
+        font-size: 0.7rem;
+        font-weight: 800;
 
-        display: inline-block;
-
-        margin-top: 0.5rem;
-
-        transition: all 0.3s ease;
-
-        width: 100%;
-
-        text-align: center;
-
-        box-sizing: border-box;
+        text-transform: uppercase;
+        letter-spacing: 0.09em;
     }
 
 
-    a.nav-btn:hover {
-        background: var(--button-hover);
-        transform: scale(1.05);
-    }
+    /* ==================================================
+       LOGGED-IN HOME
+       ================================================== */
 
+    .home-app {
+        display: flex;
+        flex-direction: column;
 
-    /* ================= LOGGED-IN HOME ================= */
-
-    .home-actions {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 1rem;
     }
 
 
-    .home-action-card {
+    .home-app-header {
         display: flex;
         align-items: center;
+        justify-content: space-between;
+
         gap: 1rem;
 
-        padding: 1rem;
+        padding: 1.1rem 1.25rem;
 
-        border: 2px solid var(--accent-color);
-        border-radius: 12px;
+        background: var(--nav-bg);
+
+        border: 1px solid var(--button-border);
+        border-radius: 14px;
+
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.05);
+    }
+
+
+    .home-app-header h1 {
+        margin: 0;
+
+        color: var(--accent-color);
+
+        font-size: clamp(1.5rem, 2.5vw, 2.2rem);
+    }
+
+
+    .home-app-header p {
+        margin: 0.35rem 0 0;
+
+        font-size: 0.85rem;
+        font-weight: 600;
+
+        opacity: 0.8;
+    }
+
+
+    .home-plan-badge {
+        flex: 0 0 auto;
+
+        min-width: 135px;
+
+        padding: 0.65rem 0.85rem;
+
+        background: var(--button-bg);
+
+        border: 1px solid var(--accent-color);
+        border-radius: 10px;
+
+        text-align: center;
+    }
+
+
+    .home-plan-badge span {
+        display: block;
+
+        font-size: 0.65rem;
+        font-weight: 700;
+
+        opacity: 0.7;
+    }
+
+
+    .home-plan-badge strong {
+        display: block;
+
+        margin-top: 0.1rem;
+
+        color: var(--accent-color);
+
+        font-size: 1rem;
+    }
+
+
+    .home-app-grid {
+        display: grid;
+
+        grid-template-columns:
+            repeat(4, minmax(0, 1fr));
+
+        gap: 0.8rem;
+    }
+
+
+    .home-app-card {
+        min-width: 0;
+
+        display: grid;
+
+        grid-template-columns:
+            auto
+            minmax(0, 1fr)
+            auto;
+
+        align-items: center;
+
+        gap: 0.75rem;
+
+        padding: 1rem;
 
         background: var(--nav-bg);
         color: var(--text-color);
 
+        border: 1px solid var(--button-border);
+        border-radius: 13px;
+
         text-decoration: none;
 
-        transition: all 0.25s ease;
+        box-shadow: 0 5px 16px rgba(0, 0, 0, 0.04);
+
+        transition:
+            transform 0.2s ease,
+            border-color 0.2s ease,
+            background 0.2s ease;
     }
 
 
-    .home-action-card:hover {
-        background: var(--button-bg);
+    .home-app-card:hover {
         transform: translateY(-2px);
+
+        border-color: var(--accent-color);
+
+        background: var(--button-bg);
     }
 
 
-    .home-action-icon {
-        width: 48px;
-        height: 48px;
-
-        flex: 0 0 48px;
+    .home-app-icon {
+        width: 44px;
+        height: 44px;
 
         display: flex;
         align-items: center;
         justify-content: center;
 
-        border-radius: 12px;
-
         background: var(--button-bg);
 
-        font-size: 1.5rem;
+        border: 1px solid var(--button-border);
+        border-radius: 10px;
+
+        font-size: 1.25rem;
     }
 
 
-    .home-action-card strong {
+    .home-app-card h2 {
+        margin: 0;
+
+        color: var(--accent-color);
+
+        font-size: 0.95rem;
+    }
+
+
+    .home-app-card p {
+        margin: 0.2rem 0 0;
+
+        font-size: 0.72rem;
+        font-weight: 600;
+        line-height: 1.35;
+
+        opacity: 0.75;
+    }
+
+
+    .home-card-arrow {
+        color: var(--accent-color);
+
+        font-size: 1.2rem;
+        font-weight: 800;
+    }
+
+
+    .home-dashboard-strip {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+
+        gap: 1rem;
+
+        padding: 0.85rem 1rem;
+
+        background: var(--nav-bg);
+
+        border: 1px solid var(--button-border);
+        border-radius: 13px;
+    }
+
+
+    .home-dashboard-strip strong,
+    .home-dashboard-strip span {
         display: block;
-        margin-bottom: 0.25rem;
+    }
+
+
+    .home-dashboard-strip strong {
+        color: var(--accent-color);
+
+        font-size: 0.9rem;
+    }
+
+
+    .home-dashboard-strip span {
+        margin-top: 0.15rem;
+
+        font-size: 0.72rem;
+        font-weight: 600;
+
+        opacity: 0.75;
+    }
+
+
+    .home-dashboard-button {
+        flex: 0 0 auto;
+
+        padding: 0.6rem 0.8rem;
+
+        background: var(--button-bg);
+        color: var(--button-text);
+
+        border: 1px solid var(--accent-color);
+        border-radius: 8px;
+
+        text-decoration: none;
+
+        font-size: 0.78rem;
+        font-weight: 700;
+    }
+
+
+    /* ==================================================
+       PUBLIC HOME
+       ================================================== */
+
+    .public-home {
+        display: flex;
+        flex-direction: column;
+
+        gap: 1rem;
+    }
+
+
+    .public-hero {
+        display: grid;
+
+        grid-template-columns:
+            minmax(0, 1.35fr)
+            minmax(320px, 0.65fr);
+
+        align-items: center;
+
+        gap: 1rem;
+
+        padding: clamp(1.25rem, 3vw, 2.2rem);
+
+        background: var(--nav-bg);
+
+        border: 1px solid var(--button-border);
+        border-radius: 16px;
+
+        box-shadow: 0 8px 26px rgba(0, 0, 0, 0.06);
+    }
+
+
+    .public-hero-copy h1 {
+        margin: 0;
+
+        max-width: 720px;
+
+        color: var(--text-color);
+
+        font-size: clamp(2rem, 4.5vw, 4rem);
+        line-height: 1.02;
+    }
+
+
+    .public-hero-copy h1 span {
         color: var(--accent-color);
     }
 
 
-    .home-action-card small {
-        display: block;
+    .public-hero-copy > p {
+        max-width: 720px;
 
+        margin: 0.9rem 0 0;
+
+        font-size: clamp(0.9rem, 1.5vw, 1.05rem);
+        font-weight: 600;
+        line-height: 1.55;
+
+        opacity: 0.82;
+    }
+
+
+    .public-hero-actions {
+        display: flex;
+        flex-wrap: wrap;
+
+        gap: 0.65rem;
+
+        margin-top: 1.1rem;
+    }
+
+
+    .public-primary-button,
+    .public-secondary-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+
+        padding: 0.7rem 1rem;
+
+        border-radius: 8px;
+
+        font-size: 0.82rem;
+        font-weight: 800;
+
+        text-decoration: none;
+    }
+
+
+    .public-primary-button {
+        background: var(--button-bg);
+        color: var(--button-text);
+
+        border: 1px solid var(--accent-color);
+    }
+
+
+    .public-secondary-button {
+        background: transparent;
         color: var(--text-color);
 
-        font-size: 0.9rem;
+        border: 1px solid var(--button-border);
+    }
+
+
+    .public-primary-button:hover,
+    .public-secondary-button:hover {
+        background: var(--button-hover);
+    }
+
+
+    .public-hero-note {
+        display: block;
+
+        margin-top: 0.65rem;
+
+        font-size: 0.68rem;
         font-weight: 600;
 
-        opacity: 0.85;
+        opacity: 0.65;
     }
 
 
-    .home-dashboard-btn {
-        max-width: 280px;
+    /* HERO APP PREVIEW */
+
+    .public-hero-panel {
+        min-width: 0;
+
+        padding: 0.9rem;
+
+        background: var(--bg-color);
+
+        border: 1px solid var(--button-border);
+        border-radius: 13px;
     }
 
 
-    /* ================= MOBILE ================= */
+    .hero-panel-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
 
-    @media (max-width: 600px) {
+        gap: 0.5rem;
 
-        .home-actions {
+        margin-bottom: 0.75rem;
+
+        color: var(--accent-color);
+
+        font-size: 0.72rem;
+        font-weight: 800;
+    }
+
+
+    .hero-status {
+        font-size: 0.65rem;
+    }
+
+
+    .hero-assistant-row,
+    .hero-feature-row {
+        display: flex;
+        align-items: center;
+
+        gap: 0.65rem;
+
+        padding: 0.65rem;
+
+        background: var(--nav-bg);
+
+        border: 1px solid var(--button-border);
+        border-radius: 9px;
+    }
+
+
+    .hero-assistant-row {
+        margin-bottom: 0.55rem;
+    }
+
+
+    .hero-feature-row + .hero-feature-row {
+        margin-top: 0.45rem;
+    }
+
+
+    .hero-assistant-icon {
+        width: 42px;
+        height: 42px;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        background: var(--button-bg);
+
+        border-radius: 9px;
+
+        font-size: 1.25rem;
+    }
+
+
+    .hero-assistant-row strong,
+    .hero-feature-row strong,
+    .hero-assistant-row small,
+    .hero-feature-row small {
+        display: block;
+    }
+
+
+    .hero-assistant-row strong,
+    .hero-feature-row strong {
+        color: var(--accent-color);
+
+        font-size: 0.75rem;
+    }
+
+
+    .hero-assistant-row small,
+    .hero-feature-row small {
+        margin-top: 0.1rem;
+
+        font-size: 0.62rem;
+        font-weight: 600;
+
+        opacity: 0.7;
+    }
+
+
+    /* ==================================================
+       PUBLIC SECTIONS
+       ================================================== */
+
+    .public-section {
+        padding: 1.25rem;
+
+        background: var(--nav-bg);
+
+        border: 1px solid var(--button-border);
+        border-radius: 15px;
+    }
+
+
+    .public-section-heading {
+        margin-bottom: 1rem;
+    }
+
+
+    .public-section-heading h2 {
+        margin: 0;
+
+        color: var(--accent-color);
+
+        font-size: 1.4rem;
+    }
+
+
+    .public-section-heading > p {
+        max-width: 700px;
+
+        margin: 0.35rem 0 0;
+
+        font-size: 0.82rem;
+        font-weight: 600;
+
+        opacity: 0.75;
+    }
+
+
+    /* FEATURES */
+
+    .feature-grid {
+        display: grid;
+
+        grid-template-columns:
+            repeat(4, minmax(0, 1fr));
+
+        gap: 0.75rem;
+    }
+
+
+    .feature-card {
+        min-width: 0;
+
+        padding: 0.9rem;
+
+        background: rgba(128, 128, 128, 0.04);
+
+        border: 1px solid var(--button-border);
+        border-radius: 11px;
+    }
+
+
+    .feature-icon {
+        display: block;
+
+        margin-bottom: 0.5rem;
+
+        font-size: 1.3rem;
+    }
+
+
+    .feature-card h3 {
+        margin: 0;
+
+        color: var(--accent-color);
+
+        font-size: 0.9rem;
+    }
+
+
+    .feature-card p {
+        margin: 0.35rem 0 0;
+
+        font-size: 0.72rem;
+        font-weight: 600;
+        line-height: 1.4;
+
+        opacity: 0.78;
+    }
+
+
+    /* ==================================================
+       PRICING
+       ================================================== */
+
+    .pricing-grid {
+        display: grid;
+
+        grid-template-columns:
+            repeat(3, minmax(0, 1fr));
+
+        align-items: stretch;
+
+        gap: 0.8rem;
+    }
+
+
+    .pricing-card {
+        position: relative;
+
+        min-width: 0;
+
+        padding: 1rem;
+
+        background: rgba(128, 128, 128, 0.04);
+
+        border: 1px solid var(--button-border);
+        border-radius: 12px;
+    }
+
+
+    .pricing-highlight {
+        border-color: var(--accent-color);
+    }
+
+
+    .pricing-badge {
+        position: absolute;
+
+        top: -10px;
+        right: 12px;
+
+        padding: 0.25rem 0.5rem;
+
+        background: var(--button-bg);
+        color: var(--accent-color);
+
+        border: 1px solid var(--accent-color);
+        border-radius: 999px;
+
+        font-size: 0.6rem;
+        font-weight: 800;
+    }
+
+
+    .pricing-card-heading {
+        display: flex;
+        align-items: center;
+
+        gap: 0.65rem;
+    }
+
+
+    .pricing-icon {
+        width: 40px;
+        height: 40px;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        background: var(--button-bg);
+
+        border-radius: 9px;
+
+        font-size: 1.15rem;
+    }
+
+
+    .pricing-card h3 {
+        margin: 0;
+
+        color: var(--accent-color);
+
+        font-size: 0.95rem;
+    }
+
+
+    .pricing-price {
+        display: block;
+
+        margin-top: 0.1rem;
+
+        font-size: 1.1rem;
+    }
+
+
+    .pricing-price small {
+        font-size: 0.6rem;
+
+        opacity: 0.7;
+    }
+
+
+    .pricing-description {
+        min-height: 44px;
+
+        margin: 0.7rem 0;
+
+        font-size: 0.72rem;
+        font-weight: 600;
+        line-height: 1.4;
+
+        opacity: 0.78;
+    }
+
+
+    .pricing-card ul {
+        margin: 0;
+        padding: 0;
+
+        list-style: none;
+    }
+
+
+    .pricing-card li {
+        margin: 0;
+
+        padding: 0.28rem 0;
+
+        border-bottom:
+            1px solid rgba(128, 128, 128, 0.12);
+
+        font-size: 0.7rem;
+        font-weight: 600;
+        line-height: 1.3;
+    }
+
+
+    .pricing-card li:last-child {
+        border-bottom: none;
+    }
+
+
+    /* ==================================================
+       FINAL CTA
+       ================================================== */
+
+    .public-final-cta {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+
+        gap: 1rem;
+
+        padding: 1rem 1.25rem;
+
+        background: var(--nav-bg);
+
+        border: 1px solid var(--accent-color);
+        border-radius: 14px;
+    }
+
+
+    .public-final-cta h2 {
+        margin: 0;
+
+        color: var(--accent-color);
+
+        font-size: 1.25rem;
+    }
+
+
+    .public-final-cta p {
+        margin: 0.25rem 0 0;
+
+        font-size: 0.75rem;
+        font-weight: 600;
+
+        opacity: 0.75;
+    }
+
+
+    /* ==================================================
+       TABLET
+       ================================================== */
+
+    @media (min-width: 701px) and (max-width: 1100px) {
+
+        .home-app-grid,
+        .feature-grid {
+            grid-template-columns:
+                repeat(2, minmax(0, 1fr));
+        }
+
+
+        .public-hero {
+            grid-template-columns:
+                minmax(0, 1fr)
+                minmax(280px, 0.75fr);
+        }
+
+
+        .pricing-grid {
+            grid-template-columns:
+                repeat(3, minmax(0, 1fr));
+        }
+
+    }
+
+
+    /* ==================================================
+       MOBILE
+       ================================================== */
+
+    @media (max-width: 700px) {
+
+        main {
+            width: 100%;
+            margin: 0;
+
+            padding: 0.65rem;
+        }
+
+
+        .home-app,
+        .public-home {
+            gap: 0.65rem;
+        }
+
+
+        .home-app-header {
+            padding: 0.85rem;
+
+            border-radius: 12px;
+        }
+
+
+        .home-app-header h1 {
+            font-size: 1.3rem;
+        }
+
+
+        .home-app-header p {
+            font-size: 0.72rem;
+        }
+
+
+        .home-plan-badge {
+            min-width: 90px;
+
+            padding: 0.5rem;
+        }
+
+
+        .home-app-grid {
+            grid-template-columns:
+                repeat(2, minmax(0, 1fr));
+
+            gap: 0.55rem;
+        }
+
+
+        .home-app-card {
+            grid-template-columns:
+                auto
+                minmax(0, 1fr);
+
+            gap: 0.55rem;
+
+            padding: 0.7rem;
+        }
+
+
+        .home-card-arrow {
+            display: none;
+        }
+
+
+        .home-app-icon {
+            width: 36px;
+            height: 36px;
+
+            font-size: 1rem;
+        }
+
+
+        .home-app-card h2 {
+            font-size: 0.76rem;
+        }
+
+
+        .home-app-card p {
+            font-size: 0.62rem;
+        }
+
+
+        .home-dashboard-strip {
+            padding: 0.7rem;
+        }
+
+
+        .public-hero {
+            grid-template-columns: 1fr;
+
+            padding: 1rem;
+        }
+
+
+        .public-hero-copy h1 {
+            font-size: 2rem;
+        }
+
+
+        .public-hero-panel {
+            display: none;
+        }
+
+
+        .public-section {
+            padding: 0.85rem;
+        }
+
+
+        .feature-grid {
+            grid-template-columns:
+                repeat(2, minmax(0, 1fr));
+
+            gap: 0.55rem;
+        }
+
+
+        .pricing-grid {
             grid-template-columns: 1fr;
         }
 
-        .home-action-card {
-            padding: 0.9rem;
+
+        .pricing-description {
+            min-height: 0;
         }
 
-        .home-action-icon {
-            width: 44px;
-            height: 44px;
-            flex-basis: 44px;
+
+        .public-final-cta {
+            padding: 0.85rem;
+        }
+
+    }
+
+
+    /* ==================================================
+       VERY SMALL MOBILE
+       ================================================== */
+
+    @media (max-width: 430px) {
+
+        .home-app-header {
+            align-items: flex-start;
+        }
+
+
+        .home-plan-badge {
+            min-width: 80px;
+        }
+
+
+        .home-dashboard-strip {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+
+        .home-dashboard-button {
+            width: 100%;
+
+            text-align: center;
+        }
+
+
+        .public-hero-actions {
+            display: grid;
+
+            grid-template-columns:
+                repeat(2, minmax(0, 1fr));
+        }
+
+
+        .public-primary-button,
+        .public-secondary-button {
+            padding: 0.6rem;
+
+            font-size: 0.7rem;
+        }
+
+
+        .public-final-cta {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+
+        .public-final-cta .public-primary-button {
+            width: 100%;
         }
 
     }

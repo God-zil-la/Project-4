@@ -43,12 +43,14 @@ def check_billing(profile):
     try:
         if UserProfile.objects.filter(stripe_customer_id=profile.stripe_customer_id).exclude(pk=profile.pk).exists():
             raise DeletionBlocked(message)
+        secret_key = getattr(settings, "STRIPE_SECRET_KEY", "") or ""
+        expected_livemode = secret_key.startswith(("sk_live_", "rk_live_"))
         options = {'customer': profile.stripe_customer_id, 'limit': 100,
-                   'api_key': settings.STRIPE_SECRET_KEY}
+                   'api_key': secret_key}
         subscriptions = list(stripe.Subscription.list(status='all', **options).auto_paging_iter())
         for sub in subscriptions:
             if (sub.get('customer') != profile.stripe_customer_id
-                    or sub.get('livemode') is not settings.STRIPE_SECRET_KEY.startswith(('sk_live_', 'rk_live_'))
+                    or sub.get('livemode') != expected_livemode
                     or sub.get('status') not in {'canceled', 'incomplete_expired'}):
                 raise DeletionBlocked(message)
         if profile.stripe_subscription_id and not any(

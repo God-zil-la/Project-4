@@ -1,47 +1,721 @@
 {% extends "base.html" %}
+
 {% block title %}Delete your account | AI Assistant{% endblock %}
-{% block canonical %}<link rel="canonical" href="https://www.myaiassistantapp.se/delete-account/">{% endblock %}
+
+{% block canonical %}
+<link rel="canonical" href="https://www.myaiassistantapp.se/delete-account/">
+{% endblock %}
+
+
 {% block extra_css %}
 <style>
-  .deletion-page { max-width: 860px; margin: 2rem auto; padding: 1.5rem; color: var(--text-color); line-height: 1.75; overflow-wrap: anywhere; }
-  .deletion-page h1, .deletion-page h2 { line-height: 1.35; }
-  .deletion-page h2 { margin-top: 2rem; }
-  .deletion-page a { color: inherit; text-decoration: underline; text-underline-offset: .2em; }
-  .deletion-action { background: var(--nav-bg); border: 2px solid var(--accent-color); border-radius: 12px; padding: 1.25rem; margin: 1.5rem 0; }
-  .deletion-page input[type=password] { display: block; width: 100%; max-width: 28rem; box-sizing: border-box; padding: .75rem; font-size: 1rem; }
-  .deletion-page button { white-space: normal; min-height: 44px; max-width: 100%; padding: .75rem 1rem; cursor: pointer; }
-  .deletion-page .errorlist { font-weight: 600; }
-  @media (max-width: 600px) { .deletion-page { margin: 1rem auto; padding: 1rem; } .deletion-action { padding: 1rem; } }
+
+    /* ==================================================
+       ACCOUNT DELETION PAGE
+       ================================================== */
+
+    main {
+        width: min(1600px, calc(100% - 2rem));
+        max-width: none;
+
+        margin: 1rem auto;
+        padding: 0;
+
+        background: transparent;
+        border-radius: 0;
+
+        box-shadow: none;
+        backdrop-filter: none;
+    }
+
+
+    .deletion-page {
+        width: 100%;
+
+        color: var(--text-color);
+
+        line-height: 1.55;
+
+        overflow-wrap: anywhere;
+    }
+
+
+    /* ==================================================
+       HEADER
+       ================================================== */
+
+    .deletion-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+
+        gap: 1rem;
+
+        margin-bottom: 1rem;
+
+        padding: 1.1rem 1.25rem;
+
+        background: var(--nav-bg);
+
+        border: 1px solid var(--button-border);
+        border-radius: 14px;
+
+        box-shadow:
+            0 6px 18px rgba(0, 0, 0, 0.05);
+    }
+
+
+    .deletion-header-copy {
+        min-width: 0;
+    }
+
+
+    .deletion-eyebrow {
+        display: block;
+
+        margin-bottom: 0.2rem;
+
+        color: var(--accent-color);
+
+        font-size: 0.68rem;
+        font-weight: 800;
+
+        text-transform: uppercase;
+        letter-spacing: 0.09em;
+    }
+
+
+    .deletion-header h1 {
+        margin: 0;
+
+        color: var(--accent-color);
+
+        font-size: clamp(1.55rem, 3vw, 2.2rem);
+        line-height: 1.2;
+    }
+
+
+    .deletion-header p {
+        max-width: 900px;
+
+        margin: 0.45rem 0 0;
+
+        font-size: 0.82rem;
+        font-weight: 600;
+        line-height: 1.5;
+
+        opacity: 0.8;
+    }
+
+
+    .deletion-header-icon {
+        flex: 0 0 58px;
+
+        width: 58px;
+        height: 58px;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        background: rgba(139, 0, 0, 0.08);
+
+        border: 1px solid #8b0000;
+        border-radius: 14px;
+
+        font-size: 1.45rem;
+    }
+
+
+    /* ==================================================
+       ACTION GRID
+       ================================================== */
+
+    .deletion-action-grid {
+        display: grid;
+
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+
+        gap: 1rem;
+
+        margin-bottom: 1rem;
+    }
+
+
+    .deletion-action {
+        min-width: 0;
+
+        margin: 0;
+        padding: 1rem;
+
+        background: var(--nav-bg);
+
+        border: 1px solid var(--button-border);
+        border-radius: 13px;
+
+        box-shadow:
+            0 5px 16px rgba(0, 0, 0, 0.04);
+    }
+
+
+    .deletion-action-primary {
+        border-color: var(--accent-color);
+    }
+
+
+    .deletion-action h2 {
+        margin: 0 0 0.55rem;
+
+        color: var(--accent-color);
+
+        font-size: 1rem;
+        line-height: 1.3;
+    }
+
+
+    .deletion-action p {
+        margin: 0;
+
+        font-size: 0.76rem;
+        font-weight: 600;
+        line-height: 1.5;
+    }
+
+
+    .deletion-action p + p {
+        margin-top: 0.65rem;
+    }
+
+
+    /* ==================================================
+       LINKS / ACTION BUTTON
+       ================================================== */
+
+    .deletion-page a {
+        color: var(--accent-color);
+
+        font-weight: 700;
+
+        text-decoration: underline;
+        text-underline-offset: 0.18em;
+    }
+
+
+    .deletion-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+
+        margin-top: 0.75rem;
+
+        padding: 0.6rem 0.8rem;
+
+        background: var(--button-bg);
+        color: var(--button-text) !important;
+
+        border: 1px solid var(--accent-color);
+        border-radius: 8px;
+
+        font-size: 0.74rem;
+        font-weight: 700;
+
+        text-decoration: none !important;
+    }
+
+
+    .deletion-button:hover {
+        background: var(--button-hover);
+    }
+
+
+    /* ==================================================
+       INFORMATION GRID
+       ================================================== */
+
+    .deletion-info-grid {
+        display: grid;
+
+        grid-template-columns:
+            repeat(3, minmax(0, 1fr));
+
+        align-items: start;
+
+        gap: 1rem;
+    }
+
+
+    .deletion-info-card {
+        min-width: 0;
+
+        padding: 1rem;
+
+        background: var(--nav-bg);
+
+        border: 1px solid var(--button-border);
+        border-radius: 13px;
+
+        box-shadow:
+            0 5px 16px rgba(0, 0, 0, 0.04);
+    }
+
+
+    .deletion-info-card h2 {
+        margin: 0 0 0.55rem;
+
+        color: var(--accent-color);
+
+        font-size: 1rem;
+        line-height: 1.3;
+    }
+
+
+    .deletion-info-card p {
+        margin: 0;
+
+        font-size: 0.73rem;
+        font-weight: 600;
+        line-height: 1.55;
+
+        opacity: 0.88;
+    }
+
+
+    .deletion-info-card p + p {
+        margin-top: 0.7rem;
+    }
+
+
+    /* ==================================================
+       FOOTER NOTE
+       ================================================== */
+
+    .deletion-policy-note {
+        margin-top: 1rem;
+
+        padding: 0.8rem 1rem;
+
+        background: var(--nav-bg);
+
+        border: 1px solid var(--button-border);
+        border-radius: 11px;
+
+        text-align: center;
+
+        font-size: 0.72rem;
+        font-weight: 600;
+    }
+
+
+    /* ==================================================
+       FORM SUPPORT
+       ================================================== */
+
+    .deletion-page input[type="password"] {
+        display: block;
+
+        width: 100%;
+        max-width: 28rem;
+
+        box-sizing: border-box;
+
+        padding: 0.65rem 0.75rem;
+
+        background: var(--bg-color);
+        color: var(--text-color);
+
+        border: 1px solid var(--button-border);
+        border-radius: 8px;
+
+        font: inherit;
+    }
+
+
+    .deletion-page button {
+        max-width: 100%;
+
+        min-height: 40px;
+
+        padding: 0.65rem 0.8rem;
+
+        cursor: pointer;
+    }
+
+
+    .deletion-page .errorlist {
+        font-weight: 700;
+    }
+
+
+    /* ==================================================
+       TABLET
+       ================================================== */
+
+    @media (max-width: 1050px) {
+
+        .deletion-info-grid {
+            grid-template-columns:
+                repeat(2, minmax(0, 1fr));
+        }
+
+
+        .deletion-info-card:last-child {
+            grid-column: 1 / -1;
+        }
+
+    }
+
+
+    /* ==================================================
+       MOBILE
+       ================================================== */
+
+    @media (max-width: 700px) {
+
+        main {
+            width: 100%;
+
+            margin: 0;
+
+            padding: 0.65rem;
+        }
+
+
+        .deletion-header {
+            padding: 0.85rem;
+
+            border-radius: 12px;
+        }
+
+
+        .deletion-header-icon {
+            flex-basis: 44px;
+
+            width: 44px;
+            height: 44px;
+
+            border-radius: 10px;
+
+            font-size: 1.1rem;
+        }
+
+
+        .deletion-header h1 {
+            font-size: 1.3rem;
+        }
+
+
+        .deletion-header p {
+            font-size: 0.7rem;
+        }
+
+
+        .deletion-action-grid,
+        .deletion-info-grid {
+            grid-template-columns: 1fr;
+
+            gap: 0.65rem;
+        }
+
+
+        .deletion-info-card:last-child {
+            grid-column: auto;
+        }
+
+
+        .deletion-action,
+        .deletion-info-card {
+            padding: 0.8rem;
+
+            border-radius: 11px;
+        }
+
+
+        .deletion-action h2,
+        .deletion-info-card h2 {
+            font-size: 0.9rem;
+        }
+
+
+        .deletion-action p,
+        .deletion-info-card p {
+            font-size: 0.68rem;
+        }
+
+
+        .deletion-button {
+            width: 100%;
+
+            box-sizing: border-box;
+        }
+
+
+        .deletion-policy-note {
+            font-size: 0.66rem;
+        }
+
+    }
+
+
+    @media (max-width: 400px) {
+
+        .deletion-header {
+            align-items: flex-start;
+        }
+
+
+        .deletion-header-icon {
+            display: none;
+        }
+
+    }
+
 </style>
 {% endblock %}
+
+
 {% block content %}
-<article class="deletion-page" aria-labelledby="deletion-title">
-  <h1 id="deletion-title">Delete your AI Assistant account</h1>
-  {% block deletion_intro %}<p>You can request permanent deletion of your AI Assistant account and associated data here, even if you cannot sign in or have already uninstalled the Android app.</p>{% endblock %}
-  {% block email_request %}
-  <section class="deletion-action" aria-labelledby="request-title">
-    <h2 id="request-title">Request deletion by email</h2>
-    <p>Email <a href="mailto:support@myaiassistantapp.se?subject=AI%20Assistant%20account%20and%20data%20deletion">support@myaiassistantapp.se</a> with the subject <strong>AI Assistant account and data deletion</strong>. Include your account email address and say that you want your account and associated data deleted. Send the request from that address if possible. If you have lost access, tell support so ownership can be verified another way.</p>
-    <p>No login or app installation is required to send this request. Never send your password or full payment card details. Support will verify ownership, address any active subscriptions and explain completion or any remaining exceptions. Email requests require manual handling; sending the email does not immediately delete the account.</p>
-  </section>
-  {% endblock %}
-  {% block deletion_action %}
-  <section class="deletion-action" aria-labelledby="online-title">
-    <h2 id="online-title">Delete while signed in</h2>
-    <p>If billing has ended, you can confirm deletion using your current password. Opening the confirmation page does not delete anything.</p>
-    <p><a href="{% url 'accounts:delete_account' %}">Continue to account deletion</a></p>
-  </section>
-  {% endblock %}
-  <h2>What is deleted</h2>
-  <p>The confirmed online flow removes your account, profile, authentication/API tokens, assistants, conversations, chat messages (including legacy messages), Knowledge Base text and embeddings, usage records and local subscription/checkout records. It also removes locally stored billing emails addressed to your account email. Conversations belonging to your assistants are removed with those assistants.</p>
-  <p>Uploaded files belonging to your assistants or uploaded by you are queued for deletion from application storage after the database transaction succeeds. Cleanup is attempted immediately. If storage is unavailable, a retry record containing the file path remains until cleanup succeeds. A file still referenced by another Knowledge Base item is kept until that reference is removed. Deletion is permanent; account data cannot be recovered through the app.</p>
-  <h2>Subscriptions and access</h2>
-  <p>Online deletion first checks billing. Active subscriptions, pending changes, open checkout sessions or billing that cannot be verified must be resolved before automatic deletion. Use <a href="/payments/">Billing</a> or email support to request deletion and help ending billing. A subscription set to cancel at the end of a period is still active until it ends; contact support if you want deletion sooner. This flow does not automatically cancel subscriptions, charge you or issue refunds.</p>
-  <p>When Android subscriptions are enabled, manage them through <a href="https://play.google.com/store/account/subscriptions">Google Play subscriptions</a> and include them in your support request. Uninstalling the app does not cancel a subscription or delete an account. Deletion invalidates account access on other devices and the Discord/API connection, but does not erase messages already posted in Discord.</p>
-  <h2>What may remain</h2>
-  <p>A minimal follow-up record containing your email address, Stripe customer identifier (if any) and request date is retained for support to coordinate provider-side deletion and communicate any exceptions. Support removes it when that work is complete. File-cleanup jobs remain only until processed successfully. Neither queue currently has a fixed automatic completion deadline.</p>
-  <p>Stripe webhook event IDs and processing dates remain to prevent duplicate event processing; they contain no stored payment payload, and the application has no automatic expiry for them. The per-account rate-limit counter expires after 60 seconds if immediate cache cleanup is unavailable.</p>
-  <p>Provider-held information, delivered emails, Discord messages, hosting logs and backups are not erased by the application's database deletion. Support must review provider deletion and any legally required billing, security or fraud-prevention records. Their retention periods are not configured in this application. Support will explain any applicable exceptions when handling your request.</p>
-  <p>See the <a href="{% url 'privacy' %}#deletion">Privacy Policy's retention and deletion section</a> for further details.</p>
+
+<article
+    class="deletion-page"
+    aria-labelledby="deletion-title"
+>
+
+    <!-- HEADER -->
+
+    <header class="deletion-header">
+
+        <div class="deletion-header-copy">
+
+            <span class="deletion-eyebrow">
+                Account &amp; data
+            </span>
+
+            <h1 id="deletion-title">
+                Delete your AI Assistant account
+            </h1>
+
+            {% block deletion_intro %}
+
+                <p>
+                    You can request permanent deletion of your AI Assistant
+                    account and associated data here, even if you cannot sign
+                    in or have already uninstalled the Android app.
+                </p>
+
+            {% endblock %}
+
+        </div>
+
+
+        <div class="deletion-header-icon" aria-hidden="true">
+            🗑️
+        </div>
+
+    </header>
+
+
+    <!-- DELETION OPTIONS -->
+
+    <div class="deletion-action-grid">
+
+        {% block email_request %}
+
+        <section
+            class="deletion-action"
+            aria-labelledby="request-title"
+        >
+
+            <h2 id="request-title">
+                Request deletion by email
+            </h2>
+
+            <p>
+                Email
+                <a
+                    href="mailto:support@myaiassistantapp.se?subject=AI%20Assistant%20account%20and%20data%20deletion"
+                >
+                    support@myaiassistantapp.se
+                </a>
+                with the subject
+                <strong>AI Assistant account and data deletion</strong>.
+                Include your account email address and say that you want
+                your account and associated data deleted. Send the request
+                from that address if possible. If you have lost access,
+                tell support so ownership can be verified another way.
+            </p>
+
+            <p>
+                No login or app installation is required to send this
+                request. Never send your password or full payment card
+                details. Support will verify ownership, address any active
+                subscriptions and explain completion or any remaining
+                exceptions. Email requests require manual handling;
+                sending the email does not immediately delete the account.
+            </p>
+
+        </section>
+
+        {% endblock %}
+
+
+        {% block deletion_action %}
+
+        <section
+            class="deletion-action deletion-action-primary"
+            aria-labelledby="online-title"
+        >
+
+            <h2 id="online-title">
+                Delete while signed in
+            </h2>
+
+            <p>
+                If billing has ended, you can confirm deletion using your
+                current password. Opening the confirmation page does not
+                delete anything.
+            </p>
+
+            <a
+                href="{% url 'accounts:delete_account' %}"
+                class="deletion-button"
+            >
+                Continue to account deletion →
+            </a>
+
+        </section>
+
+        {% endblock %}
+
+    </div>
+
+
+    <!-- DETAILS -->
+
+    <div class="deletion-info-grid">
+
+        <!-- WHAT IS DELETED -->
+
+        <section class="deletion-info-card">
+
+            <h2>
+                What is deleted
+            </h2>
+
+            <p>
+                The confirmed online flow removes your account, profile,
+                authentication/API tokens, assistants, conversations,
+                chat messages (including legacy messages), Knowledge Base
+                text and embeddings, usage records and local
+                subscription/checkout records. It also removes locally
+                stored billing emails addressed to your account email.
+                Conversations belonging to your assistants are removed
+                with those assistants.
+            </p>
+
+            <p>
+                Uploaded files belonging to your assistants or uploaded
+                by you are queued for deletion from application storage
+                after the database transaction succeeds. Cleanup is
+                attempted immediately. If storage is unavailable, a retry
+                record containing the file path remains until cleanup
+                succeeds. A file still referenced by another Knowledge
+                Base item is kept until that reference is removed.
+                Deletion is permanent; account data cannot be recovered
+                through the app.
+            </p>
+
+        </section>
+
+
+        <!-- SUBSCRIPTIONS -->
+
+        <section class="deletion-info-card">
+
+            <h2>
+                Subscriptions and access
+            </h2>
+
+            <p>
+                Online deletion first checks billing. Active subscriptions,
+                pending changes, open checkout sessions or billing that
+                cannot be verified must be resolved before automatic
+                deletion. Use
+                <a href="/payments/">Billing</a>
+                or email support to request deletion and help ending
+                billing. A subscription set to cancel at the end of a
+                period is still active until it ends; contact support if
+                you want deletion sooner. This flow does not automatically
+                cancel subscriptions, charge you or issue refunds.
+            </p>
+
+            <p>
+                When Android subscriptions are enabled, manage them through
+                <a href="https://play.google.com/store/account/subscriptions">
+                    Google Play subscriptions
+                </a>
+                and include them in your support request. Uninstalling the
+                app does not cancel a subscription or delete an account.
+                Deletion invalidates account access on other devices and
+                the Discord/API connection, but does not erase messages
+                already posted in Discord.
+            </p>
+
+        </section>
+
+
+        <!-- WHAT MAY REMAIN -->
+
+        <section class="deletion-info-card">
+
+            <h2>
+                What may remain
+            </h2>
+
+            <p>
+                A minimal follow-up record containing your email address,
+                Stripe customer identifier (if any) and request date is
+                retained for support to coordinate provider-side deletion
+                and communicate any exceptions. Support removes it when
+                that work is complete. File-cleanup jobs remain only until
+                processed successfully. Neither queue currently has a
+                fixed automatic completion deadline.
+            </p>
+
+            <p>
+                Stripe webhook event IDs and processing dates remain to
+                prevent duplicate event processing; they contain no stored
+                payment payload, and the application has no automatic
+                expiry for them. The per-account rate-limit counter expires
+                after 60 seconds if immediate cache cleanup is unavailable.
+            </p>
+
+            <p>
+                Provider-held information, delivered emails, Discord
+                messages, hosting logs and backups are not erased by the
+                application's database deletion. Support must review
+                provider deletion and any legally required billing,
+                security or fraud-prevention records. Their retention
+                periods are not configured in this application. Support
+                will explain any applicable exceptions when handling your
+                request.
+            </p>
+
+        </section>
+
+    </div>
+
+
+    <div class="deletion-policy-note">
+
+        See the
+        <a href="{% url 'privacy' %}#deletion">
+            Privacy Policy's retention and deletion section
+        </a>
+        for further details.
+
+    </div>
+
 </article>
+
 {% endblock %}

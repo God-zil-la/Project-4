@@ -3,11 +3,24 @@
 {% block title %}Payment Cancelled{% endblock %}
 
 {% block content %}
-<section class="content payment-status-page">
-    <div class="payment-status-card">
-        <h1>Payment Cancelled</h1>
 
-        <p>
+<section class="payment-status-page">
+
+    <div class="payment-status-card">
+
+        <div class="payment-status-icon payment-status-icon-cancelled" aria-hidden="true">
+            ×
+        </div>
+
+        <span class="payment-status-eyebrow">
+            Subscription
+        </span>
+
+        <h1>
+            Payment Cancelled
+        </h1>
+
+        <p class="payment-status-message">
             Your subscription was not completed and no plan change was made.
         </p>
 
@@ -15,44 +28,237 @@
             You can return to Billing whenever you're ready.
         </p>
 
-        <a href="{% url 'payments:billing' %}" class="btn">
+        <a
+            href="{% url 'payments:billing' %}"
+            class="status-button"
+        >
             Return to Billing
         </a>
+
     </div>
+
 </section>
 
+
 <style>
-    .payment-status-page {
-        display: flex;
-        justify-content: center;
-        padding: 3rem 1rem;
+
+    main {
+        width: min(1600px, calc(100% - 2rem));
+        max-width: none;
+        margin: 1rem auto;
+        padding: 0;
+        background: transparent;
+        border-radius: 0;
+        box-shadow: none;
+        backdrop-filter: none;
     }
+
+
+    .payment-status-page {
+        min-height: min(560px, 65vh);
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        padding: 1rem;
+    }
+
 
     .payment-status-card {
-        width: 100%;
-        max-width: 560px;
-        padding: 2rem;
+        width: min(620px, 100%);
+
+        padding: 1.5rem;
+
         text-align: center;
+
         background: var(--nav-bg);
         color: var(--text-color);
+
         border: 1px solid var(--button-border);
-        border-radius: 14px;
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+        border-radius: 16px;
+
+        box-shadow:
+            0 8px 24px rgba(0, 0, 0, 0.08);
     }
+
+
+    .payment-status-icon {
+        width: 58px;
+        height: 58px;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        margin: 0 auto 0.8rem;
+
+        border-radius: 50%;
+
+        font-size: 1.6rem;
+        font-weight: 900;
+    }
+
+
+    .payment-status-icon-cancelled {
+        background: rgba(196, 125, 0, 0.12);
+
+        color: #b26a00;
+
+        border: 1px solid #b26a00;
+    }
+
+
+    html.dark .payment-status-icon-cancelled {
+        color: #ffc46b;
+        border-color: #ffc46b;
+    }
+
+
+    .payment-status-eyebrow {
+        display: block;
+
+        margin-bottom: 0.2rem;
+
+        color: var(--accent-color);
+
+        font-size: 0.68rem;
+        font-weight: 800;
+
+        text-transform: uppercase;
+        letter-spacing: 0.09em;
+    }
+
 
     .payment-status-card h1 {
-        margin-top: 0;
-        margin-bottom: 1rem;
+        margin: 0;
+
         color: var(--accent-color);
+
+        font-size: clamp(1.6rem, 3vw, 2.2rem);
+        line-height: 1.2;
     }
 
-    .payment-status-card p {
-        line-height: 1.6;
+
+    .payment-status-message {
+        margin: 0.75rem 0 0;
+
+        font-size: 0.9rem;
+        font-weight: 700;
+        line-height: 1.5;
     }
+
 
     .status-note {
-        margin-bottom: 1.5rem;
-        opacity: 0.8;
+        max-width: 470px;
+
+        margin: 0.5rem auto 1.1rem;
+
+        font-size: 0.78rem;
+        font-weight: 600;
+        line-height: 1.45;
+
+        opacity: 0.75;
     }
+
+
+    .status-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+
+        min-width: 170px;
+
+        padding: 0.65rem 1rem;
+
+        background: var(--button-bg);
+        color: var(--button-text);
+
+        border: 1px solid var(--accent-color);
+        border-radius: 8px;
+
+        font-size: 0.8rem;
+        font-weight: 700;
+
+        text-decoration: none;
+
+        transition:
+            background 0.2s ease,
+            transform 0.2s ease;
+    }
+
+
+    .status-button:hover {
+        background: var(--button-hover);
+
+        transform: translateY(-1px);
+    }
+
+
+    .status-button:focus-visible {
+        outline: 2px solid var(--accent-color);
+        outline-offset: 2px;
+    }
+
+
+    @media (max-width: 550px) {
+
+        main {
+            width: 100%;
+            margin: 0;
+            padding: 0.65rem;
+        }
+
+
+        .payment-status-page {
+            min-height: 60vh;
+
+            padding: 0.5rem;
+        }
+
+
+        .payment-status-card {
+            padding: 1rem;
+
+            border-radius: 12px;
+        }
+
+
+        .payment-status-icon {
+            width: 48px;
+            height: 48px;
+
+            font-size: 1.3rem;
+        }
+
+
+        .payment-status-card h1 {
+            font-size: 1.4rem;
+        }
+
+
+        .payment-status-message {
+            font-size: 0.8rem;
+        }
+
+
+        .status-note {
+            font-size: 0.7rem;
+        }
+
+
+        .status-button {
+            width: 100%;
+
+            min-width: 0;
+
+            padding: 0.6rem;
+
+            font-size: 0.72rem;
+        }
+
+    }
+
 </style>
+
 {% endblock %}

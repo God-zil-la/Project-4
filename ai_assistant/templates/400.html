@@ -3,48 +3,240 @@
 {% block title %}400 - Bad Request{% endblock %}
 
 {% block content %}
-<section class="content error-page">
+
+<section class="error-page">
+
     <div class="error-card">
-        <h1>400 - Bad Request</h1>
+
+        <div class="error-icon" aria-hidden="true">
+            !
+        </div>
+
+        <span class="error-eyebrow">
+            Request error
+        </span>
+
+        <h1>
+            400 - Bad Request
+        </h1>
 
         <p>
             Your request was invalid or malformed.
         </p>
 
-        <a href="{% url 'home' %}" class="btn">
+        <a
+            href="{% url 'home' %}"
+            class="error-button"
+        >
             Return Home
         </a>
+
     </div>
+
 </section>
 
+
 <style>
-    .error-page {
-        display: flex;
-        justify-content: center;
-        padding: 3rem 1rem;
+
+    main {
+        width: min(1600px, calc(100% - 2rem));
+        max-width: none;
+        margin: 1rem auto;
+        padding: 0;
+        background: transparent;
+        border-radius: 0;
+        box-shadow: none;
+        backdrop-filter: none;
     }
+
+
+    .error-page {
+        min-height: min(560px, 65vh);
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        padding: 1rem;
+    }
+
 
     .error-card {
-        width: 100%;
-        max-width: 560px;
-        padding: 2rem;
+        width: min(620px, 100%);
+
+        padding: 1.5rem;
+
         text-align: center;
+
         background: var(--nav-bg);
         color: var(--text-color);
+
         border: 1px solid var(--button-border);
-        border-radius: 14px;
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+        border-radius: 16px;
+
+        box-shadow:
+            0 8px 24px rgba(0, 0, 0, 0.08);
     }
+
+
+    .error-icon {
+        width: 58px;
+        height: 58px;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        margin: 0 auto 0.8rem;
+
+        background: rgba(196, 125, 0, 0.12);
+
+        color: #b26a00;
+
+        border: 1px solid #b26a00;
+        border-radius: 50%;
+
+        font-size: 1.7rem;
+        font-weight: 900;
+    }
+
+
+    html.dark .error-icon {
+        color: #ffc46b;
+        border-color: #ffc46b;
+    }
+
+
+    .error-eyebrow {
+        display: block;
+
+        margin-bottom: 0.2rem;
+
+        color: var(--accent-color);
+
+        font-size: 0.68rem;
+        font-weight: 800;
+
+        text-transform: uppercase;
+        letter-spacing: 0.09em;
+    }
+
 
     .error-card h1 {
-        margin-top: 0;
-        margin-bottom: 1rem;
+        margin: 0;
+
         color: var(--accent-color);
+
+        font-size: clamp(1.6rem, 3vw, 2.2rem);
+        line-height: 1.2;
     }
 
+
     .error-card p {
-        margin-bottom: 1.5rem;
-        line-height: 1.6;
+        max-width: 460px;
+
+        margin: 0.75rem auto 1.1rem;
+
+        font-size: 0.82rem;
+        font-weight: 600;
+        line-height: 1.5;
+
+        opacity: 0.78;
     }
+
+
+    .error-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+
+        min-width: 170px;
+
+        padding: 0.65rem 1rem;
+
+        background: var(--button-bg);
+        color: var(--button-text);
+
+        border: 1px solid var(--accent-color);
+        border-radius: 8px;
+
+        font-size: 0.8rem;
+        font-weight: 700;
+
+        text-decoration: none;
+
+        transition:
+            background 0.2s ease,
+            transform 0.2s ease;
+    }
+
+
+    .error-button:hover {
+        background: var(--button-hover);
+
+        transform: translateY(-1px);
+    }
+
+
+    .error-button:focus-visible {
+        outline: 2px solid var(--accent-color);
+        outline-offset: 2px;
+    }
+
+
+    @media (max-width: 550px) {
+
+        main {
+            width: 100%;
+            margin: 0;
+            padding: 0.65rem;
+        }
+
+
+        .error-page {
+            min-height: 60vh;
+
+            padding: 0.5rem;
+        }
+
+
+        .error-card {
+            padding: 1rem;
+
+            border-radius: 12px;
+        }
+
+
+        .error-icon {
+            width: 48px;
+            height: 48px;
+
+            font-size: 1.35rem;
+        }
+
+
+        .error-card h1 {
+            font-size: 1.4rem;
+        }
+
+
+        .error-card p {
+            font-size: 0.72rem;
+        }
+
+
+        .error-button {
+            width: 100%;
+
+            min-width: 0;
+
+            padding: 0.6rem;
+
+            font-size: 0.72rem;
+        }
+
+    }
+
 </style>
+
 {% endblock %}

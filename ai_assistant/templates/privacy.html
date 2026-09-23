@@ -1,85 +1,883 @@
 {% extends "base.html" %}
 
 {% block title %}Privacy Policy | AI Assistant{% endblock %}
-{% block canonical %}<link rel="canonical" href="https://www.myaiassistantapp.se/privacy/">{% endblock %}
+
+{% block canonical %}
+<link rel="canonical" href="https://www.myaiassistantapp.se/privacy/">
+{% endblock %}
+
 
 {% block extra_css %}
 <style>
-  .privacy-policy { max-width: 860px; margin: 2rem auto; padding: 1.5rem; color: var(--text-color); line-height: 1.75; overflow-wrap: anywhere; }
-  .privacy-policy h1 { line-height: 1.2; }
-  .privacy-policy h2 { margin-top: 2rem; line-height: 1.35; }
-  .privacy-policy a { color: inherit; text-decoration: underline; text-underline-offset: .2em; }
-  .privacy-policy .policy-date { font-size: .95rem; }
-  .privacy-policy section { scroll-margin-top: 2rem; }
-  @media (max-width: 600px) { .privacy-policy { margin: 1rem auto; padding: 1rem; } }
+
+    /* ==================================================
+       PRIVACY POLICY
+       ================================================== */
+
+    main {
+        width: min(1600px, calc(100% - 2rem));
+        max-width: none;
+
+        margin: 1rem auto;
+        padding: 0;
+
+        background: transparent;
+        border-radius: 0;
+
+        box-shadow: none;
+        backdrop-filter: none;
+    }
+
+
+    .privacy-policy {
+        width: 100%;
+
+        color: var(--text-color);
+
+        line-height: 1.55;
+
+        overflow-wrap: anywhere;
+    }
+
+
+    .privacy-policy a {
+        color: var(--accent-color);
+
+        font-weight: 700;
+
+        text-decoration: underline;
+        text-underline-offset: 0.18em;
+    }
+
+
+    /* ==================================================
+       HEADER
+       ================================================== */
+
+    .privacy-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+
+        gap: 1rem;
+
+        margin-bottom: 1rem;
+
+        padding: 1.1rem 1.25rem;
+
+        background: var(--nav-bg);
+
+        border: 1px solid var(--button-border);
+        border-radius: 14px;
+
+        box-shadow:
+            0 6px 18px rgba(0, 0, 0, 0.05);
+    }
+
+
+    .privacy-header-copy {
+        min-width: 0;
+    }
+
+
+    .privacy-eyebrow {
+        display: block;
+
+        margin-bottom: 0.2rem;
+
+        color: var(--accent-color);
+
+        font-size: 0.68rem;
+        font-weight: 800;
+
+        text-transform: uppercase;
+        letter-spacing: 0.09em;
+    }
+
+
+    .privacy-header h1 {
+        margin: 0;
+
+        color: var(--accent-color);
+
+        font-size: clamp(1.6rem, 3vw, 2.3rem);
+        line-height: 1.2;
+    }
+
+
+    .privacy-header .policy-date {
+        margin: 0.35rem 0 0;
+
+        font-size: 0.72rem;
+        font-weight: 700;
+
+        opacity: 0.7;
+    }
+
+
+    .privacy-header p {
+        max-width: 1050px;
+
+        margin: 0.55rem 0 0;
+
+        font-size: 0.8rem;
+        font-weight: 600;
+        line-height: 1.5;
+
+        opacity: 0.82;
+    }
+
+
+    .privacy-header-icon {
+        flex: 0 0 58px;
+
+        width: 58px;
+        height: 58px;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        background:
+            rgba(21, 131, 157, 0.08);
+
+        border: 1px solid var(--accent-color);
+        border-radius: 14px;
+
+        font-size: 1.45rem;
+    }
+
+
+    /* ==================================================
+       GRID
+       ================================================== */
+
+    .privacy-grid {
+        display: grid;
+
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+
+        align-items: start;
+
+        gap: 1rem;
+    }
+
+
+    .privacy-card {
+        min-width: 0;
+
+        padding: 1rem;
+
+        background: var(--nav-bg);
+
+        border: 1px solid var(--button-border);
+        border-radius: 13px;
+
+        box-shadow:
+            0 5px 16px rgba(0, 0, 0, 0.04);
+
+        scroll-margin-top: 2rem;
+    }
+
+
+    .privacy-card h2 {
+        margin: 0 0 0.6rem;
+
+        color: var(--accent-color);
+
+        font-size: 1rem;
+        line-height: 1.3;
+    }
+
+
+    .privacy-card p {
+        margin: 0;
+
+        font-size: 0.73rem;
+        font-weight: 600;
+        line-height: 1.55;
+
+        opacity: 0.88;
+    }
+
+
+    .privacy-card p + p {
+        margin-top: 0.7rem;
+    }
+
+
+    .privacy-card ul {
+        margin: 0;
+        padding-left: 1.1rem;
+    }
+
+
+    .privacy-card li {
+        margin-bottom: 0.55rem;
+
+        font-size: 0.73rem;
+        font-weight: 600;
+        line-height: 1.5;
+    }
+
+
+    .privacy-card li:last-child {
+        margin-bottom: 0;
+    }
+
+
+    /* ==================================================
+       DELETION SECTION
+       ================================================== */
+
+    .privacy-card-wide {
+        grid-column: 1 / -1;
+    }
+
+
+    .privacy-card-important {
+        border-color: var(--accent-color);
+    }
+
+
+    /* ==================================================
+       CONTACT STRIP
+       ================================================== */
+
+    .privacy-contact-strip {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+
+        gap: 1rem;
+
+        margin-top: 1rem;
+
+        padding: 0.85rem 1rem;
+
+        background: var(--nav-bg);
+
+        border: 1px solid var(--button-border);
+        border-radius: 11px;
+    }
+
+
+    .privacy-contact-strip strong,
+    .privacy-contact-strip span {
+        display: block;
+    }
+
+
+    .privacy-contact-strip strong {
+        color: var(--accent-color);
+
+        font-size: 0.85rem;
+    }
+
+
+    .privacy-contact-strip span {
+        margin-top: 0.15rem;
+
+        font-size: 0.7rem;
+        font-weight: 600;
+
+        opacity: 0.75;
+    }
+
+
+    /* ==================================================
+       TABLET
+       ================================================== */
+
+    @media (max-width: 1050px) {
+
+        .privacy-grid {
+            grid-template-columns: 1fr;
+        }
+
+
+        .privacy-card-wide {
+            grid-column: auto;
+        }
+
+    }
+
+
+    /* ==================================================
+       MOBILE
+       ================================================== */
+
+    @media (max-width: 700px) {
+
+        main {
+            width: 100%;
+
+            margin: 0;
+            padding: 0.65rem;
+        }
+
+
+        .privacy-header {
+            padding: 0.85rem;
+
+            border-radius: 12px;
+        }
+
+
+        .privacy-header-icon {
+            flex-basis: 44px;
+
+            width: 44px;
+            height: 44px;
+
+            border-radius: 10px;
+
+            font-size: 1.1rem;
+        }
+
+
+        .privacy-header h1 {
+            font-size: 1.35rem;
+        }
+
+
+        .privacy-header .policy-date {
+            font-size: 0.66rem;
+        }
+
+
+        .privacy-header p {
+            font-size: 0.7rem;
+        }
+
+
+        .privacy-grid {
+            gap: 0.65rem;
+        }
+
+
+        .privacy-card {
+            padding: 0.8rem;
+
+            border-radius: 11px;
+        }
+
+
+        .privacy-card h2 {
+            font-size: 0.9rem;
+        }
+
+
+        .privacy-card p,
+        .privacy-card li {
+            font-size: 0.68rem;
+        }
+
+
+        .privacy-contact-strip {
+            flex-direction: column;
+            align-items: flex-start;
+
+            gap: 0.3rem;
+
+            padding: 0.75rem;
+        }
+
+
+        .privacy-contact-strip span {
+            font-size: 0.66rem;
+        }
+
+    }
+
+
+    @media (max-width: 400px) {
+
+        .privacy-header {
+            align-items: flex-start;
+        }
+
+
+        .privacy-header-icon {
+            display: none;
+        }
+
+    }
+
 </style>
 {% endblock %}
 
+
 {% block content %}
-<article class="privacy-policy" aria-labelledby="privacy-title">
-  <h1 id="privacy-title">Privacy Policy</h1>
-  <p class="policy-date">AI Assistant · Last updated: September 14, 2026</p>
-  <p>This policy explains how AI Assistant ("we", "us") handles personal information when you use our website at myaiassistantapp.se and our Android app. It covers accounts, AI conversations, Knowledge Base, file uploads, optional Discord integration and subscriptions.</p>
-  <p>For privacy questions or requests about your information, contact <a href="mailto:support@myaiassistantapp.se">support@myaiassistantapp.se</a>. See <a href="#deletion">account and data deletion</a> below.</p>
 
-  <section aria-labelledby="collection-title">
-    <h2 id="collection-title">1. Information we process and why</h2>
-    <ul>
-      <li><strong>Account and sign-in:</strong> username, email address, securely hashed password, verification and password-reset information, authentication tokens and session information. We use these to create and secure your account, sign you in and help you recover access.</li>
-      <li><strong>AI assistants and chats:</strong> assistant settings and instructions, messages, AI responses, conversation history and timestamps. We store and process these to generate replies and let you continue conversations. Usage counts and token usage help us apply plan limits and show usage information.</li>
-      <li><strong>Knowledge Base and uploads:</strong> files or text you submit, filenames, upload details, extracted text and numerical representations of that text (embeddings). We use these to find relevant information and give your assistant context when answering questions.</li>
-      <li><strong>Email and support:</strong> your email address, account or billing information included in service emails, and the contents of support requests. We use these for verification, password resets, subscription notices and responding to you.</li>
-      <li><strong>Technical information:</strong> web requests may include IP addresses, browser or device information and error details. Hosting and application systems process technical logs to operate the service, investigate failures and prevent abuse.</li>
-    </ul>
-    <p>Only upload material you are entitled to share. Messages, documents and instructions can contain personal information about you or others; avoid including sensitive information that is unnecessary for the task.</p>
-  </section>
+<article
+    class="privacy-policy"
+    aria-labelledby="privacy-title"
+>
 
-  <section aria-labelledby="providers-title">
-    <h2 id="providers-title">2. AI processing and service providers</h2>
-    <p>We send prompts, assistant instructions, relevant conversation history and relevant Knowledge Base text to OpenAI to generate responses. Knowledge Base text and search queries may also be sent to OpenAI to generate embeddings. This means personal information you include in this content may be processed by OpenAI. See <a href="https://openai.com/policies/privacy-policy/">OpenAI's privacy policy</a>.</p>
-    <p>Our hosting, database and file-storage providers process the information needed to run the service. Resend processes recipient addresses and email contents when used to deliver our service emails. See <a href="https://resend.com/legal/privacy-policy">Resend's privacy policy</a>. Access by service providers is connected to providing their services.</p>
-    <p>We may also disclose information when required by law or when necessary to protect accounts, investigate abuse or establish and defend legal claims.</p>
-  </section>
+    <!-- HEADER -->
 
-  <section aria-labelledby="discord-title">
-    <h2 id="discord-title">3. Optional Discord integration</h2>
-    <p>If you connect an assistant to Discord, messages passed through the integration are sent to AI Assistant and processed to generate replies, including through OpenAI as described above. Integration settings and identifiers needed to route messages may also be processed. Replies posted to Discord are visible to people who can access the relevant channel or conversation.</p>
-    <p>You control whether you enable the integration. Removing or disabling the connection stops future use through that connection; it does not automatically erase previous messages in AI Assistant or Discord. Discord handles information under <a href="https://discord.com/privacy">its own privacy policy</a>.</p>
-  </section>
+    <header class="privacy-header">
 
-  <section aria-labelledby="payments-title">
-    <h2 id="payments-title">4. Payments and subscriptions</h2>
-    <p><strong>Website payments:</strong> Stripe processes checkout and payment details. AI Assistant processes customer and subscription identifiers, plan, subscription status, billing periods and payment-event information to manage access and billing. Payment card details are entered with Stripe; AI Assistant does not store your full card number or security code. See <a href="https://stripe.com/privacy">Stripe's privacy policy</a>.</p>
-    <p><strong>Android subscriptions, when enabled:</strong> Google Play Billing will process purchases through your Google account. AI Assistant will process purchase verification information, such as purchase tokens, product identifiers and subscription status, to verify purchases and provide access. Google handles payment details under <a href="https://policies.google.com/privacy">Google's privacy policy</a>. This describes the subscription feature when activated, and does not mean it is currently available.</p>
-  </section>
+        <div class="privacy-header-copy">
 
-  <section aria-labelledby="storage-title">
-    <h2 id="storage-title">5. Cookies, security and international processing</h2>
-    <p>We use session and security cookies for sign-in and request protection. Your browser may store your light or dark theme preference locally. Blocking necessary cookies can prevent account features from working.</p>
-    <p>We use safeguards such as password hashing and authenticated access controls. No system can guarantee absolute security. Providers may process information in countries outside your own, including outside the European Economic Area. Where required, international transfers must use applicable legal safeguards.</p>
-  </section>
+            <span class="privacy-eyebrow">
+                Privacy &amp; data
+            </span>
 
-  <section id="deletion" aria-labelledby="deletion-title">
-    <h2 id="deletion-title">6. Retention, account and data deletion</h2>
-    <p>Account information, conversations and Knowledge Base content remain in the application until removed through its controls or the account-deletion flow. There is no fixed automatic expiry for this content.</p>
-    <p>Visit <a href="{% url 'delete_account' %}">Delete your AI Assistant account</a> to request deletion without signing in or reinstalling the app. You can email support@myaiassistantapp.se with your account email and a request to delete your account and associated data. Support verifies ownership before acting. Signed-in users can also choose <a href="{% url 'accounts:delete_account' %}">Delete my account and data</a> from their dashboard and confirm using their current password.</p>
-    <p>Confirmed online deletion removes the account, profile, API/authentication tokens, owned assistants, conversations, messages, Knowledge Base text and embeddings, usage logs, local subscription and checkout records, and local billing-email copies addressed to the account email. Uploaded files for owned assistants and files uploaded by the user are queued for storage deletion after the database change commits. Cleanup is attempted immediately; failed jobs retain the file path for retry. A file referenced by another Knowledge Base item remains until that reference is removed.</p>
-    <p>Online deletion requires billing to be resolved first. Active subscriptions (including cancellation scheduled for a future date), pending changes, open checkouts or unverifiable billing require action through Billing or support. Contact support to request account deletion sooner and help ending billing. This deletion flow does not cancel subscriptions or issue refunds. When Google Play subscriptions are enabled, manage them through Google Play and mention them in your support request. Uninstalling the app does not delete an account or cancel a subscription.</p>
-    <p>A minimal provider follow-up record keeps the account email, Stripe customer identifier if present, and request date while support coordinates third-party erasure and communicates any exceptions. Support removes that record when follow-up is complete. Failed file-cleanup records remain until successfully processed. These queues have no fixed automatic completion deadline.</p>
-    <p>Stripe webhook event IDs and processing dates remain for duplicate-event protection, without stored payment payloads; no automatic expiry is implemented for these IDs. Rate-limit counters are removed on account deletion where possible and otherwise expire after the existing 60-second cache lifetime. Signed session cookies on other devices cease to authenticate after account removal; they may remain on those devices until cleared or expired.</p>
-    <p>Application deletion does not directly erase delivered emails, messages already posted to Discord, provider-held information, hosting logs or backups. Support must review erasure with the relevant providers and any billing, security, fraud-prevention or legal retention exceptions. No retention periods for those external systems are configured in this application. Support will explain applicable exceptions when handling the request; we do not promise immediate erasure from these systems.</p>
-  </section>
+            <h1 id="privacy-title">
+                Privacy Policy
+            </h1>
 
-  <section aria-labelledby="rights-title">
-    <h2 id="rights-title">7. Your privacy rights</h2>
-    <p>Depending on your location, you may have rights to access, correct, delete or receive a copy of your personal information, restrict or object to processing, and withdraw consent where processing relies on it. Contact the address above to exercise these rights. You may also complain to your local data protection authority.</p>
-    <p>Where European data protection law applies, processing needed to provide your account and requested features is based on performing our agreement with you. Security and support processing may rely on legitimate interests; legally required record-keeping relies on legal obligations. Where consent is required, we rely on that consent.</p>
-  </section>
+            <p class="policy-date">
+                AI Assistant · Last updated: September 14, 2026
+            </p>
 
-  <section aria-labelledby="changes-title">
-    <h2 id="changes-title">8. Changes and contact</h2>
-    <p>We may update this policy as the service changes. The date above identifies the latest revision. We will provide additional notice where required for material changes.</p>
-    <p>AI Assistant privacy contact: <a href="mailto:support@myaiassistantapp.se">support@myaiassistantapp.se</a>.</p>
-  </section>
+            <p>
+                This policy explains how AI Assistant ("we", "us")
+                handles personal information when you use our website
+                at myaiassistantapp.se and our Android app. It covers
+                accounts, AI conversations, Knowledge Base, file uploads,
+                optional Discord integration and subscriptions.
+            </p>
+
+            <p>
+                For privacy questions or requests about your information,
+                contact
+                <a href="mailto:support@myaiassistantapp.se">
+                    support@myaiassistantapp.se
+                </a>.
+                See
+                <a href="#deletion">
+                    account and data deletion
+                </a>
+                below.
+            </p>
+
+        </div>
+
+
+        <div
+            class="privacy-header-icon"
+            aria-hidden="true"
+        >
+            🔐
+        </div>
+
+    </header>
+
+
+    <!-- POLICY GRID -->
+
+    <div class="privacy-grid">
+
+        <!-- 1 -->
+
+        <section
+            class="privacy-card"
+            aria-labelledby="collection-title"
+        >
+
+            <h2 id="collection-title">
+                1. Information we process and why
+            </h2>
+
+            <ul>
+
+                <li>
+                    <strong>Account and sign-in:</strong>
+                    username, email address, securely hashed password,
+                    verification and password-reset information,
+                    authentication tokens and session information.
+                    We use these to create and secure your account,
+                    sign you in and help you recover access.
+                </li>
+
+                <li>
+                    <strong>AI assistants and chats:</strong>
+                    assistant settings and instructions, messages,
+                    AI responses, conversation history and timestamps.
+                    We store and process these to generate replies and
+                    let you continue conversations. Usage counts and
+                    token usage help us apply plan limits and show
+                    usage information.
+                </li>
+
+                <li>
+                    <strong>Knowledge Base and uploads:</strong>
+                    files or text you submit, filenames, upload details,
+                    extracted text and numerical representations of that
+                    text (embeddings). We use these to find relevant
+                    information and give your assistant context when
+                    answering questions.
+                </li>
+
+                <li>
+                    <strong>Email and support:</strong>
+                    your email address, account or billing information
+                    included in service emails, and the contents of
+                    support requests. We use these for verification,
+                    password resets, subscription notices and responding
+                    to you.
+                </li>
+
+                <li>
+                    <strong>Technical information:</strong>
+                    web requests may include IP addresses, browser or
+                    device information and error details. Hosting and
+                    application systems process technical logs to operate
+                    the service, investigate failures and prevent abuse.
+                </li>
+
+            </ul>
+
+            <p>
+                Only upload material you are entitled to share.
+                Messages, documents and instructions can contain personal
+                information about you or others; avoid including sensitive
+                information that is unnecessary for the task.
+            </p>
+
+        </section>
+
+
+        <!-- 2 -->
+
+        <section
+            class="privacy-card"
+            aria-labelledby="providers-title"
+        >
+
+            <h2 id="providers-title">
+                2. AI processing and service providers
+            </h2>
+
+            <p>
+                We send prompts, assistant instructions, relevant
+                conversation history and relevant Knowledge Base text
+                to OpenAI to generate responses. Knowledge Base text
+                and search queries may also be sent to OpenAI to generate
+                embeddings. This means personal information you include
+                in this content may be processed by OpenAI.
+                See
+                <a href="https://openai.com/policies/privacy-policy/">
+                    OpenAI's privacy policy
+                </a>.
+            </p>
+
+            <p>
+                Our hosting, database and file-storage providers process
+                the information needed to run the service. Resend processes
+                recipient addresses and email contents when used to deliver
+                our service emails. See
+                <a href="https://resend.com/legal/privacy-policy">
+                    Resend's privacy policy
+                </a>.
+                Access by service providers is connected to providing
+                their services.
+            </p>
+
+            <p>
+                We may also disclose information when required by law
+                or when necessary to protect accounts, investigate abuse
+                or establish and defend legal claims.
+            </p>
+
+        </section>
+
+
+        <!-- 3 -->
+
+        <section
+            class="privacy-card"
+            aria-labelledby="discord-title"
+        >
+
+            <h2 id="discord-title">
+                3. Optional Discord integration
+            </h2>
+
+            <p>
+                If you connect an assistant to Discord, messages passed
+                through the integration are sent to AI Assistant and
+                processed to generate replies, including through OpenAI
+                as described above. Integration settings and identifiers
+                needed to route messages may also be processed. Replies
+                posted to Discord are visible to people who can access
+                the relevant channel or conversation.
+            </p>
+
+            <p>
+                You control whether you enable the integration. Removing
+                or disabling the connection stops future use through that
+                connection; it does not automatically erase previous
+                messages in AI Assistant or Discord. Discord handles
+                information under
+                <a href="https://discord.com/privacy">
+                    its own privacy policy
+                </a>.
+            </p>
+
+        </section>
+
+
+        <!-- 4 -->
+
+        <section
+            class="privacy-card"
+            aria-labelledby="payments-title"
+        >
+
+            <h2 id="payments-title">
+                4. Payments and subscriptions
+            </h2>
+
+            <p>
+                <strong>Website payments:</strong>
+                Stripe processes checkout and payment details.
+                AI Assistant processes customer and subscription
+                identifiers, plan, subscription status, billing periods
+                and payment-event information to manage access and billing.
+                Payment card details are entered with Stripe;
+                AI Assistant does not store your full card number
+                or security code.
+                See
+                <a href="https://stripe.com/privacy">
+                    Stripe's privacy policy
+                </a>.
+            </p>
+
+            <p>
+                <strong>Android subscriptions, when enabled:</strong>
+                Google Play Billing will process purchases through your
+                Google account. AI Assistant will process purchase
+                verification information, such as purchase tokens,
+                product identifiers and subscription status, to verify
+                purchases and provide access. Google handles payment
+                details under
+                <a href="https://policies.google.com/privacy">
+                    Google's privacy policy
+                </a>.
+                This describes the subscription feature when activated,
+                and does not mean it is currently available.
+            </p>
+
+        </section>
+
+
+        <!-- 5 -->
+
+        <section
+            class="privacy-card"
+            aria-labelledby="storage-title"
+        >
+
+            <h2 id="storage-title">
+                5. Cookies, security and international processing
+            </h2>
+
+            <p>
+                We use session and security cookies for sign-in and
+                request protection. Your browser may store your light
+                or dark theme preference locally. Blocking necessary
+                cookies can prevent account features from working.
+            </p>
+
+            <p>
+                We use safeguards such as password hashing and
+                authenticated access controls. No system can guarantee
+                absolute security. Providers may process information
+                in countries outside your own, including outside the
+                European Economic Area. Where required, international
+                transfers must use applicable legal safeguards.
+            </p>
+
+        </section>
+
+
+        <!-- 6 -->
+
+        <section
+            id="deletion"
+            class="privacy-card privacy-card-wide privacy-card-important"
+            aria-labelledby="deletion-title"
+        >
+
+            <h2 id="deletion-title">
+                6. Retention, account and data deletion
+            </h2>
+
+            <p>
+                Account information, conversations and Knowledge Base
+                content remain in the application until removed through
+                its controls or the account-deletion flow. There is no
+                fixed automatic expiry for this content.
+            </p>
+
+            <p>
+                Visit
+                <a href="{% url 'delete_account' %}">
+                    Delete your AI Assistant account
+                </a>
+                to request deletion without signing in or reinstalling
+                the app. You can email support@myaiassistantapp.se with
+                your account email and a request to delete your account
+                and associated data. Support verifies ownership before
+                acting. Signed-in users can also choose
+                <a href="{% url 'accounts:delete_account' %}">
+                    Delete my account and data
+                </a>
+                from their dashboard and confirm using their current
+                password.
+            </p>
+
+            <p>
+                Confirmed online deletion removes the account, profile,
+                API/authentication tokens, owned assistants, conversations,
+                messages, Knowledge Base text and embeddings, usage logs,
+                local subscription and checkout records, and local
+                billing-email copies addressed to the account email.
+                Uploaded files for owned assistants and files uploaded by
+                the user are queued for storage deletion after the database
+                change commits. Cleanup is attempted immediately; failed
+                jobs retain the file path for retry. A file referenced by
+                another Knowledge Base item remains until that reference
+                is removed.
+            </p>
+
+            <p>
+                Online deletion requires billing to be resolved first.
+                Active subscriptions (including cancellation scheduled for
+                a future date), pending changes, open checkouts or
+                unverifiable billing require action through Billing or
+                support. Contact support to request account deletion sooner
+                and help ending billing. This deletion flow does not cancel
+                subscriptions or issue refunds. When Google Play
+                subscriptions are enabled, manage them through Google Play
+                and mention them in your support request. Uninstalling the
+                app does not delete an account or cancel a subscription.
+            </p>
+
+            <p>
+                A minimal provider follow-up record keeps the account email,
+                Stripe customer identifier if present, and request date
+                while support coordinates third-party erasure and
+                communicates any exceptions. Support removes that record
+                when follow-up is complete. Failed file-cleanup records
+                remain until successfully processed. These queues have no
+                fixed automatic completion deadline.
+            </p>
+
+            <p>
+                Stripe webhook event IDs and processing dates remain for
+                duplicate-event protection, without stored payment
+                payloads; no automatic expiry is implemented for these IDs.
+                Rate-limit counters are removed on account deletion where
+                possible and otherwise expire after the existing 60-second
+                cache lifetime. Signed session cookies on other devices
+                cease to authenticate after account removal; they may
+                remain on those devices until cleared or expired.
+            </p>
+
+            <p>
+                Application deletion does not directly erase delivered
+                emails, messages already posted to Discord, provider-held
+                information, hosting logs or backups. Support must review
+                erasure with the relevant providers and any billing,
+                security, fraud-prevention or legal retention exceptions.
+                No retention periods for those external systems are
+                configured in this application. Support will explain
+                applicable exceptions when handling the request; we do
+                not promise immediate erasure from these systems.
+            </p>
+
+        </section>
+
+
+        <!-- 7 -->
+
+        <section
+            class="privacy-card"
+            aria-labelledby="rights-title"
+        >
+
+            <h2 id="rights-title">
+                7. Your privacy rights
+            </h2>
+
+            <p>
+                Depending on your location, you may have rights to access,
+                correct, delete or receive a copy of your personal
+                information, restrict or object to processing, and withdraw
+                consent where processing relies on it. Contact the address
+                above to exercise these rights. You may also complain to
+                your local data protection authority.
+            </p>
+
+            <p>
+                Where European data protection law applies, processing
+                needed to provide your account and requested features is
+                based on performing our agreement with you. Security and
+                support processing may rely on legitimate interests;
+                legally required record-keeping relies on legal obligations.
+                Where consent is required, we rely on that consent.
+            </p>
+
+        </section>
+
+
+        <!-- 8 -->
+
+        <section
+            class="privacy-card"
+            aria-labelledby="changes-title"
+        >
+
+            <h2 id="changes-title">
+                8. Changes and contact
+            </h2>
+
+            <p>
+                We may update this policy as the service changes.
+                The date above identifies the latest revision.
+                We will provide additional notice where required
+                for material changes.
+            </p>
+
+            <p>
+                AI Assistant privacy contact:
+                <a href="mailto:support@myaiassistantapp.se">
+                    support@myaiassistantapp.se
+                </a>.
+            </p>
+
+        </section>
+
+    </div>
+
+
+    <div class="privacy-contact-strip">
+
+        <div>
+
+            <strong>
+                Privacy questions or deletion requests
+            </strong>
+
+            <span>
+                Contact support if you need help with your account,
+                personal information or data deletion.
+            </span>
+
+        </div>
+
+        <a href="mailto:support@myaiassistantapp.se">
+            support@myaiassistantapp.se
+        </a>
+
+    </div>
+
 </article>
+
 {% endblock %}

@@ -432,43 +432,26 @@ class CreateCheckoutSessionView(View):
                     if session.get("status") == "expired":
                         attempt.delete()
 
-                        attempt = CheckoutAttempt.objects.create(
-                            profile=profile,
-                            plan=plan,
-                            success_url=(
-                                request.build_absolute_uri(
-                                    "/payments/success/"
+                        return JsonResponse(
+                            {
+                                "error": (
+                                    "Your previous checkout expired. "
+                                    "Choose your plan again to continue."
                                 )
-                                + "?session_id={CHECKOUT_SESSION_ID}"
-                            ),
-                            cancel_url=request.build_absolute_uri(
-                                "/payments/cancel/"
-                            ),
+                            },
+                            status=409,
                         )
 
                     elif session.get("status") == "open":
                         if attempt.plan != plan:
-                            # The user changed plan before completing payment.
-                            # Expire the old Checkout and create a fresh intent.
-                            stripe.checkout.Session.expire(
-                                attempt.session_id,
-                                api_key=settings.STRIPE_SECRET_KEY,
-                            )
-
-                            attempt.delete()
-
-                            attempt = CheckoutAttempt.objects.create(
-                                profile=profile,
-                                plan=plan,
-                                success_url=(
-                                    request.build_absolute_uri(
-                                        "/payments/success/"
+                            return JsonResponse(
+                                {
+                                    "error": (
+                                        "Another plan checkout is already open. "
+                                        "Complete or let it expire before choosing another plan."
                                     )
-                                    + "?session_id={CHECKOUT_SESSION_ID}"
-                                ),
-                                cancel_url=request.build_absolute_uri(
-                                    "/payments/cancel/"
-                                ),
+                                },
+                                status=409,
                             )
                         else:
                             # Same plan: reuse the existing open Checkout.
@@ -535,6 +518,19 @@ class CreateCheckoutSessionView(View):
                             "error": (
                                 "An existing checkout is open. Complete it "
                                 "or let it expire before starting another."
+                            )
+                        },
+                        status=409,
+                    )
+
+                if attempt.started_at <= timezone.now() - timedelta(hours=24):
+                    attempt.delete()
+
+                    return JsonResponse(
+                        {
+                            "error": (
+                                "Your previous checkout attempt expired. "
+                                "Choose your plan again to continue."
                             )
                         },
                         status=409,

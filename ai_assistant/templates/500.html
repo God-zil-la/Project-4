@@ -3,9 +3,22 @@
 {% block title %}500 - Server Error{% endblock %}
 
 {% block content %}
-<section class="content error-page">
+
+<section class="error-page">
+
     <div class="error-card">
-        <h1>500 - Server Error</h1>
+
+        <div class="error-icon" aria-hidden="true">
+            ⚠
+        </div>
+
+        <span class="error-eyebrow">
+            Server error
+        </span>
+
+        <h1>
+            500 - Server Error
+        </h1>
 
         <p>
             Something went wrong. We're currently experiencing a temporary problem.
@@ -16,44 +29,234 @@
             We apologize for the inconvenience.
         </p>
 
-        <a href="{% url 'home' %}" class="btn">
+        <a
+            href="{% url 'home' %}"
+            class="error-button"
+        >
             Return Home
         </a>
+
     </div>
+
 </section>
 
+
 <style>
-    .error-page {
-        display: flex;
-        justify-content: center;
-        padding: 3rem 1rem;
+
+    main {
+        width: min(1600px, calc(100% - 2rem));
+        max-width: none;
+        margin: 1rem auto;
+        padding: 0;
+        background: transparent;
+        border-radius: 0;
+        box-shadow: none;
+        backdrop-filter: none;
     }
+
+
+    .error-page {
+        min-height: min(560px, 65vh);
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        padding: 1rem;
+    }
+
 
     .error-card {
-        width: 100%;
-        max-width: 560px;
-        padding: 2rem;
+        width: min(620px, 100%);
+
+        padding: 1.5rem;
+
         text-align: center;
+
         background: var(--nav-bg);
         color: var(--text-color);
+
         border: 1px solid var(--button-border);
-        border-radius: 14px;
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+        border-radius: 16px;
+
+        box-shadow:
+            0 8px 24px rgba(0, 0, 0, 0.08);
     }
+
+
+    .error-icon {
+        width: 58px;
+        height: 58px;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        margin: 0 auto 0.8rem;
+
+        background: rgba(139, 0, 0, 0.1);
+
+        color: #8b0000;
+
+        border: 1px solid #8b0000;
+        border-radius: 50%;
+
+        font-size: 1.45rem;
+        font-weight: 900;
+    }
+
+
+    html.dark .error-icon {
+        color: #ff8a80;
+        border-color: #ff8a80;
+    }
+
+
+    .error-eyebrow {
+        display: block;
+
+        margin-bottom: 0.2rem;
+
+        color: var(--accent-color);
+
+        font-size: 0.68rem;
+        font-weight: 800;
+
+        text-transform: uppercase;
+        letter-spacing: 0.09em;
+    }
+
 
     .error-card h1 {
-        margin-top: 0;
-        margin-bottom: 1rem;
+        margin: 0;
+
         color: var(--accent-color);
+
+        font-size: clamp(1.6rem, 3vw, 2.2rem);
+        line-height: 1.2;
     }
+
 
     .error-card p {
-        line-height: 1.6;
-    }
+        max-width: 470px;
 
-    .error-note {
-        margin-bottom: 1.5rem;
+        margin: 0.75rem auto 0;
+
+        font-size: 0.82rem;
+        font-weight: 600;
+        line-height: 1.5;
+
         opacity: 0.8;
     }
+
+
+    .error-note {
+        margin-top: 0.4rem !important;
+        margin-bottom: 1.1rem !important;
+
+        font-size: 0.75rem !important;
+
+        opacity: 0.65 !important;
+    }
+
+
+    .error-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+
+        min-width: 170px;
+
+        padding: 0.65rem 1rem;
+
+        background: var(--button-bg);
+        color: var(--button-text);
+
+        border: 1px solid var(--accent-color);
+        border-radius: 8px;
+
+        font-size: 0.8rem;
+        font-weight: 700;
+
+        text-decoration: none;
+
+        transition:
+            background 0.2s ease,
+            transform 0.2s ease;
+    }
+
+
+    .error-button:hover {
+        background: var(--button-hover);
+
+        transform: translateY(-1px);
+    }
+
+
+    .error-button:focus-visible {
+        outline: 2px solid var(--accent-color);
+        outline-offset: 2px;
+    }
+
+
+    @media (max-width: 550px) {
+
+        main {
+            width: 100%;
+            margin: 0;
+            padding: 0.65rem;
+        }
+
+
+        .error-page {
+            min-height: 60vh;
+
+            padding: 0.5rem;
+        }
+
+
+        .error-card {
+            padding: 1rem;
+
+            border-radius: 12px;
+        }
+
+
+        .error-icon {
+            width: 48px;
+            height: 48px;
+
+            font-size: 1.2rem;
+        }
+
+
+        .error-card h1 {
+            font-size: 1.4rem;
+        }
+
+
+        .error-card p {
+            font-size: 0.72rem;
+        }
+
+
+        .error-note {
+            font-size: 0.68rem !important;
+        }
+
+
+        .error-button {
+            width: 100%;
+
+            min-width: 0;
+
+            padding: 0.6rem;
+
+            font-size: 0.72rem;
+        }
+
+    }
+
 </style>
+
 {% endblock %}
