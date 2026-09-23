@@ -177,8 +177,8 @@ class KnowledgeUploadTests(TestCase):
                 vectors.append(result['embedding'])
             return vectors
 
-        with patch('ai_assistant.bots.views.chunk_text', return_value=['First.', 'Second.']), \
-             patch('ai_assistant.bots.views.generate_embedding_batches',
+        with patch('ai_assistant.bots.knowledge_service.chunk_text', return_value=['First.', 'Second.']), \
+             patch('ai_assistant.bots.knowledge_service.generate_embedding_batches',
                    side_effect=response_batches), \
              patch('ai_assistant.bots.views.render', return_value=HttpResponse()):
             response = bot_chat_playground(request, self.bot.pk)
@@ -221,7 +221,7 @@ class KnowledgeUploadTests(TestCase):
                 raise IntegrityError('Chunk insert failed')
             return create(**kwargs)
 
-        with patch('ai_assistant.bots.views.KnowledgeChunk.objects.create', side_effect=fail_second):
+        with patch('ai_assistant.bots.knowledge_service.KnowledgeChunk.objects.create', side_effect=fail_second):
             self.upload()
         self.assertEqual(len(calls), 2)
         self.assert_no_partial_upload()
@@ -264,10 +264,10 @@ class KnowledgeUploadTests(TestCase):
 
         with (
             patch(
-                "ai_assistant.bots.views.extract_text"
+                "ai_assistant.bots.knowledge_service.extract_text"
             ) as extract_text,
             patch(
-                "ai_assistant.bots.views.generate_embedding_batches"
+                "ai_assistant.bots.knowledge_service.generate_embedding_batches"
             ) as generate_embeddings,
         ):
             response = bot_chat_playground(
@@ -320,15 +320,15 @@ class KnowledgeUploadTests(TestCase):
 
         with (
             patch(
-                "ai_assistant.bots.views.extract_text",
+                "ai_assistant.bots.knowledge_service.extract_text",
                 return_value="x",
             ) as extract_text,
             patch(
-                "ai_assistant.bots.views.chunk_text",
+                "ai_assistant.bots.knowledge_service.chunk_text",
                 return_value=["x"],
             ),
             patch(
-                "ai_assistant.bots.views.generate_embedding_batches",
+                "ai_assistant.bots.knowledge_service.generate_embedding_batches",
                 return_value=[[0.5]],
             ) as generate_embeddings,
         ):
@@ -385,10 +385,10 @@ class KnowledgeUploadTests(TestCase):
 
         with (
             patch(
-                "ai_assistant.bots.views.extract_text"
+                "ai_assistant.bots.knowledge_service.extract_text"
             ) as extract_text,
             patch(
-                "ai_assistant.bots.views.generate_embedding_batches"
+                "ai_assistant.bots.knowledge_service.generate_embedding_batches"
             ) as generate_embeddings,
         ):
             response = bot_chat_playground(
@@ -431,10 +431,10 @@ class KnowledgeUploadTests(TestCase):
 
         with (
             patch(
-                "ai_assistant.bots.views.extract_text"
+                "ai_assistant.bots.knowledge_service.extract_text"
             ) as extract_text,
             patch(
-                "ai_assistant.bots.views.generate_embedding_batches"
+                "ai_assistant.bots.knowledge_service.generate_embedding_batches"
             ) as generate_embeddings,
         ):
             response = bot_chat_playground(
@@ -481,15 +481,15 @@ class KnowledgeUploadTests(TestCase):
 
         with (
             patch(
-                "ai_assistant.bots.views.extract_text",
+                "ai_assistant.bots.knowledge_service.extract_text",
                 return_value="x",
             ) as extract_text,
             patch(
-                "ai_assistant.bots.views.chunk_text",
+                "ai_assistant.bots.knowledge_service.chunk_text",
                 return_value=["x"],
             ),
             patch(
-                "ai_assistant.bots.views.generate_embedding_batches",
+                "ai_assistant.bots.knowledge_service.generate_embedding_batches",
                 return_value=[[0.5]],
             ) as generate_embeddings,
         ):
@@ -536,10 +536,10 @@ class KnowledgeUploadTests(TestCase):
 
         with (
             patch(
-                "ai_assistant.bots.views.chunk_text"
+                "ai_assistant.bots.knowledge_service.chunk_text"
             ) as chunk_text,
             patch(
-                "ai_assistant.bots.views.generate_embedding_batches"
+                "ai_assistant.bots.knowledge_service.generate_embedding_batches"
             ) as generate_embeddings,
         ):
             response = bot_chat_playground(
@@ -612,7 +612,7 @@ class EmbeddingBatchTests(TestCase):
         request._dont_enforce_csrf_checks = True
         request.session = {}
         request._messages = FallbackStorage(request)
-        with patch('ai_assistant.bots.views.chunk_text', return_value=['First.', 'Second.']), \
+        with patch('ai_assistant.bots.knowledge_service.chunk_text', return_value=['First.', 'Second.']), \
              patch('ai_assistant.bots.knowledge_utils.openai.Embedding.create',
                    return_value=self.response(2)):
             response = bot_chat_playground(request, upload.bot.pk)

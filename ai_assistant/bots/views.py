@@ -3,9 +3,6 @@
 import json
 import logging
 import traceback
-from ai_assistant.accounts.plan_utils import (
-    get_knowledge_storage_status,
-)
 
 
 # Django imports
@@ -17,7 +14,6 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
 from django.views.decorators.csrf import csrf_protect
 from django.contrib import messages
-from django.db import transaction
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse, HttpResponseNotAllowed
 
@@ -36,21 +32,19 @@ from .models import (
     ChatMessage,
     Conversation,
     KnowledgeBase,
-    KnowledgeChunk,
 )
 from .forms import BotForm, KnowledgeBaseForm
 from django.core.exceptions import ValidationError
 from .assistant_validation import save_assistant
-from .utils import extract_text, chunk_text
+from .knowledge_service import upload_knowledge
+from .knowledge_errors import KnowledgeProcessingError, KnowledgeQuotaError
 from ai_assistant.bots.chat_service import (
     ChatRateLimitError,
     ChatServiceError,
     ChatUsageLimitError,
     process_bot_message,
 )
-from .knowledge_utils import (
-    generate_embedding_batches,
-)
+
 
 
 # Setup
@@ -594,149 +588,15 @@ def bot_chat_playground(request, bot_id):
                 )
             )
 
-            if file:
-                source_size_bytes = file.size
-            else:
-                source_size_bytes = len(
-                    manual_text.encode("utf-8")
-                )
-
-            storage_status = get_knowledge_storage_status(
-                request.user,
-                incoming_size_bytes=source_size_bytes,
-            )
-
-            if not storage_status["allowed"]:
-                used_mb = (
-                    storage_status["storage_used_bytes"]
-                    / (1024 * 1024)
-                )
-                limit_mb = (
-                    storage_status["storage_limit_bytes"]
-                    / (1024 * 1024)
-                )
-
-                messages.error(
-                    request,
-                    (
-                        "Knowledge storage limit reached. "
-                        f"You are using {used_mb:.1f} MB of "
-                        f"{limit_mb:.0f} MB available on your "
-                        f"{storage_status['plan'].capitalize()} plan."
-                    ),
-                )
-
-                return redirect(
-                    "bots:playground",
-                    bot_id=bot.id,
-                )
-
-            source_text = ""
-            filename = ""
-
             try:
-                if file:
-                    filename = file.name
-
-                    file.seek(0)
-
-                    source_text = extract_text(
-                        file,
-                        filename,
-                    )
-
-                elif manual_text:
-                    filename = (
-                        "manual_input.txt"
-                    )
-
-                    source_text = manual_text
-
-                if not source_text.strip():
-                    messages.error(
-                        request,
-                        (
-                            "No valid content "
-                            "extracted from input."
-                        ),
-                    )
-
-                    return redirect(
-                        "bots:playground",
-                        bot_id=bot.id,
-                    )
-
-                chunks = chunk_text(
-                    source_text
-                )
-
-                if not chunks:
-                    raise ValueError("No valid knowledge chunks were generated.")
-
-                def record_embedding_usage(usage):
-                    if usage["tokens_used"] > 0:
-                        BotUsageLog.objects.create(
-                            user=request.user, bot=bot, **usage,
-                        )
-
-                embeddings = generate_embedding_batches(
-                    chunks, record_usage=record_embedding_usage,
-                )
-                prepared_chunks = list(zip(chunks, embeddings))
-
-                # Keep API calls outside the knowledge database transaction.
-                # Usage logs remain recorded even if a later upload step fails.
-                kb = KnowledgeBase(
-                    bot=bot,
-                    file=file if file else None,
-                    uploaded_by=request.user,
-                    source_size_bytes=source_size_bytes,
-                )
-                try:
-                    if file:
-                        file.seek(0)
-                    with transaction.atomic():
-                        kb.save()
-                        for chunk, embedding in prepared_chunks:
-                            KnowledgeChunk.objects.create(
-                                knowledge_file=kb,
-                                text=chunk,
-                                embedding=embedding,
-                            )
-                except Exception:
-                    # File storage does not participate in database rollback.
-                    if kb.file and kb.file._committed:
-                        try:
-                            kb.file.delete(save=False)
-                        except Exception:
-                            logger.exception(
-                                "Failed to clean up knowledge upload file %s",
-                                kb.file.name,
-                            )
-                    raise
-
-                messages.success(
-                    request,
-                    (
-                        "Knowledge uploaded and "
-                        "processed successfully!"
-                    ),
-                )
-
-                return redirect(
-                    "bots:playground",
-                    bot_id=bot.id,
-                )
-
-            except Exception as error:
-                logger.error("Knowledge upload failed (%s).", error,)
-
-                messages.error(
-                    request,
-                    (
-                        "Failed to process file. Please check the content and try again."
-                    ),
-                )
+                upload_knowledge(request.user, bot, file=file, manual_text=manual_text or "")
+            except KnowledgeProcessingError as error:
+                messages.error(request, str(error))
+                if isinstance(error, KnowledgeQuotaError):
+                    return redirect("bots:playground", bot_id=bot.id)
+            else:
+                messages.success(request, "Knowledge uploaded and processed successfully!")
+                return redirect("bots:playground", bot_id=bot.id)
 
         else:
             messages.error(

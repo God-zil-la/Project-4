@@ -66,7 +66,7 @@ class LocalCompletionTests(TestCase):
         request._dont_enforce_csrf_checks = True
 
         with patch(
-            "ai_assistant.bots.views.generate_embedding_batches",
+            "ai_assistant.bots.knowledge_service.generate_embedding_batches",
             return_value=[[1.0]],
         ) as batches:
             response = bot_chat_playground(

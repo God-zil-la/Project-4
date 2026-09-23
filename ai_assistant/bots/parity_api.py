@@ -1,21 +1,16 @@
 """Token-authenticated adapters for existing web features; no new data model."""
-import logging
-from django.db import transaction
 from django.shortcuts import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from ai_assistant.accounts.plan_utils import get_knowledge_storage_status
-from ai_assistant.dashboard.models import BotUsageLog
 from ai_assistant.dashboard.views import dashboard_data
 from .forms import KnowledgeBaseForm
-from .models import Bot, KnowledgeBase, KnowledgeChunk
-from .utils import extract_text, chunk_text
-from .knowledge_utils import generate_embedding_batches
+from .models import Bot, KnowledgeBase
+from .knowledge_service import upload_knowledge
+from .knowledge_errors import KnowledgeProcessingError, KnowledgeQuotaError
 from .views import analytics_data
 
-logger = logging.getLogger(__name__)
 
 class DashboardAPIView(APIView):
     permission_classes = [IsAuthenticated]
@@ -50,42 +45,13 @@ class KnowledgeAPIView(APIView):
         if not form.is_valid():
             return Response({"errors": dict(form.errors)}, status=400)
         file = form.cleaned_data["file"]
-        storage = get_knowledge_storage_status(request.user, incoming_size_bytes=file.size)
-        if not storage["allowed"]:
-            return Response({"error": "Knowledge storage limit reached.",
-                             "plan": storage["plan"]}, status=403)
-        kb = None
         try:
-            source = extract_text(file, file.name)
-            if not source.strip():
-                return Response({"error": "No valid content extracted from input."}, status=400)
-            chunks = chunk_text(source)
-            if not chunks:
-                raise ValueError("No valid knowledge chunks were generated.")
-            def record_usage(usage):
-                if usage["tokens_used"] > 0:
-                    BotUsageLog.objects.create(user=request.user, bot=bot, **usage)
-            embeddings = generate_embedding_batches(chunks, record_usage=record_usage)
-            file.seek(0)
-            kb = KnowledgeBase(bot=bot, file=file, uploaded_by=request.user,
-                               source_size_bytes=file.size)
-            with transaction.atomic():
-                # Serialize native uploads for this account and recheck after processing.
-                type(request.user.profile).objects.select_for_update().get(user=request.user)
-                storage = get_knowledge_storage_status(request.user, incoming_size_bytes=file.size)
-                if not storage["allowed"]:
-                    return Response({"error": "Knowledge storage limit reached."}, status=403)
-                kb.save()
-                for chunk, embedding in zip(chunks, embeddings, strict=True):
-                    KnowledgeChunk.objects.create(knowledge_file=kb, text=chunk, embedding=embedding)
-        except Exception:
-            if kb is not None and kb.file and kb.file._committed:
-                try:
-                    kb.file.delete(save=False)
-                except Exception:
-                    logger.exception("Failed to clean up native knowledge upload")
-            logger.exception("Native knowledge processing failed")
-            return Response({"error": "Failed to process file. Please check the content and try again."}, status=400)
+            kb = upload_knowledge(request.user, bot, file=file)
+        except KnowledgeProcessingError as error:
+            data = {"error": str(error), "code": error.code}
+            if isinstance(error, KnowledgeQuotaError):
+                data["plan"] = error.storage["plan"]
+            return Response(data, status=error.status)
         return Response(knowledge_row(kb), status=201)
 
 class KnowledgeDetailAPIView(APIView):

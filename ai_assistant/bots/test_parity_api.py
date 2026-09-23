@@ -70,7 +70,7 @@ class ParityAPITests(TestCase):
         self.assertEqual(self.client.delete(f'{self.url}{foreign.id}/').status_code, 404)
         self.assertTrue(KnowledgeBase.objects.filter(pk=foreign.id).exists())
 
-    @patch('ai_assistant.bots.parity_api.generate_embedding_batches', return_value=[[0.1, 0.2]])
+    @patch('ai_assistant.bots.knowledge_service.generate_embedding_batches', return_value=[[0.1, 0.2]])
     def test_upload_list_delete_existing_pipeline(self, embeddings):
         response = self.client.post(self.url, {'file': self.document()}, format='multipart')
         self.assertEqual(response.status_code, 201, response.data)
@@ -82,23 +82,23 @@ class ParityAPITests(TestCase):
         self.assertEqual(self.client.delete(f'{self.url}{item.id}/').status_code, 204)
         self.assertFalse(KnowledgeChunk.objects.exists())
 
-    @patch('ai_assistant.bots.parity_api.generate_embedding_batches')
+    @patch('ai_assistant.bots.knowledge_service.generate_embedding_batches')
     def test_invalid_type_empty_file_and_missing_file_do_not_embed(self, embeddings):
         for data in [{'file': self.document('photo.png')}, {'file': self.document(content=b'')}, {}, {'manual_text': 'No new native editor'}]:
             self.assertEqual(self.client.post(self.url, data, format='multipart').status_code, 400)
         embeddings.assert_not_called()
 
-    @patch('ai_assistant.bots.parity_api.generate_embedding_batches')
+    @patch('ai_assistant.bots.knowledge_service.generate_embedding_batches')
     def test_quota_uses_effective_plan_and_blocks_before_embedding(self, embeddings):
         KnowledgeBase.objects.create(bot=self.bot, source_size_bytes=10*1024*1024)
         response = self.client.post(self.url, {'file': self.document()}, format='multipart')
         self.assertEqual(response.status_code, 403)
         embeddings.assert_not_called()
 
-    @patch('ai_assistant.bots.parity_api.generate_embedding_batches', side_effect=RuntimeError('upstream failure'))
+    @patch('ai_assistant.bots.knowledge_service.generate_embedding_batches', side_effect=RuntimeError('upstream failure'))
     def test_processing_failure_does_not_create_knowledge(self, embeddings):
         response = self.client.post(self.url, {'file': self.document()}, format='multipart')
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, 503)
         self.assertNotIn('upstream failure', str(response.data))
         self.assertFalse(KnowledgeBase.objects.exists())
 
@@ -153,12 +153,12 @@ class ParityAPITests(TestCase):
         profile.save()
         self.assertEqual(self.client.get('/accounts/api/me/').data['plan'], 'premium')
 
-    @patch('ai_assistant.bots.parity_api.generate_embedding_batches', return_value=[[0.1]])
-    @patch('ai_assistant.bots.parity_api.KnowledgeChunk.objects.create', side_effect=RuntimeError('database failure'))
+    @patch('ai_assistant.bots.knowledge_service.generate_embedding_batches', return_value=[[0.1]])
+    @patch('ai_assistant.bots.knowledge_service.KnowledgeChunk.objects.create', side_effect=RuntimeError('database failure'))
     def test_chunk_failure_rolls_back_rows_and_stored_file(self, create, embeddings):
         from pathlib import Path
         response = self.client.post(self.url, {'file': self.document()}, format='multipart')
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, 503)
         self.assertFalse(KnowledgeBase.objects.exists())
         self.assertFalse(KnowledgeChunk.objects.exists())
         self.assertFalse([p for p in Path(self.media.name).rglob('*') if p.is_file()])

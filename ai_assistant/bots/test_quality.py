@@ -259,13 +259,11 @@ class AIQualityTests(TestCase):
                 embedding=vector,
             )
 
-        self.assertEqual(
-            search_relevant_chunks(
-                self.bot,
-                "Query",
-            ),
-            ["Relevant"],
-        )
+        with patch(
+            "ai_assistant.bots.knowledge_utils._plan_knowledge_retrieval",
+            side_effect=RuntimeError("Planner unavailable"),
+        ):
+            self.assertEqual(search_relevant_chunks(self.bot, "Query"), ["Relevant"])
 
     def test_foreign_conversation_rejected(self):
         other = User.objects.create_user(

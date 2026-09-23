@@ -7,92 +7,134 @@ from django.template.loader import render_to_string
 load_dotenv()
 
 
+def validate_extracted_text(text):
+    from django.conf import settings
+    from .knowledge_errors import KnowledgeProcessingError
+    if len(text) > settings.KNOWLEDGE_MAX_TEXT_CHARS:
+        raise KnowledgeProcessingError(
+            "Document contains too much text to process.", "processing_limit", 413
+        )
+    if not text.strip():
+        raise KnowledgeProcessingError(
+            "No readable text found. Scanned PDFs need a text layer; OCR is not supported.",
+            "empty_content",
+        )
+    return text
+
+
+def _bounded_parts(parts):
+    from django.conf import settings
+    from .knowledge_errors import KnowledgeProcessingError
+    result, length = [], 0
+    for part in parts:
+        length += len(part) + (1 if result else 0)
+        if length > settings.KNOWLEDGE_MAX_TEXT_CHARS:
+            raise KnowledgeProcessingError(
+                "Document contains too much text to process.", "processing_limit", 413
+            )
+        result.append(part)
+    return validate_extracted_text("\n".join(result))
+
+
 def extract_text_from_pdf(file_obj):
-    """
-    Extracts text from a PDF file using PyMuPDF.
-    Supports both file paths and Django uploaded files.
-    """
     import fitz
-
-    text = ""
-
+    from django.conf import settings
+    from .knowledge_errors import KnowledgeProcessingError
     try:
         if hasattr(file_obj, "read"):
             file_obj.seek(0)
-            pdf_bytes = file_obj.read()
-            file_obj.seek(0)
-
-            with fitz.open(
-                stream=pdf_bytes,
-                filetype="pdf",
-            ) as doc:
-                for page in doc:
-                    text += page.get_text()
-
+            doc = fitz.open(stream=file_obj.read(), filetype="pdf")
         else:
-            with fitz.open(file_obj) as doc:
-                for page in doc:
-                    text += page.get_text()
-
-    except Exception as e:
-        print(f"[ERROR] Failed to extract PDF text: {e}")
-
-    return text
+            doc = fitz.open(file_obj)
+        with doc:
+            if doc.needs_pass:
+                raise KnowledgeProcessingError(
+                    "Password-protected PDFs cannot be processed.", "encrypted_document"
+                )
+            if len(doc) > settings.KNOWLEDGE_MAX_PDF_PAGES:
+                raise KnowledgeProcessingError(
+                    "PDF has too many pages to process.", "processing_limit", 413
+                )
+            return _bounded_parts(page.get_text() for page in doc)
+    except KnowledgeProcessingError:
+        raise
+    except Exception as error:
+        raise KnowledgeProcessingError(
+            "Could not read PDF. Check that the file is a valid PDF.", "extraction_failed"
+        ) from error
+    finally:
+        if hasattr(file_obj, "seek"):
+            file_obj.seek(0)
 
 
 def extract_text_from_docx(file_obj):
-    """
-    Extracts text from a DOCX file using python-docx.
-    Supports both file paths and Django uploaded files.
-    """
+    from zipfile import ZipFile
     from docx import Document
+    from docx.table import Table
+    from docx.text.paragraph import Paragraph
+    from django.conf import settings
+    from .knowledge_errors import KnowledgeProcessingError
 
-    text = ""
+    def blocks(parent, element):
+        for child in element:
+            if child.tag.endswith("}p"):
+                yield Paragraph(child, parent).text
+            elif child.tag.endswith("}tbl"):
+                for row in Table(child, parent).rows:
+                    cells, seen = [], set()
+                    for cell in row.cells:
+                        if cell._tc in seen:
+                            continue
+                        seen.add(cell._tc)
+                        cells.append(" ".join(blocks(cell, cell._tc)))
+                    yield " | ".join(cells)
 
     try:
         if hasattr(file_obj, "seek"):
             file_obj.seek(0)
-
+        with ZipFile(file_obj) as archive:
+            entries = archive.infolist()
+            if (len(entries) > 10_000 or
+                    sum(item.file_size for item in entries) > settings.KNOWLEDGE_MAX_DOCX_EXPANDED_BYTES):
+                raise KnowledgeProcessingError(
+                    "DOCX expands beyond the processing limit.", "processing_limit", 413
+                )
+        if hasattr(file_obj, "seek"):
+            file_obj.seek(0)
         doc = Document(file_obj)
-        text = "\n".join(
-            para.text for para in doc.paragraphs
-        )
-
+        return _bounded_parts(blocks(doc, doc.element.body))
+    except KnowledgeProcessingError:
+        raise
+    except Exception as error:
+        raise KnowledgeProcessingError(
+            "Could not read DOCX. Check that the file is a valid Word document.",
+            "extraction_failed",
+        ) from error
+    finally:
         if hasattr(file_obj, "seek"):
             file_obj.seek(0)
 
-    except Exception as e:
-        print(f"[ERROR] Failed to extract DOCX text: {e}")
-
-    return text
-
 
 def extract_text_from_txt(file_obj):
-    """
-    Reads text from a plain TXT file.
-    Supports file paths and Django uploaded files.
-    """
+    from .knowledge_errors import KnowledgeProcessingError
     try:
         if hasattr(file_obj, "read"):
             file_obj.seek(0)
             content = file_obj.read()
+            text = content.decode("utf-8-sig") if isinstance(content, bytes) else content
+        else:
+            with open(file_obj, encoding="utf-8-sig") as handle:
+                text = handle.read()
+        return validate_extracted_text(text)
+    except KnowledgeProcessingError:
+        raise
+    except Exception as error:
+        raise KnowledgeProcessingError(
+            "Could not read TXT. Save the file as UTF-8 text.", "extraction_failed"
+        ) from error
+    finally:
+        if hasattr(file_obj, "seek"):
             file_obj.seek(0)
-
-            if isinstance(content, bytes):
-                return content.decode("utf-8")
-
-            return content
-
-        with open(
-            file_obj,
-            "r",
-            encoding="utf-8",
-        ) as file_handle:
-            return file_handle.read()
-
-    except Exception as e:
-        print(f"[ERROR] Failed to read TXT file: {e}")
-        return ""
 
 
 def render_system_message(bot, knowledge_text):

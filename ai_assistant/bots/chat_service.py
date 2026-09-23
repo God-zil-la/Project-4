@@ -17,6 +17,7 @@ from .knowledge_utils import (
     check_message_domain,
     render_system_message,
     search_relevant_chunks,
+    append_source_list,
 )
 from .models import ChatMessage, Conversation
 
@@ -221,6 +222,19 @@ def _build_history(
         )
 
     return messages
+
+
+def _build_retrieval_context(conversation):
+    """Small, same-conversation window; leaves the ordinary chat history unchanged."""
+    previous = list(ChatMessage.objects.filter(conversation=conversation)
+                    .order_by("-timestamp", "-pk")[:6])
+    lines = []
+    for item in reversed(previous):
+        # Server provenance from earlier answers must not become a retrieval instruction.
+        content = item.message.split("**Källor i sökunderlaget**", 1)[0]
+        lines.append(f"{item.sender}: {content[:500]}")
+    return "\n".join(lines)[-3000:]
+
 
 def _build_domain_context(conversation, limit=6):
     """
@@ -537,6 +551,7 @@ def process_bot_message(
                     message,
                     top_k=3,
                     include_usage=True,
+                    conversation_context=_build_retrieval_context(active_conversation),
                 )
             )
 
@@ -625,6 +640,10 @@ def process_bot_message(
             r"\[\[(https?://[^\]\s]+)\]\(\1\)\]\(\1\)",
             r"\1",
             response_text,
+        )
+
+        response_text = append_source_list(
+            response_text, knowledge_result.get("sources", [])
         )
 
         response_usage = response.get(

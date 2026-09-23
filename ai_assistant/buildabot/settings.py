@@ -355,6 +355,13 @@ CACHES = build_cache_config(REDIS_URL, heroku_kvs=bool(os.getenv("DYNO")))
 # quality and real usage have been benchmarked.
 # -------------------------------------------------
 
+# Processing bounds are separate from account storage allowances.
+KNOWLEDGE_MAX_FILE_BYTES = 10 * 1024 * 1024
+KNOWLEDGE_MAX_TEXT_CHARS = 200_000
+KNOWLEDGE_MAX_CHUNKS = 1000
+KNOWLEDGE_MAX_PDF_PAGES = 200
+KNOWLEDGE_MAX_DOCX_EXPANDED_BYTES = 20 * 1024 * 1024
+
 AI_PLAN_CONFIG = {
     "free": {
         "monthly_message_limit": 150,

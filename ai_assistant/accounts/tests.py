@@ -228,10 +228,10 @@ class KnowledgeUploadTests(TestCase):
             return vectors
 
         with patch(
-            "ai_assistant.bots.views.chunk_text",
+            "ai_assistant.bots.knowledge_service.chunk_text",
             return_value=["First.", "Second."],
         ), patch(
-            "ai_assistant.bots.views.generate_embedding_batches",
+            "ai_assistant.bots.knowledge_service.generate_embedding_batches",
             side_effect=response_batches,
         ), patch(
             "ai_assistant.bots.views.render",
@@ -368,7 +368,7 @@ class KnowledgeUploadTests(TestCase):
             return create(**kwargs)
 
         with patch(
-            "ai_assistant.bots.views.KnowledgeChunk.objects.create",
+            "ai_assistant.bots.knowledge_service.KnowledgeChunk.objects.create",
             side_effect=fail_second,
         ):
             self.upload()
@@ -601,7 +601,7 @@ class EmbeddingBatchTests(TestCase):
         )
 
         with patch(
-            "ai_assistant.bots.views.chunk_text",
+            "ai_assistant.bots.knowledge_service.chunk_text",
             return_value=[
                 "First.",
                 "Second.",
