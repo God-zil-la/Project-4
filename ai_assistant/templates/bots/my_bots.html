@@ -2,32 +2,673 @@
 {% block title %}My Bots{% endblock %}
 
 {% block content %}
-<h1>My Bots</h1>
 
-<div style="margin-bottom: 1.5rem;">
-    <a href="{% url 'bots:create' %}" class="btn btn-primary">+ Create a Bot</a>
-</div>
+<section class="bots-page">
 
-{% if bots %}
-<ul class="bot-list">
-    {% for bot in bots %}
-    <li class="bot-card">
-        <h3>{% if bot.avatar_symbol %}<span aria-hidden="true">{{ bot.avatar_symbol }}</span> {% endif %}{{ bot.name }}</h3>
-        <p>{{ bot.description }}</p>
-        <small>Created on {{ bot.created_at|date:"F j, Y" }}</small>
-        <div style="margin-top: 1rem;">
-            <a href="{% url 'bots:playground' bot.id %}" class="btn">Chat / Upload</a>
-            <a href="{% url 'bots:edit' bot.id %}" class="btn">Edit</a>
-            <a href="{% url 'bots:delete' bot.id %}" class="btn btn-danger">Delete</a>
-            <a href="{% url 'bots:discord-setup' bot.id %}" class="btn btn-success" style="margin-left: .25rem;">
-                Discord Integration
-            </a>
+    <header class="bots-header">
 
+        <div>
+            <h1>My AI Assistants</h1>
+            <p>
+                Create, manage, and open your AI assistants.
+            </p>
         </div>
-    </li>
-    {% endfor %}
-</ul>
-{% else %}
-<p>You don't have any bots yet.</p>
-{% endif %}
+
+        <a
+            href="{% url 'bots:create' %}"
+            class="bots-create-btn"
+        >
+            + Create AI Assistant
+        </a>
+
+    </header>
+
+
+    {% if bots %}
+
+    <div class="bots-grid">
+
+        {% for bot in bots %}
+
+        <article class="bot-card">
+
+            <div class="bot-card-main">
+
+                <div class="bot-card-heading">
+
+                    <div class="bot-avatar">
+                        {% if bot.avatar_symbol %}
+                            <span aria-hidden="true">
+                                {{ bot.avatar_symbol }}
+                            </span>
+                        {% else %}
+                            🤖
+                        {% endif %}
+                    </div>
+
+                    <div class="bot-card-title">
+
+                        <h2>
+                            {{ bot.name }}
+                        </h2>
+
+                        <small>
+                            Created {{ bot.created_at|date:"F j, Y" }}
+                        </small>
+
+                    </div>
+
+                </div>
+
+
+                <p class="bot-description">
+                    {% if bot.description %}
+                        {{ bot.description }}
+                    {% else %}
+                        No description added yet.
+                    {% endif %}
+                </p>
+
+            </div>
+
+
+            <div class="bot-actions">
+
+                <a
+                    href="{% url 'bots:playground' bot.id %}"
+                    class="bot-action bot-action-primary"
+                >
+                    💬 Chat / Knowledge
+                </a>
+
+                <a
+                    href="{% url 'bots:edit' bot.id %}"
+                    class="bot-action"
+                >
+                    ✏️ Edit
+                </a>
+
+                <a
+                    href="{% url 'bots:discord-setup' bot.id %}"
+                    class="bot-action"
+                >
+                    🔗 Discord
+                </a>
+
+                <a
+                    href="{% url 'bots:delete' bot.id %}"
+                    class="bot-action bot-action-danger"
+                >
+                    🗑️ Delete
+                </a>
+
+            </div>
+
+        </article>
+
+        {% endfor %}
+
+    </div>
+
+
+    {% else %}
+
+    <section class="bots-empty">
+
+        <div class="bots-empty-icon">
+            🤖
+        </div>
+
+        <h2>
+            No AI assistants yet
+        </h2>
+
+        <p>
+            Create your first AI assistant to start chatting,
+            adding knowledge, and connecting integrations.
+        </p>
+
+        <a
+            href="{% url 'bots:create' %}"
+            class="bots-create-btn"
+        >
+            + Create AI Assistant
+        </a>
+
+    </section>
+
+    {% endif %}
+
+</section>
+
+
+<style>
+
+    /* ==================================================
+       MY AI ASSISTANTS
+       ================================================== */
+
+    main {
+        width: min(1600px, calc(100% - 2rem));
+        max-width: none;
+        margin: 1rem auto;
+        padding: 0;
+        background: transparent;
+        border-radius: 0;
+        box-shadow: none;
+        backdrop-filter: none;
+    }
+
+
+    .bots-page {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+
+    /* ==================================================
+       HEADER
+       ================================================== */
+
+    .bots-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+
+        padding: 1rem 1.25rem;
+
+        background: var(--nav-bg);
+
+        border: 1px solid var(--button-border);
+        border-radius: 14px;
+
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+    }
+
+
+    .bots-header h1 {
+        margin: 0;
+        color: var(--accent-color);
+        font-size: clamp(1.65rem, 2.5vw, 2.3rem);
+        line-height: 1.15;
+    }
+
+
+    .bots-header p {
+        margin: 0.35rem 0 0;
+        font-weight: 600;
+        opacity: 0.85;
+    }
+
+
+    .bots-create-btn {
+        flex: 0 0 auto;
+
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+
+        padding: 0.7rem 1rem;
+
+        background: var(--button-bg);
+        color: var(--button-text);
+
+        border: 1px solid var(--accent-color);
+        border-radius: 8px;
+
+        text-decoration: none;
+        font-weight: 700;
+
+        transition:
+            background 0.2s ease,
+            transform 0.2s ease;
+    }
+
+
+    .bots-create-btn:hover {
+        background: var(--button-hover);
+        transform: translateY(-1px);
+    }
+
+
+    /* ==================================================
+       BOT GRID
+       ================================================== */
+
+    .bots-grid {
+        display: grid;
+        grid-template-columns: repeat(
+            auto-fit,
+            minmax(300px, 1fr)
+        );
+
+        gap: 1rem;
+
+        width: 100%;
+    }
+
+
+    .bot-card {
+        min-width: 0;
+
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+
+        gap: 1rem;
+
+        padding: 1rem;
+
+        background: var(--nav-bg);
+
+        border: 1px solid var(--accent-color);
+        border-radius: 14px;
+
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.05);
+    }
+
+
+    .bot-card-main {
+        min-width: 0;
+    }
+
+
+    .bot-card-heading {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+
+        min-width: 0;
+    }
+
+
+    .bot-avatar {
+        width: 44px;
+        height: 44px;
+
+        flex: 0 0 44px;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        background: var(--button-bg);
+
+        border: 1px solid var(--button-border);
+        border-radius: 12px;
+
+        font-size: 1.35rem;
+    }
+
+
+    .bot-card-title {
+        min-width: 0;
+    }
+
+
+    .bot-card-title h2 {
+        margin: 0;
+
+        color: var(--accent-color);
+
+        font-size: 1.15rem;
+
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+
+    .bot-card-title small {
+        display: block;
+        margin-top: 0.15rem;
+
+        font-size: 0.75rem;
+        font-weight: 600;
+
+        opacity: 0.7;
+    }
+
+
+    .bot-description {
+        margin: 0.85rem 0 0;
+
+        font-size: 0.9rem;
+        font-weight: 600;
+        line-height: 1.45;
+
+        opacity: 0.9;
+
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+
+        overflow: hidden;
+    }
+
+
+    /* ==================================================
+       ACTIONS
+       ================================================== */
+
+    .bot-actions {
+        display: grid;
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+
+        gap: 0.55rem;
+    }
+
+
+    .bot-action {
+        min-width: 0;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        padding: 0.6rem 0.75rem;
+
+        background: var(--button-bg);
+        color: var(--button-text);
+
+        border: 1px solid var(--button-border);
+        border-radius: 8px;
+
+        text-decoration: none;
+
+        font-size: 0.8rem;
+        font-weight: 700;
+
+        text-align: center;
+
+        transition:
+            background 0.2s ease,
+            transform 0.2s ease;
+    }
+
+
+    .bot-action:hover {
+        background: var(--button-hover);
+        transform: translateY(-1px);
+    }
+
+
+    .bot-action-primary {
+        border-color: var(--accent-color);
+    }
+
+
+    .bot-action-danger {
+        background: linear-gradient(
+            145deg,
+            #8b0000,
+            #5a0000
+        );
+
+        color: #ffffff;
+
+        border-color: transparent;
+    }
+
+
+    .bot-action-danger:hover {
+        background: linear-gradient(
+            145deg,
+            #a80000,
+            #6b0000
+        );
+    }
+
+
+    /* ==================================================
+       EMPTY STATE
+       ================================================== */
+
+    .bots-empty {
+        min-height: 260px;
+
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+
+        gap: 0.7rem;
+
+        padding: 2rem;
+
+        text-align: center;
+
+        background: var(--nav-bg);
+
+        border: 1px solid var(--accent-color);
+        border-radius: 14px;
+    }
+
+
+    .bots-empty-icon {
+        width: 58px;
+        height: 58px;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        background: var(--button-bg);
+
+        border: 1px solid var(--button-border);
+        border-radius: 16px;
+
+        font-size: 1.8rem;
+    }
+
+
+    .bots-empty h2 {
+        margin: 0;
+
+        color: var(--accent-color);
+    }
+
+
+    .bots-empty p {
+        max-width: 480px;
+
+        margin: 0;
+
+        font-weight: 600;
+        line-height: 1.5;
+
+        opacity: 0.8;
+    }
+
+
+    /* ==================================================
+       VERY LARGE SCREENS
+       ================================================== */
+
+    @media (min-width: 1800px) {
+
+        .bots-grid {
+            grid-template-columns:
+                repeat(4, minmax(0, 1fr));
+        }
+
+    }
+
+
+    /* ==================================================
+       LARGE DESKTOP
+       ================================================== */
+
+    @media (min-width: 1200px) and (max-width: 1799px) {
+
+        .bots-grid {
+            grid-template-columns:
+                repeat(3, minmax(0, 1fr));
+        }
+
+    }
+
+
+    /* ==================================================
+       TABLET / SMALL DESKTOP
+       ================================================== */
+
+    @media (min-width: 701px) and (max-width: 1199px) {
+
+        .bots-grid {
+            grid-template-columns:
+                repeat(2, minmax(0, 1fr));
+        }
+
+    }
+
+
+    /* ==================================================
+       MOBILE / SMALL TABLET
+       ================================================== */
+
+    @media (max-width: 700px) {
+
+        main {
+            width: 100%;
+            margin: 0;
+            padding: 0.65rem;
+        }
+
+
+        .bots-page {
+            gap: 0.65rem;
+        }
+
+
+        .bots-header {
+            padding: 0.85rem;
+
+            border-radius: 12px;
+        }
+
+
+        .bots-header h1 {
+            font-size: 1.45rem;
+        }
+
+
+        .bots-header p {
+            font-size: 0.78rem;
+            line-height: 1.35;
+        }
+
+
+        .bots-create-btn {
+            padding: 0.55rem 0.7rem;
+
+            font-size: 0.78rem;
+        }
+
+
+        .bots-grid {
+            grid-template-columns:
+                repeat(2, minmax(0, 1fr));
+
+            gap: 0.65rem;
+        }
+
+
+        .bot-card {
+            gap: 0.7rem;
+
+            padding: 0.75rem;
+
+            border-radius: 11px;
+        }
+
+
+        .bot-avatar {
+            width: 34px;
+            height: 34px;
+
+            flex-basis: 34px;
+
+            font-size: 1rem;
+
+            border-radius: 9px;
+        }
+
+
+        .bot-card-heading {
+            gap: 0.5rem;
+        }
+
+
+        .bot-card-title h2 {
+            font-size: 0.9rem;
+        }
+
+
+        .bot-card-title small {
+            font-size: 0.62rem;
+        }
+
+
+        .bot-description {
+            margin-top: 0.55rem;
+
+            font-size: 0.72rem;
+            line-height: 1.35;
+
+            -webkit-line-clamp: 2;
+        }
+
+
+        .bot-actions {
+            grid-template-columns: 1fr;
+
+            gap: 0.4rem;
+        }
+
+
+        .bot-action {
+            padding: 0.5rem 0.4rem;
+
+            font-size: 0.68rem;
+        }
+
+    }
+
+
+    /* ==================================================
+       VERY SMALL MOBILE
+       ================================================== */
+
+    @media (max-width: 430px) {
+
+        .bots-header {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+
+
+        .bots-create-btn {
+            width: 100%;
+        }
+
+
+        .bots-grid {
+            grid-template-columns: 1fr;
+        }
+
+
+        .bot-actions {
+            grid-template-columns:
+                repeat(2, minmax(0, 1fr));
+        }
+
+    }
+
+</style>
+
 {% endblock %}

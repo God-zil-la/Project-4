@@ -1,21 +1,237 @@
 <fieldset class="assistant-preferences">
-  <legend>Response preferences &amp; appearance</legend>
-  <div class="form-group">
-    <label for="{{ form.response_tone.id_for_label }}">{{ form.response_tone.label }}</label>
-    {{ form.response_tone }}
-    <p id="{{ form.response_tone.auto_id }}_helptext">{{ form.response_tone.help_text }}</p>
-    {{ form.response_tone.errors }}
-  </div>
-  <div class="form-group">
-    <label for="{{ form.response_length.id_for_label }}">{{ form.response_length.label }}</label>
-    {{ form.response_length }}
-    <p id="{{ form.response_length.auto_id }}_helptext">{{ form.response_length.help_text }}</p>
-    {{ form.response_length.errors }}
-  </div>
-  <div class="form-group">
-    <label for="{{ form.avatar_icon.id_for_label }}">{{ form.avatar_icon.label }}</label>
-    {{ form.avatar_icon }}
-    <p id="{{ form.avatar_icon.auto_id }}_helptext">{{ form.avatar_icon.help_text }}</p>
-    {{ form.avatar_icon.errors }}
-  </div>
+
+    <legend>
+        Response preferences &amp; appearance
+    </legend>
+
+
+    <div class="assistant-preferences-grid">
+
+        <!-- RESPONSE TONE -->
+
+        <div class="form-group">
+
+            <label for="{{ form.response_tone.id_for_label }}">
+                {{ form.response_tone.label }}
+            </label>
+
+            {{ form.response_tone }}
+
+            {% if form.response_tone.help_text %}
+            <p
+                id="{{ form.response_tone.auto_id }}_helptext"
+                class="helptext"
+            >
+                {{ form.response_tone.help_text }}
+            </p>
+            {% endif %}
+
+            {{ form.response_tone.errors }}
+
+        </div>
+
+
+        <!-- RESPONSE LENGTH -->
+
+        <div class="form-group">
+
+            <label for="{{ form.response_length.id_for_label }}">
+                {{ form.response_length.label }}
+            </label>
+
+            {{ form.response_length }}
+
+            {% if form.response_length.help_text %}
+            <p
+                id="{{ form.response_length.auto_id }}_helptext"
+                class="helptext"
+            >
+                {{ form.response_length.help_text }}
+            </p>
+            {% endif %}
+
+            {{ form.response_length.errors }}
+
+        </div>
+
+
+        <!-- AVATAR -->
+
+        <div class="form-group assistant-preference-wide">
+
+            <label for="{{ form.avatar_icon.id_for_label }}">
+                {{ form.avatar_icon.label }}
+            </label>
+
+            {{ form.avatar_icon }}
+
+            {% if form.avatar_icon.help_text %}
+            <p
+                id="{{ form.avatar_icon.auto_id }}_helptext"
+                class="helptext"
+            >
+                {{ form.avatar_icon.help_text }}
+            </p>
+            {% endif %}
+
+            {{ form.avatar_icon.errors }}
+
+        </div>
+
+    </div>
+
 </fieldset>
+
+
+<style>
+
+    .assistant-preferences {
+        min-width: 0;
+
+        margin: 0;
+        padding: 0.9rem;
+
+        border: 1px solid var(--button-border);
+        border-radius: 10px;
+
+        background: rgba(128, 128, 128, 0.03);
+    }
+
+
+    .assistant-preferences legend {
+        padding: 0 0.45rem;
+
+        color: var(--accent-color);
+
+        font-size: 0.82rem;
+        font-weight: 800;
+    }
+
+
+    .assistant-preferences-grid {
+        display: grid;
+
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+
+        gap: 0.85rem;
+    }
+
+
+    .assistant-preferences .form-group {
+        min-width: 0;
+
+        display: flex;
+        flex-direction: column;
+
+        gap: 0.35rem;
+
+        margin: 0;
+    }
+
+
+    .assistant-preference-wide {
+        grid-column: 1 / -1;
+    }
+
+
+    .assistant-preferences label {
+        font-size: 0.82rem;
+        font-weight: 800;
+    }
+
+
+    .assistant-preferences select,
+    .assistant-preferences input {
+        width: 100%;
+        max-width: 100%;
+
+        margin: 0;
+
+        padding: 0.6rem 0.7rem;
+
+        background: var(--bg-color);
+        color: var(--text-color);
+
+        border: 1px solid var(--button-border);
+        border-radius: 8px;
+
+        font: inherit;
+
+        box-sizing: border-box;
+    }
+
+
+    .assistant-preferences .helptext {
+        margin: 0;
+
+        font-size: 0.7rem;
+        font-weight: 600;
+        line-height: 1.35;
+
+        opacity: 0.7;
+    }
+
+
+    .assistant-preferences .errorlist {
+        margin: 0.2rem 0 0;
+        padding-left: 1.1rem;
+
+        color: #c62828;
+
+        font-size: 0.75rem;
+        font-weight: 700;
+    }
+
+
+    html.dark .assistant-preferences .errorlist {
+        color: #ff8a80;
+    }
+
+
+    @media (max-width: 700px) {
+
+        .assistant-preferences {
+            padding: 0.75rem;
+        }
+
+
+        .assistant-preferences-grid {
+            gap: 0.65rem;
+        }
+
+
+        .assistant-preferences label {
+            font-size: 0.72rem;
+        }
+
+
+        .assistant-preferences select,
+        .assistant-preferences input {
+            padding: 0.5rem 0.55rem;
+
+            font-size: 0.78rem;
+        }
+
+
+        .assistant-preferences .helptext {
+            font-size: 0.63rem;
+        }
+
+    }
+
+
+    @media (max-width: 430px) {
+
+        .assistant-preferences-grid {
+            grid-template-columns: 1fr;
+        }
+
+
+        .assistant-preference-wide {
+            grid-column: auto;
+        }
+
+    }
+
+</style>

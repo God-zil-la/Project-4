@@ -4,405 +4,933 @@
 {% block title %}Connect {{ bot.name }} to Discord{% endblock %}
 
 {% block content %}
-<div class="connect-wrapper">
-    <h1>🤖 Connect <em>{{ bot.name }}</em> to Discord</h1>
 
-    <ol class="connect-steps">
-        <li>
-            <strong>Create a Discord bot token</strong><br>
-            <small>
-                (Go to the Discord Developer Portal → <em>Bot</em> → “Copy token”)
-            </small>
-        </li>
+<section class="discord-page">
 
-        <li>
-            <strong>Invite Your Discord Bot to Your Server</strong><br>
+    <!-- ================= HEADER ================= -->
 
-            <small>
-                To connect your own Discord bot with our AI Assistant platform,
-                you will need to authorize it in your server.
-            </small>
+    <header class="discord-header">
 
-            <div class="sub-step-content">
-                <ul class="sub-steps">
-                    <li>
-                        Log in to the
-                        <a
-                            href="https://discord.com/developers/applications"
-                            target="_blank"
-                            rel="noopener"
-                        >
-                            Discord Developer Portal
-                        </a>
-                        and locate your bot.
-                    </li>
+        <div>
+            <span class="discord-eyebrow">
+                Integration
+            </span>
 
-                    <li>
-                        Copy your bot’s <strong>Client ID</strong>
-                        (also called <em>Application ID</em>).
-                        You can find it under the
-                        <strong>General Information</strong> tab.
-                    </li>
+            <h1>
+                🎮 Connect {{ bot.name }} to Discord
+            </h1>
 
-                    <li>
-                        Paste your Client ID in the field below.
-                    </li>
+            <p>
+                Set up your Discord bot, invite it to your server,
+                and connect it securely to AI Assistant.
+            </p>
+        </div>
 
-                    <li>
-                        Click <strong>Generate Invite Link</strong>
-                        to create a personalized authorization link.
-                    </li>
+        <a
+            href="{% url 'bots:list' %}"
+            class="discord-back-btn"
+        >
+            ← My AI Assistants
+        </a>
 
-                    <li>
-                        Click the generated link to invite
-                        <strong>your bot</strong> to
-                        <strong>your Discord server</strong>.
-                    </li>
-                </ul>
+    </header>
 
-                <p>
-                    Once authorized, your bot will be ready to communicate
-                    securely with our platform.
-                </p>
 
-                <label for="clientIdInput">Your Bot Client ID:</label>
+    <!-- ================= SETUP GRID ================= -->
 
-                <input
-                    type="text"
-                    id="clientIdInput"
-                    placeholder="Paste your bot's Client ID here"
-                >
+    <div class="discord-grid">
 
-                <label for="permissionsInput">Bot Permissions:</label>
+        <!-- STEP 1 -->
 
-                <select id="permissionsInput">
-                    <option value="0">None</option>
-                    <option value="2048">Send Messages</option>
-                    <option value="8192">Administrator</option>
-                    <option value="1610612736">Manage Channels</option>
-                    <option value="33554432">Manage Messages</option>
-                </select>
+        <section class="discord-card">
 
-                <button
-                    type="button"
-                    class="btn"
-                    onclick="generateInviteLink()"
-                >
-                    Generate Invite Link
-                </button>
+            <div class="discord-step-heading">
+                <span class="discord-step-number">1</span>
 
-                <div id="result" class="invite-result"></div>
+                <div>
+                    <h2>Create Discord bot token</h2>
+
+                    <p>
+                        Open the Discord Developer Portal,
+                        select your application, then open the
+                        <strong>Bot</strong> section and copy the token.
+                    </p>
+                </div>
             </div>
-        </li>
 
-        <li>
-            <strong>Download the bridge bundle</strong><br>
+            <a
+                href="https://discord.com/developers/applications"
+                target="_blank"
+                rel="noopener"
+                class="discord-action-btn"
+            >
+                Open Discord Developer Portal
+            </a>
 
-            <div class="download-group">
+        </section>
+
+
+        <!-- STEP 2 -->
+
+        <section class="discord-card discord-card-large">
+
+            <div class="discord-step-heading">
+                <span class="discord-step-number">2</span>
+
+                <div>
+                    <h2>Invite your bot</h2>
+
+                    <p>
+                        Enter your Client ID and choose the permissions
+                        your Discord bot should receive.
+                    </p>
+                </div>
+            </div>
+
+
+            <div class="discord-fields">
+
+                <div class="discord-field">
+
+                    <label for="clientIdInput">
+                        Bot Client ID
+                    </label>
+
+                    <input
+                        type="text"
+                        id="clientIdInput"
+                        placeholder="Paste your bot's Client ID"
+                    >
+
+                </div>
+
+
+                <div class="discord-field">
+
+                    <label for="permissionsInput">
+                        Bot Permissions
+                    </label>
+
+                    <select id="permissionsInput">
+                        <option value="0">None</option>
+                        <option value="2048">Send Messages</option>
+                        <option value="8192">Administrator</option>
+                        <option value="1610612736">Manage Channels</option>
+                        <option value="33554432">Manage Messages</option>
+                    </select>
+
+                </div>
+
+            </div>
+
+
+            <button
+                type="button"
+                class="discord-action-btn"
+                onclick="generateInviteLink()"
+            >
+                Generate Invite Link
+            </button>
+
+            <div
+                id="result"
+                class="invite-result"
+            ></div>
+
+        </section>
+
+
+        <!-- STEP 3 -->
+
+        <section class="discord-card">
+
+            <div class="discord-step-heading">
+                <span class="discord-step-number">3</span>
+
+                <div>
+                    <h2>Download bridge files</h2>
+
+                    <p>
+                        Download the files needed to run the Discord
+                        bridge on your computer.
+                    </p>
+                </div>
+            </div>
+
+
+            <div class="discord-download-grid">
+
                 <a
-                    class="download-btn"
+                    class="discord-download-btn"
                     download
                     href="{% static 'discord_bridge/bridge.py' %}"
                 >
-                    bridge.py
+                    📄 bridge.py
                 </a>
 
                 <a
-                    class="download-btn"
+                    class="discord-download-btn"
                     download
                     href="{% static 'discord_bridge/env.example' %}"
                 >
-                    env.example
+                    ⚙️ env.example
                 </a>
 
                 <a
-                    class="download-btn"
+                    class="discord-download-btn"
                     download
                     href="{% static 'discord_bridge/requirements.txt' %}"
                 >
-                    requirements.txt
+                    📦 requirements.txt
                 </a>
+
             </div>
-        </li>
 
-        <li>
-            <strong>Edit <code>.env</code> — paste your secrets:</strong>
+        </section>
 
-            <pre class="example-env">{{ example_env }}</pre>
-        </li>
 
-        <li>
-            <strong>Run locally</strong><br>
+        <!-- STEP 4 -->
 
-            <small>
-                (copy & paste the right version for your system)
-            </small>
+        <section class="discord-card">
 
-            <small>
-                This sets up your Python environment so the bridge can run
-                on your computer.
-            </small>
+            <div class="discord-step-heading">
+                <span class="discord-step-number">4</span>
 
-            <br><br>
+                <div>
+                    <h2>Configure environment</h2>
 
-            <strong>💻 For macOS / Linux:</strong>
+                    <p>
+                        Create your <code>.env</code> file and add the
+                        required secrets.
+                    </p>
+                </div>
+            </div>
 
-            <pre class="shell-steps">python3 -m venv venv
+            <pre class="discord-code">{{ example_env }}</pre>
+
+        </section>
+
+
+        <!-- STEP 5 -->
+
+        <section class="discord-card discord-card-large">
+
+            <div class="discord-step-heading">
+                <span class="discord-step-number">5</span>
+
+                <div>
+                    <h2>Run the bridge</h2>
+
+                    <p>
+                        Use the commands for your operating system.
+                        Keep the terminal open while your Discord bot is running.
+                    </p>
+                </div>
+            </div>
+
+
+            <div class="discord-run-grid">
+
+                <div class="discord-run-panel">
+
+                    <strong>
+                        💻 Windows
+                    </strong>
+
+                    <pre class="discord-code">python -m venv venv
+venv\Scripts\activate
+pip install -r requirements.txt
+python bridge.py</pre>
+
+                </div>
+
+
+                <div class="discord-run-panel">
+
+                    <strong>
+                        💻 macOS / Linux
+                    </strong>
+
+                    <pre class="discord-code">python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
 python bridge.py</pre>
 
-            <strong>💻 For Windows (PowerShell or CMD):</strong>
+                </div>
 
-            <pre class="shell-steps">python -m venv venv
-venv\Scripts\activate
-pip install -r requirements.txt
-python bridge.py</pre>
-        </li>
+            </div>
 
-        <li>
-            <strong>Leave that terminal open — your bot is live 🎉</strong>
-        </li>
+        </section>
 
-        <li>
-            <strong>Extra Help & Documentation</strong><br>
 
-            <small>
-                Need more help? Download our detailed guides below.
-            </small>
+        <!-- STEP 6 -->
 
-            <div class="download-group">
+        <section class="discord-card">
+
+            <div class="discord-step-heading">
+                <span class="discord-step-number">6</span>
+
+                <div>
+                    <h2>Keep the bridge running</h2>
+
+                    <p>
+                        Leave the terminal open while the bridge is active.
+                        Your Discord bot can now communicate with AI Assistant.
+                    </p>
+                </div>
+            </div>
+
+            <div class="discord-success">
+                🎉 Your bot is ready
+            </div>
+
+        </section>
+
+
+        <!-- STEP 7 -->
+
+        <section class="discord-card">
+
+            <div class="discord-step-heading">
+                <span class="discord-step-number">7</span>
+
+                <div>
+                    <h2>Help & documentation</h2>
+
+                    <p>
+                        Download the full setup and command guides if you
+                        need more detailed instructions.
+                    </p>
+                </div>
+            </div>
+
+
+            <div class="discord-download-grid">
+
                 <a
-                    class="download-btn"
+                    class="discord-download-btn"
                     download
                     href="{% static 'discord_bridge/Setup_Guide.pdf' %}"
                 >
-                    📄 Full Setup Guide (PDF)
+                    📘 Setup Guide
                 </a>
 
                 <a
-                    class="download-btn"
+                    class="discord-download-btn"
                     download
                     href="{% static 'discord_bridge/Commands_Guide.pdf' %}"
                 >
-                    🤖 Commands Guide (PDF)
+                    🤖 Commands Guide
                 </a>
+
             </div>
-        </li>
-    </ol>
-</div>
+
+        </section>
+
+    </div>
+
+</section>
+
 
 <style>
-    .connect-wrapper {
-        max-width: 780px;
-        margin: 3rem auto;
-        padding: 2rem;
-        background: var(--nav-bg);
-        color: var(--text-color);
-        border: 1px solid var(--button-border);
-        border-radius: 18px;
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
-    }
 
-    .connect-wrapper h1 {
-        text-align: center;
-        margin-bottom: 2rem;
-        color: var(--accent-color);
-        font-size: 2.1rem;
-    }
+    /* ==================================================
+       PAGE
+       ================================================== */
 
-    .connect-steps {
-        counter-reset: step;
-        list-style: none;
+    main {
+        width: min(1600px, calc(100% - 2rem));
+        max-width: none;
+        margin: 1rem auto;
         padding: 0;
-        margin: 0;
+        background: transparent;
+        border-radius: 0;
+        box-shadow: none;
+        backdrop-filter: none;
     }
 
-    .connect-steps > li {
-        position: relative;
-        margin-bottom: 1.8rem;
-        padding: 1.4rem 1.8rem 1.4rem 3.2rem;
-        border-radius: 14px;
-        background: rgba(128, 128, 128, 0.05);
-        border: 1px solid var(--button-border);
-        line-height: 1.7;
-        color: var(--text-color);
-        transition: all 0.25s ease;
-    }
 
-    .connect-steps > li:hover {
-        background: rgba(128, 128, 128, 0.08);
-        border-color: var(--accent-color);
-        transform: translateY(-2px);
-    }
-
-    .connect-steps > li::before {
-        counter-increment: step;
-        content: counter(step) ".";
-        position: absolute;
-        left: 1.3rem;
-        top: 1.3rem;
-        font-weight: 700;
-        font-size: 1.25rem;
-        color: var(--accent-color);
-    }
-
-    .connect-steps strong {
-        color: var(--accent-color);
-    }
-
-    .connect-steps li small {
-        display: block;
-        margin-top: 0.3rem;
-        color: var(--text-color);
-        opacity: 0.75;
-        font-size: 0.85rem;
-    }
-
-    .sub-step-content {
-        margin-top: 1rem;
-    }
-
-    .sub-step-content label {
-        display: block;
-        margin-top: 1rem;
-        margin-bottom: 0.4rem;
-        color: var(--text-color);
-        font-weight: 600;
-    }
-
-    .sub-step-content input,
-    .sub-step-content select {
-        box-sizing: border-box;
+    .discord-page {
         width: 100%;
-        padding: 0.65rem;
+
+        display: flex;
+        flex-direction: column;
+
+        gap: 1rem;
+    }
+
+
+    /* ==================================================
+       HEADER
+       ================================================== */
+
+    .discord-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+
+        gap: 1rem;
+
+        padding: 1rem 1.25rem;
+
+        background: var(--nav-bg);
+
         border: 1px solid var(--button-border);
-        border-radius: 6px;
-        background: rgba(255, 255, 255, 0.02);
-        color: var(--text-color);
+        border-radius: 14px;
+
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+    }
+
+
+    .discord-eyebrow {
+        display: block;
+
+        margin-bottom: 0.15rem;
+
+        font-size: 0.7rem;
+        font-weight: 800;
+
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+
+        opacity: 0.65;
+    }
+
+
+    .discord-header h1 {
+        margin: 0;
+
+        color: var(--accent-color);
+
+        font-size: clamp(1.5rem, 2.5vw, 2.2rem);
+        line-height: 1.15;
+    }
+
+
+    .discord-header p {
+        margin: 0.35rem 0 0;
+
+        font-weight: 600;
+        line-height: 1.4;
+
+        opacity: 0.85;
+    }
+
+
+    .discord-back-btn {
+        flex: 0 0 auto;
+
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+
+        padding: 0.65rem 0.9rem;
+
+        background: var(--button-bg);
+        color: var(--button-text);
+
+        border: 1px solid var(--button-border);
+        border-radius: 8px;
+
+        text-decoration: none;
+        font-weight: 700;
+    }
+
+
+    .discord-back-btn:hover {
+        background: var(--button-hover);
+    }
+
+
+    /* ==================================================
+       GRID
+       ================================================== */
+
+    .discord-grid {
+        display: grid;
+
+        grid-template-columns:
+            repeat(3, minmax(0, 1fr));
+
+        gap: 1rem;
+    }
+
+
+    /* ==================================================
+       CARD
+       ================================================== */
+
+    .discord-card {
+        min-width: 0;
+
+        display: flex;
+        flex-direction: column;
+
+        gap: 0.85rem;
+
+        padding: 1rem;
+
+        background: var(--nav-bg);
+
+        border: 1px solid var(--button-border);
+        border-radius: 14px;
+
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.05);
+    }
+
+
+    .discord-card-large {
+        grid-column: span 2;
+    }
+
+
+    .discord-step-heading {
+        display: flex;
+        align-items: flex-start;
+
+        gap: 0.75rem;
+    }
+
+
+    .discord-step-number {
+        width: 34px;
+        height: 34px;
+
+        flex: 0 0 34px;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        background: var(--button-bg);
+        color: var(--accent-color);
+
+        border: 1px solid var(--accent-color);
+        border-radius: 9px;
+
+        font-weight: 800;
+    }
+
+
+    .discord-step-heading h2 {
+        margin: 0;
+
+        color: var(--accent-color);
+
         font-size: 1rem;
     }
 
-    .sub-step-content input:focus,
-    .sub-step-content select:focus {
-        outline: none;
-        border-color: var(--accent-color);
-        box-shadow: 0 0 0 2px rgba(128, 128, 128, 0.15);
+
+    .discord-step-heading p {
+        margin: 0.25rem 0 0;
+
+        font-size: 0.82rem;
+        font-weight: 600;
+        line-height: 1.4;
+
+        opacity: 0.8;
     }
 
-    .btn,
-    .download-btn {
-        display: inline-block;
-        margin-top: 0.6rem;
-        padding: 0.6rem 1.2rem;
+
+    /* ==================================================
+       INPUTS
+       ================================================== */
+
+    .discord-fields {
+        display: grid;
+
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+
+        gap: 0.75rem;
+    }
+
+
+    .discord-field {
+        display: flex;
+        flex-direction: column;
+
+        gap: 0.35rem;
+    }
+
+
+    .discord-field label {
+        font-size: 0.8rem;
+        font-weight: 700;
+    }
+
+
+    .discord-field input,
+    .discord-field select {
+        width: 100%;
+
+        padding: 0.6rem 0.7rem;
+
+        background: var(--bg-color);
+        color: var(--text-color);
+
+        border: 1px solid var(--button-border);
         border-radius: 8px;
+
+        font: inherit;
+
+        box-sizing: border-box;
+    }
+
+
+    .discord-field input:focus,
+    .discord-field select:focus {
+        outline: 2px solid var(--accent-color);
+        outline-offset: 1px;
+    }
+
+
+    /* ==================================================
+       BUTTONS
+       ================================================== */
+
+    .discord-action-btn,
+    .discord-download-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+
+        padding: 0.6rem 0.85rem;
+
         background: var(--button-bg);
         color: var(--button-text) !important;
-        border: 1px solid var(--button-border);
-        text-decoration: none !important;
-        font-weight: 600;
-        cursor: pointer;
-        text-align: center;
-        transition: all 0.3s ease;
-    }
 
-    .btn:hover,
-    .download-btn:hover {
-        background: var(--button-hover);
-        color: var(--button-text) !important;
-        transform: scale(1.02);
-    }
-
-    .download-group {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.6rem;
-        margin-top: 0.7rem;
-    }
-
-    pre.example-env,
-    pre.shell-steps {
-        padding: 0.85rem 1rem;
-        border: 1px solid var(--button-border);
+        border: 1px solid var(--accent-color);
         border-radius: 8px;
+
+        text-decoration: none !important;
+
+        font-size: 0.8rem;
+        font-weight: 700;
+
+        cursor: pointer;
+    }
+
+
+    .discord-action-btn:hover,
+    .discord-download-btn:hover {
+        background: var(--button-hover);
+    }
+
+
+    .discord-download-grid {
+        display: grid;
+
+        grid-template-columns:
+            repeat(auto-fit, minmax(130px, 1fr));
+
+        gap: 0.5rem;
+    }
+
+
+    /* ==================================================
+       CODE
+       ================================================== */
+
+    .discord-code {
+        margin: 0;
+
+        padding: 0.7rem;
+
         background: rgba(128, 128, 128, 0.08);
         color: var(--text-color);
+
+        border: 1px solid var(--button-border);
+        border-radius: 8px;
+
         overflow-x: auto;
-        font-size: 0.85rem;
-        line-height: 1.6;
-        margin-top: 0.75rem;
+
+        font-size: 0.76rem;
+        line-height: 1.45;
+
         white-space: pre-wrap;
         word-break: break-word;
     }
 
-    .sub-steps {
-        list-style-type: disc;
-        margin: 1rem 0 1rem 2rem;
-        padding: 0;
+
+    .discord-run-grid {
+        display: grid;
+
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+
+        gap: 0.75rem;
     }
 
-    .sub-steps li {
-        margin-bottom: 0.5rem;
-        background: none;
-        border: none;
-        padding: 0;
-        position: static;
-        color: var(--text-color);
+
+    .discord-run-panel {
+        min-width: 0;
     }
 
-    .connect-wrapper a:not(.download-btn) {
+
+    .discord-run-panel > strong {
+        display: block;
+
+        margin-bottom: 0.35rem;
+
         color: var(--accent-color);
-        text-decoration: underline;
+
+        font-size: 0.82rem;
     }
 
-    .connect-wrapper a:not(.download-btn):hover {
-        opacity: 0.8;
-    }
+
+    /* ==================================================
+       RESULT / SUCCESS
+       ================================================== */
 
     .invite-result {
-        margin-top: 1rem;
-        color: var(--text-color);
+        min-width: 0;
+
+        font-size: 0.8rem;
+        font-weight: 600;
+
+        overflow-wrap: anywhere;
     }
 
-    @media (max-width: 600px) {
-        .connect-wrapper {
-            padding: 1.5rem;
-        }
 
-        .connect-steps > li {
-            padding: 1.2rem 1.5rem 1.2rem 2.6rem;
-        }
+    .invite-result a {
+        color: var(--accent-color);
     }
 
-    @media (max-width: 400px) {
-        pre.example-env,
-        pre.shell-steps {
-            font-size: 0.78rem;
-            line-height: 1.65;
-        }
+
+    .discord-success {
+        padding: 0.75rem;
+
+        background: var(--button-bg);
+
+        border: 1px solid var(--accent-color);
+        border-radius: 8px;
+
+        text-align: center;
+
+        font-weight: 800;
+
+        color: var(--accent-color);
     }
+
+
+    /* ==================================================
+       TABLET
+       ================================================== */
+
+    @media (min-width: 701px) and (max-width: 1100px) {
+
+        .discord-grid {
+            grid-template-columns:
+                repeat(2, minmax(0, 1fr));
+        }
+
+
+        .discord-card-large {
+            grid-column: span 2;
+        }
+
+    }
+
+
+    /* ==================================================
+       MOBILE
+       ================================================== */
+
+    @media (max-width: 700px) {
+
+        main {
+            width: 100%;
+            margin: 0;
+            padding: 0.65rem;
+        }
+
+
+        .discord-page {
+            gap: 0.65rem;
+        }
+
+
+        .discord-header {
+            padding: 0.85rem;
+
+            border-radius: 12px;
+        }
+
+
+        .discord-header h1 {
+            font-size: 1.35rem;
+        }
+
+
+        .discord-header p {
+            font-size: 0.76rem;
+        }
+
+
+        .discord-back-btn {
+            padding: 0.5rem 0.65rem;
+
+            font-size: 0.72rem;
+        }
+
+
+        .discord-grid {
+            grid-template-columns:
+                repeat(2, minmax(0, 1fr));
+
+            gap: 0.65rem;
+        }
+
+
+        .discord-card,
+        .discord-card-large {
+            grid-column: auto;
+
+            padding: 0.75rem;
+
+            border-radius: 11px;
+        }
+
+
+        .discord-step-heading {
+            gap: 0.5rem;
+        }
+
+
+        .discord-step-number {
+            width: 28px;
+            height: 28px;
+
+            flex-basis: 28px;
+
+            font-size: 0.75rem;
+        }
+
+
+        .discord-step-heading h2 {
+            font-size: 0.82rem;
+        }
+
+
+        .discord-step-heading p {
+            font-size: 0.68rem;
+        }
+
+
+        .discord-fields,
+        .discord-run-grid {
+            grid-template-columns: 1fr;
+        }
+
+
+        .discord-field label {
+            font-size: 0.7rem;
+        }
+
+
+        .discord-field input,
+        .discord-field select {
+            padding: 0.5rem;
+
+            font-size: 0.75rem;
+        }
+
+
+        .discord-action-btn,
+        .discord-download-btn {
+            padding: 0.5rem;
+
+            font-size: 0.68rem;
+        }
+
+
+        .discord-code {
+            font-size: 0.62rem;
+        }
+
+    }
+
+
+    /* ==================================================
+       VERY SMALL MOBILE
+       ================================================== */
+
+    @media (max-width: 430px) {
+
+        .discord-header {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+
+        .discord-back-btn {
+            width: 100%;
+        }
+
+
+        .discord-grid {
+            grid-template-columns: 1fr;
+        }
+
+
+        .discord-card,
+        .discord-card-large {
+            grid-column: 1;
+        }
+
+    }
+
 </style>
 
+
 <script>
+
     function generateInviteLink() {
-        const clientId = document.getElementById('clientIdInput').value.trim();
-        const permissions = document.getElementById('permissionsInput').value;
-        const resultDiv = document.getElementById('result');
+
+        const clientId =
+            document.getElementById(
+                'clientIdInput'
+            ).value.trim();
+
+        const permissions =
+            document.getElementById(
+                'permissionsInput'
+            ).value;
+
+        const resultDiv =
+            document.getElementById(
+                'result'
+            );
+
 
         if (!clientId) {
+
             resultDiv.innerHTML =
                 "<span style='color:#d93025;'>⚠️ Please enter a valid Client ID.</span>";
+
             return;
+
         }
+
 
         const inviteURL =
             `https://discord.com/oauth2/authorize?client_id=${encodeURIComponent(clientId)}&scope=bot&permissions=${permissions}`;
 
+
         resultDiv.innerHTML = `
             ✅ Your personalized invite link:<br>
-            <a href="${inviteURL}" target="_blank" rel="noopener">${inviteURL}</a>
+            <a
+                href="${inviteURL}"
+                target="_blank"
+                rel="noopener"
+            >
+                ${inviteURL}
+            </a>
         `;
+
     }
+
 </script>
 
 {% endblock %}

@@ -5,178 +5,344 @@
 
 {% block content %}
 
-<h1>{% if bot.avatar_symbol %}<span aria-hidden="true">{{ bot.avatar_symbol }}</span> {% endif %}Chat with {{ bot.name }}</h1>
+<section class="playground-page">
 
-<div class="playground-chat-layout">
+    <header class="playground-header">
 
-    <aside class="conversation-sidebar">
+        <div>
+            <h1>
+                {% if bot.avatar_symbol %}
+                    <span aria-hidden="true">{{ bot.avatar_symbol }}</span>
+                {% endif %}
+                {{ bot.name }}
+            </h1>
 
-        <button id="new-chat-button" type="button" class="new-chat-button">
-            + New Chat
-        </button>
-
-        <div id="conversation-list">
-            <p class="conversation-loading">
-                Loading conversations...
+            <p>
+                Chat, manage conversations, and update this assistant's knowledge.
             </p>
         </div>
 
-    </aside>
-
-    <section class="conversation-main">
-
-        <div id="conversation-title" class="conversation-title">
-            Conversation
-        </div>
-
-        <div id="chat-box"></div>
-
-        <p
-            id="language-chat-hint"
-            class="language-chat-hint"
-            hidden
+        <a
+            href="{% url 'bots:list' %}"
+            class="playground-back-btn"
         >
-            🌍 You can chat in many languages — just write in the language you prefer.
-        </p>
+            ← My AI Assistants
+        </a>
 
-        <form id="chat-form" method="post" autocomplete="off">
-            {% csrf_token %}
-
-            <input
-                id="chat-input"
-                type="text"
-                name="message"
-                placeholder="Message {{ bot.name }}..."
-                required
-            />
-
-            <button type="submit">
-                Send
-            </button>
-
-        </form>
-
-    </section>
-
-</div>
+    </header>
 
 
-<div class="knowledge-heading">
-    <h2>
-        📚 Knowledge for {{ bot.name }}
-    </h2>
+    <!-- MOBILE PANEL SWITCHER -->
 
-    <button
-        type="button"
-        id="knowledge-info-button"
-        class="knowledge-info-button"
-        aria-label="How does Knowledge Upload work?"
-    >
-        ⓘ What is Knowledge?
-    </button>
-</div>
+    <div class="playground-tabs">
 
-<p class="knowledge-description">
-    Add documents or text your assistant can use when answering your questions.
-</p>
-
-<div class="upload-knowledge-container" style="margin-bottom: 1rem;">
-    <h3 style="margin-top: 0;">Uploaded Knowledge</h3>
-
-    <div id="knowledge-list">
-    {% for knowledge in knowledge_files %}
-
-    <div class="knowledge-file-row">
-
-        <span class="knowledge-file-name">
-            {% if knowledge.file %}
-                {{ knowledge.file.name|cut:"knowledge_files/" }}
-            {% else %}
-                Manual Knowledge
-            {% endif %}
-        </span>
-
-        <form
-            method="post"
-            action="{% url 'bots:delete-knowledge' bot.id knowledge.id %}"
-            class="knowledge-delete-form"
+        <button
+            type="button"
+            class="playground-tab"
+            data-playground-panel="conversations"
         >
-            {% csrf_token %}
+            Conversations
+        </button>
+
+        <button
+            type="button"
+            class="playground-tab active"
+            data-playground-panel="chat"
+        >
+            Chat
+        </button>
+
+        <button
+            type="button"
+            class="playground-tab"
+            data-playground-panel="knowledge"
+        >
+            Knowledge
+        </button>
+
+    </div>
+
+
+    <div class="playground-workspace">
+
+
+        <!-- ================= CONVERSATIONS ================= -->
+
+        <aside
+            class="conversation-sidebar playground-panel"
+            data-panel="conversations"
+        >
+
+            <div class="playground-panel-heading">
+                <h2>Conversations</h2>
+            </div>
 
             <button
-                type="submit"
-                class="btn btn-danger knowledge-delete-button"
+                id="new-chat-button"
+                type="button"
+                class="new-chat-button"
             >
-                🗑️ Delete
+                + New Chat
             </button>
 
-        </form>
+            <div id="conversation-list">
 
-    </div>
+                <p class="conversation-loading">
+                    Loading conversations...
+                </p>
 
-    {% empty %}<p>No uploaded knowledge yet.</p>
-    {% endfor %}
-    </div>
-    <p id="knowledge-status" role="status" aria-live="polite" aria-atomic="true"></p>
-    <button id="knowledge-refresh" type="button" class="btn">Refresh file list</button>
-</div>
+            </div>
 
-<form
-    id="knowledge-upload-form"
-    method="post"
-    enctype="multipart/form-data"
-    class="upload-knowledge-container"
->
-    {% csrf_token %}
+        </aside>
 
-    {% if messages %}
-    {% for message in messages %}
-    <div class="alert {{ message.tags }}">
-        {{ message }}
-    </div>
-    {% endfor %}
-    {% endif %}
 
-    {{ knowledge_form.non_field_errors }}
+        <!-- ================= CHAT ================= -->
 
-    <div class="form-group">
-
-        <label
-            for="{{ knowledge_form.file.id_for_label }}"
-            style="font-weight: bold;"
+        <section
+            class="conversation-main playground-panel active"
+            data-panel="chat"
         >
-            Upload File (.txt, .pdf, .docx):
-        </label>
 
-        <span hidden>{{ knowledge_form.file }}</span>
-        <button id="knowledge-choose-file" type="button" class="btn"
-                aria-describedby="knowledge-file-name">Choose file</button>
-        <span id="knowledge-file-name" role="status" aria-live="polite"
-              style="overflow-wrap: anywhere;">No file selected</span>
+            <div
+                id="conversation-title"
+                class="conversation-title"
+            >
+                Conversation
+            </div>
 
-        {% for error in knowledge_form.file.errors %}
-        <div
-            class="error"
-            style="
-                color: red;
-                margin-top: 5px;
-            "
+            <div id="chat-box"></div>
+
+
+            <p
+                id="language-chat-hint"
+                class="language-chat-hint"
+                hidden
+            >
+                🌍 You can chat in many languages — just write in the language you prefer.
+            </p>
+
+
+            <form
+                id="chat-form"
+                method="post"
+                autocomplete="off"
+            >
+
+                {% csrf_token %}
+
+                <input
+                    id="chat-input"
+                    type="text"
+                    name="message"
+                    placeholder="Message {{ bot.name }}..."
+                    required
+                >
+
+                <button type="submit">
+                    Send
+                </button>
+
+            </form>
+
+        </section>
+
+
+        <!-- ================= KNOWLEDGE ================= -->
+
+        <aside
+            class="knowledge-panel playground-panel"
+            data-panel="knowledge"
         >
-            {{ error }}
-        </div>
-        {% endfor %}
+
+            <div class="playground-panel-heading knowledge-panel-heading">
+
+                <h2>
+                    📚 Knowledge
+                </h2>
+
+                <button
+                    type="button"
+                    id="knowledge-info-button"
+                    class="knowledge-info-button"
+                    aria-label="How does Knowledge Upload work?"
+                >
+                    ⓘ
+                </button>
+
+            </div>
+
+
+            <p class="knowledge-description">
+                Add documents or text your assistant can use when answering.
+            </p>
+
+
+            <div class="knowledge-section">
+
+                <div class="knowledge-section-header">
+
+                    <h3>
+                        Uploaded Knowledge
+                    </h3>
+
+                    <button
+                        id="knowledge-refresh"
+                        type="button"
+                        class="knowledge-refresh-btn"
+                    >
+                        Refresh
+                    </button>
+
+                </div>
+
+
+                <div id="knowledge-list">
+
+                    {% for knowledge in knowledge_files %}
+
+                    <div class="knowledge-file-row">
+
+                        <span class="knowledge-file-name">
+
+                            {% if knowledge.file %}
+                                {{ knowledge.file.name|cut:"knowledge_files/" }}
+                            {% else %}
+                                Manual Knowledge
+                            {% endif %}
+
+                        </span>
+
+
+                        <form
+                            method="post"
+                            action="{% url 'bots:delete-knowledge' bot.id knowledge.id %}"
+                            class="knowledge-delete-form"
+                        >
+
+                            {% csrf_token %}
+
+                            <button
+                                type="submit"
+                                class="knowledge-delete-button"
+                            >
+                                Delete
+                            </button>
+
+                        </form>
+
+                    </div>
+
+                    {% empty %}
+
+                    <p class="knowledge-empty">
+                        No uploaded knowledge yet.
+                    </p>
+
+                    {% endfor %}
+
+                </div>
+
+
+                <p
+                    id="knowledge-status"
+                    class="knowledge-status"
+                    role="status"
+                    aria-live="polite"
+                    aria-atomic="true"
+                ></p>
+
+            </div>
+
+
+            <form
+                id="knowledge-upload-form"
+                method="post"
+                enctype="multipart/form-data"
+                class="knowledge-upload-form"
+            >
+
+                {% csrf_token %}
+
+
+                {% if messages %}
+
+                    {% for message in messages %}
+
+                    <div class="alert {{ message.tags }}">
+                        {{ message }}
+                    </div>
+
+                    {% endfor %}
+
+                {% endif %}
+
+
+                {{ knowledge_form.non_field_errors }}
+
+
+                <div class="form-group">
+
+                    <label
+                        for="{{ knowledge_form.file.id_for_label }}"
+                    >
+                        Upload File
+                    </label>
+
+                    <small class="knowledge-file-types">
+                        TXT, PDF or DOCX
+                    </small>
+
+
+                    <span hidden>
+                        {{ knowledge_form.file }}
+                    </span>
+
+
+                    <button
+                        id="knowledge-choose-file"
+                        type="button"
+                        class="knowledge-choose-btn"
+                        aria-describedby="knowledge-file-name"
+                    >
+                        Choose file
+                    </button>
+
+
+                    <span
+                        id="knowledge-file-name"
+                        class="knowledge-selected-file"
+                        role="status"
+                        aria-live="polite"
+                    >
+                        No file selected
+                    </span>
+
+
+                    {% for error in knowledge_form.file.errors %}
+
+                    <div class="knowledge-error">
+                        {{ error }}
+                    </div>
+
+                    {% endfor %}
+
+                </div>
+
+
+                <button
+                    type="submit"
+                    class="knowledge-upload-btn"
+                >
+                    Upload Knowledge
+                </button>
+
+            </form>
+
+        </aside>
 
     </div>
 
-    <button
-        type="submit"
-        class="btn btn-primary"
-        style="margin-top: 0.5rem;"
-    >
-        Upload Knowledge
-    </button>
-
-</form>
+</section>
 
 <dialog id="knowledge-info-dialog">
     <div class="knowledge-info-content">
@@ -1023,6 +1189,711 @@
             padding: 1.1rem;
         }
     }
+
+    /* ==================================================
+   PLAYGROUND APP LAYOUT
+   ================================================== */
+
+main {
+    width: min(1800px, calc(100% - 2rem));
+    max-width: none;
+    margin: 1rem auto;
+    padding: 0;
+    background: transparent;
+    border-radius: 0;
+    box-shadow: none;
+    backdrop-filter: none;
+}
+
+
+.playground-page {
+    width: 100%;
+    min-width: 0;
+
+    display: flex;
+    flex-direction: column;
+
+    gap: 1rem;
+}
+
+
+/* ================= HEADER ================= */
+
+.playground-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 1rem;
+
+    padding: 0.9rem 1.1rem;
+
+    background: var(--nav-bg);
+
+    border: 1px solid var(--button-border);
+    border-radius: 14px;
+
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.05);
+}
+
+
+.playground-header h1 {
+    margin: 0;
+
+    color: var(--accent-color);
+
+    font-size: clamp(1.45rem, 2.2vw, 2rem);
+    line-height: 1.15;
+}
+
+
+.playground-header p {
+    margin: 0.25rem 0 0;
+
+    font-size: 0.85rem;
+    font-weight: 600;
+
+    opacity: 0.8;
+}
+
+
+.playground-back-btn {
+    flex: 0 0 auto;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 0.6rem 0.8rem;
+
+    background: var(--button-bg);
+    color: var(--button-text);
+
+    border: 1px solid var(--button-border);
+    border-radius: 8px;
+
+    text-decoration: none;
+    font-weight: 700;
+}
+
+
+/* ================= WORKSPACE ================= */
+
+.playground-workspace {
+    min-width: 0;
+
+    display: grid;
+
+    grid-template-columns:
+        minmax(210px, 0.7fr)
+        minmax(420px, 2fr)
+        minmax(280px, 1fr);
+
+    gap: 0.8rem;
+
+    height: min(
+        720px,
+        calc(100dvh - 245px)
+    );
+
+    min-height: 520px;
+}
+
+
+/* ================= PANELS ================= */
+
+.conversation-sidebar,
+.conversation-main,
+.knowledge-panel {
+    min-width: 0;
+    min-height: 0;
+
+    padding: 0.85rem;
+
+    background: var(--nav-bg);
+
+    border: 1px solid var(--button-border);
+    border-radius: 14px;
+
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.05);
+}
+
+
+.conversation-sidebar {
+    display: flex;
+    flex-direction: column;
+}
+
+
+.conversation-main {
+    display: flex;
+    flex-direction: column;
+}
+
+
+.knowledge-panel {
+    display: flex;
+    flex-direction: column;
+
+    overflow-y: auto;
+}
+
+
+.playground-panel-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 0.5rem;
+
+    margin-bottom: 0.7rem;
+}
+
+
+.playground-panel-heading h2 {
+    margin: 0;
+
+    color: var(--accent-color);
+
+    font-size: 1rem;
+}
+
+
+/* ================= CONVERSATIONS ================= */
+
+.new-chat-button {
+    flex: 0 0 auto;
+
+    margin: 0 0 0.65rem;
+
+    padding: 0.6rem;
+
+    border-radius: 8px;
+}
+
+
+#conversation-list {
+    flex: 1 1 auto;
+
+    min-height: 0;
+
+    overflow-y: auto;
+    overflow-x: hidden;
+
+    padding-right: 0.15rem;
+}
+
+
+/* ================= CHAT ================= */
+
+.conversation-title {
+    flex: 0 0 auto;
+
+    margin: 0 0 0.6rem;
+
+    color: var(--accent-color);
+
+    font-size: 1rem;
+}
+
+
+#chat-box {
+    flex: 1 1 auto;
+
+    width: 100%;
+    height: auto;
+    min-height: 0;
+
+    margin: 0 0 0.6rem;
+
+    overflow-y: auto;
+    overflow-x: hidden;
+
+    padding: 0.85rem;
+
+    border-radius: 10px;
+}
+
+
+.chat-message.user,
+.chat-message.bot,
+.chat-message.assistant {
+    font-size: 0.9rem;
+
+    padding: 0.65rem 0.8rem;
+
+    margin: 0.3rem 0;
+}
+
+
+.language-chat-hint {
+    flex: 0 0 auto;
+
+    margin: 0 0 0.5rem;
+
+    padding: 0.5rem 0.65rem;
+
+    font-size: 0.75rem;
+}
+
+
+#chat-form {
+    flex: 0 0 auto;
+
+    display: grid;
+
+    grid-template-columns:
+        minmax(0, 1fr)
+        auto;
+
+    gap: 0.5rem;
+
+    margin: 0;
+}
+
+
+#chat-input {
+    min-width: 0;
+
+    padding: 0.65rem;
+}
+
+
+#chat-form button {
+    padding: 0.65rem 1rem;
+
+    border-radius: 8px;
+}
+
+
+/* ================= KNOWLEDGE ================= */
+
+.knowledge-panel-heading {
+    margin-bottom: 0.2rem;
+}
+
+
+.knowledge-info-button {
+    width: 34px;
+    height: 34px;
+
+    flex: 0 0 34px;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 0;
+
+    border-radius: 8px;
+
+    font-size: 0.85rem;
+}
+
+
+.knowledge-description {
+    margin: 0 0 0.7rem;
+
+    text-align: left;
+
+    font-size: 0.75rem;
+    font-weight: 600;
+    line-height: 1.35;
+
+    opacity: 0.8;
+}
+
+
+.knowledge-section,
+.knowledge-upload-form {
+    width: 100%;
+
+    padding: 0.75rem;
+
+    background: rgba(128, 128, 128, 0.04);
+
+    border: 1px solid var(--button-border);
+    border-radius: 10px;
+}
+
+
+.knowledge-section {
+    margin-bottom: 0.7rem;
+}
+
+
+.knowledge-section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 0.5rem;
+
+    margin-bottom: 0.5rem;
+}
+
+
+.knowledge-section-header h3 {
+    margin: 0;
+
+    color: var(--accent-color);
+
+    font-size: 0.85rem;
+}
+
+
+.knowledge-refresh-btn {
+    margin: 0;
+
+    padding: 0.35rem 0.55rem;
+
+    border-radius: 7px;
+
+    font-size: 0.7rem;
+}
+
+
+.knowledge-file-row {
+    gap: 0.5rem;
+
+    padding: 0.45rem 0;
+}
+
+
+.knowledge-file-name {
+    font-size: 0.75rem;
+}
+
+
+.knowledge-delete-button {
+    padding: 0.35rem 0.5rem;
+
+    border-radius: 7px;
+
+    font-size: 0.65rem;
+}
+
+
+.knowledge-status {
+    margin: 0.5rem 0 0;
+
+    font-size: 0.68rem;
+    font-weight: 600;
+    line-height: 1.3;
+}
+
+
+.knowledge-upload-form {
+    display: flex;
+    flex-direction: column;
+
+    gap: 0.55rem;
+
+    margin: 0;
+}
+
+
+.knowledge-upload-form .form-group {
+    display: flex;
+    flex-direction: column;
+
+    gap: 0.35rem;
+
+    margin: 0;
+}
+
+
+.knowledge-upload-form label {
+    font-size: 0.8rem;
+    font-weight: 800;
+}
+
+
+.knowledge-file-types {
+    font-size: 0.65rem;
+    opacity: 0.7;
+}
+
+
+.knowledge-choose-btn,
+.knowledge-upload-btn {
+    width: 100%;
+
+    margin: 0;
+
+    padding: 0.55rem 0.65rem;
+
+    border-radius: 8px;
+
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+
+.knowledge-selected-file {
+    overflow-wrap: anywhere;
+
+    font-size: 0.68rem;
+
+    opacity: 0.75;
+}
+
+
+.knowledge-error {
+    color: #c62828;
+
+    font-size: 0.7rem;
+    font-weight: 700;
+}
+
+
+/* ================= TABS ================= */
+
+.playground-tabs {
+    display: none;
+}
+
+
+/* ==================================================
+   TABLET
+   ================================================== */
+
+@media (min-width: 551px) and (max-width: 1050px) {
+
+    .playground-workspace {
+        grid-template-columns:
+            minmax(190px, 0.75fr)
+            minmax(0, 2fr);
+
+        height: auto;
+        min-height: 0;
+    }
+
+
+    .conversation-sidebar,
+    .conversation-main {
+        min-height: 600px;
+    }
+
+
+    .knowledge-panel {
+        grid-column: 1 / -1;
+
+        display: grid;
+
+        grid-template-columns:
+            minmax(0, 1fr)
+            minmax(260px, 0.7fr);
+
+        gap: 0.7rem;
+
+        max-height: none;
+    }
+
+
+    .knowledge-panel-heading,
+    .knowledge-description {
+        grid-column: 1 / -1;
+    }
+
+}
+
+
+/* ==================================================
+   MOBILE
+   ================================================== */
+
+@media (max-width: 550px) {
+
+    main {
+        width: 100%;
+        margin: 0;
+
+        padding: 0.65rem;
+    }
+
+
+    .playground-page {
+        gap: 0.65rem;
+    }
+
+
+    .playground-header {
+        padding: 0.8rem;
+
+        border-radius: 12px;
+    }
+
+
+    .playground-header h1 {
+        font-size: 1.3rem;
+    }
+
+
+    .playground-header p {
+        display: none;
+    }
+
+
+    .playground-back-btn {
+        padding: 0.5rem 0.6rem;
+
+        font-size: 0.7rem;
+    }
+
+
+    .playground-tabs {
+        display: grid;
+
+        grid-template-columns:
+            repeat(3, minmax(0, 1fr));
+
+        gap: 0.4rem;
+    }
+
+
+    .playground-tab {
+        min-width: 0;
+
+        margin: 0;
+
+        padding: 0.55rem 0.25rem;
+
+        background: var(--button-bg);
+        color: var(--button-text);
+
+        border: 1px solid var(--button-border);
+        border-radius: 8px;
+
+        font-size: 0.7rem;
+        font-weight: 700;
+
+        white-space: normal;
+    }
+
+
+    .playground-tab.active {
+        border-color: var(--accent-color);
+
+        background: var(--button-hover);
+    }
+
+
+    .playground-workspace {
+        display: block;
+
+        width: 100%;
+
+        height: auto;
+        min-height: 0;
+    }
+
+
+    .playground-panel {
+        display: none;
+
+        width: 100%;
+        max-width: 100%;
+
+        min-width: 0;
+    }
+
+
+    .playground-panel.active {
+        display: flex;
+    }
+
+
+    .conversation-sidebar,
+    .conversation-main,
+    .knowledge-panel {
+        height: calc(100dvh - 275px);
+
+        min-height: 420px;
+
+        padding: 0.75rem;
+
+        border-radius: 12px;
+    }
+
+
+    .knowledge-panel {
+        overflow-y: auto;
+    }
+
+
+    #conversation-list {
+        max-height: none;
+    }
+
+
+    #chat-box {
+        flex: 1 1 auto;
+
+        min-height: 0;
+    }
+
+
+    #chat-form {
+        grid-template-columns:
+            minmax(0, 1fr)
+            auto;
+    }
+
+
+    #chat-form button {
+        width: auto;
+
+        padding-left: 0.8rem;
+        padding-right: 0.8rem;
+    }
+
+
+    .chat-message.user,
+    .chat-message.bot,
+    .chat-message.assistant {
+        max-width: 92%;
+
+        font-size: 0.8rem;
+    }
+
+}
+
+
+/* ==================================================
+   VERY SMALL MOBILE
+   ================================================== */
+
+@media (max-width: 360px) {
+
+    .playground-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+
+    .playground-back-btn {
+        width: 100%;
+    }
+
+
+    .conversation-sidebar,
+    .conversation-main,
+    .knowledge-panel {
+        height: calc(100dvh - 330px);
+    }
+
+
+    #chat-form {
+        grid-template-columns: 1fr;
+    }
+
+
+    #chat-form button {
+        width: 100%;
+    }
+
+}
 </style>
 
 <dialog id="conversation-action-dialog">
@@ -1069,6 +1940,65 @@
 
 <script>
     document.addEventListener("DOMContentLoaded", () => {
+        const playgroundTabs =
+            document.querySelectorAll(
+                "[data-playground-panel]"
+            );
+
+        const playgroundPanels =
+            document.querySelectorAll(
+                ".playground-panel"
+            );
+
+
+        function showPlaygroundPanel(
+            panelName
+        ) {
+
+            playgroundTabs.forEach(
+                (tab) => {
+
+                    tab.classList.toggle(
+                        "active",
+                        tab.dataset.playgroundPanel
+                        === panelName
+                    );
+
+                }
+            );
+
+
+            playgroundPanels.forEach(
+                (panel) => {
+
+                    panel.classList.toggle(
+                        "active",
+                        panel.dataset.panel
+                        === panelName
+                    );
+
+                }
+            );
+
+        }
+
+
+        playgroundTabs.forEach(
+            (tab) => {
+
+                tab.addEventListener(
+                    "click",
+                    () => {
+
+                        showPlaygroundPanel(
+                            tab.dataset.playgroundPanel
+                        );
+
+                    }
+                );
+
+            }
+        );
         const knowledgeInfoButton =
             document.getElementById("knowledge-info-button");
 
