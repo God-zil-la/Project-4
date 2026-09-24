@@ -1,12 +1,75 @@
 {% load static %}<!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>{{ bot.name }} – Chat</title>
-<link rel="stylesheet" href="{% static 'css/public_chat.css' %}">
-<script src="{% static 'js/public_chat.js' %}" defer></script></head>
-<body><main id="public-chat" data-session-url="{% url 'bots:public-session' bot.widget_public_id %}" data-message-url="{% url 'bots:public-message' bot.widget_public_id %}">
-<header><h1>{{ bot.avatar_symbol }} {{ bot.name }}</h1><button id="new-chat" type="button">New chat</button></header>
-<p class="notice">AI-generated answers. This chat is saved and visible to the assistant owner.</p>
-<div id="messages" role="log" aria-live="polite" aria-label="Chat messages"></div>
-<p id="status" role="status"></p><button id="refresh-chat" type="button" hidden>Refresh chat</button>
-<form id="chat-form"><label for="message">Message</label><textarea id="message" maxlength="4000" rows="2" required></textarea><button id="send" disabled>Send</button></form>
-</main></body></html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+
+<title>{{ bot.name }} &ndash; Chat</title>
+
+<script>
+(function () {
+    let savedTheme = null;
+
+    try {
+        savedTheme = localStorage.getItem("theme");
+    } catch (error) {
+        savedTheme = null;
+    }
+
+    const prefersDark =
+        window.matchMedia &&
+        window.matchMedia("(prefers-color-scheme: dark)").matches;
+
+    const useDark =
+        savedTheme === "dark" ||
+        (!savedTheme && prefersDark);
+
+    document.documentElement.classList.toggle("dark", useDark);
+})();
+</script>
+
+<link rel="stylesheet" href="{% static 'css/public_chat.css' %}?v=2">
+<script src="{% static 'js/public_chat.js' %}" defer></script>
+</head>
+
+<body>
+<main
+    id="public-chat"
+    data-session-url="{% url 'bots:public-session' bot.widget_public_id %}"
+    data-message-url="{% url 'bots:public-message' bot.widget_public_id %}"
+>
+<header>
+    <h1>{{ bot.avatar_symbol }} {{ bot.name }}</h1>
+    <button id="new-chat" type="button">New chat</button>
+</header>
+
+<p class="notice">
+    AI-generated answers. This chat is saved and visible to the assistant owner.
+</p>
+
+<div
+    id="messages"
+    role="log"
+    aria-live="polite"
+    aria-label="Chat messages"
+></div>
+
+<p id="status" role="status"></p>
+
+<button id="refresh-chat" type="button" hidden>
+    Refresh chat
+</button>
+
+<form id="chat-form">
+    <label for="message">Message</label>
+    <textarea
+        id="message"
+        maxlength="4000"
+        rows="2"
+        required
+    ></textarea>
+    <button id="send" disabled>Send</button>
+</form>
+</main>
+</body>
+</html>
