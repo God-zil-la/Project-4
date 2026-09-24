@@ -8,27 +8,38 @@
 
 <script>
 (function () {
-    let savedTheme = null;
+    const params = new URLSearchParams(window.location.search);
+    const requestedTheme = params.get("theme");
+
+    let storedTheme = null;
 
     try {
-        savedTheme = localStorage.getItem("theme");
+        storedTheme = localStorage.getItem("theme");
     } catch (error) {
-        savedTheme = null;
+        storedTheme = null;
+    }
+
+    let selectedTheme = null;
+
+    if (requestedTheme === "light" || requestedTheme === "dark") {
+        selectedTheme = requestedTheme;
+    } else if (storedTheme === "light" || storedTheme === "dark") {
+        selectedTheme = storedTheme;
     }
 
     const prefersDark =
         window.matchMedia &&
         window.matchMedia("(prefers-color-scheme: dark)").matches;
 
-    const useDark =
-        savedTheme === "dark" ||
-        (!savedTheme && prefersDark);
+    const useDark = selectedTheme
+        ? selectedTheme === "dark"
+        : prefersDark;
 
     document.documentElement.classList.toggle("dark", useDark);
 })();
 </script>
 
-<link rel="stylesheet" href="{% static 'css/public_chat.css' %}?v=2">
+<link rel="stylesheet" href="{% static 'css/public_chat.css' %}?v=3">
 <script src="{% static 'js/public_chat.js' %}" defer></script>
 </head>
 
@@ -62,12 +73,14 @@
 
 <form id="chat-form">
     <label for="message">Message</label>
+
     <textarea
         id="message"
         maxlength="4000"
         rows="2"
         required
     ></textarea>
+
     <button id="send" disabled>Send</button>
 </form>
 </main>

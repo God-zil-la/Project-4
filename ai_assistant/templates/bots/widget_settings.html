@@ -95,6 +95,7 @@
 
             <p>
                 <a
+                    id="open-public-chatbot"
                     href="{{ widget.public_url }}"
                     target="_blank"
                     rel="noopener noreferrer"
@@ -140,4 +141,64 @@
 
 </section>
 
+{% endblock %}
+
+
+{% block extra_js %}
+<script>
+(function () {
+    const baseUrl = "{{ widget.public_url|escapejs }}";
+
+    if (!baseUrl) {
+        return;
+    }
+
+    const html = document.documentElement;
+    const openLink = document.getElementById("open-public-chatbot");
+    const publicUrlInput = document.getElementById("public-url");
+    const embedCode = document.getElementById("embed-code");
+    const toggleButton = document.getElementById("toggleTheme");
+
+    function currentTheme() {
+        return html.classList.contains("dark") ? "dark" : "light";
+    }
+
+    function themedPublicUrl() {
+        const url = new URL(baseUrl, window.location.origin);
+        url.searchParams.set("theme", currentTheme());
+        return url.toString();
+    }
+
+    function updateWidgetLinks() {
+        const url = themedPublicUrl();
+
+        if (openLink) {
+            openLink.href = url;
+        }
+
+        if (publicUrlInput) {
+            publicUrlInput.value = url;
+        }
+
+        if (embedCode) {
+            const escapedUrl = url
+                .replace(/&/g, "&amp;")
+                .replace(/"/g, "&quot;");
+
+            embedCode.value =
+                '<iframe src="' +
+                escapedUrl +
+                '" title="AI Assistant chat" width="380" height="600" ' +
+                'style="max-width:100%;border:0" loading="lazy" ' +
+                'referrerpolicy="no-referrer"></iframe>';
+        }
+    }
+
+    updateWidgetLinks();
+
+    toggleButton?.addEventListener("click", function () {
+        updateWidgetLinks();
+    });
+})();
+</script>
 {% endblock %}
