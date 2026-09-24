@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 {% load static %}
 
 {% block title %}My AI Assistants{% endblock %}
@@ -34,7 +34,7 @@
                 rel="noopener noreferrer"
                 class="assistants-btn"
             >
-                📘 Information Guide
+                ðŸ“˜ Information Guide
             </a>
 
         </div>
@@ -62,7 +62,7 @@
                                 {{ bot.avatar_symbol }}
                             </span>
                         {% else %}
-                            🤖
+                            ðŸ¤–
                         {% endif %}
                     </div>
 
@@ -100,7 +100,7 @@
                     href="{% url 'bots:playground' bot.id %}"
                     class="assistant-action assistant-action-primary"
                 >
-                    💬 Chat & Knowledge
+                    ðŸ’¬ Chat & Knowledge
                 </a>
 
 
@@ -108,7 +108,7 @@
                     href="{% url 'bots:edit' bot.id %}"
                     class="assistant-action"
                 >
-                    ✏️ Edit Assistant
+                    âœï¸ Edit Assistant
                 </a>
 
 
@@ -118,7 +118,7 @@
                     href="{% url 'bots:discord-setup' bot.id %}"
                     class="assistant-action assistant-action-discord"
                 >
-                    🎮 Discord Setup
+                    ðŸŽ® Discord Setup
                 </a>
 
                 {% else %}
@@ -128,17 +128,38 @@
                     class="assistant-action assistant-action-locked"
                     title="Discord integration requires the Pro plan."
                 >
-                    🔒 Discord — Pro
+                    ðŸ”’ Discord â€” Pro
                 </a>
 
                 {% endif %}
 
 
+                                {% if request.user.profile.effective_plan == "pro" %}
+
                 <a
+                    href="{% url 'bots:widget-settings' bot.id %}"
+                    class="assistant-action assistant-action-primary"
+                >
+                    &#127760; Website Widget
+                </a>
+
+                {% else %}
+
+                <a
+                    href="{% url 'payments:billing' %}"
+                    class="assistant-action assistant-action-locked"
+                    title="Website Widget / Public Chatbot requires the Pro plan."
+                >
+                    &#128274; Widget - Pro
+                </a>
+
+                {% endif %}
+
+<a
                     href="{% url 'bots:delete' bot.id %}"
                     class="assistant-action assistant-action-danger"
                 >
-                    🗑️ Delete
+                    ðŸ—‘ï¸ Delete
                 </a>
 
             </div>
@@ -157,7 +178,7 @@
     <section class="assistants-empty">
 
         <div class="assistants-empty-icon">
-            🤖
+            ðŸ¤–
         </div>
 
         <h2>
