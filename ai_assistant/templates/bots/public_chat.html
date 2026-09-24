@@ -6,41 +6,8 @@
 
 <title>{{ bot.name }} &ndash; Chat</title>
 
-<script>
-(function () {
-    const params = new URLSearchParams(window.location.search);
-    const requestedTheme = params.get("theme");
-
-    let storedTheme = null;
-
-    try {
-        storedTheme = localStorage.getItem("theme");
-    } catch (error) {
-        storedTheme = null;
-    }
-
-    let selectedTheme = null;
-
-    if (requestedTheme === "light" || requestedTheme === "dark") {
-        selectedTheme = requestedTheme;
-    } else if (storedTheme === "light" || storedTheme === "dark") {
-        selectedTheme = storedTheme;
-    }
-
-    const prefersDark =
-        window.matchMedia &&
-        window.matchMedia("(prefers-color-scheme: dark)").matches;
-
-    const useDark = selectedTheme
-        ? selectedTheme === "dark"
-        : prefersDark;
-
-    document.documentElement.classList.toggle("dark", useDark);
-})();
-</script>
-
 <link rel="stylesheet" href="{% static 'css/public_chat.css' %}?v=3">
-<script src="{% static 'js/public_chat.js' %}" defer></script>
+<script src="{% static 'js/public_chat.js' %}?v=2" defer></script>
 </head>
 
 <body>

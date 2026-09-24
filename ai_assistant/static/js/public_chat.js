@@ -1,6 +1,38 @@
 /* One session per assistant, embedding site and browser tab; cookies are not required. */
 (() => {
   'use strict';
+
+/* Match the public chatbot theme to the requested/app theme. */
+const themeParams = new URLSearchParams(window.location.search);
+const requestedTheme = themeParams.get('theme');
+
+let storedTheme = null;
+
+try {
+    storedTheme = localStorage.getItem('theme');
+} catch {
+    storedTheme = null;
+}
+
+let selectedTheme = null;
+
+if (requestedTheme === 'light' || requestedTheme === 'dark') {
+    selectedTheme = requestedTheme;
+} else if (storedTheme === 'light' || storedTheme === 'dark') {
+    selectedTheme = storedTheme;
+} else {
+    const prefersDark =
+        window.matchMedia &&
+        window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+    selectedTheme = prefersDark ? 'dark' : 'light';
+}
+
+document.documentElement.classList.toggle(
+    'dark',
+    selectedTheme === 'dark'
+);
+
   const root = document.getElementById('public-chat');
   const messages = document.getElementById('messages');
   const status = document.getElementById('status');
