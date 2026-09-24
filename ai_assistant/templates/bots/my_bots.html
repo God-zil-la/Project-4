@@ -94,6 +94,26 @@
                 >
                     🔗 Discord
                 </a>
+                {% if request.user.profile.effective_plan == "pro" %}
+
+                <a
+                    href="{% url 'bots:widget-settings' bot.id %}"
+                    class="bot-action"
+                >
+                    &#127760; Widget
+                </a>
+
+                {% else %}
+
+                <a
+                    href="{% url 'payments:billing' %}"
+                    class="bot-action"
+                    title="Website Widget / Public Chatbot requires the Pro plan."
+                >
+                    &#128274; Widget - Pro
+                </a>
+
+                {% endif %}
 
                 <a
                     href="{% url 'bots:delete' bot.id %}"
