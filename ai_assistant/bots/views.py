@@ -171,6 +171,7 @@ def bot_chat_api(request, bot_id):
             Conversation.objects.filter(
                 bot=bot,
                 user=request.user,
+                is_widget=False,
             )
             .order_by(
                 "-updated_at",
@@ -214,6 +215,7 @@ def bot_chat_api(request, bot_id):
                 conversation.public_id
             ),
             "title": conversation.title,
+            "is_widget": conversation.is_widget,
             "messages": data,
         }
     )

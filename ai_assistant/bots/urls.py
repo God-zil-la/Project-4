@@ -2,7 +2,7 @@ from .parity_api import DashboardAPIView, AnalyticsAPIView, KnowledgeAPIView, Kn
 from django.urls import path
 from rest_framework.authtoken.views import obtain_auth_token
 
-from . import views
+from . import views, widget_views
 from .api_views import (
     BotDetailAPIView,
     BotListCreateAPIView,
@@ -17,6 +17,11 @@ app_name = "bots"
 
 
 urlpatterns = [
+    path("<int:bot_id>/widget/", widget_views.widget_settings, name="widget-settings"),
+    path("api/bots/<int:bot_id>/widget/", widget_views.WidgetSettingsAPI.as_view(), name="widget-settings-api"),
+    path("public/<uuid:public_id>/", widget_views.public_chat, name="public-chat"),
+    path("public/<uuid:public_id>/session/", widget_views.PublicSessionAPI.as_view(), name="public-session"),
+    path("public/<uuid:public_id>/message/", widget_views.PublicMessageAPI.as_view(), name="public-message"),
     path("api/dashboard/", DashboardAPIView.as_view(), name="native-dashboard"),
     path("api/analytics/", AnalyticsAPIView.as_view(), name="native-analytics"),
     path("api/bots/<int:bot_id>/knowledge/", KnowledgeAPIView.as_view(), name="native-knowledge"),

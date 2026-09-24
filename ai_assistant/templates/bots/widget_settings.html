@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Website Widget / Public Chatbot{% endblock %}
+{% block content %}
+<section>
+  <h1>Website Widget / Public Chatbot</h1>
+  <h2>{{ bot.name }}</h2>
+  <p>Available with Pro. Visitors use your assistant's instructions, customization and Knowledge. Their messages count toward your existing AI usage limits.</p>
+  <p>Visitor chats appear in Conversations. Anyone with the public link can chat with this assistant and receive answers based on its Knowledge. Only enable it for content you want to make public.</p>
+  {% if error %}<p role="alert">{{ error }}</p>{% endif %}
+  {% if not widget.allowed %}<p>Pro is required to activate this feature. Public access is currently unavailable.</p>{% endif %}
+  <form method="post">
+    {% csrf_token %}
+    <label><input type="checkbox" name="widget_enabled" {% if widget.widget_enabled %}checked{% endif %} {% if not widget.allowed %}disabled{% endif %}> Enable public chatbot and website widget</label>
+    <button type="submit">{% if widget.allowed %}Save widget settings{% else %}Disable widget{% endif %}</button>
+  </form>
+  <p>Status: {% if widget.active %}Active{% else %}Inactive{% endif %}</p>
+  {% if widget.active %}
+    <p><a href="{{ widget.public_url }}" target="_blank" rel="noopener noreferrer">Open public chatbot</a></p>
+    <p><label for="public-url">Public link</label><input id="public-url" readonly value="{{ widget.public_url }}" style="width:100%"></p>
+    <p><label for="embed-code">Copy this iframe into your website's HTML</label><textarea id="embed-code" readonly rows="5" style="width:100%">{{ widget.embed_code }}</textarea></p>
+  {% endif %}
+  <p><a href="{% url 'bots:edit' bot.pk %}">Back to assistant</a></p>
+</section>
+{% endblock %}

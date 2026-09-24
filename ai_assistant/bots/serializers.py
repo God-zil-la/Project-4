@@ -112,6 +112,7 @@ class ConversationSerializer(serializers.ModelSerializer):
             "bot_avatar_icon",
             "title",
             "message_count",
+            "is_widget",
             "created_at",
             "updated_at",
         ]

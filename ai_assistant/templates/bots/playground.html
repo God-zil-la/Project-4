@@ -2454,6 +2454,7 @@ main {
         ) {
             if (!conversationId) {
                 currentConversationId = null;
+                chatForm.style.display = "";
 
                 conversationTitle.textContent =
                     "Conversation";
@@ -2490,7 +2491,8 @@ main {
                     data.conversation_id;
 
                 conversationTitle.textContent =
-                    data.title || "New Chat";
+                    (data.title || "New Chat") + (data.is_widget ? " — Visitor chat (read-only)" : "");
+                chatForm.style.display = data.is_widget ? "none" : "";
 
                 chatBox.innerHTML = "";
 
@@ -3019,6 +3021,7 @@ main {
 
                 currentConversationId =
                     conversation.conversation_id;
+                chatForm.style.display = "";
 
                 chatBox.innerHTML =
                     "";

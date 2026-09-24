@@ -79,6 +79,7 @@ def _resolve_conversation(
     user,
     bot,
     conversation=None,
+    allow_widget=False,
 ):
     """
     Resolve the conversation used for the current message.
@@ -96,6 +97,7 @@ def _resolve_conversation(
             Conversation.objects.filter(
                 user=user,
                 bot=bot,
+                is_widget=False,
             )
             .order_by("-updated_at", "-created_at")
             .first()
@@ -139,6 +141,9 @@ def _resolve_conversation(
         raise ChatServiceError(
             "Conversation does not belong to this bot."
         )
+
+    if resolved_conversation.is_widget and not allow_widget:
+        raise ChatServiceError("Visitor conversations are read-only for the assistant owner.")
 
     return resolved_conversation
 
@@ -366,6 +371,7 @@ def process_bot_message(
     bot,
     message,
     conversation=None,
+    allow_widget=False,
 ):
     """
     Process one bot message using the shared AI pipeline.
@@ -458,6 +464,7 @@ def process_bot_message(
                 user=user,
                 bot=bot,
                 conversation=conversation,
+                allow_widget=allow_widget,
             )
         )
 

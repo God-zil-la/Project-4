@@ -206,6 +206,9 @@ class Bot(models.Model):
             )
         ]
 
+    widget_enabled = models.BooleanField(default=False)
+    widget_public_id = models.UUIDField(null=True, blank=True, unique=True, editable=False)
+
     response_tone = models.CharField(max_length=12, choices=TONE_CHOICES, default='default')
     response_length = models.CharField(max_length=8, choices=LENGTH_CHOICES, default='default')
     avatar_icon = models.CharField(max_length=9, choices=ICON_CHOICES, default='default')
@@ -223,6 +226,8 @@ class Conversation(models.Model):
     Represents an independent chat session between
     a user and a bot.
     """
+
+    is_widget = models.BooleanField(default=False, editable=False)
 
     public_id = models.UUIDField(
         default=uuid.uuid4,
