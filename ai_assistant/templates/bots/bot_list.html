@@ -1,4 +1,4 @@
-﻿{% extends "base.html" %}
+{% extends "base.html" %}
 {% load static %}
 
 {% block title %}My AI Assistants{% endblock %}
@@ -100,7 +100,7 @@
                     href="{% url 'bots:playground' bot.id %}"
                     class="assistant-action assistant-action-primary"
                 >
-                    ðŸ’¬ Chat & Knowledge
+                    &#128172; Chat & Knowledge
                 </a>
 
 
@@ -108,7 +108,7 @@
                     href="{% url 'bots:edit' bot.id %}"
                     class="assistant-action"
                 >
-                    âœï¸ Edit Assistant
+                    &#9999;&#65039; Edit Assistant
                 </a>
 
 
@@ -118,7 +118,7 @@
                     href="{% url 'bots:discord-setup' bot.id %}"
                     class="assistant-action assistant-action-discord"
                 >
-                    ðŸŽ® Discord Setup
+                    &#127918; Discord Setup
                 </a>
 
                 {% else %}
@@ -132,6 +132,10 @@
                 </a>
 
                 {% endif %}
+
+
+
+
 
 
                                 {% if request.user.profile.effective_plan == "pro" %}
@@ -155,11 +159,12 @@
 
                 {% endif %}
 
+
 <a
                     href="{% url 'bots:delete' bot.id %}"
                     class="assistant-action assistant-action-danger"
                 >
-                    ðŸ—‘ï¸ Delete
+                    &#128465;&#65039; Delete
                 </a>
 
             </div>
