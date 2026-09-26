@@ -11,6 +11,7 @@ from . import seo
 urlpatterns = [
     path('sitemap.xml', seo.sitemap, name='sitemap'),
     path('robots.txt', seo.robots, name='robots'),
+path('af47ba2096e54410b397d65549f112d1.txt', seo.indexnow_key, name='indexnow_key'),
     path('delete-account/', TemplateView.as_view(template_name='delete_account.html'), name='delete_account'),
     path('privacy/', TemplateView.as_view(template_name='privacy.html'), name='privacy'),
     path('admin/', admin.site.urls),
@@ -30,3 +31,4 @@ handler400 = "django.views.defaults.bad_request"
 handler403 = "django.views.defaults.permission_denied"
 handler404 = "django.views.defaults.page_not_found"
 handler500 = "django.views.defaults.server_error"
+
