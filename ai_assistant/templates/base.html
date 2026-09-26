@@ -1,4 +1,4 @@
-﻿{% load static %}
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -71,7 +71,7 @@
       aria-label="Toggle light and dark theme"
       title="Toggle light and dark theme"
     >
-      <span id="theme-icon" aria-hidden="true">ðŸŒ™</span>
+      <span id="theme-icon" aria-hidden="true">🌙</span>
     </button>
   </div>
 
@@ -99,14 +99,14 @@
     <div class="footer-inner">
       <div class="footer-left">
         <a href="mailto:support@myaiassistantapp.se" class="footer-link">
-          âœ‰ support@myaiassistantapp.se
+          ✉ support@myaiassistantapp.se
         </a>
       </div>
 
       <div class="footer-center">
         <div class="footer-policy-links">
           <a href="{% url 'privacy' %}" class="footer-link">Privacy Policy</a>
-          <span aria-hidden="true">Â·</span>
+          <span aria-hidden="true">·</span>
           <a href="{% url 'delete_account' %}" class="footer-link">Delete account</a>
         </div>
         <p>&copy; {% now "Y" %} AI Assistant. All rights reserved.</p>
@@ -142,7 +142,7 @@
           return;
         }
 
-        icon.textContent = html.classList.contains("dark") ? "ðŸŒ™" : "ðŸŒž";
+        icon.textContent = html.classList.contains("dark") ? "🌙" : "🌞";
       }
 
       updateIcon();
