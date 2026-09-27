@@ -7,6 +7,7 @@ from django.test import TestCase
 
 from ai_assistant.bots.chat_service import (
     ChatServiceError,
+    _build_domain_context,
     process_bot_message,
 )
 from ai_assistant.bots.knowledge_utils import (
@@ -64,6 +65,115 @@ class AIQualityTests(TestCase):
                 },
                 "model": "gpt-4o-mini",
             }
+        )
+
+    def test_domain_context_excludes_assistant_messages(self):
+        conversation = Conversation.objects.create(
+            user=self.user,
+            bot=self.bot,
+            title="Domain context test",
+        )
+
+        ChatMessage.objects.create(
+            conversation=conversation,
+            bot=self.bot,
+            user=self.user,
+            sender=ChatMessage.SENDER_USER,
+            message="I am doing a school assignment about engines.",
+        )
+
+        ChatMessage.objects.create(
+            conversation=conversation,
+            bot=self.bot,
+            user=self.user,
+            sender=ChatMessage.SENDER_ASSISTANT,
+            message=(
+                "I specialize in Education. "
+                "Please ask something related to that category."
+            ),
+        )
+
+        ChatMessage.objects.create(
+            conversation=conversation,
+            bot=self.bot,
+            user=self.user,
+            sender=ChatMessage.SENDER_USER,
+            message="The assignment uses my uploaded PDF.",
+        )
+
+        context = _build_domain_context(
+            conversation
+        )
+
+        self.assertIn(
+            "USER: I am doing a school assignment about engines.",
+            context,
+        )
+        self.assertIn(
+            "USER: The assignment uses my uploaded PDF.",
+            context,
+        )
+        self.assertNotIn(
+            "ASSISTANT:",
+            context,
+        )
+        self.assertNotIn(
+            "I specialize in Education",
+            context,
+        )
+
+    def test_domain_context_cannot_be_poisoned_by_old_rejections(self):
+        conversation = Conversation.objects.create(
+            user=self.user,
+            bot=self.bot,
+            title="Rejected conversation",
+        )
+
+        user_messages = [
+            "kan du sammanfatta vad som st?r i deltagarhandboken",
+            "kan du sammanfatta vad som st?r i pdf filen",
+            "kan du ber?tta vad som st?r i deltagarhandboken",
+        ]
+
+        rejection = (
+            "Jag specialiserar mig p? utbildning. "
+            "V?nligen st?ll en fr?ga relaterad till den kategorin."
+        )
+
+        for message in user_messages:
+            ChatMessage.objects.create(
+                conversation=conversation,
+                bot=self.bot,
+                user=self.user,
+                sender=ChatMessage.SENDER_USER,
+                message=message,
+            )
+
+            ChatMessage.objects.create(
+                conversation=conversation,
+                bot=self.bot,
+                user=self.user,
+                sender=ChatMessage.SENDER_ASSISTANT,
+                message=rejection,
+            )
+
+        context = _build_domain_context(
+            conversation
+        )
+
+        for message in user_messages:
+            self.assertIn(
+                f"USER: {message}",
+                context,
+            )
+
+        self.assertNotIn(
+            rejection,
+            context,
+        )
+        self.assertNotIn(
+            "ASSISTANT:",
+            context,
         )
 
     def test_all_categories_have_rules(self):

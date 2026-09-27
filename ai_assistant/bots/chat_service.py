@@ -244,36 +244,28 @@ def _build_retrieval_context(conversation):
 
 def _build_domain_context(conversation, limit=6):
     """
-    Build a small recent conversation context for domain
-    classification.
+    Build recent user context for domain classification.
 
-    This lets short follow-up messages inherit meaning from
-    the current conversation without expanding the bot's category.
+    Only user messages are included. Assistant responses must not
+    influence later domain decisions, especially previous automatic
+    out-of-domain rejections. User messages are sufficient to
+    establish the current task, assignment, project, or follow-up
+    context without creating classifier feedback loops.
     """
     previous_messages = list(
         ChatMessage.objects.filter(
             conversation=conversation,
+            sender=ChatMessage.SENDER_USER,
         )
         .order_by("-timestamp")[:limit]
     )
 
     previous_messages.reverse()
 
-    context_lines = []
-
-    for previous_message in previous_messages:
-        role = (
-            "USER"
-            if previous_message.sender
-            == ChatMessage.SENDER_USER
-            else "ASSISTANT"
-        )
-
-        context_lines.append(
-            f"{role}: {previous_message.message}"
-        )
-
-    return "\n".join(context_lines)
+    return "\n".join(
+        f"USER: {previous_message.message}"
+        for previous_message in previous_messages
+    )
 
 
 @transaction.atomic
