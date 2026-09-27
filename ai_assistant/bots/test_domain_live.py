@@ -11,7 +11,7 @@ from django.contrib.auth.models import User
 from django.test import TestCase
 
 from ai_assistant.bots.knowledge_utils import check_message_domain
-from ai_assistant.bots.models import Bot, KnowledgeBase
+from ai_assistant.bots.models import Bot, KnowledgeBase, KnowledgeChunk
 
 
 class LiveDomainClassifierTests(TestCase):
@@ -128,6 +128,71 @@ class LiveDomainClassifierTests(TestCase):
             message="Which engine should I buy for my car?",
             filename="motor.pdf",
             expected=False,
+        )
+
+    def test_knowledge_content_resolves_document_reference(self):
+        bot = Bot.objects.create(
+            owner=self.user,
+            name="Knowledge reference test",
+            category="education",
+        )
+
+        knowledge = KnowledgeBase.objects.create(
+            bot=bot,
+            uploaded_by=self.user,
+            file="knowledge_files/random-id.pdf",
+        )
+
+        KnowledgeChunk.objects.create(
+            knowledge_file=knowledge,
+            text=(
+                "Deltagarhandboken 26/27. "
+                "V?lkommen till Esl?vs folkh?gskola. "
+                "Handboken inneh?ller information f?r deltagare "
+                "om skolan och studierna."
+            ),
+            embedding=[0.1, 0.2, 0.3],
+        )
+
+        result = check_message_domain(
+            bot,
+            "kan du sammanfatta vad som st?r i deltagarhandboken",
+        )
+
+        self.assertTrue(
+            result["in_domain"],
+            result,
+        )
+
+        motor_bot = Bot.objects.create(
+            owner=self.user,
+            name="Knowledge boundary test",
+            category="education",
+        )
+
+        motor_knowledge = KnowledgeBase.objects.create(
+            bot=motor_bot,
+            uploaded_by=self.user,
+            file="knowledge_files/random-motor.pdf",
+        )
+
+        KnowledgeChunk.objects.create(
+            knowledge_file=motor_knowledge,
+            text=(
+                "Motorhandbok. Fyrtaktsmotorer, cylindrar, "
+                "br?nsleinsprutning och motorkomponenter."
+            ),
+            embedding=[0.1, 0.2, 0.3],
+        )
+
+        result = check_message_domain(
+            motor_bot,
+            "Vilken motor ska jag k?pa till min privata bil?",
+        )
+
+        self.assertFalse(
+            result["in_domain"],
+            result,
         )
 
     def test_cross_category_task_boundaries(self):
