@@ -90,6 +90,52 @@ class AIQualityTests(TestCase):
         api.assert_not_called()
 
     @patch(
+        "ai_assistant.bots.knowledge_utils."
+        "openai.ChatCompletion.create"
+    )
+    def test_domain_classifier_preserves_localized_rejection(
+        self,
+        api,
+    ):
+        self.bot.category = "coding"
+        self.bot.save(update_fields=["category"])
+
+        localized = (
+            "我专注于编程。请询问与编程相关的问题。"
+        )
+
+        api.return_value = openai.util.convert_to_openai_object(
+            {
+                "choices": [
+                    {
+                        "message": {
+                            "content": (
+                                "OUT_OF_DOMAIN|" + localized
+                            )
+                        }
+                    }
+                ],
+                "usage": {
+                    "prompt_tokens": 10,
+                    "completion_tokens": 8,
+                    "total_tokens": 18,
+                },
+                "model": "gpt-4o-mini",
+            }
+        )
+
+        result = check_message_domain(
+            self.bot,
+            "今天天气怎么样？",
+        )
+
+        self.assertFalse(result["in_domain"])
+        self.assertEqual(
+            result["rejection_message"],
+            localized,
+        )
+
+    @patch(
         "ai_assistant.bots.chat_service."
         "check_message_domain"
     )
@@ -136,6 +182,49 @@ class AIQualityTests(TestCase):
         self.assertEqual(
             ChatMessage.objects.count(),
             2,
+        )
+
+    @patch(
+        "ai_assistant.bots.chat_service."
+        "check_message_domain"
+    )
+    def test_rejected_category_uses_localized_message(
+        self,
+        domain,
+    ):
+        localized = (
+            "Jag är specialiserad på den här kategorin. "
+            "Fråga mig gärna något som hör till den."
+        )
+
+        domain.return_value = dict(
+            in_domain=False,
+            rejection_message=localized,
+            tokens_used=4,
+            input_tokens=3,
+            output_tokens=1,
+            model="gpt-4o-mini",
+        )
+
+        result = process_bot_message(
+            self.user,
+            self.bot,
+            "En fråga utanför kategorin",
+        )
+
+        self.assertFalse(result["in_domain"])
+        self.assertEqual(
+            result["response"],
+            localized,
+        )
+
+        self.assertEqual(
+            ChatMessage.objects.filter(
+                conversation__user=self.user,
+                sender="assistant",
+                message=localized,
+            ).count(),
+            1,
         )
 
     @patch(

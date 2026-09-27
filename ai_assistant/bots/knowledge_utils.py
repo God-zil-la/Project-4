@@ -1934,13 +1934,18 @@ CONTEXT RULES:
 
 OUTPUT:
 
-Return exactly one value:
+Return exactly one line.
 
+If the message is within the category:
 IN_DOMAIN
 
-or
+If the message is outside the category:
+OUT_OF_DOMAIN|<localized rejection>
 
-OUT_OF_DOMAIN
+For <localized rejection>, write a short natural message in the language
+the user is currently using. It must say that the assistant specializes
+in {category_name} and ask the user to ask something related to that
+category. Do not add any other information.
 
 CURRENT USER MESSAGE:
 {message}
@@ -1953,7 +1958,8 @@ CURRENT USER MESSAGE:
                 "role": "system",
                 "content": (
                     "You are a strict multilingual domain classifier. "
-                    "Return exactly IN_DOMAIN or OUT_OF_DOMAIN."
+                    "Return IN_DOMAIN for accepted messages, or "
+                    "OUT_OF_DOMAIN|<localized rejection> for rejected messages."
                 ),
             },
             {
@@ -1962,20 +1968,24 @@ CURRENT USER MESSAGE:
             },
         ],
         temperature=0,
-        max_tokens=10,
+        max_tokens=100,
     )
 
-    result = (
+    raw_result = (
         response
         .choices[0]
         .message["content"]
         .strip()
-        .upper()
     )
 
-    in_domain = (
-        result == "IN_DOMAIN"
-    )
+    result_upper = raw_result.upper()
+    in_domain = result_upper == "IN_DOMAIN"
+
+    rejection_message = ""
+    if result_upper.startswith("OUT_OF_DOMAIN"):
+        parts = raw_result.split("|", 1)
+        if len(parts) == 2:
+            rejection_message = parts[1].strip()
 
     usage = response.get(
         "usage",
@@ -1999,6 +2009,7 @@ CURRENT USER MESSAGE:
 
     return {
         "in_domain": in_domain,
+        "rejection_message": rejection_message,
         "tokens_used": total_tokens,
         "input_tokens": input_tokens,
         "output_tokens": output_tokens,

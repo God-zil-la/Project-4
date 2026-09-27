@@ -506,10 +506,13 @@ def process_bot_message(
 
         if not domain_result["in_domain"]:
             response_text = (
-                f"I specialize in "
-                f"{bot.get_category_display()}. "
-                f"Please ask me something related "
-                f"to that category."
+                domain_result.get("rejection_message")
+                or (
+                    f"I specialize in "
+                    f"{bot.get_category_display()}. "
+                    f"Please ask me something related "
+                    f"to that category."
+                )
             )
 
             _save_chat_exchange(
