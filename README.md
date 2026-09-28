@@ -1,12 +1,12 @@
 ﻿# 🤖 AI Assistant Platform
 
-> **Current platform status — September 2026:** Production web app live on `www.myaiassistantapp.se`; native Expo/React Native Android app in Google Play Closed Testing; Stripe production billing in Live Mode; iOS distribution pending Apple Developer Program activation.
+> **Current platform status — September 2026:** Production web app live on `www.myaiassistantapp.se`; native Expo/React Native Android app in Google Play Closed Testing; Stripe production billing in Live Mode; iOS distribution work has progressed to App Store Connect/TestFlight; U1, U2, and U3 are completed.
 
 > A production-focused AI SaaS platform for creating, customizing, training, managing, and integrating specialized AI assistants.
 
-**AI Assistant Platform** is a full-stack SaaS application built with **Django**, **OpenAI**, **Stripe**, **PostgreSQL**, and Redis-compatible infrastructure. **Discord integration is planned for U5** rather than presented as a currently released customer feature.
+**AI Assistant Platform** is a full-stack SaaS application built with **Django**, **OpenAI**, **Stripe**, **PostgreSQL**, and Redis-compatible infrastructure. A functional **Discord integration is already available**; U5 is reserved for expanding that integration together with broader customer-facing API Access.
 
-The platform allows users to create purpose-built AI assistants, extend them with their own documents and Knowledge, maintain separate conversations, monitor AI usage, manage subscription plans, and use the supported web and native mobile clients. Customer-facing Discord integration and API Access are planned for U5.
+The platform allows users to create purpose-built AI assistants, extend them with their own documents and Knowledge, maintain separate conversations, monitor AI usage, manage subscription plans, publish Pro assistants through an embeddable Website Widget / Public Chatbot, connect assistants to Discord, and use the supported web and native mobile clients. Broader Discord improvements and customer-facing API Access are planned for U5.
 
 Unlike a simple chatbot project, the application is designed as a complete multi-user AI product with account plans, usage quotas, subscription lifecycle management, Retrieval-Augmented Generation (RAG), persistent conversations, analytics, API authentication, external integrations, production security controls, automated regression testing, and cloud deployment.
 
@@ -55,8 +55,8 @@ The production web application is configured with **Stripe Live Mode**. Test Mod
 - 📉 Safe downgrade behaviour that preserves existing user content
 - 🧾 Stripe Checkout and Customer Portal integration
 - ⚡ Redis-backed production rate-limit architecture
-- 🎮 Discord BYOB integration planned for U5
-- 📦 Discord Bridge/setup package planned for U5
+- 🎮 Functional Discord BYOB integration
+- 📦 Discord bridge/setup workflow
 - 👤 Registration, email verification, login, logout, and password recovery
 - ✉️ Transactional account and subscription email workflows
 - 📈 User dashboard and analytics
@@ -68,16 +68,18 @@ The production web application is configured with **Stripe Live Mode**. Test Mod
 - 🧪 Extensive automated regression testing
 - 🔒 Production-oriented security and fail-closed configuration controls
 - 📲 Native Expo/React Native Android client using the shared Django backend
+- 🌐 Pro-only Website Widget / Public Chatbot with embeddable iframe support
+- 👥 Isolated public visitor sessions stored as owner-visible conversations
 
 ---
 
 ## 💼 Product Plans at a Glance
 
-| Plan | Price | AI Assistants | AI Messages | Knowledge Storage | API | Discord |
-| --- | ---: | ---: | ---: | ---: | :---: | :---: |
-| **Free** | **$0/month** | 1 | 150/month | 10 MB | — | — |
-| **Premium** | **$29/month** | 5 | 3,000/month | 250 MB | — | — |
-| **Pro** | **$59/month** | 15 | 10,000/month | 1 GB | Planned U5 | Planned U5 |
+| Plan | Price | AI Assistants | AI Messages | Knowledge Storage | Website Widget | API | Discord |
+| --- | ---: | ---: | ---: | ---: | :---: | :---: | :---: |
+| **Free** | **$0/month** | 1 | 150/month | 10 MB | — | — | — |
+| **Premium** | **$29/month** | 5 | 3,000/month | 250 MB | — | — | — |
+| **Pro** | **$59/month** | 15 | 10,000/month | 1 GB | ✓ | Planned U5 expansion | ✓ |
 
 All plans support persistent conversations and unlimited stored chats.
 
@@ -107,17 +109,17 @@ The dedicated mobile application is built with **Expo / React Native** and is no
 
 - Package: `com.mrhusse.aiassistant`
 - Google Play track: **Closed Testing (Alpha)**
-- Current tested release: **versionCode 4 / versionName 1.0.0**
-- Play release name: **1.2 - Native Bug Fixes**
+- Current tested release: **versionCode 12 / versionName 1.3.1**
+- Current track/status: **Closed Test – Alpha**
 - Signed with the approved production upload key
 - Existing closed-test users can update through the Google Play test listing
 - The app shares the production Django backend and account data with the web application
 - Native areas include authentication, Dashboard, Analytics, assistant management/chat, Knowledge access, and Account functionality
-- The v4 release includes Android keyboard/chat layout fixes plus Analytics date and Message Count fixes
+- Recent releases include Android keyboard/chat layout fixes plus Analytics date and Message Count fixes
 
 ### iOS
 
-The React Native codebase is designed to support iOS as well as Android. The first iOS distribution is intentionally parked until the Apple Developer Program membership required for device/TestFlight distribution is active. Platform-specific keyboard and device behaviour will be physically verified on iPhone during that release cycle.
+The React Native codebase supports iOS as well as Android. iOS distribution work has progressed into App Store Connect/TestFlight preparation and testing. Platform-specific behaviour continues to be validated as the iOS release moves through Apple's distribution workflow.
 
 ### Source Repositories
 
@@ -158,17 +160,17 @@ The Android app is currently distributed through Google Play Closed Testing.
 | Framework | Expo / React Native |
 | Android package | `com.mrhusse.aiassistant` |
 | Play track | Closed Testing (Alpha) |
-| versionCode | 4 |
-| versionName | 1.0.0 |
-| Release name | `1.2 - Native Bug Fixes` |
+| versionCode | 12 |
+| versionName | 1.3.1 |
+| Release status | `Closed Test – Alpha` |
 | Backend | Production Django API |
 | WebView | No — dedicated native client |
 
 Closed-test updates may be reached through the tester's Google Play listing. Production distribution will be handled separately when the application is ready to leave testing.
 
-### Android v4 Validation Focus
+### Android Validation
 
-The current v4 build specifically addresses:
+Recent Android validation has included:
 
 - Chat layout while the Android keyboard is open
 - Keyboard open/close behaviour in short and long conversations
@@ -180,7 +182,7 @@ The current v4 build specifically addresses:
 
 ### iOS Direction
 
-Because the client is React Native, the same application codebase provides the foundation for iOS. iOS distribution will begin after the required Apple Developer membership is active, followed by registered-device builds and TestFlight validation.
+Because the client is React Native, the same application codebase provides the foundation for iOS. App Store Connect/TestFlight distribution work is now underway, with iOS-specific validation handled as part of that release cycle.
 
 ---
 
@@ -196,7 +198,7 @@ All current product limits, pricing, and release information are documented in t
 
 # ✨ Features
 
-AI Assistant Platform combines specialized artificial intelligence, persistent conversations, the current Retrieval-Augmented Generation (RAG) implementation, account-level usage controls, subscription management, analytics, and protected backend/native interfaces in a single Django-based SaaS platform. Customer-facing Discord integration and API Access are planned for U5.
+AI Assistant Platform combines specialized artificial intelligence, persistent conversations, Retrieval-Augmented Generation (RAG), assistant customization, a Pro-only Website Widget / Public Chatbot, functional Discord integration, account-level usage controls, subscription management, analytics, and protected backend/native interfaces in a single Django-based SaaS platform. U5 will expand Discord and add the broader customer-facing API Access package.
 
 The system is designed around shared backend services rather than isolated feature implementations. Web chat, supported API access, usage accounting, Knowledge retrieval, plan enforcement, and external integrations reuse the same core business rules wherever practical.
 
@@ -206,7 +208,7 @@ This architecture allows the platform to grow without requiring separate impleme
 
 ## 🤖 AI Assistants
 
-Users can create and manage specialized AI assistants with their own identity, category, conversations, and Knowledge. Expanded personality, instructions, behaviour, and appearance controls are assigned to **U1 — Assistant Customization**.
+Users can create and manage specialized AI assistants with their own identity, category, conversations, Knowledge, and the expanded customization controls delivered in **U1 — Assistant Customization**.
 
 Each assistant belongs to its owner and is isolated from assistants belonging to other accounts.
 
@@ -216,7 +218,7 @@ Each assistant belongs to its owner and is isolated from assistants belonging to
 - Edit existing assistants
 - Delete assistants
 - Configure assistant names and current supported settings
-- Expanded personality, instructions, behaviour, and appearance controls are planned for U1
+- Configure personality, instructions, behaviour, and appearance through the completed U1 customization system
 - Organize assistants by category
 - Apply category-specific domain rules
 - Maintain separate conversations for each assistant
@@ -253,7 +255,7 @@ General-purpose categories can bypass unnecessary domain classification when a s
 
 ## 📚 Knowledge Base & RAG
 
-This section describes the **current Knowledge/RAG implementation**. The broader **Knowledge Base / RAG 2.0** work is assigned to U2.
+This section describes the current Knowledge/RAG implementation, including the completed **U2 — Knowledge Base / RAG 2.0** upgrade.
 
 Each assistant can be extended with user-provided Knowledge through a Retrieval-Augmented Generation (RAG) pipeline.
 
@@ -560,11 +562,11 @@ The production application is configured for **Stripe Live Mode**. Stripe Test M
 
 ### Current Subscription Plans
 
-| Plan | Monthly Price | Assistants | AI Messages | Knowledge | API | Discord |
-| --- | ---: | ---: | ---: | ---: | :---: | :---: |
-| **Free** | **$0 USD** | 1 | 150/month | 10 MB | — | — |
-| **Premium** | **$29 USD** | 5 | 3,000/month | 250 MB | — | — |
-| **Pro** | **$59 USD** | 15 | 10,000/month | 1 GB | Planned U5 | Planned U5 |
+| Plan | Monthly Price | Assistants | AI Messages | Knowledge | Website Widget | API | Discord |
+| --- | ---: | ---: | ---: | ---: | :---: | :---: | :---: |
+| **Free** | **$0 USD** | 1 | 150/month | 10 MB | — | — | — |
+| **Premium** | **$29 USD** | 5 | 3,000/month | 250 MB | — | — | — |
+| **Pro** | **$59 USD** | 15 | 10,000/month | 1 GB | ✓ | Planned U5 expansion | ✓ |
 
 The Free plan does not require a paid Stripe subscription.
 
@@ -649,13 +651,37 @@ The backend will remain the authoritative source for the user's effective entitl
 
 ---
 
-## 🤖 Discord Integration — U5 Roadmap
+## 🌐 Website Widget / Public Chatbot — U3 Completed
 
-Discord integration is assigned to **U5 — Discord Integration + API Access** and should be treated as roadmap work rather than a currently released customer feature.
+**U3 — Website Widget / Public Chatbot is completed.** The feature allows eligible **Pro** users to publish an assistant on an external website through an embeddable widget/public-chat experience.
 
-The planned direction is a **Bring Your Own Bot (BYOB)** workflow for eligible accounts. U5 is intended to cover the complete customer-facing package, including setup guidance, Discord application/bot configuration, required intents and permissions, secure token handling, assistant binding, connection status and diagnostics, usage/limits, and the bridge/API path required for Discord messages to reach the selected AI assistant.
+### Current U3 Capabilities
 
-Earlier prototypes, experiments, or partial backend work do not make the complete Discord product feature released. The U5 package must be implemented, tested end-to-end, regression-checked, deployed, and released before this README describes Discord as generally available.
+- Pro-only Website Widget / Public Chatbot access
+- Per-assistant widget settings
+- Embeddable iframe/widget workflow
+- Public visitor chat without exposing the owner's authenticated session
+- Signed visitor/session handling
+- A separate conversation for each public visitor/session
+- Public visitor conversations persisted as normal `Conversation` records
+- Widget conversations visible to the assistant owner in the existing Conversations experience
+- Continuation requests restricted to the same assistant/owner conversation
+- Isolation between different visitors and different assistants
+- Backend entitlement and ownership enforcement
+- Browser validation covering reloads, separate visitors, separate assistants, and recovery behaviour
+- Mobile plan/feature presentation aligned so the Website Widget / Public Chatbot is shown as a Pro benefit
+
+The public-chat implementation reuses the platform's shared AI-processing architecture instead of creating a separate chatbot backend. This keeps assistant behaviour, Knowledge, quotas, usage accounting, and security rules consistent with the rest of the product.
+
+---
+
+## 🤖 Discord Integration
+
+Discord integration is already implemented and functional. Eligible users can connect a customer-owned Discord bot to an AI Assistant and communicate with that assistant through Discord using the same Django backend and shared AI-processing logic used elsewhere in the platform.
+
+The current integration includes the BYOB architecture, bridge/setup workflow, assistant binding, backend ownership and entitlement checks, and an end-to-end Discord response flow.
+
+**U5 — Discord Integration Expansion + API Access** is an enhancement package, not the initial Discord implementation. U5 is planned to improve setup, connection management, diagnostics, documentation, and related integration controls while adding the broader customer-facing API Access product.
 ---
 
 ## 📊 Dashboard & Analytics
@@ -808,6 +834,23 @@ Earlier protected endpoints, adapters, tests, or internal API work should not be
 | **Heroku** | Cloud deployment platform |
 
 The web application and native mobile client are interfaces to the same core platform rather than separate AI products.
+---
+
+## 🔎 SEO & Public Discovery
+
+The production web application includes the public technical SEO foundation required for search-engine discovery:
+
+- Canonical production origin: `https://www.myaiassistantapp.se`
+- Canonical `www` URLs
+- `robots.txt`
+- `sitemap.xml`
+- Public Privacy page
+- Public account-deletion information
+- Google Search Console indexing/inspection work
+- Bing indexing/SEO work
+
+The canonical `www` domain is used consistently for the public website rather than treating the non-`www` hostname as the preferred public origin.
+
 ---
 
 ## 🎨 User Experience
@@ -1172,7 +1215,7 @@ Users can switch between themes while continuing to use the same application fun
 
 ## 🤖 Create an AI Assistant
 
-Authenticated users can create specialized AI assistants using the settings currently exposed by the product. Expanded personality, instructions, behaviour, and appearance controls are planned for **U1 — Assistant Customization**.
+Authenticated users can create specialized AI assistants using the expanded personality, instructions, behaviour, and appearance controls delivered in **U1 — Assistant Customization**.
 
 Assistant creation is subject to the active account plan:
 
@@ -1250,22 +1293,24 @@ Quota validation occurs before expensive extraction and embedding processing whe
 
 ---
 
-## 🤖 Discord Integration — Planned U5
+## 🤖 Discord Integration
 
-Discord is part of the **U5** upgrade package. The intended design uses a customer-owned Discord bot connected securely to the AI Assistant backend.
+Discord integration is already implemented and functional. Eligible users can connect a customer-owned Discord bot to an AI Assistant and communicate with that assistant through Discord using the same Django backend and shared AI-processing logic used elsewhere in the platform.
 
-Any historical Discord screenshots or earlier bridge experiments should be interpreted as development history, not as proof that the complete U5 customer feature is currently released.
+The current integration includes the BYOB architecture, bridge/setup workflow, assistant binding, backend ownership and entitlement checks, and an end-to-end Discord response flow.
+
+**U5 — Discord Integration Expansion + API Access** is an enhancement package, not the initial Discord implementation. U5 is planned to improve setup, connection management, diagnostics, documentation, and related integration controls while adding the broader customer-facing API Access product.
 ---
 
 ## 💳 Plans & Membership
 
 AI Assistant Platform provides three account plans:
 
-| Plan | Price | Assistants | AI Messages | Knowledge | API | Discord |
-| --- | ---: | ---: | ---: | ---: | :---: | :---: |
-| **Free** | **$0/month** | 1 | 150/month | 10 MB | — | — |
-| **Premium** | **$29/month** | 5 | 3,000/month | 250 MB | — | — |
-| **Pro** | **$59/month** | 15 | 10,000/month | 1 GB | Planned U5 | Planned U5 |
+| Plan | Price | Assistants | AI Messages | Knowledge | Website Widget | API | Discord |
+| --- | ---: | ---: | ---: | ---: | :---: | :---: | :---: |
+| **Free** | **$0/month** | 1 | 150/month | 10 MB | — | — | — |
+| **Premium** | **$29/month** | 5 | 3,000/month | 250 MB | — | — | — |
+| **Pro** | **$59/month** | 15 | 10,000/month | 1 GB | ✓ | Planned U5 expansion | ✓ |
 
 Chats remain unlimited across all plans.
 
@@ -2037,7 +2082,7 @@ Release-specific test totals and production-verification results should be docum
 
 # 🛠️ Technology Stack
 
-AI Assistant Platform is built as a Django-based SaaS application with a responsive web frontend, a native Expo/React Native mobile client, OpenAI-powered AI processing, the current Retrieval-Augmented Generation (RAG) implementation, Stripe subscription infrastructure, PostgreSQL persistence, Redis-compatible caching, and protected backend/native APIs. Customer-facing Discord integration and API Access are planned for U5.
+AI Assistant Platform is built as a Django-based SaaS application with a responsive web frontend, a native Expo/React Native mobile client, OpenAI-powered AI processing, the current Retrieval-Augmented Generation (RAG) implementation, Stripe subscription infrastructure, PostgreSQL persistence, Redis-compatible caching, and protected backend/native APIs. Discord integration is already functional; broader Discord improvements and customer-facing API Access are planned for U5.
 
 The architecture separates user-facing interfaces from backend business rules so authentication, ownership, plan entitlements, quotas, Knowledge retrieval, and AI processing can be reused by supported clients.
 
@@ -2276,7 +2321,7 @@ Production payment configuration includes the Live publishable/secret keys, Live
 
 ---
 
-## 🤖 Discord Integration — U5 Roadmap
+## 🤖 Discord Integration
 
 The Discord stack below represents the **planned U5 architecture**, not a currently released customer feature.
 
@@ -3337,7 +3382,7 @@ To avoid mixing historical development work with released product functionality,
 - **Historical** — earlier screenshots, prototypes, tests, or development checkpoints retained for project history.
 - **Roadmap** — planned work that must not be presented as released until its upgrade package is completed and shipped.
 
-The U1-U5 items below are **Roadmap** work unless a later release section explicitly marks an upgrade as completed.
+Upgrade status is tracked explicitly below. **U1, U2, and U3 are completed. U4 and U5 are paused until the Android application reaches production.**
 
 ---
 
@@ -3345,13 +3390,13 @@ The U1-U5 items below are **Roadmap** work unless a later release section explic
 
 The next major product work is organized into complete upgrade packages. Related UI, backend/API work, tests, regression coverage, and release work are grouped together so the same systems are not repeatedly reopened for small disconnected changes.
 
-| Upgrade | Package | Main Direction |
-| --- | --- | --- |
-| **U1** | Assistant Customization | Personality, instructions, behaviour, appearance, plan-aware controls, and related assistant configuration work |
-| **U2** | Knowledge Base / RAG 2.0 | Improved retrieval, embeddings/RAG, multiple documents, assistant-specific Knowledge, isolation, and related usage/storage improvements |
-| **U3** | Website Widget / Public Chatbot | Embeddable customer website widget, public visitor chat, per-assistant widget settings, and backend enforcement |
-| **U4** | Advanced Customization + Branding | Expanded design/behaviour customization and paid-plan removal of AI Assistant branding where applicable |
-| **U5** | Discord Integration + API Access | Discord setup/bridge workflow, connection status and diagnostics, account API keys, assistant invocation, limits, documentation, and examples |
+| Upgrade | Package | Status | Main Direction |
+| --- | --- | --- | --- |
+| **U1** | Assistant Customization | ✅ **Completed** | Personality, instructions, behaviour, appearance, plan-aware controls, and related assistant configuration |
+| **U2** | Knowledge Base / RAG 2.0 | ✅ **Completed** | Improved retrieval, embeddings/RAG, multiple documents, assistant-specific Knowledge, isolation, and storage/retrieval improvements |
+| **U3** | Website Widget / Public Chatbot | ✅ **Completed** | Pro-only embeddable website widget, public visitor chat, per-assistant widget settings, visitor isolation, persisted conversations, and backend enforcement |
+| **U4** | Advanced Customization + Remove AI Assistant Branding | ⏸️ **Paused** | Additional customization and paid-plan branding controls; resumes after Android production release |
+| **U5** | Discord Integration Expansion + API Access | ⏸️ **Paused** | Improve the already-functional Discord integration and add the broader customer-facing API Access package; resumes after Android production release |
 
 ### Upgrade Release Rule
 
@@ -3374,11 +3419,21 @@ AI Assistant Platform has a live production web application and a native Android
 
 The current core platform includes account management, assistant CRUD/chat, the existing Knowledge/RAG implementation, analytics, plan enforcement, and Stripe Live Mode billing on the web.
 
-The next major product work is organized into the U1-U5 upgrade packages above. Features assigned to those packages are roadmap work and must not be interpreted as already released merely because supporting backend experiments, earlier prototypes, or historical documentation exist.
+The product roadmap is organized into the U1-U5 upgrade packages above. U1, U2, and U3 have been completed. U4 and U5 are intentionally paused until the Android application reaches production. Discord itself is already functional; U5 expands that integration and adds the broader API Access product.
 
 ---
 
 ## Completed ✅
+
+### Completed Upgrade Packages
+
+- ✅ **U1 — Assistant Customization**
+- ✅ **U2 — Knowledge Base / RAG 2.0**
+- ✅ **U3 — Website Widget / Public Chatbot**
+
+U4 and U5 are paused until the Android application reaches production. The existing Discord integration remains functional during this pause; U5 is its expansion package together with broader API Access.
+
+
 
 ### Core Platform
 
@@ -3405,7 +3460,7 @@ The next major product work is organized into the U1-U5 upgrade packages above. 
 | --- | ---: | ---: | ---: | ---: | --- | --- |
 | **Free** | $0 | 1 | 150 | 10 MB | No | No |
 | **Premium** | $29/month | 5 | 3,000 | 250 MB | No | No |
-| **Pro** | $59/month | 15 | 10,000 | 1 GB | Yes | Yes |
+| **Pro** | $59/month | 15 | 10,000 | 1 GB | Planned U5 expansion | Available |
 
 Chats are not limited by a separate plan-level conversation count.
 
@@ -3583,11 +3638,11 @@ Additional development checks have included:
 
 ---
 
-## Current Release Work 🚧
+## Current Release Focus 🚧
 
-The remaining work before the web v1.0 release is intentionally narrow.
+The web platform is already live in production. Current release focus is on completing the Android production-release path and continuing iOS/TestFlight validation before paused roadmap work resumes.
 
-### 1. Final Regression Audit
+### Release Regression Audit
 
 Run the complete final regression pass against the release candidate.
 
@@ -4246,11 +4301,13 @@ Customer-facing API Access belongs to **U5**. Earlier API authentication/authori
 The planned security model includes account API keys, active-user and entitlement checks, strict request validation, assistant/conversation ownership checks, usage/rate limits, safe errors, key rotation, and protection against credential exposure in logs, admin interfaces, templates, and client code.
 ---
 
-### 🎮 Discord Integration — Planned U5
+### 🎮 Discord Integration & U5 Expansion
 
-The BYOB Discord architecture documented during development is preparatory work for **U5**, not a claim that the complete customer feature is currently released.
+Discord integration is already implemented and functional. Eligible users can connect a customer-owned Discord bot to an AI Assistant and communicate with that assistant through Discord using the same Django backend and shared AI-processing logic used elsewhere in the platform.
 
-The intended flow remains: customer-owned Discord bot → bridge/API path → Django backend → shared AI service. The complete setup workflow, security, diagnostics, entitlement/usage enforcement, documentation, and end-to-end release validation belong to U5.
+The current integration includes the BYOB architecture, bridge/setup workflow, assistant binding, backend ownership and entitlement checks, and an end-to-end Discord response flow.
+
+**U5 — Discord Integration Expansion + API Access** is an enhancement package, not the initial Discord implementation. U5 is planned to improve setup, connection management, diagnostics, documentation, and related integration controls while adding the broader customer-facing API Access product.
 ---
 
 ### ☁️ Deployment and Environment Differences
@@ -5148,11 +5205,13 @@ This behaviour should also be preserved during local and regression testing.
 
 ---
 
-## 🤖 Discord Integration — Planned U5
+## 🤖 Discord Integration
 
-The complete Discord customer workflow is planned for **U5 — Discord Integration + API Access**.
+Discord integration is already implemented and functional. Eligible users can connect a customer-owned Discord bot to an AI Assistant and communicate with that assistant through Discord using the same Django backend and shared AI-processing logic used elsewhere in the platform.
 
-The intended package includes setup/bridge workflow, connection state and diagnostics, secure credentials, assistant selection, backend enforcement, documentation, and end-to-end validation. Until U5 is completed and released, Discord should not be presented as a currently available production feature.
+The current integration includes the BYOB architecture, bridge/setup workflow, assistant binding, backend ownership and entitlement checks, and an end-to-end Discord response flow.
+
+**U5 — Discord Integration Expansion + API Access** is an enhancement package, not the initial Discord implementation. U5 is planned to improve setup, connection management, diagnostics, documentation, and related integration controls while adding the broader customer-facing API Access product.
 ---
 
 ## 🧪 Run Automated Tests
