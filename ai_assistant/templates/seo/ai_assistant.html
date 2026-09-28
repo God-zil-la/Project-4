@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+
+{% block title %}AI Assistant - Create Your Own Custom AI Assistant{% endblock %}
+
+{% block canonical %}
+<link rel="canonical" href="https://www.myaiassistantapp.se/ai-assistant/">
+{% endblock %}
+
+{% block meta_description %}Create your own custom AI assistant for personal projects, studies, documents, customer support or business. Add your own knowledge and start chatting in minutes.{% endblock %}
+
+{% block og_title %}Create Your Own Custom AI Assistant{% endblock %}
+
+{% block og_description %}Build a custom AI assistant for personal use or business. Add your own knowledge, organize conversations and use your assistant where you need it.{% endblock %}
+
+{% block og_url %}https://www.myaiassistantapp.se/ai-assistant/{% endblock %}
+
+{% block twitter_title %}Create Your Own Custom AI Assistant{% endblock %}
+
+{% block twitter_description %}Build a custom AI assistant for personal projects, studies, documents, customer support or business.{% endblock %}
+
+{% block structured_data %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "name": "Create Your Own Custom AI Assistant",
+  "url": "https://www.myaiassistantapp.se/ai-assistant/",
+  "description": "Create your own custom AI assistant for personal projects, studies, documents, customer support or business."
+}
+</script>
+{% endblock %}
+
+{% block content %}
+<section class="content">
+  <h1>Create Your Own AI Assistant</h1>
+
+  <p>
+    Build a custom AI assistant for personal projects, studies, documents,
+    customer support or business. Customize your assistant, add your own
+    knowledge and start useful conversations in minutes.
+  </p>
+
+  <h2>AI assistants for personal use and business</h2>
+
+  <p>
+    AI Assistant gives individuals, creators and businesses a simple way to
+    create specialized assistants for different needs. Use an assistant for
+    research, studying, organizing information, working with your own
+    documents, answering questions or supporting customers.
+  </p>
+
+  <h2>Add your own knowledge</h2>
+
+  <p>
+    Upload your own information and documents to the Knowledge Base so your
+    assistant can answer using material that matters to you or your business.
+  </p>
+
+  <h2>Customize your assistant</h2>
+
+  <p>
+    Create assistants for different purposes and customize them around the
+    tasks they need to handle. Keep conversations organized and return to
+    previous chats when you need them.
+  </p>
+
+  <h2>Use your AI assistant on your website</h2>
+
+  <p>
+    Pro users can share an assistant through a public link or embed it directly
+    on a website with the Website Widget and Public Chatbot.
+  </p>
+
+  <h2>Connect your assistant to Discord</h2>
+
+  <p>
+    AI Assistant also supports Discord integration, allowing you to connect an
+    assistant and use it from Discord.
+  </p>
+
+  <h2>Explore AI Assistant features and use cases</h2>
+
+  <p>
+    Learn more about creating an
+    <a href="{% url 'ai_chatbot' %}">AI chatbot</a>,
+    building a
+    <a href="{% url 'personal_ai_assistant' %}">personal AI assistant</a>,
+    or using an
+    <a href="{% url 'ai_chatbot_for_business' %}">AI chatbot for business</a>.
+    You can also explore our
+    <a href="{% url 'website_chatbot' %}">website chatbot</a>
+    and
+    <a href="{% url 'ai_knowledge_base' %}">AI Knowledge Base</a>
+    features.
+  </p>
+
+  <h2>Get started with your own AI assistant</h2>
+
+  <p>
+    Create an account and start building your first AI assistant. The Free plan
+    lets you get started without a credit card.
+  </p>
+
+  <p>
+    <a href="{% url 'accounts:register' %}" class="btn">
+      Create Your AI Assistant
+    </a>
+  </p>
+</section>
+{% endblock %}

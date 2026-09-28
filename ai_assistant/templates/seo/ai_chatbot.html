@@ -1,0 +1,117 @@
+{% extends 'base.html' %}
+
+{% block title %}AI Chatbot - Create a Custom AI Chatbot{% endblock %}
+
+{% block canonical %}
+<link rel="canonical" href="https://www.myaiassistantapp.se/ai-chatbot/">
+{% endblock %}
+
+{% block meta_description %}Create a custom AI chatbot for personal use, websites or business. Add your own knowledge, customize its purpose and manage conversations in one place.{% endblock %}
+
+{% block og_title %}Create Your Own Custom AI Chatbot{% endblock %}
+
+{% block og_description %}Build an AI chatbot for personal use or business, add your own knowledge and deploy it to your website when you need a public chatbot.{% endblock %}
+
+{% block og_url %}https://www.myaiassistantapp.se/ai-chatbot/{% endblock %}
+
+{% block twitter_title %}Create Your Own Custom AI Chatbot{% endblock %}
+
+{% block twitter_description %}Build a custom AI chatbot for personal use, websites or business and add your own knowledge.{% endblock %}
+
+{% block structured_data %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "name": "Create Your Own Custom AI Chatbot",
+  "url": "https://www.myaiassistantapp.se/ai-chatbot/",
+  "description": "Create a custom AI chatbot for personal use, websites or business and add your own knowledge."
+}
+</script>
+{% endblock %}
+
+{% block content %}
+<section class="content">
+  <h1>Create Your Own AI Chatbot</h1>
+
+  <p>
+    Build a custom AI chatbot for personal use, projects, websites or business.
+    Give your chatbot a purpose, add your own knowledge and keep its
+    conversations organized in one place.
+  </p>
+
+  <h2>What can you use an AI chatbot for?</h2>
+
+  <p>
+    An AI chatbot can help answer questions, work with information, support
+    personal projects and provide useful responses to customers or website
+    visitors. You can create different assistants for different purposes
+    instead of relying on one generic chatbot for every task.
+  </p>
+
+  <h2>Create a chatbot with your own knowledge</h2>
+
+  <p>
+    Add documents and information to the Knowledge Base so your chatbot can
+    use material that is relevant to you, your project or your business.
+  </p>
+
+  <h2>AI chatbots for individuals</h2>
+
+  <p>
+    Create chatbots for studying, research, documents, personal projects or
+    other specialized tasks. Keep separate assistants and conversations
+    organized around what you are working on.
+  </p>
+
+  <h2>AI chatbots for businesses</h2>
+
+  <p>
+    Businesses can create specialized chatbots for customer questions,
+    internal knowledge and other recurring information needs. Each assistant
+    can be configured for its own purpose.
+  </p>
+
+  <h2>Add an AI chatbot to your website</h2>
+
+  <p>
+    Pro users can publish an assistant through a public link or embed it on a
+    website with the Website Widget and Public Chatbot. Visitor conversations
+    are kept with the selected assistant so they can be managed from AI
+    Assistant.
+  </p>
+
+  <h2>Use your chatbot on Discord</h2>
+
+  <p>
+    AI Assistant also supports Discord integration, allowing you to connect an
+    assistant and interact with it from Discord.
+  </p>
+
+  <h2>Explore more AI chatbot options</h2>
+
+  <p>
+    Create a
+    <a href="{% url 'personal_ai_assistant' %}">personal AI assistant</a>
+    or learn how an
+    <a href="{% url 'ai_chatbot_for_business' %}">AI chatbot for business</a>
+    can support company needs. You can also build a
+    <a href="{% url 'website_chatbot' %}">website chatbot</a>
+    and connect it with your own
+    <a href="{% url 'ai_knowledge_base' %}">AI Knowledge Base</a>.
+  </p>
+
+  <h2>Start building your AI chatbot</h2>
+
+  <p>
+    Create an account and build your first AI chatbot. You can start with the
+    Free plan without a credit card.
+  </p>
+
+  <p>
+    <a href="{% url 'accounts:register' %}" class="btn">
+      Create Your AI Chatbot
+    </a>
+  </p>
+</section>
+{% endblock %}

@@ -8,7 +8,7 @@ from django.views.decorators.http import require_safe
 
 
 PUBLIC_ORIGIN = "https://www.myaiassistantapp.se"
-PUBLIC_PAGE_NAMES = ("home", "privacy", "delete_account")
+PUBLIC_PAGE_NAMES = ("home", "ai_assistant", "ai_chatbot", "personal_ai_assistant", "ai_chatbot_for_business", "website_chatbot", "ai_knowledge_base", "privacy", "delete_account")
 
 INDEXNOW_KEY = "af47ba2096e54410b397d65549f112d1"
 

@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+
+{% block title %}Personal AI Assistant - Create Your Own AI Assistant{% endblock %}
+
+{% block canonical %}
+<link rel="canonical" href="https://www.myaiassistantapp.se/personal-ai-assistant/">
+{% endblock %}
+
+{% block meta_description %}Create a personal AI assistant for studying, research, documents and personal projects. Customize your assistant and add your own knowledge.{% endblock %}
+
+{% block og_title %}Create Your Own Personal AI Assistant{% endblock %}
+
+{% block og_description %}Build a personal AI assistant for studying, research, documents and projects. Customize it and add knowledge that matters to you.{% endblock %}
+
+{% block og_url %}https://www.myaiassistantapp.se/personal-ai-assistant/{% endblock %}
+
+{% block twitter_title %}Create Your Own Personal AI Assistant{% endblock %}
+
+{% block twitter_description %}Create a personal AI assistant for studying, research, documents and your own projects.{% endblock %}
+
+{% block structured_data %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "name": "Create Your Own Personal AI Assistant",
+  "url": "https://www.myaiassistantapp.se/personal-ai-assistant/",
+  "description": "Create a personal AI assistant for studying, research, documents and personal projects."
+}
+</script>
+{% endblock %}
+
+{% block content %}
+<section class="content">
+  <h1>Create Your Own Personal AI Assistant</h1>
+
+  <p>
+    Create an AI assistant around the things you work with every day.
+    Use it for studying, research, documents, personal projects and other
+    tasks where a specialized assistant can help you work with information.
+  </p>
+
+  <h2>An AI assistant built around your needs</h2>
+
+  <p>
+    Instead of using one generic assistant for everything, you can create
+    separate AI assistants for different purposes. Keep your projects and
+    conversations organized and customize each assistant around the job you
+    want it to handle.
+  </p>
+
+  <h2>Use AI for studying and research</h2>
+
+  <p>
+    Create an assistant for a subject, course or research project and keep
+    related conversations together. Use your assistant to work through
+    information and ask questions while you study.
+  </p>
+
+  <h2>Work with your own documents and knowledge</h2>
+
+  <p>
+    Add your own information and documents to the Knowledge Base so your
+    assistant can use material that is relevant to your work, studies or
+    personal projects.
+  </p>
+
+  <h2>Create assistants for different projects</h2>
+
+  <p>
+    You can create specialized assistants for different interests and tasks
+    instead of mixing everything into a single conversation. Each assistant
+    can have its own purpose and conversations.
+  </p>
+
+  <h2>Keep your conversations organized</h2>
+
+  <p>
+    Return to previous conversations when you need them and keep chats
+    connected to the assistant they belong to.
+  </p>
+
+  <h2>Explore more ways to use AI Assistant</h2>
+
+  <p>
+    Learn more about building a general
+    <a href="{% url 'ai_assistant' %}">custom AI assistant</a>
+    or
+    <a href="{% url 'ai_chatbot' %}">AI chatbot</a>.
+    You can also give your assistant access to your own information with an
+    <a href="{% url 'ai_knowledge_base' %}">AI Knowledge Base</a>.
+  </p>
+
+  <h2>Start with a personal AI assistant</h2>
+
+  <p>
+    Create an account and build your first assistant. You can get started
+    with the Free plan without a credit card.
+  </p>
+
+  <p>
+    <a href="{% url 'accounts:register' %}" class="btn">
+      Create Your Personal AI Assistant
+    </a>
+  </p>
+</section>
+{% endblock %}

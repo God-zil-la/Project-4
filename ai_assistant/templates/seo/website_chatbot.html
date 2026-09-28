@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+
+{% block title %}AI Chatbot for Your Website - Website Chatbot{% endblock %}
+
+{% block canonical %}
+<link rel="canonical" href="https://www.myaiassistantapp.se/website-chatbot/">
+{% endblock %}
+
+{% block meta_description %}Create an AI chatbot for your website. Add your own knowledge, customize your assistant and embed a public chatbot for your website visitors.{% endblock %}
+
+{% block og_title %}Create an AI Chatbot for Your Website{% endblock %}
+
+{% block og_description %}Build a custom AI chatbot, add your own knowledge and embed it on your website for visitors and customers.{% endblock %}
+
+{% block og_url %}https://www.myaiassistantapp.se/website-chatbot/{% endblock %}
+
+{% block twitter_title %}Create an AI Chatbot for Your Website{% endblock %}
+
+{% block twitter_description %}Build a custom AI chatbot with your own knowledge and embed it directly on your website.{% endblock %}
+
+{% block structured_data %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "name": "AI Chatbot for Your Website",
+  "url": "https://www.myaiassistantapp.se/website-chatbot/",
+  "description": "Create a custom AI chatbot and embed it on your website for visitors and customers."
+}
+</script>
+{% endblock %}
+
+{% block content %}
+<section class="content">
+  <h1>Add an AI Chatbot to Your Website</h1>
+
+  <p>
+    Create a custom AI chatbot and make it available directly on your website.
+    Configure an assistant around your needs, add your own knowledge and give
+    visitors a convenient way to interact with your assistant.
+  </p>
+
+  <h2>Create a chatbot for your website visitors</h2>
+
+  <p>
+    Build an assistant for the questions and information that matter to your
+    visitors. A website chatbot can help people find information and interact
+    with your business or project without leaving your website.
+  </p>
+
+  <h2>Give your chatbot your own knowledge</h2>
+
+  <p>
+    Add documents and information to the Knowledge Base so your assistant can
+    use material that is relevant to your website, organization or business.
+  </p>
+
+  <h2>Embed your AI chatbot on your website</h2>
+
+  <p>
+    Pro users can use the Website Widget to embed an assistant directly on a
+    website. The chatbot can also be shared through its public chat page when
+    you want a standalone link.
+  </p>
+
+  <h2>Keep visitor conversations separate</h2>
+
+  <p>
+    Each public visitor gets a separate conversation with the selected
+    assistant. Visitor chats are saved so the assistant owner can view them
+    from the existing Conversations area.
+  </p>
+
+  <h2>Customize the assistant for its purpose</h2>
+
+  <p>
+    Create different assistants for different websites, projects or business
+    needs and configure each one around the role it should perform.
+  </p>
+
+  <h2>Track chatbot activity</h2>
+
+  <p>
+    Use AI Assistant analytics to follow activity and understand how your
+    assistants are being used.
+  </p>
+
+  <h2>Build a more useful website chatbot</h2>
+
+  <p>
+    Add relevant information with an
+    <a href="{% url 'ai_knowledge_base' %}">AI Knowledge Base</a>
+    and learn more about using an
+    <a href="{% url 'ai_chatbot_for_business' %}">AI chatbot for business</a>.
+    You can also explore the main
+    <a href="{% url 'ai_chatbot' %}">AI chatbot</a>
+    platform.
+  </p>
+
+  <h2>Create your website chatbot</h2>
+
+  <p>
+    Create an account, build your assistant and upgrade to Pro when you are
+    ready to use the Website Widget and Public Chatbot features.
+  </p>
+
+  <p>
+    <a href="{% url 'accounts:register' %}" class="btn">
+      Create Your Website Chatbot
+    </a>
+  </p>
+</section>
+{% endblock %}

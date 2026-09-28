@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+
+{% block title %}AI Knowledge Base - Build AI with Your Own Knowledge{% endblock %}
+
+{% block canonical %}
+<link rel="canonical" href="https://www.myaiassistantapp.se/ai-knowledge-base/">
+{% endblock %}
+
+{% block meta_description %}Create AI assistants with your own knowledge and documents. Build a custom Knowledge Base so your assistant can use information relevant to you or your business.{% endblock %}
+
+{% block og_title %}Build an AI Assistant with Your Own Knowledge{% endblock %}
+
+{% block og_description %}Add your own information and documents to a Knowledge Base and create AI assistants that can use knowledge relevant to you or your business.{% endblock %}
+
+{% block og_url %}https://www.myaiassistantapp.se/ai-knowledge-base/{% endblock %}
+
+{% block twitter_title %}Build an AI Assistant with Your Own Knowledge{% endblock %}
+
+{% block twitter_description %}Create an AI Knowledge Base with your own information and documents for your custom AI assistants.{% endblock %}
+
+{% block structured_data %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "name": "AI Knowledge Base",
+  "url": "https://www.myaiassistantapp.se/ai-knowledge-base/",
+  "description": "Create AI assistants with your own knowledge and documents using a custom Knowledge Base."
+}
+</script>
+{% endblock %}
+
+{% block content %}
+<section class="content">
+  <h1>Build an AI Assistant with Your Own Knowledge</h1>
+
+  <p>
+    Give your AI assistant information that is relevant to you, your projects
+    or your business. Add your own material to the Knowledge Base and use it
+    with specialized AI assistants.
+  </p>
+
+  <h2>What is an AI Knowledge Base?</h2>
+
+  <p>
+    A Knowledge Base gives an AI assistant additional information to work with.
+    Instead of relying only on a general-purpose assistant, you can provide
+    material related to a specific subject, project or business.
+  </p>
+
+  <h2>Use your own documents and information</h2>
+
+  <p>
+    Add your own material so your assistant can use information that matters
+    to the task you created it for. This can help you build assistants around
+    specialized knowledge instead of treating every conversation the same.
+  </p>
+
+  <h2>Knowledge for personal projects and studies</h2>
+
+  <p>
+    Individuals can use a Knowledge Base for projects, research, studying and
+    other work where their own information provides useful context for an AI
+    assistant.
+  </p>
+
+  <h2>Knowledge for business AI assistants</h2>
+
+  <p>
+    Businesses can create assistants around company information, recurring
+    questions and other relevant material. Different assistants can be created
+    for different purposes while using knowledge appropriate to their role.
+  </p>
+
+  <h2>Use your knowledge with a website chatbot</h2>
+
+  <p>
+    Knowledge-enabled assistants can also be used with the Website Widget and
+    Public Chatbot, allowing Pro users to make a specialized assistant
+    available to website visitors.
+  </p>
+
+  <h2>Keep improving your assistants</h2>
+
+  <p>
+    Create assistants for different purposes, manage their conversations and
+    update the knowledge they use as your needs change.
+  </p>
+
+  <h2>Use your knowledge across AI assistants</h2>
+
+  <p>
+    Use your Knowledge Base with a
+    <a href="{% url 'ai_assistant' %}">custom AI assistant</a>,
+    an
+    <a href="{% url 'ai_chatbot' %}">AI chatbot</a>,
+    or a
+    <a href="{% url 'website_chatbot' %}">website chatbot</a>.
+    Businesses can also explore our
+    <a href="{% url 'ai_chatbot_for_business' %}">AI chatbot for business</a>.
+  </p>
+
+  <h2>Create an AI assistant with your own knowledge</h2>
+
+  <p>
+    Create an account and start building a custom AI assistant with knowledge
+    relevant to you or your business.
+  </p>
+
+  <p>
+    <a href="{% url 'accounts:register' %}" class="btn">
+      Create Your AI Assistant
+    </a>
+  </p>
+</section>
+{% endblock %}

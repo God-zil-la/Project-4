@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+
+{% block title %}AI Chatbot for Business - Create a Custom Business Chatbot{% endblock %}
+
+{% block canonical %}
+<link rel="canonical" href="https://www.myaiassistantapp.se/ai-chatbot-for-business/">
+{% endblock %}
+
+{% block meta_description %}Create a custom AI chatbot for your business. Use your own knowledge, support customer questions, manage conversations and deploy a chatbot to your website.{% endblock %}
+
+{% block og_title %}AI Chatbot for Business{% endblock %}
+
+{% block og_description %}Create a custom AI chatbot for your business, add your own knowledge and deploy it to your website for customers and visitors.{% endblock %}
+
+{% block og_url %}https://www.myaiassistantapp.se/ai-chatbot-for-business/{% endblock %}
+
+{% block twitter_title %}AI Chatbot for Business{% endblock %}
+
+{% block twitter_description %}Build a custom business AI chatbot with your own knowledge and deploy it to your website.{% endblock %}
+
+{% block structured_data %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "name": "AI Chatbot for Business",
+  "url": "https://www.myaiassistantapp.se/ai-chatbot-for-business/",
+  "description": "Create a custom AI chatbot for your business, add your own knowledge and deploy it to your website."
+}
+</script>
+{% endblock %}
+
+{% block content %}
+<section class="content">
+  <h1>AI Chatbot for Business</h1>
+
+  <p>
+    Create a custom AI chatbot for your business and configure it around the
+    information and questions that matter to your customers, visitors or team.
+    Add your own knowledge, manage conversations and use specialized assistants
+    for different business needs.
+  </p>
+
+  <h2>Create a chatbot around your business</h2>
+
+  <p>
+    Build assistants for specific purposes instead of relying on one generic
+    chatbot. Create an assistant for customer questions, business information,
+    internal knowledge or another recurring task.
+  </p>
+
+  <h2>Use your own business knowledge</h2>
+
+  <p>
+    Add documents and information to the Knowledge Base so your assistant can
+    use material that is relevant to your business when answering questions.
+  </p>
+
+  <h2>Support customers and website visitors</h2>
+
+  <p>
+    Create an assistant that helps visitors find information and answers
+    common questions. Pro users can publish an assistant through a public link
+    or embed it directly on a website with the Website Widget and Public
+    Chatbot.
+  </p>
+
+  <h2>Keep visitor conversations organized</h2>
+
+  <p>
+    Website chatbot conversations are saved with the selected assistant so
+    they can be viewed and managed from AI Assistant.
+  </p>
+
+  <h2>Track how your assistants are used</h2>
+
+  <p>
+    Use the analytics features in AI Assistant to follow assistant activity
+    and understand how your assistants are being used.
+  </p>
+
+  <h2>Connect an assistant to Discord</h2>
+
+  <p>
+    Businesses and communities that use Discord can also connect an AI
+    assistant and interact with it directly from Discord.
+  </p>
+
+  <h2>Explore AI tools for your business</h2>
+
+  <p>
+    Learn how to create a
+    <a href="{% url 'website_chatbot' %}">website chatbot</a>
+    for visitors, add company information with an
+    <a href="{% url 'ai_knowledge_base' %}">AI Knowledge Base</a>,
+    or explore the broader
+    <a href="{% url 'ai_chatbot' %}">AI chatbot</a>
+    platform.
+  </p>
+
+  <h2>Build your business AI chatbot</h2>
+
+  <p>
+    Create an account and start building assistants for your business. You can
+    start with the Free plan and upgrade when you need additional features.
+  </p>
+
+  <p>
+    <a href="{% url 'accounts:register' %}" class="btn">
+      Create Your Business AI Chatbot
+    </a>
+  </p>
+</section>
+{% endblock %}
