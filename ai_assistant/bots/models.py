@@ -336,6 +336,32 @@ class ChatMessage(models.Model):
         return f"{self.sender}: {self.message[:50]}"
 
 
+class AIResponseReport(models.Model):
+    """Developer review queue; evidence survives conversation deletion."""
+
+    reporter = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
+    message = models.ForeignKey(ChatMessage, null=True, on_delete=models.SET_NULL)
+    original_message_id = models.PositiveBigIntegerField()
+    conversation_id_snapshot = models.UUIDField()
+    response_text = models.TextField()
+    response_created_at = models.DateTimeField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    status = models.CharField(max_length=10, default="pending", choices=[
+        ("pending", "Pending"), ("reviewed", "Reviewed"), ("dismissed", "Dismissed"),
+    ])
+    review_notes = models.TextField(blank=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        constraints = [models.UniqueConstraint(
+            fields=["reporter", "message"], name="unique_ai_response_report",
+        )]
+        indexes = [models.Index(fields=["reporter", "created_at"], name="ai_report_reporter_created")]
+
+    def __str__(self):
+        return f"AI response report {self.pk} ({self.status})"
+
+
 class BotTemplate(models.Model):
     """
     Represents a reusable bot template for quick creation.

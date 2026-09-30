@@ -11,12 +11,18 @@ from .api_views import (
     api_bot_chat,
 )
 from .discord_download import download_discord_bridge
+from .report_api import AIResponseReportAPIView
 
 
 app_name = "bots"
 
 
 urlpatterns = [
+    path(
+        "api/conversations/<uuid:conversation_id>/messages/<int:message_id>/report/",
+        AIResponseReportAPIView.as_view(),
+        name="ai-response-report",
+    ),
     path("<int:bot_id>/widget/", widget_views.widget_settings, name="widget-settings"),
     path("api/bots/<int:bot_id>/widget/", widget_views.WidgetSettingsAPI.as_view(), name="widget-settings-api"),
     path("public/<uuid:public_id>/", widget_views.public_chat, name="public-chat"),
