@@ -17,3 +17,8 @@ EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
 PASSWORD_HASHERS = ["django.contrib.auth.hashers.MD5PasswordHasher"]
 SECURE_SSL_REDIRECT = False
 ALLOWED_HOSTS = ["testserver", "localhost", "127.0.0.1"]
+
+# Never inherit live store configuration into isolated tests.
+for _key in list(globals()):
+    if _key.startswith('STORE_'):
+        globals()[_key] = ''

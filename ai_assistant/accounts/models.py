@@ -183,24 +183,11 @@ class UserProfile(models.Model):
     @property
     def effective_plan(self):
         """Return the highest currently valid account entitlement."""
-        subscription_plan = self.subscription_plan
-
-        if not self.has_complimentary_access:
-            return subscription_plan
-
-        plan_rank = {
-            self.PLAN_FREE: 0,
-            self.PLAN_PREMIUM: 1,
-            self.PLAN_PRO: 2,
-        }
-
-        if (
-            plan_rank[self.complimentary_plan]
-            > plan_rank[subscription_plan]
-        ):
-            return self.complimentary_plan
-
-        return subscription_plan
+        from ai_assistant.payments.store_service import store_plan
+        plans = [self.subscription_plan, store_plan(self)]
+        if self.has_complimentary_access:
+            plans.append(self.complimentary_plan)
+        return max(plans, key={'free': 0, 'premium': 1, 'pro': 2}.get)
 
     @property
     def has_paid_plan(self):

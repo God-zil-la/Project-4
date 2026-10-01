@@ -13,9 +13,18 @@ from .views import (
     payment_cancel,
 )
 
+from .store_api import StoreCatalog, StoreIntent, StoreVerify, StoreStatus
+from .store_notifications import apple_notification, google_notification
+
 app_name = 'payments'
 
 urlpatterns = [
+    path('api/store/catalog/', StoreCatalog.as_view(), name='store_catalog'),
+    path('api/store/intent/', StoreIntent.as_view(), name='store_intent'),
+    path('api/store/verify/', StoreVerify.as_view(), name='store_verify'),
+    path('api/store/status/', StoreStatus.as_view(), name='store_status'),
+    path('notifications/apple/', apple_notification, name='apple_notification'),
+    path('notifications/google/', google_notification, name='google_notification'),
     path("keep/", KeepSubscriptionView.as_view(), name="keep_subscription"),
     path("resume/", ResumeSubscriptionView.as_view(), name="resume_subscription"),
     path("downgrade/", DowngradeSubscriptionView.as_view(), name="downgrade_subscription"),
