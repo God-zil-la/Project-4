@@ -967,6 +967,15 @@ body > main.site-main {
   gap: 0.35rem;
 }
 
+.footer-explore-links {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-bottom: 0.35rem;
+}
+
 .footer-center p {
   margin: 0.15rem 0 0;
   font-size: 0.82rem;
@@ -1086,6 +1095,11 @@ body > main.site-main {
 
   .footer-policy-links {
     flex-wrap: wrap;
+  }
+
+  .footer-explore-links {
+    flex-wrap: wrap;
+    row-gap: 0.25rem;
   }
 
   .footer-link {
