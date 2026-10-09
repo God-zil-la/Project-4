@@ -28,7 +28,7 @@ logger = logging.getLogger(__name__)
 
 
 CHAT_MODEL = "gpt-4o-mini"
-CHAT_MAX_TOKENS = 1500
+CHAT_MAX_TOKENS = 4000
 CHAT_HISTORY_LIMIT = 20
 INCOMPLETE_RESPONSE_NOTICE = (
     "Response incomplete: token limit reached. Ask the assistant to continue."
