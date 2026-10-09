@@ -1473,7 +1473,7 @@ def search_relevant_chunks(
             ] >= MIN_SEMANTIC_SCORE
             or item[
                 "lexical"
-            ] > 0
+            ] >= 0.25
         )
     ]
 
