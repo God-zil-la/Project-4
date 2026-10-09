@@ -66,7 +66,7 @@ class LongAnswerU41Tests(TestCase):
     def test_long_answer_continues_and_counts_usage(self):
         self.api.side_effect = [
             completion("Introduction."),
-            completion("Detailed explanation. " * 700),
+            completion("Detailed explanation. " * 1000),
         ]
 
         result = process_bot_message(

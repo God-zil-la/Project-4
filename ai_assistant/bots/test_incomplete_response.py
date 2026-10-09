@@ -125,3 +125,30 @@ class IncompleteResponseTests(TestCase):
     def test_translation_context_is_bounded(self):
         self.run_chat("a" * 4000, INCOMPLETE_RESPONSE_NOTICE)
         self.assertEqual(len(self.api.call_args.kwargs["messages"][1]["content"]), 2000)
+
+    def test_long_answer_persists_all_segments_with_one_quota_reservation(self):
+        parts = [" ".join([f"segment{index}"] * 500) for index in range(4)]
+        self.api.side_effect = [completion(part) for part in parts]
+        result = process_bot_message(self.user, self.bot, "Write 2000 words about technology")
+        self.assertEqual(result["response"], "\n\n".join(parts))
+        self.assertEqual((result["tokens_used"], result["input_tokens"], result["output_tokens"]),
+                         (60, 40, 20))
+        self.assertEqual(BotUsageLog.objects.count(), 1)
+        self.assertEqual(BotUsageLog.objects.get().tokens_used, 60)
+        self.assertEqual(ChatMessage.objects.count(), 2)
+        self.assertEqual(ChatMessage.objects.get(sender="assistant").message, result["response"])
+        self.user.profile.refresh_from_db()
+        self.assertEqual(self.user.profile.monthly_message_count, 1)
+
+    def test_intermediate_source_footer_does_not_discard_later_segments(self):
+        self.search.return_value.update(
+            sources=[{"name": "Handbook.pdf", "knowledge_id": 7}], source_heading="Sources used"
+        )
+        parts = [" ".join([f"segment{index}"] * 500) for index in range(4)]
+        self.api.side_effect = [completion(part + "\n\n**Sources used**\n- Invented (KB 99)")
+                                for part in parts]
+        result = process_bot_message(self.user, self.bot, "Write 2000 words about technology")
+        for part in parts:
+            self.assertIn(part, result["response"])
+        self.assertNotIn("Invented", result["response"])
+        self.assertEqual(result["response"].count("Handbook.pdf"), 1)

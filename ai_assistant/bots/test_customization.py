@@ -317,12 +317,14 @@ class AssistantCustomizationTests(TestCase):
         expectations = {
             "minimal": "without unnecessary suggestions or follow-up questions",
             "balanced": "only when clarification would materially improve the answer",
-            "proactive": "Do not invent missing facts, ask unnecessary questions",
+            "proactive": "one specific and relevant follow-up question",
         }
         for mode, expected in expectations.items():
             with self.subTest(mode=mode):
                 bot = Bot(**self.data, proactivity=mode)
                 self.assertIn(expected, response_preferences(bot))
+                self.assertNotIn("improvethe", response_preferences(bot))
+                self.assertNotIn("relevantfollow-up", response_preferences(bot))
 
     def test_expanded_default_language_choices(self):
         from .customization import DEFAULT_LANGUAGE_CHOICES

@@ -43,9 +43,6 @@ LENGTH_HINT = 'Choose a default level of detail. Existing response limits still 
 ICON_HINT = 'Shown in your assistant list and chat. This does not change its replies.'
 
 
-
-
-
 def response_preferences(bot):
     """Build optional response preferences without overriding explicit requests."""
     preferences = []
@@ -86,6 +83,16 @@ def response_preferences(bot):
         if bot.default_language != "auto" and language_name
         else None
     )
+
+    if bot.default_language == "my":
+        default_language += (
+            " Write in natural, fluent Burmese using standard Myanmar "
+            "script and appropriate grammar, vocabulary, and sentence "
+            "structure. Avoid unnatural literal translations, invented "
+            "words, and unnecessary English. Preserve technical terms "
+            "when translation would make them less accurate. "
+            "If uncertain about a fact, say so rather than inventing it."
+        )
 
     proactivity = {
         "minimal": "Answer directly without unnecessary suggestions or follow-up questions.",

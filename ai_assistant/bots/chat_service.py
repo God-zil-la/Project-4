@@ -29,9 +29,12 @@ logger = logging.getLogger(__name__)
 
 CHAT_MODEL = "gpt-4o-mini"
 CHAT_MAX_TOKENS = 4000
+LONG_ANSWER_PART_WORDS = 500
+LONG_ANSWER_MAX_PARTS = 6
+
 CHAT_HISTORY_LIMIT = 20
 INCOMPLETE_RESPONSE_NOTICE = (
-    "Response incomplete: token limit reached. Ask the assistant to continue."
+    "Response incomplete. Ask the assistant to continue."
 )
 
 
@@ -79,21 +82,6 @@ def _log_usage(
     )
 
 
-def _requested_word_count(message):
-    """Find an explicit word target in a user request."""
-    match = re.search(
-        r"(?<!\d)(\d{1,3}(?:[\s.,]\d{3})+|\d{3,5})"
-        r"\s*(?:ord|words)\b",
-        message,
-        re.IGNORECASE,
-    )
-    if not match:
-        return None
-
-    amount = int(re.sub(r"\D", "", match.group(1)))
-    return amount if 500 <= amount <= 5000 else None
-
-
 def _localize_incomplete_notice(response_text):
     """Best-effort translation; a failed notice must never discard a paid answer."""
     try:
@@ -136,7 +124,9 @@ def _localize_incomplete_notice(response_text):
         or any(
             (unicodedata.category(char)[0] not in "LMZP"
              and char not in "\u200c\u200d")
+
             or char in "<>[]{}*_`\\/#@"
+
             for char in notice
         )
     ):
@@ -435,6 +425,17 @@ def _check_rate_limit(user, profile):
         )
 
 
+def _requested_word_count(message):
+    """Recognize explicit long-form requests without interpreting arbitrary numbers."""
+    match = re.search(
+        r"\b(\d{1,2}(?:[\s,.]\d{3})?|\d{3,5})\s*"
+        r"(?:words?|ord)\b", message, flags=re.IGNORECASE,
+    )
+    if not match:
+        return None
+    return int(re.sub(r"\D", "", match.group(1)))
+
+
 def process_bot_message(
     user,
     bot,
@@ -679,6 +680,24 @@ def process_bot_message(
             knowledge_text,
         )
 
+        # Preserve the assistant's configured language across every generation
+        # part. The user's explicitly requested language may still override it.
+        configured_language = str(getattr(bot, "default_language", "") or "").strip()
+        if configured_language and configured_language.lower() != "auto":
+            language_name = {
+                "my": "Burmese (Myanmar)",
+                "sv": "Swedish",
+                "en": "English",
+            }.get(configured_language.lower(), configured_language)
+            system_message += (
+                "\n\nResponse language: Reply in " + language_name +
+                " by default, regardless of the language of the question or "
+                "earlier chat messages. Change language only when the user "
+                "explicitly asks for another language. Apply this rule to "
+                "every part of a long answer."
+            )
+
+
         openai_messages = _build_history(
             active_conversation,
             system_message,
@@ -702,98 +721,103 @@ def process_bot_message(
 
         openai.api_key = api_key
 
-        response = openai.ChatCompletion.create(
-            model=CHAT_MODEL,
-            messages=openai_messages,
-            max_tokens=CHAT_MAX_TOKENS,
+
+        requested_words = _requested_word_count(message) or 0
+        is_long_answer = requested_words >= 1000
+        max_calls = LONG_ANSWER_MAX_PARTS if is_long_answer else 1
+        response_parts = []
+        input_tokens = output_tokens = tokens_used = 0
+        model_name = CHAT_MODEL
+        continuation_messages = list(openai_messages)
+        interrupted = False
+        generated_words = 0
+
+        for part_index in range(max_calls):
+            part_messages = list(continuation_messages)
+            if is_long_answer:
+                remaining = max(1, requested_words - generated_words)
+                target = min(LONG_ANSWER_PART_WORDS, remaining)
+                final_segment = remaining <= LONG_ANSWER_PART_WORDS or part_index + 1 == max_calls
+                part_messages.append({
+                    "role": "system",
+                    "content": (
+                        "Generate a single continuous, non-repetitive response in "
+                        "the language specified by the assistant's system "
+                        "instructions (unless the user explicitly requested "
+                        "another language). Preserve the original requested "
+                        "subject and structure. Do not restate prior paragraphs. "
+                        f"The user requested approximately {requested_words} words. "
+                        f"This is segment {part_index + 1}; "
+                        f"aim for approximately {target} new words. "
+                        + ("Complete the answer and conclude only once."
+                           if final_segment else
+                           "Do not write a final conclusion or source list yet.")
+                    ),
+                })
+            try:
+                response = openai.ChatCompletion.create(
+                    model=CHAT_MODEL,
+                    messages=part_messages,
+                    max_tokens=CHAT_MAX_TOKENS,
+                )
+            except openai.error.OpenAIError:
+                if not response_parts:
+                    raise
+                # Keep already-paid content and usage when a continuation fails.
+                logger.warning("Long-answer continuation unavailable for bot %s.", bot.pk)
+                interrupted = True
+                break
+            choice = response.choices[0]
+            part_text = (choice.message.get("content") or "").strip()
+            part_text = strip_source_list(
+                part_text, knowledge_result.get("source_heading", "Sources used")
+            )
+            finish_reason = choice.get("finish_reason")
+            usage = response.get("usage", {}) or {}
+            input_tokens += usage.get("prompt_tokens", 0)
+            output_tokens += usage.get("completion_tokens", 0)
+            tokens_used += usage.get(
+                "total_tokens",
+                usage.get("prompt_tokens", 0) + usage.get("completion_tokens", 0),
+            )
+            model_name = response.get("model", CHAT_MODEL)
+            # No-progress responses must not consume the rest of the call budget.
+            repeated = part_text in response_parts
+            if part_text and not repeated:
+                response_parts.append(part_text)
+                # This is a whitespace-based estimate, not linguistic segmentation
+                # for scripts such as Burmese. The call cap bounds that uncertainty.
+                generated_words += len(part_text.split())
+            interrupted = finish_reason == "length" or (
+                is_long_answer and generated_words < requested_words * 0.95
+            )
+            if finish_reason == "content_filter":
+                interrupted = False
+                break
+            if not is_long_answer or not interrupted:
+                break
+            # Never retry a filtered or unknown provider completion.
+            if finish_reason not in ("stop", "length") or not part_text or repeated:
+                break
+            continuation_messages.extend([
+                {"role": "assistant", "content": part_text},
+                {"role": "user", "content": (
+                    "Continue the original answer from exactly where you "
+                    "stopped. Add new content only; do not repeat any "
+                    "earlier material, restart the answer, or change language."
+                )},
+            ])
+
+        response_text = "\n\n".join(response_parts)
+        # Remove only recognized internal model tokens.
+        response_text = re.sub(
+            r"<\|(?:vq_\d+|endoftext|im_start|im_end|fim_prefix|fim_middle|fim_suffix)\|>",
+            "",
+            response_text,
         )
 
-        response_text = (
-            response
-            .choices[0]
-            .message["content"]
-            .strip()
-        )
-        finish_reason = response.choices[0].get("finish_reason")
-
-        continuation_usage = {
-            "prompt_tokens": 0,
-            "completion_tokens": 0,
-            "total_tokens": 0,
-        }
-
-        requested_words = _requested_word_count(message)
-
-        if requested_words:
-            # A bounded approximation across different writing systems.
-            target_chars = requested_words * 5
-
-            for _ in range(3):
-                if len(response_text) >= target_chars:
-                    break
-
-                if finish_reason not in {"stop", "length", None}:
-                    break
-
-                continuation_messages = openai_messages + [
-                    {
-                        "role": "assistant",
-                        "content": response_text[-18000:],
-                    },
-                    {
-                        "role": "user",
-                        "content": (
-                            "Continue the answer to the original request. "
-                            "Do not restart, repeat sections, apologize, "
-                            "or substitute an outline for detailed content. "
-                            "Add substantial new material toward the "
-                            "requested approximate word count. "
-                            "Preserve the response language specified by "
-                            "the system instructions and the user's "
-                            "explicit language preferences. "
-                            "Respect all original safety, category, "
-                            "and Knowledge Base requirements."
-                        ),
-                    },
-                ]
-
-                try:
-                    extra = openai.ChatCompletion.create(
-                        model=CHAT_MODEL,
-                        messages=continuation_messages,
-                        max_tokens=CHAT_MAX_TOKENS,
-                    )
-                except Exception:
-                    logger.warning(
-                        "Long-answer continuation failed for bot %s.",
-                        bot.pk,
-                    )
-                    finish_reason = "length"
-                    break
-
-                extra_usage = extra.get("usage", {}) or {}
-
-                for key in continuation_usage:
-                    continuation_usage[key] += extra_usage.get(key, 0)
-
-                extra_text = (
-                    extra.choices[0].message["content"] or ""
-                ).strip()
-
-                if not extra_text:
-                    finish_reason = "length"
-                    break
-
-                response_text += "\n\n" + extra_text
-                finish_reason = extra.choices[0].get("finish_reason")
-
-            if (
-                len(response_text) < target_chars
-                and finish_reason in {"stop", None}
-            ):
-                finish_reason = "length"
-
-        # Clean up duplicated Markdown links produced by the model.
+        # Collapse the specific duplicated Markdown-link form without
+        # touching normal Markdown links.
         response_text = re.sub(
             r"\[\[(https?://[^\]\s]+)\]\(\1\)\]\(\1\)",
             r"\1",
@@ -801,7 +825,9 @@ def process_bot_message(
         )
 
         notice_usage = {}
-        if finish_reason == "length":
+
+        if interrupted:
+
             # Remove model-authored source footers before adding the status line,
             # so source cleanup cannot accidentally remove the notice as well.
             response_text = strip_source_list(
@@ -815,39 +841,7 @@ def process_bot_message(
         response_text = append_source_list(
             response_text, knowledge_result.get("sources", []),
             heading=knowledge_result.get("source_heading", "Sources used"),
-        )
 
-        response_usage = response.get(
-            "usage",
-            {},
-        )
-
-        response_usage = dict(response_usage or {})
-
-        for key in continuation_usage:
-            response_usage[key] = (
-                response_usage.get(key, 0)
-                + continuation_usage[key]
-            )
-
-        input_tokens = response_usage.get(
-            "prompt_tokens",
-            0,
-        )
-
-        output_tokens = response_usage.get(
-            "completion_tokens",
-            0,
-        )
-
-        tokens_used = response_usage.get(
-            "total_tokens",
-            0,
-        )
-
-        model_name = response.get(
-            "model",
-            CHAT_MODEL,
         )
 
         _log_usage(
