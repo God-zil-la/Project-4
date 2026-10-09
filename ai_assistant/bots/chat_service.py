@@ -79,6 +79,21 @@ def _log_usage(
     )
 
 
+def _requested_word_count(message):
+    """Find an explicit word target in a user request."""
+    match = re.search(
+        r"(?<!\d)(\d{1,3}(?:[\s.,]\d{3})+|\d{3,5})"
+        r"\s*(?:ord|words)\b",
+        message,
+        re.IGNORECASE,
+    )
+    if not match:
+        return None
+
+    amount = int(re.sub(r"\D", "", match.group(1)))
+    return amount if 500 <= amount <= 5000 else None
+
+
 def _localize_incomplete_notice(response_text):
     """Best-effort translation; a failed notice must never discard a paid answer."""
     try:
@@ -701,6 +716,83 @@ def process_bot_message(
         )
         finish_reason = response.choices[0].get("finish_reason")
 
+        continuation_usage = {
+            "prompt_tokens": 0,
+            "completion_tokens": 0,
+            "total_tokens": 0,
+        }
+
+        requested_words = _requested_word_count(message)
+
+        if requested_words:
+            # A bounded approximation across different writing systems.
+            target_chars = requested_words * 5
+
+            for _ in range(3):
+                if len(response_text) >= target_chars:
+                    break
+
+                if finish_reason not in {"stop", "length", None}:
+                    break
+
+                continuation_messages = openai_messages + [
+                    {
+                        "role": "assistant",
+                        "content": response_text[-18000:],
+                    },
+                    {
+                        "role": "user",
+                        "content": (
+                            "Continue the answer to the original request. "
+                            "Do not restart, repeat sections, apologize, "
+                            "or substitute an outline for detailed content. "
+                            "Add substantial new material toward the "
+                            "requested approximate word count. "
+                            "Preserve the response language specified by "
+                            "the system instructions and the user's "
+                            "explicit language preferences. "
+                            "Respect all original safety, category, "
+                            "and Knowledge Base requirements."
+                        ),
+                    },
+                ]
+
+                try:
+                    extra = openai.ChatCompletion.create(
+                        model=CHAT_MODEL,
+                        messages=continuation_messages,
+                        max_tokens=CHAT_MAX_TOKENS,
+                    )
+                except Exception:
+                    logger.warning(
+                        "Long-answer continuation failed for bot %s.",
+                        bot.pk,
+                    )
+                    finish_reason = "length"
+                    break
+
+                extra_usage = extra.get("usage", {}) or {}
+
+                for key in continuation_usage:
+                    continuation_usage[key] += extra_usage.get(key, 0)
+
+                extra_text = (
+                    extra.choices[0].message["content"] or ""
+                ).strip()
+
+                if not extra_text:
+                    finish_reason = "length"
+                    break
+
+                response_text += "\n\n" + extra_text
+                finish_reason = extra.choices[0].get("finish_reason")
+
+            if (
+                len(response_text) < target_chars
+                and finish_reason in {"stop", None}
+            ):
+                finish_reason = "length"
+
         # Clean up duplicated Markdown links produced by the model.
         response_text = re.sub(
             r"\[\[(https?://[^\]\s]+)\]\(\1\)\]\(\1\)",
@@ -729,6 +821,14 @@ def process_bot_message(
             "usage",
             {},
         )
+
+        response_usage = dict(response_usage or {})
+
+        for key in continuation_usage:
+            response_usage[key] = (
+                response_usage.get(key, 0)
+                + continuation_usage[key]
+            )
 
         input_tokens = response_usage.get(
             "prompt_tokens",
