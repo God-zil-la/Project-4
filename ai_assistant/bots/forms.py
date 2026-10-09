@@ -69,7 +69,9 @@ class BotForm(forms.ModelForm):
     class Meta:
         model = Bot
         fields = ['name', 'description', 'personality', 'category',
-                  'response_tone', 'response_length', 'avatar_icon']
+                  'response_tone', 'response_length', 'avatar_icon',
+                  'communication_style', 'response_structure',
+                  'default_language', 'proactivity', 'custom_instructions']
         labels = {'personality': 'Personality & instructions', 'avatar_icon': 'Assistant icon'}
         error_messages = {
             'name': {'required': NAME_REQUIRED, 'max_length': NAME_TOO_LONG},
@@ -79,6 +81,14 @@ class BotForm(forms.ModelForm):
             'response_tone': TONE_HINT,
             'response_length': LENGTH_HINT,
             'avatar_icon': ICON_HINT,
+            'communication_style': 'Choose how your assistant communicates.',
+            'response_structure': 'Choose the preferred answer format.',
+            'default_language': 'Choose a default language or detect it automatically.',
+            'proactivity': 'Choose how often the assistant offers extra guidance.',
+            'custom_instructions': (
+                'Add optional instructions specific to this assistant. '
+                'Safety, category, and Knowledge Base rules still apply.'
+            ),
             'description': (
                 'Describe what your assistant helps with and who it is for. '
                 'Example: A travel assistant that helps families plan weekend trips.'
@@ -94,7 +104,11 @@ class BotForm(forms.ModelForm):
                 'rows': 3,
                 'placeholder': "Describe the bot's personality..."
             }),
-            'category': forms.Select(attrs={'class': 'category-select'})
+            'category': forms.Select(attrs={'class': 'category-select'}),
+            'custom_instructions': forms.Textarea(attrs={
+                'rows': 5,
+                'placeholder': 'Add optional assistant instructions...'
+            })
         }
 
     def __init__(self, *args, **kwargs):

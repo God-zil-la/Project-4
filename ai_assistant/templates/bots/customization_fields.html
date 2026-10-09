@@ -78,6 +78,90 @@
 
         </div>
 
+        <div class="form-group">
+            <label for="{{ form.communication_style.id_for_label }}">
+                {{ form.communication_style.label }}
+            </label>
+
+            {{ form.communication_style }}
+
+            {% if form.communication_style.help_text %}
+            <p class="helptext">
+                {{ form.communication_style.help_text }}
+            </p>
+            {% endif %}
+
+            {{ form.communication_style.errors }}
+        </div>
+
+
+        <div class="form-group">
+            <label for="{{ form.response_structure.id_for_label }}">
+                {{ form.response_structure.label }}
+            </label>
+
+            {{ form.response_structure }}
+
+            {% if form.response_structure.help_text %}
+            <p class="helptext">
+                {{ form.response_structure.help_text }}
+            </p>
+            {% endif %}
+
+            {{ form.response_structure.errors }}
+        </div>
+
+
+        <div class="form-group">
+            <label for="{{ form.default_language.id_for_label }}">
+                {{ form.default_language.label }}
+            </label>
+
+            {{ form.default_language }}
+
+            {% if form.default_language.help_text %}
+            <p class="helptext">
+                {{ form.default_language.help_text }}
+            </p>
+            {% endif %}
+
+            {{ form.default_language.errors }}
+        </div>
+
+
+        <div class="form-group">
+            <label for="{{ form.proactivity.id_for_label }}">
+                {{ form.proactivity.label }}
+            </label>
+
+            {{ form.proactivity }}
+
+            {% if form.proactivity.help_text %}
+            <p class="helptext">
+                {{ form.proactivity.help_text }}
+            </p>
+            {% endif %}
+
+            {{ form.proactivity.errors }}
+        </div>
+
+
+        <div class="form-group assistant-preference-wide">
+            <label for="{{ form.custom_instructions.id_for_label }}">
+                {{ form.custom_instructions.label }}
+            </label>
+
+            {{ form.custom_instructions }}
+
+            {% if form.custom_instructions.help_text %}
+            <p class="helptext">
+                {{ form.custom_instructions.help_text }}
+            </p>
+            {% endif %}
+
+            {{ form.custom_instructions.errors }}
+        </div>
+
     </div>
 
 </fieldset>
@@ -142,7 +226,8 @@
 
 
     .assistant-preferences select,
-    .assistant-preferences input {
+    .assistant-preferences input,
+        .assistant-preferences textarea {
         width: 100%;
         max-width: 100%;
 
@@ -207,7 +292,8 @@
 
 
         .assistant-preferences select,
-        .assistant-preferences input {
+        .assistant-preferences input,
+        .assistant-preferences textarea {
             padding: 0.5rem 0.55rem;
 
             font-size: 0.78rem;

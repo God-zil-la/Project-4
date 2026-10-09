@@ -161,7 +161,7 @@ class AssistantCustomizationTests(TestCase):
     def test_prompt_preferences_preserve_configured_text_and_rules(self):
         bot = Bot(**self.data, response_tone="friendly", response_length="concise", avatar_icon="book")
         prompt = render_system_message(bot, "Verified opening hours: 10–18.")
-        for expected in (self.data["description"], self.data["personality"], "warm, friendly", "concise and focused", "Stay within this category.", "Verified opening hours: 10–18.", "Answer in the language the user is using", "more specific response style"):
+        for expected in (self.data["description"], self.data["personality"], "warm, friendly", "concise and focused", "Stay within this category.", "Verified opening hours: 10–18.", "If the preference is Automatic, answer in the user's language.", "higher-priority instructions"):
             self.assertIn(expected, prompt)
         self.assertNotIn("📚", prompt)
         self.assertEqual(bot.personality, self.data["personality"])
@@ -188,6 +188,204 @@ class AssistantCustomizationTests(TestCase):
         with patch.object(Bot, "save", side_effect=IntegrityError("unrelated database error")):
             with self.assertRaises(IntegrityError):
                 save_assistant(Bot(owner=self.user, name="Unique"))
+
+
+    def test_advanced_customization_web_api_round_trip(self):
+        preferences = {
+            "communication_style": "technical",
+            "response_structure": "step_by_step",
+            "default_language": "sv",
+            "proactivity": "balanced",
+            "custom_instructions": "Explain technical concepts clearly.",
+        }
+        response = self.client.post(
+            reverse("bots:create"),
+            {**self.data, **preferences},
+        )
+        self.assertEqual(response.status_code, 302)
+
+        bot = Bot.objects.get(owner=self.user)
+        url = reverse("bots:bot-detail", args=[bot.pk])
+
+        for field, value in preferences.items():
+            self.assertEqual(getattr(bot, field), value)
+            self.assertEqual(self.api.get(url).data[field], value)
+
+        updated = {
+            "communication_style": "formal",
+            "response_structure": "paragraphs",
+            "default_language": "en",
+            "proactivity": "minimal",
+            "custom_instructions": "Keep explanations focused.",
+        }
+        response = self.api.patch(url, updated, format="json")
+        self.assertEqual(response.status_code, 200)
+
+        bot.refresh_from_db()
+        for field, value in updated.items():
+            self.assertEqual(getattr(bot, field), value)
+
+        response = self.client.get(reverse("bots:edit", args=[bot.pk]))
+        self.assertEqual(response.status_code, 200)
+        for field, value in updated.items():
+            self.assertEqual(response.context["form"].initial[field], value)
+
+    def test_advanced_customization_legacy_clients_preserve_values(self):
+        preferences = {
+            "communication_style": "educational",
+            "response_structure": "bullet_points",
+            "default_language": "sv",
+            "proactivity": "proactive",
+            "custom_instructions": "Give practical examples.",
+        }
+        bot = Bot.objects.create(
+            owner=self.user,
+            **self.data,
+            **preferences,
+        )
+        url = reverse("bots:bot-detail", args=[bot.pk])
+
+        self.assertEqual(
+            self.api.patch(url, self.data, format="json").status_code,
+            200,
+        )
+        self.assertEqual(
+            self.client.post(
+                reverse("bots:edit", args=[bot.pk]),
+                self.data,
+            ).status_code,
+            302,
+        )
+
+        bot.refresh_from_db()
+        for field, value in preferences.items():
+            self.assertEqual(getattr(bot, field), value)
+
+    def test_advanced_customization_invalid_choices(self):
+        invalid_values = {
+            "communication_style": "unknown",
+            "response_structure": "unknown",
+            "default_language": "unknown",
+            "proactivity": "unknown",
+        }
+
+        for field, value in invalid_values.items():
+            with self.subTest(field=field):
+                data = {**self.data, field: value}
+
+                web = self.client.post(reverse("bots:create"), data)
+                self.assertEqual(web.status_code, 200)
+                self.assertIn(field, web.context["form"].errors)
+
+                api = self.api.post(
+                    reverse("bots:bot-list-create"),
+                    data,
+                    format="json",
+                )
+                self.assertEqual(api.status_code, 400)
+                self.assertIn(field, api.data)
+
+    def test_advanced_customization_system_prompt(self):
+        bot = Bot(
+            **self.data,
+            communication_style="technical",
+            response_structure="step_by_step",
+            default_language="sv",
+            proactivity="balanced",
+            custom_instructions="Explain terminology before examples.",
+        )
+
+        prompt = render_system_message(bot)
+
+        for expected in (
+            "precise technical terminology",
+            "numbered, step-by-step explanations",
+            "Prefer Swedish",
+            "Offer relevant next steps",
+            "Explain terminology before examples.",
+            "Always honor an explicit language request",
+        ):
+            self.assertIn(expected, prompt)
+
+        self.assertIn(self.data["personality"], prompt)
+        self.assertIn("Higher-priority instructions override", prompt)
+
+
+    def test_expanded_default_language_choices(self):
+        from .customization import DEFAULT_LANGUAGE_CHOICES
+
+        choices = dict(DEFAULT_LANGUAGE_CHOICES)
+
+        self.assertEqual(len(DEFAULT_LANGUAGE_CHOICES), 79)
+        self.assertEqual(len(choices), 79)
+        self.assertTrue(all(len(code) <= 8 for code in choices))
+
+        expected = {
+            "auto": "Automatic",
+            "en": "English",
+            "sv": "Swedish",
+            "ar": "Arabic",
+            "de": "German",
+            "fr": "French",
+            "es": "Spanish",
+            "ja": "Japanese",
+            "zh-hans": "Chinese (Simplified)",
+            "zh-hant": "Chinese (Traditional)",
+            "pt-br": "Portuguese (Brazil)",
+        }
+
+        for code, label in expected.items():
+            with self.subTest(code=code):
+                self.assertEqual(choices[code], label)
+
+    def test_expanded_languages_web_api_and_system_prompt(self):
+        from .customization import DEFAULT_LANGUAGE_CHOICES
+
+        choices = dict(DEFAULT_LANGUAGE_CHOICES)
+        bot = Bot.objects.create(owner=self.user, **self.data)
+        edit_url = reverse("bots:edit", args=[bot.pk])
+        api_url = reverse("bots:bot-detail", args=[bot.pk])
+
+        for language in ("ar", "ja", "zh-hans", "pt-br", "de"):
+            with self.subTest(language=language):
+                web_response = self.client.post(
+                    edit_url,
+                    {**self.data, "default_language": language},
+                )
+                self.assertEqual(web_response.status_code, 302)
+
+                bot.refresh_from_db()
+                self.assertEqual(bot.default_language, language)
+
+                api_response = self.api.get(api_url)
+                self.assertEqual(api_response.status_code, 200)
+                self.assertEqual(
+                    api_response.data["default_language"], language
+                )
+
+                self.assertIn(
+                    f"Prefer {choices[language]}",
+                    render_system_message(bot),
+                )
+
+        api_response = self.api.patch(
+            api_url,
+            {"default_language": "fr"},
+            format="json",
+        )
+        self.assertEqual(api_response.status_code, 200)
+
+        bot.refresh_from_db()
+        self.assertEqual(bot.default_language, "fr")
+
+        web_response = self.client.get(edit_url)
+        self.assertEqual(web_response.status_code, 200)
+        self.assertEqual(
+            web_response.context["form"].initial["default_language"],
+            "fr",
+        )
+
+        self.assertIn("Prefer French", render_system_message(bot))
 
     def test_icons_in_web_list_chat_and_conversation_api(self):
         from .models import Conversation
