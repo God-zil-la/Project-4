@@ -71,7 +71,7 @@ class BotForm(forms.ModelForm):
         fields = ['name', 'description', 'personality', 'category',
                   'response_tone', 'response_length', 'avatar_icon',
                   'communication_style', 'response_structure',
-                  'default_language', 'proactivity', 'custom_instructions']
+                  'default_language', 'knowledge_activation_mode', 'proactivity', 'custom_instructions']
         labels = {'personality': 'Personality & instructions', 'avatar_icon': 'Assistant icon'}
         error_messages = {
             'name': {'required': NAME_REQUIRED, 'max_length': NAME_TOO_LONG},

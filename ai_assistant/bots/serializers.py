@@ -37,6 +37,7 @@ class BotSerializer(serializers.ModelSerializer):
             "communication_style",
             "response_structure",
             "default_language",
+            "knowledge_activation_mode",
             "proactivity",
             "custom_instructions",
             "owner",

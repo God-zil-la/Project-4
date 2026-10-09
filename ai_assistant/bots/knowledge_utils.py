@@ -496,11 +496,33 @@ Return valid JSON with exactly these keys:
 
 {{
   "mode": "search",
+  "document_requested": false,
   "file_ids": [],
   "semantic_query": "",
   "exact_terms": [],
   "source_heading": "Sources used"
 }}
+
+DOCUMENT_REQUESTED:
+This boolean is independent of MODE. MODE decides whether searching
+the Knowledge Base could help. DOCUMENT_REQUESTED decides whether
+the user explicitly requested their uploaded documents.
+
+Return true when the user directly asks about their uploaded files,
+documents, attachments, manuals or their contents, or clearly
+continues an earlier conversation about those documents.
+Examples that MUST return true:
+- What do my uploaded files say?
+- Vad st?r i mina uppladdade dokument?
+- ?Qu? dicen mis documentos?
+- Que disent mes documents ?
+- Follow-up: Vilka datum n?mns? after discussing uploaded documents.
+
+Return false for greetings and unrelated general questions.
+A question that could potentially benefit from Knowledge Base
+information does not automatically count as an explicit document request.
+Recognize intent in ANY language. Return a JSON boolean, not a string.
+Do not confuse MODE=search with DOCUMENT_REQUESTED=false.
 
 SOURCE_HEADING:
 Identify the language actually used in CURRENT USER MESSAGE, in ANY language
@@ -745,6 +767,7 @@ No explanation.
 
     return {
         "mode": mode,
+        "document_requested": parsed.get("document_requested") is True,
         "source_heading": _source_heading(parsed.get("source_heading")),
         "file_ids": file_ids,
         "semantic_query": semantic_query,
@@ -1323,6 +1346,18 @@ def search_relevant_chunks(
     selected_file_ids = plan[
         "file_ids"
     ]
+
+    activation_mode = getattr(
+        bot, "knowledge_activation_mode", "automatic"
+    )
+
+    if activation_mode == "always" and plan["mode"] == "none":
+        plan["mode"] = "search"
+    elif (
+        activation_mode == "on_request"
+        and not plan.get("document_requested", False)
+    ):
+        plan["mode"] = "none"
 
     if plan["mode"] == "none":
         if not include_usage:

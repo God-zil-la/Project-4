@@ -38,6 +38,84 @@ INCOMPLETE_RESPONSE_NOTICE = (
 )
 
 
+
+def _should_search_knowledge(bot, message, conversation_context=""):
+    """Decide whether Knowledge Base retrieval is needed."""
+    mode = getattr(bot, "knowledge_activation_mode", "automatic") or "automatic"
+    normalized = unicodedata.normalize("NFKC", str(message)).casefold().strip()
+
+    if mode == "always":
+        return True
+
+    document_patterns = (
+        r"\b(in my files|in my documents|according to my documents|"
+        r"my uploaded files|in mina filer|i mina filer|"
+        r"i mina dokument|enligt mina dokument|"
+        r"kunskapsbas|knowledge base|uploaded document)\b",
+    )
+    explicit_request = any(
+        re.search(pattern, normalized) for pattern in document_patterns
+    )
+
+    if explicit_request:
+        return True
+
+    if mode == "on_request":
+        # The multilingual retrieval planner decides whether the user
+        # explicitly requested documents or continued a document discussion.
+        return True
+
+    greetings = {
+        "hej", "hejsan", "hall?", "tjena", "hello",
+        "hi", "hey", "good morning", "good evening",
+        "god morgon", "god kv?ll",
+    }
+
+    cleaned = re.sub(r"[^\w\s]", "", normalized).strip()
+
+    if cleaned in greetings:
+        return False
+
+    return True
+
+
+
+def _extract_knowledge_citations(answer, sources):
+    """Extract and validate document citations."""
+    allowed = {
+        str(source["knowledge_id"]): source
+        for source in sources
+        if "knowledge_id" in source
+    }
+
+    used_ids = []
+
+    def remove_marker(match):
+        source_id = match.group(1)
+        if source_id in allowed and source_id not in used_ids:
+            used_ids.append(source_id)
+        return ""
+
+    cleaned = re.sub(
+        r"\[KB_SOURCE:(\d+)\]",
+        remove_marker,
+        answer,
+    )
+
+    # Remove malformed internal citation markers without crediting sources.
+    cleaned = re.sub(
+        r"\[KB_SOURCE:[^\]\r\n]*(?:\]|(?=\r?\n|$))",
+        "",
+        cleaned,
+        flags=re.IGNORECASE,
+    )
+
+    return cleaned.strip(), [
+        allowed[source_id] for source_id in used_ids
+    ]
+
+
+
 class ChatServiceError(Exception):
     """Base exception for chat service errors."""
 
@@ -638,15 +716,27 @@ def process_bot_message(
             }
 
         try:
-            knowledge_result = (
-                search_relevant_chunks(
+            retrieval_context = _build_retrieval_context(active_conversation)
+
+            if _should_search_knowledge(
+                bot, message, retrieval_context
+            ):
+                knowledge_result = search_relevant_chunks(
                     bot,
                     message,
                     top_k=3,
                     include_usage=True,
-                    conversation_context=_build_retrieval_context(active_conversation),
+                    conversation_context=retrieval_context,
                 )
-            )
+            else:
+                knowledge_result = {
+                    "chunks": [],
+                    "sources": [],
+                    "tokens_used": 0,
+                    "input_tokens": 0,
+                    "output_tokens": 0,
+                    "model": None,
+                }
 
         except Exception:
             logger.error(
@@ -691,6 +781,23 @@ def process_bot_message(
             bot,
             knowledge_text,
         )
+
+        if knowledge_result.get("sources"):
+            source_ids = [
+                str(source["knowledge_id"])
+                for source in knowledge_result["sources"]
+            ]
+            system_message += (
+                "\n\nKNOWLEDGE SOURCE ATTRIBUTION:\n"
+                "When a factual statement in your answer is supported by "
+                "retrieved Knowledge Base content, append an internal marker "
+                "[KB_SOURCE:ID] using the matching document ID. "
+                "Use only these permitted IDs: "
+                + ", ".join(source_ids)
+                + ". Never cite a document that does not support the claim. "
+                "Do not add markers to statements based solely on general "
+                "knowledge. These markers will be removed by the server."
+            )
 
         openai_messages = _build_history(
             active_conversation,
@@ -837,11 +944,17 @@ def process_bot_message(
                 _log_usage(user=user, bot=bot, **notice_usage)
             response_text += "\n\n[" + notice + "]"
 
-        response_text = append_source_list(
-            response_text, knowledge_result.get("sources", []),
-            heading=knowledge_result.get("source_heading", "Sources used"),
-
+        response_text, cited_sources = _extract_knowledge_citations(
+            response_text,
+            knowledge_result.get("sources", []),
         )
+
+        if cited_sources:
+            response_text = append_source_list(
+                response_text,
+                cited_sources,
+                heading=knowledge_result.get("source_heading", "Sources used"),
+            )
 
         _log_usage(
             user=user,

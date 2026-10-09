@@ -232,6 +232,19 @@ class Bot(models.Model):
         choices=RESPONSE_STRUCTURE_CHOICES,
         default="default",
     )
+    KNOWLEDGE_ACTIVATION_CHOICES = [
+        ("automatic", "Automatic"),
+        ("on_request", "On request"),
+        ("always", "Always"),
+    ]
+
+    knowledge_activation_mode = models.CharField(
+        max_length=16,
+        choices=KNOWLEDGE_ACTIVATION_CHOICES,
+        default="automatic",
+        help_text="Choose when this assistant searches its Knowledge Base.",
+    )
+
     default_language = models.CharField(
         max_length=8,
         choices=DEFAULT_LANGUAGE_CHOICES,

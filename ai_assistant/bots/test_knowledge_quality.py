@@ -155,6 +155,93 @@ class RetrievalTests(TestCase):
             return search_relevant_chunks(self.bot, query, top_k=3, include_usage=True,
                                           conversation_context=context)
 
+
+    def test_u41_knowledge_activation_modes(self):
+        kb = self.document("activation.txt", ["PETG temperature 240 C"])
+
+        cases = [
+            ("automatic", "none", False, False),
+            ("automatic", "search", False, True),
+            ("on_request", "search", False, False),
+            ("on_request", "search", True, True),
+            ("always", "none", False, True),
+            ("always", "search", False, True),
+        ]
+
+        for activation, planner_mode, requested, expected_search in cases:
+            with self.subTest(
+                activation=activation,
+                planner_mode=planner_mode,
+                requested=requested,
+            ):
+                self.bot.knowledge_activation_mode = activation
+                self.bot.save(update_fields=["knowledge_activation_mode"])
+
+                plan = dict(
+                    _default_retrieval_plan("PETG"),
+                    mode=planner_mode,
+                    file_ids=[kb.pk],
+                    document_requested=requested,
+                )
+
+                result = self.search("PETG", plan)
+
+                if expected_search:
+                    self.assertTrue(result["sources"])
+                    self.assertIn(
+                        kb.pk,
+                        [item["knowledge_id"] for item in result["sources"]],
+                    )
+                else:
+                    self.assertFalse(result["sources"])
+
+
+    def test_u41_citation_validation(self):
+        from .chat_service import _extract_knowledge_citations
+
+        sources = [
+            {"knowledge_id": 11, "name": "valid.txt"},
+            {"knowledge_id": 22, "name": "other.txt"},
+        ]
+
+        cases = [
+            ("Answer without citation", "Answer without citation", []),
+            ("Answer [KB_SOURCE:999]", "Answer", []),
+            ("Answer [KB_SOURCE:11]", "Answer", [11]),
+            ("Answer [KB_SOURCE:11] [KB_SOURCE:11]", "Answer", [11]),
+            ("Answer [KB_SOURCE:11] [KB_SOURCE:999]", "Answer", [11]),
+            ("Answer [KB_SOURCE:22] [KB_SOURCE:11]", "Answer", [22, 11]),
+        ]
+
+        for answer, expected_text, expected_ids in cases:
+            with self.subTest(answer=answer):
+                cleaned, cited = _extract_knowledge_citations(answer, sources)
+                self.assertEqual(cleaned, expected_text)
+                self.assertEqual(
+                    [item["knowledge_id"] for item in cited],
+                    expected_ids,
+                )
+
+
+    def test_u41_malformed_citation_markers(self):
+        """Malformed internal markers must not appear in user responses."""
+        from ai_assistant.bots.chat_service import _extract_knowledge_citations
+
+        sources = [{"knowledge_id": 123, "filename": "manual.pdf"}]
+        cases = [
+            ("Information [KB_SOURCE:abc]", 0),
+            ("Information [KB_SOURCE:123", 0),
+            ("Information [KB_SOURCE:999]", 0),
+            ("Information [KB_SOURCE:123]", 1),
+        ]
+
+        for answer, expected_count in cases:
+            with self.subTest(answer=answer):
+                cleaned, cited = _extract_knowledge_citations(answer, sources)
+                self.assertNotIn("[KB_SOURCE:", cleaned)
+                self.assertEqual(len(cited), expected_count)
+
+
     def test_two_document_overview_shares_budget_and_preserves_provenance(self):
         first = self.document("one.txt", [f"First {i}" for i in range(20)])
         second = self.document("two.txt", [f"Second {i}" for i in range(20)])
@@ -240,9 +327,7 @@ class RetrievalTests(TestCase):
         plan = dict(_default_retrieval_plan("PETG"), file_ids=[kb.pk], exact_terms=["PETG"])
         result = self.search("PETG", plan)
         with patch("ai_assistant.bots.chat_service.search_relevant_chunks", return_value=result) as search, \
-             patch("openai.ChatCompletion.create", return_value=completion(
-                 "240 °C.\n\n**Källor i sökunderlaget**\n- hallucinated.pdf"
-             )) as answer:
+             patch("openai.ChatCompletion.create", return_value=completion(f"240 \u00b0C. [KB_SOURCE:{kb.pk}]\n\n**K\u00e4llor i s\u00f6kunderlaget**\n- hallucinated.pdf")) as answer:
             response = process_bot_message(self.user, self.bot, "And its temperature?", conversation=conversation)
         self.assertIn("Tell me about PETG", search.call_args.kwargs["conversation_context"])
         self.assertEqual(answer.call_args.kwargs["messages"][-1]["content"], "And its temperature?")
@@ -300,7 +385,7 @@ class RetrievalTests(TestCase):
                                             "source_heading": heading if isinstance(language, str) else language,
                                             "sources": [{"name": "forged.txt"}]})
                 with patch("openai.ChatCompletion.create", side_effect=[
-                    completion(planner_reply), completion("Lund")
+                    completion(planner_reply), completion(f"Lund [KB_SOURCE:{kb.pk}]")
                 ]) as api, patch("ai_assistant.bots.knowledge_utils.generate_embedding", return_value={
                     "embedding": [1, 0], "tokens_used": 0, "input_tokens": 0,
                     "output_tokens": 0, "model": "text-embedding-3-small",
