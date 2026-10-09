@@ -519,6 +519,15 @@ replace the fixed label with arbitrary text; only its translation may vary.
 
 MODE:
 
+"none"
+Use this only when the current request clearly does not need any
+information from the uploaded files.
+Do not retrieve documents merely because files are available.
+Do not select this mode for document questions, follow-up questions
+about uploaded content, or questions that might reasonably be
+answered by the Knowledge Base.
+If relevance is uncertain, use "search".
+
 "search"
 Use this for normal questions where specific information must be found.
 
@@ -649,6 +658,7 @@ No explanation.
     if mode not in {
         "search",
         "overview",
+        "none",
     }:
         mode = "search"
 
@@ -1313,6 +1323,19 @@ def search_relevant_chunks(
     selected_file_ids = plan[
         "file_ids"
     ]
+
+    if plan["mode"] == "none":
+        if not include_usage:
+            return []
+
+        return {
+            "chunks": [],
+            "sources": [],
+            "tokens_used": planner_tokens,
+            "input_tokens": planner_input_tokens,
+            "output_tokens": planner_output_tokens,
+            "model": plan["model"] or KNOWLEDGE_PLANNER_MODEL,
+        }
 
     if plan[
         "mode"
