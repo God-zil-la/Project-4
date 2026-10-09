@@ -78,15 +78,19 @@ def response_preferences(bot):
 
     language_name = dict(DEFAULT_LANGUAGE_CHOICES).get(bot.default_language)
     default_language = (
-        f"Prefer {language_name} unless the user explicitly requests another language."
+        (
+            f"Respond in {language_name} by default, regardless of the "
+            "language used in the user's message. Only switch languages "
+            "when the user explicitly asks for a different response language."
+        )
         if bot.default_language != "auto" and language_name
         else None
     )
 
     proactivity = {
-        "minimal": "Answer the question without unnecessary suggestions.",
-        "balanced": "Offer relevant next steps when useful.",
-        "proactive": "Anticipate useful follow-up information without losing focus.",
+        "minimal": "Answer directly without unnecessary suggestions or follow-up questions.",
+        "balanced": "Offer relevant next steps when useful. Ask a focused follow-up question only when clarification would materially improve the answer.",
+        "proactive": "Anticipate useful next steps without losing focus. When important information is missing, ask one specific and relevant follow-up question. Do not invent missing facts, ask unnecessary questions, or override explicit user preferences.",
     }.get(bot.proactivity)
 
     preferences.extend(
