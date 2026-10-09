@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 
 
 CHAT_MODEL = "gpt-4o-mini"
-CHAT_MAX_TOKENS = 500
+CHAT_MAX_TOKENS = 1500
 CHAT_HISTORY_LIMIT = 20
 
 
