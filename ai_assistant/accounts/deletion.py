@@ -28,6 +28,9 @@ def check_billing(profile):
         "to request account deletion and help ending billing. A cancellation "
         "scheduled for the end of the billing period is not an ended subscription."
     )
+    from ai_assistant.payments.store_service import store_blocks_checkout
+    if store_blocks_checkout(profile):
+        raise DeletionBlocked('Manage your Apple or Google subscription and restore its ended status before account deletion, or contact support for help.')
     if SubscriptionRecovery.objects.filter(profile=profile, completed=False).exists():
         raise DeletionBlocked(message)
     if SubscriptionChange.objects.filter(profile=profile).exclude(

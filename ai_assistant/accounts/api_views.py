@@ -277,7 +277,7 @@ class PublicChatAPIView(APIView):
                 status=status.HTTP_401_UNAUTHORIZED,
             )
 
-        if profile.plan != UserProfile.PLAN_PRO:
+        if profile.effective_plan != UserProfile.PLAN_PRO:
             return Response(
                 {
                     "error": "API access requires the Pro plan.",

@@ -33,6 +33,7 @@ from .models import (
     Conversation,
     KnowledgeBase,
 )
+from .chat_stream import stream_chat_response
 from .forms import BotForm, KnowledgeBaseForm
 from django.core.exceptions import ValidationError
 from .assistant_validation import save_assistant
@@ -348,102 +349,107 @@ def ajax_chat(request, bot_id):
             if not conversation_id:
                 conversation_id = None
 
-        try:
-            result = process_bot_message(
-                user=request.user,
-                bot=bot,
-                message=user_input,
-                conversation=conversation_id,
-            )
+        def process():
+            try:
+                result = process_bot_message(
+                    user=request.user,
+                    bot=bot,
+                    message=user_input,
+                    conversation=conversation_id,
+                )
 
-        except ChatUsageLimitError as error:
-            usage_status = error.usage_status
+            except ChatUsageLimitError as error:
+                usage_status = error.usage_status
 
-            response_data = {
-                "error": str(error),
-                "plan": usage_status["plan"],
-            }
+                response_data = {
+                    "error": str(error),
+                    "plan": usage_status["plan"],
+                }
 
-            if usage_status[
-                "monthly_message_limit_reached"
-            ]:
-                response_data.update(
+                if usage_status[
+                    "monthly_message_limit_reached"
+                ]:
+                    response_data.update(
+                        {
+                            "monthly_messages_used": (
+                                usage_status[
+                                    "monthly_messages_used"
+                                ]
+                            ),
+                            "monthly_limit": (
+                                usage_status[
+                                    "monthly_message_limit"
+                                ]
+                            ),
+                        }
+                    )
+
+                return JsonResponse(
+                    response_data,
+                    status=403,
+                )
+
+            except ChatRateLimitError as error:
+                return JsonResponse(
                     {
-                        "monthly_messages_used": (
-                            usage_status[
-                                "monthly_messages_used"
-                            ]
+                        "error": str(error),
+                        "retry_after_seconds": (
+                            error.retry_after_seconds
                         ),
-                        "monthly_limit": (
-                            usage_status[
-                                "monthly_message_limit"
-                            ]
-                        ),
-                    }
+                    },
+                    status=429,
+                )
+
+            except ChatServiceError as error:
+                logger.error(
+                    "Chat service error: %s",
+                    error,
+                )
+
+                return JsonResponse(
+                    {
+                        "error": str(error),
+                    },
+                    status=400,
+                )
+
+            except Exception:
+                logger.error(
+                    "AI processing failed:\n%s",
+                    traceback.format_exc(),
+                )
+
+                return JsonResponse(
+                    {
+                        "error": "AI processing failed.",
+                    },
+                    status=500,
                 )
 
             return JsonResponse(
-                response_data,
-                status=403,
-            )
-
-        except ChatRateLimitError as error:
-            return JsonResponse(
                 {
-                    "error": str(error),
-                    "retry_after_seconds": (
-                        error.retry_after_seconds
+                    "reply": result["response"],
+                    "conversation_id": result[
+                        "conversation_id"
+                    ],
+                    "plan": result["plan"],
+                    "monthly_messages_used": (
+                        result[
+                            "monthly_messages_used"
+                        ]
                     ),
-                },
-                status=429,
+                    "monthly_limit": (
+                        result["monthly_limit"]
+                    ),
+                    "in_domain": (
+                        result["in_domain"]
+                    ),
+                }
             )
 
-        except ChatServiceError as error:
-            logger.error(
-                "Chat service error: %s",
-                error,
-            )
-
-            return JsonResponse(
-                {
-                    "error": str(error),
-                },
-                status=400,
-            )
-
-        except Exception:
-            logger.error(
-                "AI processing failed:\n%s",
-                traceback.format_exc(),
-            )
-
-            return JsonResponse(
-                {
-                    "error": "AI processing failed.",
-                },
-                status=500,
-            )
-
-        return JsonResponse(
-            {
-                "reply": result["response"],
-                "conversation_id": result[
-                    "conversation_id"
-                ],
-                "plan": result["plan"],
-                "monthly_messages_used": (
-                    result[
-                        "monthly_messages_used"
-                    ]
-                ),
-                "monthly_limit": (
-                    result["monthly_limit"]
-                ),
-                "in_domain": (
-                    result["in_domain"]
-                ),
-            }
-        )
+        if request.headers.get("Accept") == "application/x-ndjson":
+            return stream_chat_response(process)
+        return process()
 
     except Exception:
         logger.error(

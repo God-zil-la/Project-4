@@ -3164,6 +3164,38 @@ main {
         }
 
 
+        async function readChatResponse(response) {
+            if (!(response.headers.get("Content-Type") || "").includes("application/x-ndjson")) {
+                return await response.json();
+            }
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder("utf-8", {fatal: true});
+            let pending = "";
+            try {
+                while (true) {
+                    const {value, done} = await reader.read();
+                    pending += decoder.decode(value, {stream: !done});
+                    let newline;
+                    while ((newline = pending.indexOf("\n")) !== -1) {
+                        const line = pending.slice(0, newline);
+                        pending = pending.slice(newline + 1);
+                        if (!line.trim()) continue;
+                        const event = JSON.parse(line);
+                        if (event.type === "result") {
+                            if (event.status >= 400 && !event.data.error) {
+                                throw new Error("Invalid chat error response");
+                            }
+                            return event.data;
+                        }
+                    }
+                    if (done) throw new Error("Chat ended without a final result");
+                }
+            } finally {
+                reader.releaseLock();
+            }
+        }
+
+
         async function sendMessage(
             userMessage
         ) {
@@ -3171,7 +3203,7 @@ main {
                 String(userMessage)
                     .trim();
 
-            if (!cleanMessage) {
+            if (!cleanMessage || chatInput.disabled) {
                 return;
             }
 
@@ -3197,6 +3229,7 @@ main {
                         {
                             method: "POST",
                             headers: {
+                                "Accept": "application/x-ndjson",
                                 "Content-Type":
                                     "application/json",
                                 "X-CSRFToken":
@@ -3214,9 +3247,9 @@ main {
                     );
 
                 const data =
-                    await response.json();
+                    await readChatResponse(response);
 
-                if (!response.ok) {
+                if (!response.ok || data.error) {
                     appendMessage(
                         "assistant",
                         data.error
@@ -3236,7 +3269,7 @@ main {
             } catch (error) {
                 appendMessage(
                     "assistant",
-                    "Network error. Please try again."
+                    "Connection lost. The reply may still be saved. Reload the conversation history before sending again."
                 );
 
                 console.error(

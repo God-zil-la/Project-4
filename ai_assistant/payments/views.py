@@ -328,12 +328,17 @@ class CreateCheckoutSessionView(View):
                     status=400,
                 )
 
-            if not settings.STRIPE_SECRET_KEY:
-                return JsonResponse({"error": "Billing is temporarily unavailable."}, status=503)
             # Commit the intent before provider calls so an uncertain response can
             # only retry the same request, including after a worker restart.
             with transaction.atomic():
                 profile = UserProfile.objects.select_for_update().get(user=request.user)
+
+                from .store_service import store_blocks_checkout
+                if store_blocks_checkout(profile):
+                    return JsonResponse({'error': 'Manage or restore your store subscription before starting website checkout.'}, status=409)
+
+                if not settings.STRIPE_SECRET_KEY:
+                    return JsonResponse({"error": "Billing is temporarily unavailable."}, status=503)
 
                 if is_complimentary_access(profile):
                     return JsonResponse(
@@ -362,6 +367,10 @@ class CreateCheckoutSessionView(View):
                 })
             with transaction.atomic():
                 profile = UserProfile.objects.select_for_update().get(user=request.user)
+
+                from .store_service import store_blocks_checkout
+                if store_blocks_checkout(profile):
+                    return JsonResponse({'error': 'Manage or restore your store subscription before starting website checkout.'}, status=409)
 
                 if is_complimentary_access(profile):
                     return JsonResponse(

@@ -519,6 +519,15 @@ replace the fixed label with arbitrary text; only its translation may vary.
 
 MODE:
 
+"none"
+Use this only when the current request clearly does not need any
+information from the uploaded files.
+Do not retrieve documents merely because files are available.
+Do not select this mode for document questions, follow-up questions
+about uploaded content, or questions that might reasonably be
+answered by the Knowledge Base.
+If relevance is uncertain, use "search".
+
 "search"
 Use this for normal questions where specific information must be found.
 
@@ -649,6 +658,7 @@ No explanation.
     if mode not in {
         "search",
         "overview",
+        "none",
     }:
         mode = "search"
 
@@ -1314,6 +1324,19 @@ def search_relevant_chunks(
         "file_ids"
     ]
 
+    if plan["mode"] == "none":
+        if not include_usage:
+            return []
+
+        return {
+            "chunks": [],
+            "sources": [],
+            "tokens_used": planner_tokens,
+            "input_tokens": planner_input_tokens,
+            "output_tokens": planner_output_tokens,
+            "model": plan["model"] or KNOWLEDGE_PLANNER_MODEL,
+        }
+
     if plan[
         "mode"
     ] == "overview":
@@ -1473,7 +1496,7 @@ def search_relevant_chunks(
             ] >= MIN_SEMANTIC_SCORE
             or item[
                 "lexical"
-            ] > 0
+            ] >= 0.25
         )
     ]
 
@@ -2318,6 +2341,20 @@ RESPONSE RULES:
   If the preference is Automatic, answer in the user's language.
   Always honor an explicit language request from the current user.
 - Be useful, clear, and direct.
+- Follow the user's requested depth, structure, and approximate answer length.
+  A detailed guide, tutorial, report, or essay must contain substantial
+  explanations, not merely headings, an outline, or brief bullet points.
+- When a user explicitly requests a long answer, prioritize completeness
+  over the default preference for concise responses.
+- If the requested answer cannot fit within the available output budget,
+  provide the most useful substantial portion possible and clearly indicate
+  that additional content remains. Never present an abbreviated outline
+  as though it fulfilled the requested length.
+- For General and Other categories, do not claim that an ordinary
+  permissible user request falls outside the assistant's subject area.
+  Specialized categories must retain their existing domain restrictions.
+- Preserve the configured response language unless the user explicitly
+  requests a different language.
 - Use conversation history to understand references and natural
   follow-up questions.
 - Never fabricate Knowledge Base facts, sources, measurements,
