@@ -1894,6 +1894,64 @@ main {
     }
 
 }
+
+    /* U4.1 Markdown message formatting */
+    .chat-message .chat-markdown {
+        min-width: 0;
+        overflow-wrap: anywhere;
+        line-height: 1.6;
+    }
+
+    .chat-message .chat-markdown p {
+        margin: 0.4rem 0 0.8rem;
+    }
+
+    .chat-message .chat-markdown h1,
+    .chat-message .chat-markdown h2,
+    .chat-message .chat-markdown h3,
+    .chat-message .chat-markdown h4 {
+        margin: 1rem 0 0.45rem;
+        line-height: 1.3;
+        font-weight: 700;
+    }
+
+    .chat-message .chat-markdown h1 { font-size: 1.3rem; }
+    .chat-message .chat-markdown h2 { font-size: 1.2rem; }
+    .chat-message .chat-markdown h3 { font-size: 1.1rem; }
+
+    .chat-message .chat-markdown ul,
+    .chat-message .chat-markdown ol {
+        padding-left: 1.5rem;
+        margin: 0.5rem 0 0.85rem;
+        list-style-position: outside;
+    }
+
+    .chat-message .chat-markdown ul { list-style-type: disc; }
+    .chat-message .chat-markdown ol { list-style-type: decimal; }
+
+    .chat-message .chat-markdown li {
+        margin: 0.3rem 0;
+    }
+
+    .chat-message .chat-markdown pre {
+        max-width: 100%;
+        overflow-x: auto;
+        padding: 0.8rem;
+        border-radius: 8px;
+        background: rgba(128, 128, 128, 0.12);
+    }
+
+    .chat-message .chat-markdown a {
+        color: var(--accent-color);
+        overflow-wrap: anywhere;
+    }
+
+    .chat-kb-sources {
+        margin-top: 1rem;
+        padding-top: 0.7rem;
+        border-top: 1px solid var(--button-border);
+        font-size: 0.85em;
+    }
 </style>
 
 <dialog id="conversation-action-dialog">
@@ -1938,6 +1996,8 @@ main {
     </div>
 </dialog>
 
+<script src="{% static 'vendor/marked.min.js' %}"></script>
+<script src="{% static 'vendor/purify.min.js' %}"></script>
 <script>
     document.addEventListener("DOMContentLoaded", () => {
         const playgroundTabs =
@@ -2270,33 +2330,78 @@ main {
 
 
         function renderMessage(text) {
-            text = String(text);
-            // Only the reserved server footer gets filename unescaping; never parse it as markup.
-            const footer = text.match(/\n\n\*\*Källor i sökunderlaget\*\*\n((?:- [^\n]+ \(KB \d+\)(?:\n|$))+)$/);
-            const sourceText = footer ? footer[1].replace(/\\([\\`*_{}\[\]()#!|])/g, '$1').replace(/&(amp|lt|gt);/g, (_, entity) => ({ amp: '&', lt: '<', gt: '>' })[entity]) : '';
-            let safeText = escapeHtml(footer ? text.slice(0, footer.index) : text);
+            const rawText = String(text);
 
-            safeText = safeText
-                .replace(
-                    /\*\*(.+?)\*\*/g,
-                    "<strong>$1</strong>"
-                )
-                .replace(
-                    /\*(.+?)\*/g,
-                    "<em>$1</em>"
-                )
-                .replace(
-                    /`([^`]+)`/g,
-                    "<code>$1</code>"
-                )
-                .replace(
-                    /\n/g,
-                    "<br>"
-                );
+            // Preserve the reserved Knowledge Base source footer.
+            // Recognize the reserved server-generated Knowledge Base footer.
+            const normalizedText = rawText.replace(/\r\n?/g, "\n").trimEnd();
 
-            return safeText + (footer ? '<br><br><strong>Källor i sökunderlaget</strong><br>' + escapeHtml(sourceText).replace(/\n/g, '<br>') : '');
+            const sourcePattern =
+                /\n\n\*\*([^\n*]+)\*\*\n((?:- [^\n]+ \(KB \d+\)(?:\n|$))+)$/;
+            const sourceMatch = normalizedText.match(sourcePattern);
+            const sourceHeading = sourceMatch ? sourceMatch[1] : null;
+            const headingIndex = sourceMatch ? sourceMatch.index : -1;
+
+            let footer = null;
+
+            if (headingIndex !== -1) {
+                const sourceText = sourceMatch[2].trimEnd();
+
+                const sourceLines = sourceText.split("\n");
+
+                if (
+                    sourceLines.length > 0 &&
+                    sourceLines.every(line =>
+                        /^- .+ \(KB \d+\)$/.test(line)
+                    )
+                ) {
+                    footer = {
+                        index: headingIndex,
+                        1: sourceText
+                    };
+                }
+            }
+            const mainText = footer
+                ? normalizedText.slice(0, footer.index)
+                : rawText;
+
+            if (
+                typeof marked === "undefined" ||
+                typeof DOMPurify === "undefined"
+            ) {
+                return escapeHtml(rawText).replace(/\n/g, "<br>");
+            }
+
+            const rendered = marked.parse(mainText, {
+                gfm: true,
+                breaks: true
+            });
+
+            const safeHtml = DOMPurify.sanitize(rendered, {
+                USE_PROFILES: { html: true },
+                FORBID_TAGS: ["img", "iframe", "form", "style", "svg", "math"]
+            });
+
+            if (!footer) {
+                return safeHtml;
+            }
+
+            const sourceText = footer[1]
+                .replace(/\\([\\`*_{}\[\]()#!|])/g, "$1")
+                .replace(/&(amp|lt|gt);/g, (_, entity) => ({
+                    amp: "&",
+                    lt: "<",
+                    gt: ">"
+                })[entity]);
+
+            return safeHtml
+                + "<div class='chat-kb-sources'><strong>"
+                + escapeHtml(sourceHeading)
+                + "</strong>"
+                + "<div>"
+                + escapeHtml(sourceText).replace(/\n/g, "<br>")
+                + "</div></div>";
         }
-
 
         function getSenderLabel(sender) {
             if (
@@ -2327,7 +2432,8 @@ main {
                 getSenderLabel(sender) + ": ";
 
             const messageContent =
-                document.createElement("span");
+                document.createElement("div");
+            messageContent.className = "chat-markdown";
 
             messageContent.innerHTML =
                 renderMessage(text);
