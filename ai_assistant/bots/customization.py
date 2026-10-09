@@ -78,7 +78,11 @@ def response_preferences(bot):
 
     language_name = dict(DEFAULT_LANGUAGE_CHOICES).get(bot.default_language)
     default_language = (
-        f"Prefer {language_name} unless the user explicitly requests another language."
+        (
+            f"Respond in {language_name} by default, regardless of the "
+            "language used in the user's message. Only switch languages "
+            "when the user explicitly asks for a different response language."
+        )
         if bot.default_language != "auto" and language_name
         else None
     )
