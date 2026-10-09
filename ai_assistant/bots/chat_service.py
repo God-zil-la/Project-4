@@ -426,15 +426,27 @@ def _check_rate_limit(user, profile):
 
 
 def _requested_word_count(message):
-    """Recognize explicit long-form requests without interpreting arbitrary numbers."""
-    match = re.search(
-        r"\b(\d{1,2}(?:[\s,.]\d{3})?|\d{3,5})\s*"
-        r"(?:words?|ord)\b", message, flags=re.IGNORECASE,
-    )
-    if not match:
-        return None
-    return int(re.sub(r"\D", "", match.group(1)))
+    """Recognize explicit word counts in English, Swedish and Burmese."""
+    import unicodedata
 
+    normalized = "".join(
+        str(unicodedata.decimal(char))
+        if char.isdecimal() else char
+        for char in message
+    )
+
+    patterns = (
+        r"\b(\d{1,2}(?:[\s,.]\d{3})?|\d{3,5})\s*(?:words?|ord)\b",
+        r"(?:စကားလုံး)\s*(\d{1,5})",
+        r"(\d{1,5})\s*(?:စကားလုံး)",
+    )
+
+    for pattern in patterns:
+        match = re.search(pattern, normalized, flags=re.IGNORECASE)
+        if match:
+            return int(re.sub(r"\D", "", match.group(1)))
+
+    return None
 
 def process_bot_message(
     user,
@@ -788,6 +800,12 @@ def process_bot_message(
                 # This is a whitespace-based estimate, not linguistic segmentation
                 # for scripts such as Burmese. The call cap bounds that uncertainty.
                 generated_words += len(part_text.split())
+                if is_long_answer and re.search(r"[\u1000-\u109F]", part_text):
+                    # Burmese text cannot reliably be counted using spaces.
+                    generated_words = max(
+                        generated_words,
+                        len(re.findall(r"[\u1000-\u109F]", "\n".join(response_parts))) // 5,
+                    )
             interrupted = finish_reason == "length" or (
                 is_long_answer and generated_words < requested_words * 0.95
             )
