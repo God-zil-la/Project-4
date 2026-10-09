@@ -34,6 +34,11 @@ class BotSerializer(serializers.ModelSerializer):
             "response_tone",
             "response_length",
             "avatar_icon",
+            "communication_style",
+            "response_structure",
+            "default_language",
+            "proactivity",
+            "custom_instructions",
             "owner",
             "created_at",
         ]
