@@ -161,8 +161,19 @@ class AssistantCustomizationTests(TestCase):
     def test_prompt_preferences_preserve_configured_text_and_rules(self):
         bot = Bot(**self.data, response_tone="friendly", response_length="concise", avatar_icon="book")
         prompt = render_system_message(bot, "Verified opening hours: 10–18.")
-        for expected in (self.data["description"], self.data["personality"], "warm, friendly", "concise and focused", "Stay within this category.", "Verified opening hours: 10–18.", "If the preference is Automatic, answer in the user's language.", "higher-priority instructions"):
+
+        for expected in (
+            self.data["description"],
+            self.data["personality"],
+            "warm, friendly",
+            "concise and focused",
+            "Stay within this category.",
+            "Verified opening hours: 10–18.",
+            "RESPONSE LANGUAGE (Automatic): Answer in the language of the current user message",
+            "higher-priority instructions",
+    ):
             self.assertIn(expected, prompt)
+
         self.assertNotIn("📚", prompt)
         self.assertEqual(bot.personality, self.data["personality"])
 
@@ -300,10 +311,10 @@ class AssistantCustomizationTests(TestCase):
         for expected in (
             "precise technical terminology",
             "numbered, step-by-step explanations",
-            "Respond in Swedish by default",
+            "Respond in Swedish from the first reply",
             "Offer relevant next steps",
             "Explain terminology before examples.",
-            "Always honor an explicit language request",
+            "This saved language is mandatory",
         ):
             self.assertIn(expected, prompt)
 
@@ -361,7 +372,7 @@ class AssistantCustomizationTests(TestCase):
         edit_url = reverse("bots:edit", args=[bot.pk])
         api_url = reverse("bots:bot-detail", args=[bot.pk])
 
-        for language in ("ar", "ja", "zh-hans", "pt-br", "de"):
+        for language in ("af", "ar", "ja", "zh-hans", "pt-br", "de"):
             with self.subTest(language=language):
                 web_response = self.client.post(
                     edit_url,
@@ -379,7 +390,7 @@ class AssistantCustomizationTests(TestCase):
                 )
 
                 self.assertIn(
-                    f"Respond in {choices[language]} by default",
+                    f"Respond in {choices[language]} from the first reply",
                     render_system_message(bot),
                 )
 
@@ -400,7 +411,7 @@ class AssistantCustomizationTests(TestCase):
             "fr",
         )
 
-        self.assertIn("Respond in French by default", render_system_message(bot))
+        self.assertIn("Respond in French from the first reply", render_system_message(bot))
 
     def test_icons_in_web_list_chat_and_conversation_api(self):
         from .models import Conversation

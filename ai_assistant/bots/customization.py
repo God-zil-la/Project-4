@@ -73,27 +73,6 @@ def response_preferences(bot):
         "step_by_step": "Prefer numbered, step-by-step explanations.",
     }.get(bot.response_structure)
 
-    language_name = dict(DEFAULT_LANGUAGE_CHOICES).get(bot.default_language)
-    default_language = (
-        (
-            f"Respond in {language_name} by default, regardless of the "
-            "language used in the user's message. Only switch languages "
-            "when the user explicitly asks for a different response language."
-        )
-        if bot.default_language != "auto" and language_name
-        else None
-    )
-
-    if bot.default_language == "my":
-        default_language += (
-            " Write in natural, fluent Burmese using standard Myanmar "
-            "script and appropriate grammar, vocabulary, and sentence "
-            "structure. Avoid unnatural literal translations, invented "
-            "words, and unnecessary English. Preserve technical terms "
-            "when translation would make them less accurate. "
-            "If uncertain about a fact, say so rather than inventing it."
-        )
-
     proactivity = {
         "minimal": "Answer directly without unnecessary suggestions or follow-up questions.",
         "balanced": "Offer relevant next steps when useful. Ask a focused follow-up question only when clarification would materially improve the answer.",
@@ -106,7 +85,6 @@ def response_preferences(bot):
             length,
             communication_style,
             response_structure,
-            default_language,
             proactivity,
         )
         if value
@@ -130,6 +108,40 @@ def response_preferences(bot):
         "Knowledge Base facts, or existing response limits.\n"
         + "\n".join(preferences)
     )
+
+
+def response_language_rule(bot):
+    """Language policy shared by response generation and category rejections."""
+    code = bot.default_language
+    if code == "auto":
+        return (
+            "RESPONSE LANGUAGE (Automatic): Answer in the language of the "
+            "current user message, honoring an explicit response-language "
+            "request. Use recent user messages only if the current language "
+            "is ambiguous. Do not infer the language from Knowledge Base text."
+        )
+
+    language_name = dict(DEFAULT_LANGUAGE_CHOICES)[code]
+    rule = (
+        f"RESPONSE LANGUAGE: Respond in {language_name} from the first reply "
+        "and in every subsequent reply, including every part of a long answer "
+        "and category rejections. This saved language is mandatory regardless "
+        "of the user's language, requests to change language, earlier "
+        "conversation languages, personality or custom instructions, and "
+        "the language of Knowledge Base reference material. "
+        "Express the answer in this language while preserving reference facts. "
+        "Safety and platform restrictions and category scope still take priority."
+    )
+    if code == "my":
+        rule += (
+            " Write in natural, fluent Burmese using standard Myanmar "
+            "script and appropriate grammar, vocabulary, and sentence "
+            "structure. Avoid unnatural literal translations, invented "
+            "words, and unnecessary English. Preserve technical terms "
+            "when translation would make them less accurate. "
+            "If uncertain about a fact, say so rather than inventing it."
+        )
+    return rule
 
 
 COMMUNICATION_STYLE_CHOICES = [

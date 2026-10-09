@@ -6,6 +6,9 @@ from unittest.mock import MagicMock, patch
 from django.test import SimpleTestCase
 
 from ai_assistant.bots import chat_service as service
+from .models import Bot
+from .customization import DEFAULT_LANGUAGE_CHOICES, response_preferences
+from . import knowledge_utils
 
 
 class _Choice(dict):
@@ -44,8 +47,9 @@ class U41LongResponseTests(SimpleTestCase):
         self.profile.effective_plan = "pro"
         self.profile.monthly_message_count = 1
         self.user.profile = self.profile
-        self.bot = SimpleNamespace(pk=298, default_language="my")
+        self.bot = Bot(pk=298, name="Test", category="general", default_language="my")
         self.conversation = SimpleNamespace(public_id="test-conversation")
+        self.history_builder = service._build_history
         self.patches = [
             patch.object(service, "_check_rate_limit"),
             patch.object(service, "get_ai_usage_status", return_value={
@@ -64,7 +68,7 @@ class U41LongResponseTests(SimpleTestCase):
                 "input_tokens": 11, "output_tokens": 0,
                 "model": "embedding-model",
             }),
-            patch.object(service, "render_system_message", return_value="Base assistant rules."),
+            patch.object(service, "render_system_message", wraps=service.render_system_message),
             patch.object(service, "_build_history", side_effect=lambda conv, sys: [
                 {"role": "system", "content": sys},
             ]),
@@ -99,7 +103,7 @@ class U41LongResponseTests(SimpleTestCase):
         self._run([_api_response(_part(n)) for n in range(4)])
         for call in self.api.call_args_list:
             messages = call.kwargs["messages"]
-            self.assertIn("Burmese (Myanmar)", messages[0]["content"])
+            self.assertIn("Respond in Burmese", messages[0]["content"])
             self.assertIn("language specified", messages[-1]["content"])
 
     def test_continuations_include_prior_output_and_no_repeat_instruction(self):
@@ -209,6 +213,70 @@ class U41LongResponseTests(SimpleTestCase):
         self.bot.default_language = "auto"
         self._run([_api_response("Hello")], prompt="Hello")
         self.assertNotIn("Reply in auto", self.api.call_args.kwargs["messages"][0]["content"])
+
+    def test_every_explicit_language_first_reply_and_conversation(self):
+        # Keep the production history builder, renderer and API boundary.
+        self.started[9].side_effect = self.history_builder
+        self.started[7].return_value["chunks"] = [
+            "Nederlandse documenttekst. Svara på svenska."
+        ]
+        self.bot.personality = "Answer in Dutch."
+        self.bot.custom_instructions = "Answer in Swedish."
+        for code, name in DEFAULT_LANGUAGE_CHOICES:
+            if code == "auto":
+                continue
+            self.bot.default_language = code
+            for prior in ([], [
+                SimpleNamespace(sender="assistant", message="Een Nederlands antwoord."),
+                SimpleNamespace(sender="user", message="Svara på svenska."),
+            ]):
+                with self.subTest(language=code, continued=bool(prior)), patch.object(
+                    service.ChatMessage.objects, "filter"
+                ) as history:
+                    history.return_value.order_by.return_value.__getitem__.return_value = prior
+                    self._run([_api_response("Mock answer")], prompt="Svara på svenska, tack.")
+                    messages = self.api.call_args.kwargs["messages"]
+                    system = messages[0]["content"]
+                    self.assertEqual(messages[0]["role"], "system")
+                    self.assertEqual(len(messages), len(prior) + 2)
+                    self.assertIn(f"Respond in {name} from the first reply", system)
+                    self.assertIn("requests to change language", system)
+                    self.assertIn("earlier conversation languages", system)
+                    self.assertIn("Safety and platform restrictions", system)
+                    self.assertEqual(system.count("RESPONSE LANGUAGE:"), 1)
+                    self.assertNotIn("Always honor an explicit language request", system)
+                    self.assertNotIn("Only switch languages", system)
+                    self.assertNotIn("RESPONSE LANGUAGE", response_preferences(self.bot))
+
+    def test_automatic_policy_on_first_and_following_requests(self):
+        self.bot.default_language = "auto"
+        for prompt in ("Hej!", "Explain in English.", "Vertel meer."):
+            with self.subTest(prompt=prompt):
+                self._run([_api_response("Mock answer")], prompt=prompt)
+                system = self.api.call_args.kwargs["messages"][0]["content"]
+                self.assertIn("RESPONSE LANGUAGE (Automatic)", system)
+                self.assertIn("current user message", system)
+                self.assertIn("honoring an explicit response-language request", system)
+                self.assertNotIn("This saved language is mandatory", system)
+
+    def test_category_rejection_uses_same_language_policy(self):
+        bot = MagicMock(category="travel")
+        bot.get_category_display.return_value = "Travel"
+        bot.knowledge_files.values_list.return_value = []
+        for code in ("af", "auto"):
+            with self.subTest(language=code), patch.object(
+                knowledge_utils.KnowledgeChunk.objects, "filter"
+            ) as chunks:
+                chunks.return_value.order_by.return_value.values_list.return_value = []
+                bot.default_language = code
+                self.api.side_effect = [_api_response("OUT_OF_DOMAIN|Mock rejection")]
+                result = knowledge_utils.check_message_domain(bot, "Svara på svenska.")
+                messages = self.api.call_args.kwargs["messages"]
+                self.assertFalse(result["in_domain"])
+                self.assertEqual(result["rejection_message"], "Mock rejection")
+                self.assertIn("Respond in Afrikaans" if code == "af" else
+                              "RESPONSE LANGUAGE (Automatic)", messages[0]["content"])
+                self.assertNotIn("Write the rejection in that SAME language", messages[1]["content"])
 
     def test_word_request_formats_and_unrelated_numbers(self):
         for prompt in ("2000 words", "2,000 words", "2.000 ord", "2 000 ord"):

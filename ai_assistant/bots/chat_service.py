@@ -692,24 +692,6 @@ def process_bot_message(
             knowledge_text,
         )
 
-        # Preserve the assistant's configured language across every generation
-        # part. The user's explicitly requested language may still override it.
-        configured_language = str(getattr(bot, "default_language", "") or "").strip()
-        if configured_language and configured_language.lower() != "auto":
-            language_name = {
-                "my": "Burmese (Myanmar)",
-                "sv": "Swedish",
-                "en": "English",
-            }.get(configured_language.lower(), configured_language)
-            system_message += (
-                "\n\nResponse language: Reply in " + language_name +
-                " by default, regardless of the language of the question or "
-                "earlier chat messages. Change language only when the user "
-                "explicitly asks for another language. Apply this rule to "
-                "every part of a long answer."
-            )
-
-
         openai_messages = _build_history(
             active_conversation,
             system_message,
@@ -755,8 +737,7 @@ def process_bot_message(
                     "content": (
                         "Generate a single continuous, non-repetitive response in "
                         "the language specified by the assistant's system "
-                        "instructions (unless the user explicitly requested "
-                        "another language). Preserve the original requested "
+                        "instructions. Preserve the original requested "
                         "subject and structure. Do not restate prior paragraphs. "
                         f"The user requested approximately {requested_words} words. "
                         f"This is segment {part_index + 1}; "
