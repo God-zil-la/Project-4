@@ -88,9 +88,9 @@ def response_preferences(bot):
     )
 
     proactivity = {
-        "minimal": "Answer the question without unnecessary suggestions.",
-        "balanced": "Offer relevant next steps when useful.",
-        "proactive": "Anticipate useful follow-up information without losing focus.",
+        "minimal": "Answer directly without unnecessary suggestions or follow-up questions.",
+        "balanced": "Offer relevant next steps when useful. Ask a focused follow-up question only when clarification would materially improve the answer.",
+        "proactive": "Anticipate useful next steps without losing focus. When important information is missing, ask one specific and relevant follow-up question. Do not invent missing facts, ask unnecessary questions, or override explicit user preferences.",
     }.get(bot.proactivity)
 
     preferences.extend(

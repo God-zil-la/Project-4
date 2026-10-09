@@ -300,7 +300,7 @@ class AssistantCustomizationTests(TestCase):
         for expected in (
             "precise technical terminology",
             "numbered, step-by-step explanations",
-            "Prefer Swedish",
+            "Respond in Swedish by default",
             "Offer relevant next steps",
             "Explain terminology before examples.",
             "Always honor an explicit language request",
@@ -310,6 +310,19 @@ class AssistantCustomizationTests(TestCase):
         self.assertIn(self.data["personality"], prompt)
         self.assertIn("Higher-priority instructions override", prompt)
 
+
+    def test_proactivity_preferences_keep_questions_relevant(self):
+        from .customization import response_preferences
+
+        expectations = {
+            "minimal": "without unnecessary suggestions or follow-up questions",
+            "balanced": "only when clarification would materially improve the answer",
+            "proactive": "Do not invent missing facts, ask unnecessary questions",
+        }
+        for mode, expected in expectations.items():
+            with self.subTest(mode=mode):
+                bot = Bot(**self.data, proactivity=mode)
+                self.assertIn(expected, response_preferences(bot))
 
     def test_expanded_default_language_choices(self):
         from .customization import DEFAULT_LANGUAGE_CHOICES
@@ -364,7 +377,7 @@ class AssistantCustomizationTests(TestCase):
                 )
 
                 self.assertIn(
-                    f"Prefer {choices[language]}",
+                    f"Respond in {choices[language]} by default",
                     render_system_message(bot),
                 )
 
@@ -385,7 +398,7 @@ class AssistantCustomizationTests(TestCase):
             "fr",
         )
 
-        self.assertIn("Prefer French", render_system_message(bot))
+        self.assertIn("Respond in French by default", render_system_message(bot))
 
     def test_icons_in_web_list_chat_and_conversation_api(self):
         from .models import Conversation
