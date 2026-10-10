@@ -79,6 +79,26 @@
         </div>
 
         <div class="form-group">
+            <label for="{{ form.knowledge_activation_mode.id_for_label }}">
+                Knowledge Base Activation
+            </label>
+
+            {{ form.knowledge_activation_mode }}
+
+            {% if form.knowledge_activation_mode.help_text %}
+            <p class="helptext">
+                {{ form.knowledge_activation_mode.help_text }}
+            </p>
+            {% endif %}
+
+            {{ form.knowledge_activation_mode.errors }}
+        </div>
+
+
+
+        {% if form.communication_style %}
+        <div class="assistant-preference-wide"><h3>Advanced Customization ? Premium / Pro</h3></div>
+        <div class="form-group">
             <label for="{{ form.communication_style.id_for_label }}">
                 {{ form.communication_style.label }}
             </label>
@@ -130,23 +150,6 @@
 
 
         <div class="form-group">
-            <label for="{{ form.knowledge_activation_mode.id_for_label }}">
-                Knowledge Base Activation
-            </label>
-
-            {{ form.knowledge_activation_mode }}
-
-            {% if form.knowledge_activation_mode.help_text %}
-            <p class="helptext">
-                {{ form.knowledge_activation_mode.help_text }}
-            </p>
-            {% endif %}
-
-            {{ form.knowledge_activation_mode.errors }}
-        </div>
-
-
-        <div class="form-group">
             <label for="{{ form.proactivity.id_for_label }}">
                 {{ form.proactivity.label }}
             </label>
@@ -178,6 +181,14 @@
 
             {{ form.custom_instructions.errors }}
         </div>
+
+        {% else %}
+        <div class="form-group assistant-preference-wide u42-advanced-upgrade">
+            <h3>Advanced Customization ? Premium / Pro</h3>
+            <p>Unlock communication style, response structure, fixed response language, proactivity and custom instructions with Premium or Pro.</p>
+            <a href="{% url 'payments:billing' %}">View plans and upgrade</a>
+        </div>
+        {% endif %}
 
     </div>
 

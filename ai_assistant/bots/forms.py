@@ -7,7 +7,10 @@ from .models import Bot, KnowledgeBase
 from .assistant_validation import (
     NAME_REQUIRED, NAME_TOO_LONG, PERSONALITY_REQUIRED, validate_unique_name,
 )
-from .customization import TONE_HINT, LENGTH_HINT, ICON_HINT
+from .customization import (
+    TONE_HINT, LENGTH_HINT, ICON_HINT,
+    ADVANCED_CUSTOMIZATION_FIELDS,
+)
 
 
 class KnowledgeBaseForm(forms.ModelForm):
@@ -117,6 +120,9 @@ class BotForm(forms.ModelForm):
         """
         self.user = kwargs.pop('user', None)
         super(BotForm, self).__init__(*args, **kwargs)
+        if self.user is not None and not self.user.profile.has_paid_plan:
+            for field_name in ADVANCED_CUSTOMIZATION_FIELDS:
+                self.fields.pop(field_name, None)
         if self.is_bound:
             data = self.data.copy()
             for name in self.Meta.fields:

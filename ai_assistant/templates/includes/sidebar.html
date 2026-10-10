@@ -1,0 +1,66 @@
+<aside class="app-sidebar" aria-label="Assistant navigation">
+  <nav class="app-sidebar-nav" id="app-sidebar-links" aria-label="Main menu">
+    <h2 class="app-sidebar-title"><button type="button" class="app-sidebar-toggle" aria-expanded="false" aria-controls="app-sidebar-links">☰ Main Menu</button></h2>
+
+    <a href="/dashboard/">Dashboard</a>
+
+    <details class="app-sidebar-group" open>
+      <summary>Assistants</summary>
+      <div class="app-sidebar-submenu">
+        <a href="/bots/">All Assistants</a>
+
+        {% for bot in sidebar_bots %}
+          <details class="app-sidebar-group" data-sidebar-bot="{{ bot.id }}">
+            <summary>{{ bot.name }}</summary>
+            <div class="app-sidebar-submenu" data-sidebar-conversations="{{ bot.id }}">
+              <a href="{% url 'bots:playground' bot.id %}?panel=conversations">All Conversations</a>
+            </div>
+          </details>
+        {% empty %}
+          <span>No assistants yet</span>
+        {% endfor %}
+      </div>
+    </details>
+
+    <a href="{% url 'bots:analytics' %}">Analytics</a>
+    <a href="/payments/">Billing</a>
+  </nav>
+</aside>
+<script>
+document.addEventListener("DOMContentLoaded", async () => {
+  const containers = document.querySelectorAll("[data-sidebar-conversations]");
+  if (!containers.length) return;
+
+  try {
+    const response = await fetch("/bots/api/conversations/", {
+      credentials: "same-origin",
+      headers: { "Accept": "application/json" }
+    });
+    if (!response.ok) return;
+
+    const conversations = await response.json();
+    if (!Array.isArray(conversations)) return;
+
+    const countsByBot = new Map();
+    for (const conversation of conversations) {
+      const count = countsByBot.get(String(conversation.bot_id)) || 0;
+      if (count >= 2) continue;
+      const container = document.querySelector(
+        `[data-sidebar-conversations="${conversation.bot_id}"]`
+      );
+      if (!container || !conversation.conversation_id) continue;
+
+      const link = document.createElement("a");
+      link.href = `/bots/${conversation.bot_id}/playground/?conversation=${encodeURIComponent(conversation.conversation_id)}`;
+      link.textContent = conversation.title || "Untitled conversation";
+      link.classList.add("app-sidebar-conversation");
+      container.appendChild(link);
+      countsByBot.set(String(conversation.bot_id), count + 1);
+    }
+  } catch (error) {
+    console.warn("Could not load sidebar conversations.", error);
+  }
+});
+</script>
+
+<script>document.addEventListener('DOMContentLoaded', () => { const sidebar = document.querySelector('.app-sidebar'); const button = sidebar?.querySelector('.app-sidebar-toggle'); if (!sidebar || !button) return; const mobile = window.matchMedia('(max-width: 1023px)'); const sync = () => { sidebar.classList.toggle('is-collapsed', mobile.matches); button.setAttribute('aria-expanded', String(!mobile.matches)); }; sync(); mobile.addEventListener('change', sync); button.addEventListener('click', () => { if (!mobile.matches) return; const collapsed = sidebar.classList.toggle('is-collapsed'); button.setAttribute('aria-expanded', String(!collapsed)); }); });</script>

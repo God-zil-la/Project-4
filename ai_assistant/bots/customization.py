@@ -43,6 +43,24 @@ LENGTH_HINT = 'Choose a default level of detail. Existing response limits still 
 ICON_HINT = 'Shown in your assistant list and chat. This does not change its replies.'
 
 
+ADVANCED_CUSTOMIZATION_FIELDS = (
+    "communication_style",
+    "response_structure",
+    "default_language",
+    "proactivity",
+    "custom_instructions",
+)
+
+
+def has_advanced_customization(bot):
+    """Check the owner's effective Premium/Pro entitlement."""
+    owner = getattr(bot, "owner", None)
+    if owner is None or not owner.pk:
+        return False
+
+    return owner.profile.has_paid_plan
+
+
 def response_preferences(bot):
     """Build optional response preferences without overriding explicit requests."""
     preferences = []
@@ -59,6 +77,19 @@ def response_preferences(bot):
             "within the existing response limit."
         ),
     }.get(bot.response_length)
+
+    if not has_advanced_customization(bot):
+        preferences.extend(value for value in (tone, length) if value)
+        if not preferences:
+            return ""
+        return (
+            "\n\nDEFAULT RESPONSE PREFERENCES:\n"
+            "Apply these preferences unless higher-priority instructions or "
+            "the user's explicit current request require otherwise. "
+            "Do not override safety, category restrictions, authoritative "
+            "Knowledge Base facts, or existing response limits.\n"
+            + "\n".join(preferences)
+        )
 
     communication_style = {
         "formal": "Use formal and polished language.",
@@ -112,7 +143,7 @@ def response_preferences(bot):
 
 def response_language_rule(bot):
     """Language policy shared by response generation and category rejections."""
-    code = bot.default_language
+    code = bot.default_language if has_advanced_customization(bot) else "auto"
     if code == "auto":
         return (
             "RESPONSE LANGUAGE (Automatic): Answer in the language of the "

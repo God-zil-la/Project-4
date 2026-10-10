@@ -2,6 +2,7 @@ from rest_framework import serializers
 from django.core.exceptions import ValidationError as DjangoValidationError
 
 from .models import Bot, ChatMessage, Conversation
+from .customization import ADVANCED_CUSTOMIZATION_FIELDS
 from .assistant_validation import (
     NAME_REQUIRED, NAME_TOO_LONG, PERSONALITY_REQUIRED,
     save_assistant, validate_unique_name,
@@ -49,6 +50,23 @@ class BotSerializer(serializers.ModelSerializer):
             "created_at",
         ]
 
+
+    def validate(self, attrs):
+        attrs = super().validate(attrs)
+        request = self.context.get("request")
+
+        if request is not None and not request.user.profile.has_paid_plan:
+            submitted = set(request.data.keys())
+            restricted = submitted.intersection(
+                ADVANCED_CUSTOMIZATION_FIELDS
+            )
+            if restricted:
+                raise serializers.ValidationError({
+                    field: "Advanced Customization requires Premium or Pro."
+                    for field in sorted(restricted)
+                })
+
+        return attrs
 
     def validate_name(self, value):
         owner = self.context["request"].user

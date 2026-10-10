@@ -201,7 +201,163 @@ class AssistantCustomizationTests(TestCase):
                 save_assistant(Bot(owner=self.user, name="Unique"))
 
 
+    def test_u42_web_template_plan_visibility(self):
+        url = reverse("bots:create")
+
+        free = self.client.get(url)
+        self.assertEqual(free.status_code, 200)
+        self.assertContains(free, "View plans and upgrade")
+        self.assertContains(free, reverse("payments:billing"))
+        self.assertContains(free, 'id="id_knowledge_activation_mode"')
+        self.assertNotContains(free, 'id="id_communication_style"')
+
+        for plan in ("premium", "pro"):
+            with self.subTest(plan=plan):
+                self.user.profile.complimentary_plan = plan
+                self.user.profile.save()
+                response = self.client.get(url)
+                self.assertEqual(response.status_code, 200)
+                self.assertNotContains(response, "View plans and upgrade")
+                for field in (
+                    "communication_style",
+                    "response_structure",
+                    "default_language",
+                    "proactivity",
+                    "custom_instructions",
+                ):
+                    self.assertContains(response, f'id="id_{field}"')
+
+    def test_u42_free_web_blocks_advanced(self):
+        from .customization import ADVANCED_CUSTOMIZATION_FIELDS
+
+        data = {
+            **self.data,
+            "communication_style": "technical",
+            "response_structure": "step_by_step",
+            "default_language": "sv",
+            "proactivity": "proactive",
+            "custom_instructions": "Premium-only instruction.",
+        }
+        response = self.client.post(reverse("bots:create"), data)
+        self.assertEqual(response.status_code, 302)
+        bot = Bot.objects.get(owner=self.user)
+
+        for field in ADVANCED_CUSTOMIZATION_FIELDS:
+            self.assertEqual(
+                getattr(bot, field),
+                Bot._meta.get_field(field).get_default(),
+            )
+
+        form = BotForm(user=self.user)
+        for field in ADVANCED_CUSTOMIZATION_FIELDS:
+            self.assertNotIn(field, form.fields)
+
+    def test_u42_free_api_rejects_advanced(self):
+        from .customization import ADVANCED_CUSTOMIZATION_FIELDS
+
+        values = {
+            "communication_style": "technical",
+            "response_structure": "step_by_step",
+            "default_language": "sv",
+            "proactivity": "proactive",
+            "custom_instructions": "Premium-only instruction.",
+        }
+        bot = Bot.objects.create(owner=self.user, **self.data)
+        url = reverse("bots:bot-detail", args=[bot.pk])
+
+        for field in ADVANCED_CUSTOMIZATION_FIELDS:
+            with self.subTest(field=field):
+                response = self.api.patch(
+                    url, {field: values[field]}, format="json"
+                )
+                self.assertEqual(response.status_code, 400)
+                self.assertIn(field, response.data)
+
+        bot.refresh_from_db()
+        for field in ADVANCED_CUSTOMIZATION_FIELDS:
+            self.assertEqual(
+                getattr(bot, field),
+                Bot._meta.get_field(field).get_default(),
+            )
+
+    def test_u42_premium_and_pro_have_advanced_access(self):
+        from .customization import ADVANCED_CUSTOMIZATION_FIELDS
+
+        for plan in ("premium", "pro"):
+            with self.subTest(plan=plan):
+                self.user.profile.complimentary_plan = plan
+                self.user.profile.save()
+
+                form = BotForm(user=self.user)
+                for field in ADVANCED_CUSTOMIZATION_FIELDS:
+                    self.assertIn(field, form.fields)
+
+                bot = Bot.objects.create(
+                    owner=self.user,
+                    name=f"U42 {plan}",
+                    personality="Help with travel.",
+                )
+                response = self.api.patch(
+                    reverse("bots:bot-detail", args=[bot.pk]),
+                    {"communication_style": "technical"},
+                    format="json",
+                )
+                self.assertEqual(response.status_code, 200)
+                bot.refresh_from_db()
+                self.assertEqual(bot.communication_style, "technical")
+
+    def test_u42_downgrade_disables_but_preserves(self):
+        from .customization import response_preferences, response_language_rule
+
+        self.user.profile.complimentary_plan = "premium"
+        self.user.profile.save()
+        bot = Bot.objects.create(
+            owner=self.user,
+            **self.data,
+            communication_style="technical",
+            default_language="sv",
+            custom_instructions="Unique paid instruction.",
+        )
+
+        self.assertIn("precise technical terminology", response_preferences(bot))
+        self.assertIn("Swedish", response_language_rule(bot))
+
+        self.user.profile.complimentary_plan = "free"
+        self.user.profile.save()
+
+        self.assertNotIn("precise technical terminology", response_preferences(bot))
+        self.assertNotIn("Unique paid instruction.", response_preferences(bot))
+        self.assertNotIn("Swedish", response_language_rule(bot))
+
+        bot.refresh_from_db()
+        self.assertEqual(bot.communication_style, "technical")
+        self.assertEqual(bot.default_language, "sv")
+        self.assertEqual(bot.custom_instructions, "Unique paid instruction.")
+
+    def test_u42_upgrade_restores_saved_preferences(self):
+        from .customization import response_preferences
+
+        self.user.profile.complimentary_plan = "premium"
+        self.user.profile.save()
+        bot = Bot.objects.create(
+            owner=self.user,
+            **self.data,
+            communication_style="technical",
+            custom_instructions="Restored paid instruction.",
+        )
+
+        self.user.profile.complimentary_plan = "free"
+        self.user.profile.save()
+        self.assertNotIn("Restored paid instruction.", response_preferences(bot))
+
+        self.user.profile.complimentary_plan = "pro"
+        self.user.profile.save()
+        self.assertIn("Restored paid instruction.", response_preferences(bot))
+        self.assertIn("precise technical terminology", response_preferences(bot))
+
     def test_advanced_customization_web_api_round_trip(self):
+        self.user.profile.complimentary_plan = "premium"
+        self.user.profile.save()
         preferences = {
             "communication_style": "technical",
             "response_structure": "step_by_step",
@@ -273,6 +429,8 @@ class AssistantCustomizationTests(TestCase):
             self.assertEqual(getattr(bot, field), value)
 
     def test_advanced_customization_invalid_choices(self):
+        self.user.profile.complimentary_plan = "premium"
+        self.user.profile.save()
         invalid_values = {
             "communication_style": "unknown",
             "response_structure": "unknown",
@@ -297,7 +455,10 @@ class AssistantCustomizationTests(TestCase):
                 self.assertIn(field, api.data)
 
     def test_advanced_customization_system_prompt(self):
+        self.user.profile.complimentary_plan = "premium"
+        self.user.profile.save()
         bot = Bot(
+            owner=self.user,
             **self.data,
             communication_style="technical",
             response_structure="step_by_step",
@@ -323,6 +484,8 @@ class AssistantCustomizationTests(TestCase):
 
 
     def test_proactivity_preferences_keep_questions_relevant(self):
+        self.user.profile.complimentary_plan = "premium"
+        self.user.profile.save()
         from .customization import response_preferences
 
         expectations = {
@@ -332,7 +495,7 @@ class AssistantCustomizationTests(TestCase):
         }
         for mode, expected in expectations.items():
             with self.subTest(mode=mode):
-                bot = Bot(**self.data, proactivity=mode)
+                bot = Bot(owner=self.user, **self.data, proactivity=mode)
                 self.assertIn(expected, response_preferences(bot))
                 self.assertNotIn("improvethe", response_preferences(bot))
                 self.assertNotIn("relevantfollow-up", response_preferences(bot))
@@ -365,6 +528,8 @@ class AssistantCustomizationTests(TestCase):
                 self.assertEqual(choices[code], label)
 
     def test_expanded_languages_web_api_and_system_prompt(self):
+        self.user.profile.complimentary_plan = "premium"
+        self.user.profile.save()
         from .customization import DEFAULT_LANGUAGE_CHOICES
 
         choices = dict(DEFAULT_LANGUAGE_CHOICES)
@@ -414,6 +579,8 @@ class AssistantCustomizationTests(TestCase):
         self.assertIn("Respond in French from the first reply", render_system_message(bot))
 
     def test_existing_conversation_uses_updated_saved_language(self):
+        self.user.profile.complimentary_plan = "premium"
+        self.user.profile.save()
         from .chat_service import _build_history
         from .models import Conversation, ChatMessage
 

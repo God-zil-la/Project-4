@@ -50,11 +50,9 @@
 
         {% for bot in bots %}
 
-        <article class="assistant-card">
-
-            <div class="assistant-card-content">
-
-                <div class="assistant-card-heading">
+        <details class="assistant-card">
+    <summary class="assistant-card-summary">
+        <div class="assistant-card-heading">
 
                     <div class="assistant-avatar">
                         {% if bot.avatar_symbol %}
@@ -79,29 +77,16 @@
                     </div>
 
                 </div>
-
-
-                <p class="assistant-description">
+    </summary>
+    <div class="assistant-card-content">
+        <p class="assistant-description">
                     {% if bot.description %}
                         {{ bot.description }}
                     {% else %}
                         No description added yet.
                     {% endif %}
                 </p>
-
-            </div>
-
-
-            <!-- ================= ACTIONS ================= -->
-
-            <div class="assistant-actions">
-
-                <a
-                    href="{% url 'bots:playground' bot.id %}"
-                    class="assistant-action assistant-action-primary"
-                >
-                    &#128172; Chat & Knowledge
-                </a>
+        <div class="assistant-actions">
 
 
                 <a
@@ -168,10 +153,9 @@
                 </a>
 
             </div>
-
-        </article>
-
-        {% endfor %}
+    </div>
+</details>
+{% endfor %}
 
     </div>
 
@@ -367,6 +351,40 @@
     }
 
 
+    .assistant-card {
+        display: block;
+    }
+
+    .assistant-card > summary {
+        cursor: pointer;
+        list-style: none;
+    }
+
+    .assistant-card > summary::-webkit-details-marker {
+        display: none;
+    }
+
+    .assistant-card-summary {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.5rem;
+    }
+
+    .assistant-card-summary::after {
+        content: "\25BC";
+        flex: 0 0 auto;
+        color: var(--accent-color);
+        font-size: 0.8rem;
+    }
+
+    .assistant-card:not([open]) > .assistant-card-summary::after {
+        content: "\25B6";
+    }
+
+    .assistant-card[open] > .assistant-card-content {
+        margin-top: 1rem;
+    }
     .assistant-card-content {
         min-width: 0;
     }
