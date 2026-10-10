@@ -413,6 +413,57 @@ class AssistantCustomizationTests(TestCase):
 
         self.assertIn("Respond in French from the first reply", render_system_message(bot))
 
+    def test_existing_conversation_uses_updated_saved_language(self):
+        from .chat_service import _build_history
+        from .models import Conversation, ChatMessage
+
+        bot = Bot.objects.create(
+            owner=self.user,
+            **self.data,
+            default_language="sv",
+        )
+        conversation = Conversation.objects.create(
+            bot=bot,
+            user=self.user,
+        )
+
+        ChatMessage.objects.create(
+            conversation=conversation,
+            bot=bot,
+            user=self.user,
+            sender=ChatMessage.SENDER_USER,
+            message="Hej, hur m?r du?",
+        )
+        ChatMessage.objects.create(
+            conversation=conversation,
+            bot=bot,
+            user=self.user,
+            sender=ChatMessage.SENDER_ASSISTANT,
+            message="Jag m?r bra, tack!",
+        )
+
+        bot.default_language = "en"
+        bot.save(update_fields=["default_language"])
+        bot.refresh_from_db()
+
+        messages = _build_history(
+            conversation,
+            render_system_message(bot),
+        )
+
+        self.assertEqual(messages[0]["role"], "system")
+        self.assertIn("Respond in English", messages[0]["content"])
+        self.assertIn(
+            "When continuing an existing conversation after a language change",
+            messages[0]["content"],
+        )
+        self.assertEqual(messages[1]["content"], "Hej, hur m?r du?")
+        self.assertEqual(messages[2]["content"], "Jag m?r bra, tack!")
+        self.assertEqual(
+            [item["role"] for item in messages],
+            ["system", "user", "assistant"],
+        )
+
     def test_icons_in_web_list_chat_and_conversation_api(self):
         from .models import Conversation
         bot = Bot.objects.create(owner=self.user, **self.data, avatar_icon="book")

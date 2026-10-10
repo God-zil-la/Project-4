@@ -129,6 +129,11 @@ def response_language_rule(bot):
         "of the user's language, requests to change language, earlier "
         "conversation languages, personality or custom instructions, and "
         "the language of Knowledge Base reference material. "
+        "When continuing an existing conversation after a language change, "
+        "immediately use the newly saved language on the very next reply. "
+        "Previous assistant replies in another language do not establish "
+        "the current response language. Do not wait for the user to request "
+        "the language change inside the conversation. "
         "Express the answer in this language while preserving reference facts. "
         "Safety and platform restrictions and category scope still take priority."
     )
