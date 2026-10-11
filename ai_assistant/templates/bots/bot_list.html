@@ -87,6 +87,8 @@
                     {% endif %}
                 </p>
         <div class="assistant-actions">
+                <div class="assistant-recent-chats" data-recent-bot="{{ bot.id }}"></div>
+                <a href="{% url 'bots:playground' bot.id %}?panel=conversations" class="assistant-action">All conversations for this assistant</a>
 
 
                 <a
@@ -777,4 +779,47 @@
 
 </style>
 
+{% endblock %}
+
+
+{% block extra_js %}
+<script>
+document.addEventListener("DOMContentLoaded", async () => {
+  const cards = document.querySelectorAll("[data-recent-bot]");
+  if (!cards.length) return;
+
+  try {
+    const response = await fetch("/bots/api/conversations/", {
+      credentials: "same-origin",
+      headers: { "Accept": "application/json" }
+    });
+    if (!response.ok) return;
+
+    const conversations = await response.json();
+    if (!Array.isArray(conversations)) return;
+
+    const counts = new Map();
+
+    for (const conversation of conversations) {
+      const botId = String(conversation.bot_id);
+      const count = counts.get(botId) || 0;
+      if (count >= 2 || !conversation.conversation_id) continue;
+
+      const container = Array.from(cards).find(
+        card => card.dataset.recentBot === botId
+      );
+      if (!container) continue;
+
+      const link = document.createElement("a");
+      link.className = "assistant-action";
+      link.href = `/bots/${encodeURIComponent(botId)}/playground/?conversation=${encodeURIComponent(conversation.conversation_id)}`;
+      link.textContent = conversation.title || "Untitled conversation";
+      container.appendChild(link);
+      counts.set(botId, count + 1);
+    }
+  } catch (error) {
+    console.warn("Could not load recent chats.", error);
+  }
+});
+</script>
 {% endblock %}

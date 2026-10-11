@@ -2015,9 +2015,7 @@ main {
             panelName
         ) {
 
-            if (new URLSearchParams(window.location.search).get("panel") === "conversations") {
-            showPlaygroundPanel("conversations");
-        }
+
 
         playgroundTabs.forEach(
                 (tab) => {
@@ -2046,6 +2044,10 @@ main {
 
         }
 
+
+        if (new URLSearchParams(window.location.search).get("panel") === "conversations") {
+            showPlaygroundPanel("conversations");
+        }
 
         playgroundTabs.forEach(
             (tab) => {
@@ -2742,6 +2744,7 @@ main {
                                     conversation
                                         .conversation_id
                                 );
+                                showPlaygroundPanel("chat");
                             }
                         );
 
