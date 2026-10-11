@@ -1358,3 +1358,10 @@ body > main.site-main {
     pointer-events: none;
   }
 }
+
+.app-sidebar-nav > .app-sidebar-group > summary {
+  background: var(--button-bg);
+  border: 1px solid var(--button-border);
+  border-radius: 7px;
+  text-align: center;
+}
