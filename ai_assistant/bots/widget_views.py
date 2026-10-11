@@ -6,9 +6,10 @@ import uuid
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.core import signing
+from django.core.exceptions import ValidationError as DjangoValidationError
 from django.core.cache import cache
 from django.db import transaction
-from django.http import Http404
+from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.html import format_html
@@ -22,6 +23,7 @@ from rest_framework.views import APIView
 
 from .chat_service import ChatRateLimitError, ChatUsageLimitError, process_bot_message
 from .models import Bot, Conversation
+from .widget_branding import get_branding_data, update_branding_settings, update_branding_logo, remove_branding_logo, get_public_branding_logo, get_public_branding_css
 
 logger = logging.getLogger(__name__)
 TOKEN_SALT = 'bots.website-visitor.v1'
@@ -37,6 +39,7 @@ def settings_data(bot):
     url = (settings.PUBLIC_BASE_URL.rstrip('/') + reverse('bots:public-chat', args=[bot.widget_public_id])) if bot.widget_public_id else ''
     return {
         'allowed': allowed,
+        'branding': get_branding_data(bot, allowed),
         'widget_enabled': bot.widget_enabled,
         'active': allowed and bot.widget_enabled,
         'public_url': url,
@@ -67,11 +70,29 @@ def widget_settings(request, bot_id):
     status = 200
     if request.method == 'POST':
         try:
-            update_settings(request.user, bot_id, request.POST.get('widget_enabled') == 'on')
+            if request.POST.get('action') == 'upload_brand_logo':
+                update_branding_logo(request.user, bot_id, request.FILES.get('logo'))
+            elif request.POST.get('action') == 'remove_brand_logo':
+                remove_branding_logo(request.user, bot_id)
+            elif request.POST.get('action') == 'save_branding':
+                fields = ('company_name', 'background_color', 'text_color', 'accent_color')
+                data = {field: request.POST.get(field, '') for field in fields}
+                data['hide_powered_by'] = request.POST.get('hide_powered_by') == 'on'
+                update_branding_settings(request.user, bot_id, data)
+            else:
+                update_settings(request.user, bot_id, request.POST.get('widget_enabled') == 'on')
             return redirect('bots:widget-settings', bot_id=bot_id)
         except PermissionDenied as exc:
             error, status = str(exc.detail), 403
-    return render(request, 'bots/widget_settings.html', {'bot': bot, 'widget': settings_data(bot), 'error': error}, status=status)
+        except (ValidationError, DjangoValidationError) as exc:
+            if hasattr(exc, 'detail'):
+                error = str(exc.detail)
+            elif hasattr(exc, 'messages'):
+                error = '; '.join(exc.messages)
+            else:
+                error = str(exc)
+            status = 400
+    return render(request, 'bots/widget_settings.html', {'bot': bot, 'widget': settings_data(bot), 'branding': get_branding_data(bot, has_widget_access(request.user)), 'error': error}, status=status)
 
 
 class NoCacheAPI(APIView):
@@ -94,6 +115,46 @@ class WidgetSettingsAPI(NoCacheAPI):
         return Response(settings_data(update_settings(request.user, bot_id, request.data['widget_enabled'])))
 
 
+
+@login_required
+@never_cache
+@require_http_methods(['GET'])
+def widget_branding_logo_preview(request, bot_id):
+    bot = get_object_or_404(Bot, pk=bot_id, owner=request.user)
+    if not has_widget_access(request.user):
+        raise Http404
+    data, content_type = get_public_branding_logo(bot)
+    response = HttpResponse(data, content_type=content_type)
+    response['Cache-Control'] = 'private, no-store'
+    response['X-Content-Type-Options'] = 'nosniff'
+    response['Referrer-Policy'] = 'no-referrer'
+    return response
+
+
+class WidgetBrandingAPI(NoCacheAPI):
+    permission_classes = [IsAuthenticated]
+
+    def patch(self, request, bot_id):
+        bot = update_branding_settings(request.user, bot_id, request.data)
+        return Response(get_branding_data(bot, has_widget_access(request.user)))
+
+
+
+class WidgetBrandingLogoAPI(NoCacheAPI):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, bot_id):
+        if set(request.FILES) != {"logo"} or set(request.data) != {"logo"}:
+            raise ValidationError({"logo": "Upload exactly one logo file."})
+
+        bot = update_branding_logo(request.user, bot_id, request.FILES["logo"])
+        return Response(get_branding_data(bot, has_widget_access(request.user)))
+
+    def delete(self, request, bot_id):
+        bot = remove_branding_logo(request.user, bot_id)
+        return Response(get_branding_data(bot, has_widget_access(request.user)))
+
+
 def public_bot(public_id):
     bot = get_object_or_404(Bot.objects.select_related('owner__profile'), widget_public_id=public_id, widget_enabled=True)
     if not has_widget_access(bot.owner):
@@ -106,10 +167,39 @@ def public_bot(public_id):
 @xframe_options_exempt
 def public_chat(request, public_id):
     bot = public_bot(public_id)
-    response = render(request, 'bots/public_chat.html', {'bot': bot})
+    response = render(request, 'bots/public_chat.html', {'bot': bot, 'branding': get_branding_data(bot, True)})
     response['Referrer-Policy'] = 'no-referrer'
     response['X-Robots-Tag'] = 'noindex, nofollow'
-    response['Content-Security-Policy'] = "default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors *"
+    response['Content-Security-Policy'] = "default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors *"
+    return response
+
+
+
+@require_http_methods(["GET"])
+@never_cache
+def public_branding_logo(request, public_id):
+    bot = public_bot(public_id)
+    data, content_type = get_public_branding_logo(bot)
+
+    response = HttpResponse(data, content_type=content_type)
+    response["Cache-Control"] = "no-store"
+    response["X-Content-Type-Options"] = "nosniff"
+    response["Content-Disposition"] = "inline"
+    response["Referrer-Policy"] = "no-referrer"
+    return response
+
+
+
+@require_http_methods(["GET"])
+@never_cache
+def public_branding_css(request, public_id):
+    bot = public_bot(public_id)
+    css = get_public_branding_css(bot)
+
+    response = HttpResponse(css, content_type="text/css; charset=utf-8")
+    response["Cache-Control"] = "no-store"
+    response["X-Content-Type-Options"] = "nosniff"
+    response["Referrer-Policy"] = "no-referrer"
     return response
 
 

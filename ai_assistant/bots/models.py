@@ -471,3 +471,21 @@ class BotUsageLog(models.Model):
             f"{self.tokens_used} tokens "
             f"on {self.timestamp}"
         )
+
+
+class WidgetBranding(models.Model):
+    """Optional branding for one public website widget."""
+
+    bot = models.OneToOneField(
+        Bot, on_delete=models.CASCADE, related_name="widget_branding"
+    )
+    company_name = models.CharField(max_length=100, blank=True, default="")
+    logo_data = models.BinaryField(null=True, blank=True, editable=False)
+    logo_content_type = models.CharField(max_length=32, blank=True, default="")
+    background_color = models.CharField(max_length=7, blank=True, default="")
+    text_color = models.CharField(max_length=7, blank=True, default="")
+    accent_color = models.CharField(max_length=7, blank=True, default="")
+    hide_powered_by = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"Widget branding for {self.bot.name}"

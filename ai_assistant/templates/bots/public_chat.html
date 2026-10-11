@@ -7,6 +7,7 @@
 <title>{{ bot.name }} &ndash; Chat</title>
 
 <link rel="stylesheet" href="{% static 'css/public_chat.css' %}?v=3">
+<link rel="stylesheet" href="{% url 'bots:public-branding-css' bot.widget_public_id %}">
 <script src="{% static 'js/public_chat.js' %}?v=2" defer></script>
 </head>
 
@@ -17,7 +18,14 @@
     data-message-url="{% url 'bots:public-message' bot.widget_public_id %}"
 >
 <header>
-    <h1>{{ bot.avatar_symbol }} {{ bot.name }}</h1>
+    <h1 class="widget-brand-title">
+        {% if branding.has_logo %}
+        <img class="widget-brand-logo" src="{% url 'bots:public-branding-logo' bot.widget_public_id %}" alt="">
+        {% else %}
+        <span class="widget-brand-avatar">{{ bot.avatar_symbol }}</span>
+        {% endif %}
+        <span>{{ branding.company_name|default:bot.name }}</span>
+    </h1>
     <button id="new-chat" type="button">New chat</button>
 </header>
 
@@ -50,6 +58,14 @@
 
     <button id="send" disabled>Send</button>
 </form>
+
+{% if not branding.hide_powered_by %}
+<footer class="widget-powered-by">
+    <a href="https://www.myaiassistantapp.se/" target="_blank" rel="noopener noreferrer">
+        Powered by AI Assistant
+    </a>
+</footer>
+{% endif %}
 </main>
 </body>
 </html>

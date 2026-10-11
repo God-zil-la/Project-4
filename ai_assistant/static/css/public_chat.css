@@ -258,3 +258,61 @@ button:disabled {
         font-size: 18px;
     }
 }
+
+
+/* U4.3 - Custom Branding */
+
+.widget-brand-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+}
+
+.widget-brand-title > span:last-child {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.widget-brand-logo {
+    display: block;
+    width: 44px;
+    height: 44px;
+    flex: 0 0 44px;
+    object-fit: contain;
+    border-radius: 10px;
+}
+
+.widget-brand-avatar {
+    flex-shrink: 0;
+}
+
+.widget-powered-by {
+    margin-top: auto;
+    padding: 8px 12px;
+    text-align: center;
+    font-size: 12px;
+}
+
+.widget-powered-by a {
+    color: var(--text-color);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+.widget-powered-by a:hover,
+.widget-powered-by a:focus-visible {
+    color: var(--accent-color);
+}
+
+@media (max-width: 550px) {
+    .widget-brand-logo {
+        width: 36px;
+        height: 36px;
+        flex-basis: 36px;
+    }
+
+    .widget-brand-title {
+        gap: 8px;
+    }
+}

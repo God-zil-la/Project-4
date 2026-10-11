@@ -81,6 +81,81 @@
             </div>
         </form>
 
+
+        {% if widget.allowed %}
+        <h2>Custom Branding</h2>
+
+        <h3>Company Logo</h3>
+
+        {% if branding.has_logo %}
+            <p>Current logo:</p>
+            <img
+                src="{% url 'bots:widget-branding-logo-preview' bot.id %}"
+                alt="Company logo"
+                style="max-width:160px;max-height:100px;object-fit:contain"
+            >
+
+            <form method="post" class="bot-form">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="remove_brand_logo">
+                <button type="submit">Remove Logo</button>
+            </form>
+        {% endif %}
+
+        <form method="post" enctype="multipart/form-data" class="bot-form">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="upload_brand_logo">
+
+            <label for="brand-logo">Upload company logo</label>
+            <input
+                id="brand-logo"
+                name="logo"
+                type="file"
+                accept="image/png,image/jpeg,image/webp"
+                required
+            >
+
+            <p>PNG, JPEG or WebP. Maximum 512 KB.</p>
+            <button type="submit">Upload Logo</button>
+        </form>
+
+
+        <form method="post" class="bot-form">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="save_branding">
+
+            <label for="brand-company">Company name</label>
+            <input id="brand-company" name="company_name" type="text"
+                   maxlength="100" value="{{ branding.company_name }}">
+
+            <label for="brand-background">Background color</label>
+            <input id="brand-background" name="background_color" type="text"
+                   maxlength="7" placeholder="#FFFFFF"
+                   pattern="#[0-9a-fA-F]{6}"
+                   value="{{ branding.background_color }}">
+
+            <label for="brand-text">Text color</label>
+            <input id="brand-text" name="text_color" type="text"
+                   maxlength="7" placeholder="#000000"
+                   pattern="#[0-9a-fA-F]{6}"
+                   value="{{ branding.text_color }}">
+
+            <label for="brand-accent">Accent color</label>
+            <input id="brand-accent" name="accent_color" type="text"
+                   maxlength="7" placeholder="#FF5733"
+                   pattern="#[0-9a-fA-F]{6}"
+                   value="{{ branding.accent_color }}">
+
+            <label>
+                <input type="checkbox" name="hide_powered_by"
+                       {% if branding.hide_powered_by %}checked{% endif %}>
+                Hide Powered by AI Assistant
+            </label>
+
+            <button type="submit">Save Branding</button>
+        </form>
+        {% endif %}
+
         <p>
             <strong>Status:</strong>
 
