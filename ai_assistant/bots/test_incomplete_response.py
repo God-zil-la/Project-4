@@ -114,7 +114,7 @@ class IncompleteResponseTests(TestCase):
         self.search.return_value.update(
             sources=[{"name": "Handbook.pdf", "knowledge_id": 7}], source_heading="Sources used"
         )
-        result = self.run_chat("Partial answer\n\n**Sources used**\n- Invented (KB 99)",
+        result = self.run_chat("Partial answer [KB_SOURCE:7]\n\n**Sources used**\n- Invented (KB 99)",
                                INCOMPLETE_RESPONSE_NOTICE)
         self.assertNotIn("Invented", result["response"])
         self.assertIn("[" + INCOMPLETE_RESPONSE_NOTICE + "]", result["response"])
@@ -145,8 +145,13 @@ class IncompleteResponseTests(TestCase):
             sources=[{"name": "Handbook.pdf", "knowledge_id": 7}], source_heading="Sources used"
         )
         parts = [" ".join([f"segment{index}"] * 500) for index in range(4)]
-        self.api.side_effect = [completion(part + "\n\n**Sources used**\n- Invented (KB 99)")
-                                for part in parts]
+        self.api.side_effect = [
+            completion(
+                part + (" [KB_SOURCE:7]" if index == 0 else "")
+                + "\n\n**Sources used**\n- Invented (KB 99)"
+            )
+            for index, part in enumerate(parts)
+        ]
         result = process_bot_message(self.user, self.bot, "Write 2000 words about technology")
         for part in parts:
             self.assertIn(part, result["response"])

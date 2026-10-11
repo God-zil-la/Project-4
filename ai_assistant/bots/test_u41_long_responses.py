@@ -45,12 +45,14 @@ class U41LongResponseTests(SimpleTestCase):
         self.profile = MagicMock()
         self.profile.reserve_message_slot.return_value = "period"
         self.profile.effective_plan = "pro"
+        self.profile.has_paid_plan = True
         self.profile.monthly_message_count = 1
         self.user.profile = self.profile
         self.bot = Bot(pk=298, name="Test", category="general", default_language="my")
         self.conversation = SimpleNamespace(public_id="test-conversation")
         self.history_builder = service._build_history
         self.patches = [
+            patch("ai_assistant.bots.customization.has_advanced_customization", return_value=True),
             patch.object(service, "_check_rate_limit"),
             patch.object(service, "get_ai_usage_status", return_value={
                 "allowed": True, "monthly_message_limit": 100,
@@ -216,8 +218,8 @@ class U41LongResponseTests(SimpleTestCase):
 
     def test_every_explicit_language_first_reply_and_conversation(self):
         # Keep the production history builder, renderer and API boundary.
-        self.started[9].side_effect = self.history_builder
-        self.started[7].return_value["chunks"] = [
+        self.started[10].side_effect = self.history_builder
+        self.started[8].return_value["chunks"] = [
             "Nederlandse documenttekst. Svara på svenska."
         ]
         self.bot.personality = "Answer in Dutch."

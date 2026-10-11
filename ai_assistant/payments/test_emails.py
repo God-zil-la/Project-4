@@ -48,7 +48,7 @@ class BillingEmailTests(TestCase):
         self.assertEqual(self.post().status_code, 200)
         self.assertEqual(len(mail.outbox), 1)
         self.assertIn("Premium", mail.outbox[0].body)
-        self.assertIn("$29.00 USD/month", mail.outbox[0].body)
+        self.assertIn("$29.99 USD/month", mail.outbox[0].body)
         self.assertIn("Amount paid: $29.00 USD", mail.outbox[0].body)
         self.assertEqual(BillingEmail.objects.get().status, "sent")
 
@@ -58,7 +58,7 @@ class BillingEmailTests(TestCase):
         self.invoice["lines"]["data"][0]["price"]["unit_amount"] = 5900
         self.post()
         self.assertIn("Pro", mail.outbox[0].body)
-        self.assertIn("$59.00 USD/month", mail.outbox[0].body)
+        self.assertIn("$59.99 USD/month", mail.outbox[0].body)
 
     def test_historical_invoice_uses_billed_plan(self):
         self.subscription["items"]["data"][0]["price"]["unit_amount"] = 5900

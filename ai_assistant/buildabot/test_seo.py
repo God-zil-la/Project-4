@@ -17,6 +17,12 @@ class PublicSEOTests(SimpleTestCase):
         urls = [node.text for node in root.findall(f'{ns}url/{ns}loc')]
         self.assertEqual(urls, [
             'https://www.myaiassistantapp.se/',
+            'https://www.myaiassistantapp.se/ai-assistant/',
+            'https://www.myaiassistantapp.se/ai-chatbot/',
+            'https://www.myaiassistantapp.se/personal-ai-assistant/',
+            'https://www.myaiassistantapp.se/ai-chatbot-for-business/',
+            'https://www.myaiassistantapp.se/website-chatbot/',
+            'https://www.myaiassistantapp.se/ai-knowledge-base/',
             'https://www.myaiassistantapp.se/privacy/',
             'https://www.myaiassistantapp.se/delete-account/',
         ])
