@@ -148,7 +148,7 @@ class StripeTests(TestCase):
         return response, retrieve
 
     def test_checkout_premium_and_pro(self):
-        for plan, amount in [('premium', 2900), ('pro', 5900)]:
+        for plan, amount in [('premium', 2999), ('pro', 5999)]:
             # Each plan is tested with a separate genuinely free account.
             self.user = User.objects.create_user(username='checkout-' + plan)
             self.client.force_login(self.user)
@@ -217,6 +217,7 @@ class StripeTests(TestCase):
         for i, (currency, amount) in enumerate([
             ('sek', 12900), ('sek', 24900), ('sek', 1299), ('sek', 2499),
             ('usd', 12900), ('usd', 24900), ('usd', 1298), ('usd', 2500),
+            ('sek', 2999), ('sek', 5999), ('usd', 2998), ('usd', 5998),
         ]):
             with self.subTest(currency=currency, amount=amount):
                 self.send(self.subscription(5900), eid=f'evt_paid_{i}')
@@ -229,7 +230,8 @@ class StripeTests(TestCase):
                 self.assertFalse(self.user.profile.is_subscribed)
 
     def test_checkout_completion_reconciles_both_usd_plans(self):
-        for i, (amount, plan) in enumerate([(2900, 'premium'), (5900, 'pro')]):
+        for i, (amount, plan) in enumerate([(2900, 'premium'), (5900, 'pro'),
+                                            (2999, 'premium'), (5999, 'pro')]):
             session = {'mode': 'subscription', 'client_reference_id': str(self.user.pk),
                        'subscription': 'sub_test', 'customer': 'cus_test'}
             response, _ = self.send(session, 'checkout.session.completed',
@@ -239,8 +241,8 @@ class StripeTests(TestCase):
 
     def test_customer_facing_usd_prices(self):
         response = self.client.get(reverse('payments:billing'))
-        self.assertContains(response, '$29.00 USD/month')
-        self.assertContains(response, '$59.00 USD/month')
+        self.assertContains(response, '$29.99 USD/month')
+        self.assertContains(response, '$59.99 USD/month')
         self.assertNotContains(response, 'SEK')
 
     def test_signature_and_method_rejected(self):

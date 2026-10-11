@@ -104,7 +104,7 @@ class BillingReconciliationTests(TestCase):
         self.save_link()
         self.subscriptions = [self.subscription("canceled")]
         self.assertEqual(self.checkout("pro").status_code, 200)
-        self.assertEqual(self.create.call_args.kwargs["line_items"][0]["price_data"]["unit_amount"], 5900)
+        self.assertEqual(self.create.call_args.kwargs["line_items"][0]["price_data"]["unit_amount"], 5999)
 
     def test_active_scheduled_cancel_restores_paid_plan_and_upgrade(self):
         self.save_link()

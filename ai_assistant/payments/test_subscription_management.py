@@ -64,7 +64,7 @@ class SubscriptionManagementTests(TestCase):
         self.assertEqual(args, ("sub_owner",))
         self.assertEqual(kwargs["api_key"], "sk_test_placeholder")
         self.assertEqual(kwargs["items"], [{"id": "si_owner", "quantity": 1,
-            "price_data": {"currency": "usd", "unit_amount": 5900,
+            "price_data": {"currency": "usd", "unit_amount": 5999,
                 "recurring": {"interval": "month"}, "product": "prod_pro"}}])
         self.assertEqual(kwargs["proration_behavior"], "always_invoice")
         self.assertEqual(kwargs["payment_behavior"], "error_if_incomplete")
@@ -229,7 +229,7 @@ class SubscriptionManagementTests(TestCase):
 
     def test_pricing_copy_and_responsive_styles(self):
         response = self.client.get(self.billing)
-        for text in ["$29.00 USD/month", "$59.00 USD/month", "Upgrade to Pro",
+        for text in ["$29.99 USD/month", "$59.99 USD/month", "Upgrade to Pro",
                      "prorated difference", "max-width: 640px", "focus-visible"]:
             self.assertContains(response, text)
         for text in ["unlimited bot creation", "You already have a subscription.",

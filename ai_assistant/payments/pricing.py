@@ -6,10 +6,10 @@ CURRENCY = "usd"
 PLAN_CONFIG = {
     UserProfile.PLAN_PREMIUM: {
         "name": "AI Assistant Premium",
-        "unit_amount": 2900,
+        "unit_amount": 2999,
     },
     UserProfile.PLAN_PRO: {
         "name": "AI Assistant Pro",
-        "unit_amount": 5900,
+        "unit_amount": 5999,
     },
 }

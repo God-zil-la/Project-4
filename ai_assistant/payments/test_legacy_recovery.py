@@ -102,7 +102,7 @@ class LegacyRecoveryTests(TestCase):
     def test_active_unknown_usd_recovers_either_plan_on_same_subscription(self):
         original = deepcopy(self.sub)
 
-        for plan, amount in [("premium", 2900), ("pro", 5900)]:
+        for plan, amount in [("premium", 2999), ("pro", 5999)]:
             with self.subTest(plan=plan):
                 self.sub = deepcopy(original)
                 self.inventory = [self.sub]

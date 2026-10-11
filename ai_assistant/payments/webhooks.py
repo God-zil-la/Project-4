@@ -35,7 +35,8 @@ def get_plan_from_subscription(subscription):
             or price.get("billing_scheme", "per_unit") != "per_unit"
             or price.get("transform_quantity")):
         return UserProfile.PLAN_FREE
-    return {config["unit_amount"]: plan for plan, config in PLAN_CONFIG.items()}.get(
+    return {2900: UserProfile.PLAN_PREMIUM, 5900: UserProfile.PLAN_PRO,
+            **{config["unit_amount"]: plan for plan, config in PLAN_CONFIG.items()}}.get(
         price.get("unit_amount"), UserProfile.PLAN_FREE)
 
 
