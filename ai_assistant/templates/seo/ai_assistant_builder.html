@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block title %}AI Assistant Builder - Create Your Own AI Assistant{% endblock %}
+{% block canonical %}<link rel="canonical" href="https://www.myaiassistantapp.se/ai-assistant-builder/">{% endblock %}
+{% block meta_description %}Build your own AI assistant with custom instructions, personality and knowledge. Organize conversations and create specialized assistants for your needs.{% endblock %}
+{% block og_title %}AI Assistant Builder - Create Your Own AI Assistant{% endblock %}
+{% block og_description %}Build your own AI assistant with custom instructions, personality and knowledge. Organize conversations and create specialized assistants for your needs.{% endblock %}
+{% block og_url %}https://www.myaiassistantapp.se/ai-assistant-builder/{% endblock %}
+{% block twitter_title %}AI Assistant Builder - Create Your Own AI Assistant{% endblock %}
+{% block twitter_description %}Build your own AI assistant with custom instructions, personality and knowledge. Organize conversations and create specialized assistants for your needs.{% endblock %}
+{% block structured_data %}<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebPage","name":"Build Your Own AI Assistant","url":"https://www.myaiassistantapp.se/ai-assistant-builder/","description":"Build your own AI assistant with custom instructions, personality and knowledge. Organize conversations and create specialized assistants for your needs."}</script>{% endblock %}
+{% block content %}
+<section class="content">
+<h1>Build Your Own AI Assistant</h1>
+<p>Build your own AI assistant with custom instructions, personality and knowledge. Organize conversations and create specialized assistants for your needs.</p>
+<h2>Create a specialized assistant</h2>
+<p>AI Assistant lets you create assistants for different purposes rather than using a single generic chatbot. Name your assistant, choose a focus and manage its settings from your account.</p>
+<h2>Customize instructions and personality</h2>
+<p>Configure instructions, personality and behavior to suit your work, studies, community or personal projects. A dedicated assistant can keep a consistent focus on the information you want it to use.</p>
+<h2>Add your documents and knowledge</h2>
+<p>Extend your assistant with text-based PDF, DOCX, TXT and manually entered knowledge. Relevant information can be retrieved when you ask questions.</p>
+<h2>Keep conversations separate</h2>
+<p>Each assistant can have its own conversations, allowing you to return to earlier discussions without mixing unrelated projects.</p>
+<h2>Start with a free plan</h2>
+<p>You can create an account and begin with the Free plan. Higher plans provide more assistants, monthly messages and Knowledge storage.</p>
+<h2>Explore related AI Assistant features</h2>
+<p><a href="{% url 'ai_assistant' %}">AI assistant</a> · <a href="{% url 'ai_chatbot' %}">AI chatbot</a> · <a href="{% url 'personal_ai_assistant' %}">personal AI assistant</a> · <a href="{% url 'ai_chatbot_for_business' %}">AI chatbot for business</a> · <a href="{% url 'website_chatbot' %}">website chatbot</a> · <a href="{% url 'ai_knowledge_base' %}">AI Knowledge Base</a></p>
+<p><a href="{% url 'accounts:register' %}" class="btn">Create Your AI Assistant</a></p>
+</section>
+{% endblock %}
