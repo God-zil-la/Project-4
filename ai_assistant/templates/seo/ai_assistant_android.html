@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block title %}AI Assistant for Android - Custom AI Chatbot App{% endblock %}
+{% block canonical %}<link rel="canonical" href="https://www.myaiassistantapp.se/ai-assistant-android/">{% endblock %}
+{% block meta_description %}Use AI Assistant on Android to manage custom assistants, conversations and knowledge. Access your AI assistant account with the native Android app.{% endblock %}
+{% block og_title %}AI Assistant for Android - Custom AI Chatbot App{% endblock %}
+{% block og_description %}Use AI Assistant on Android to manage custom assistants, conversations and knowledge. Access your AI assistant account with the native Android app.{% endblock %}
+{% block og_url %}https://www.myaiassistantapp.se/ai-assistant-android/{% endblock %}
+{% block twitter_title %}AI Assistant for Android - Custom AI Chatbot App{% endblock %}
+{% block twitter_description %}Use AI Assistant on Android to manage custom assistants, conversations and knowledge. Access your AI assistant account with the native Android app.{% endblock %}
+{% block structured_data %}<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebPage","name":"Your Custom AI Assistant on Android","url":"https://www.myaiassistantapp.se/ai-assistant-android/","description":"Use AI Assistant on Android to manage custom assistants, conversations and knowledge. Access your AI assistant account with the native Android app."}</script>{% endblock %}
+{% block content %}
+<section class="content">
+<h1>Your Custom AI Assistant on Android</h1>
+<p>Use AI Assistant on Android to manage custom assistants, conversations and knowledge. Access your AI assistant account with the native Android app.</p>
+<h2>Use AI Assistant on your phone</h2>
+<p>AI Assistant has a native Android application that connects to the same backend as the website. Work with your account and assistants from a supported mobile device.</p>
+<h2>Your assistants and chats stay connected</h2>
+<p>The mobile and web clients share assistant records, persistent conversations, Knowledge and account entitlements through the same backend.</p>
+<h2>Create and customize assistants</h2>
+<p>Build specialized AI assistants for projects, studies or business and continue using them on mobile.</p>
+<h2>Knowledge and analytics</h2>
+<p>Access supported Knowledge and account analytics from the native client. Availability of individual controls depends on the current app release and plan.</p>
+<h2>Get the Android app</h2>
+<p>Visit the official Google Play listing from the AI Assistant website. The iOS app is not advertised here as publicly available.</p>
+<h2>Explore related AI Assistant features</h2>
+<p><a href="{% url 'ai_assistant' %}">AI assistant</a> · <a href="{% url 'ai_chatbot' %}">AI chatbot</a> · <a href="{% url 'personal_ai_assistant' %}">personal AI assistant</a> · <a href="{% url 'ai_chatbot_for_business' %}">AI chatbot for business</a> · <a href="{% url 'website_chatbot' %}">website chatbot</a> · <a href="{% url 'ai_knowledge_base' %}">AI Knowledge Base</a></p>
+<p><a href="{% url 'accounts:register' %}" class="btn">Create Your AI Assistant</a></p>
+</section>
+{% endblock %}

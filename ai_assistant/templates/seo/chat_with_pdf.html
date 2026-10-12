@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block title %}Chat With PDF - Ask Your AI Assistant About Documents{% endblock %}
+{% block canonical %}<link rel="canonical" href="https://www.myaiassistantapp.se/chat-with-pdf/">{% endblock %}
+{% block meta_description %}Chat with text-based PDF documents using a custom AI assistant. Upload knowledge, ask questions and retrieve relevant information from your files.{% endblock %}
+{% block og_title %}Chat With PDF - Ask Your AI Assistant About Documents{% endblock %}
+{% block og_description %}Chat with text-based PDF documents using a custom AI assistant. Upload knowledge, ask questions and retrieve relevant information from your files.{% endblock %}
+{% block og_url %}https://www.myaiassistantapp.se/chat-with-pdf/{% endblock %}
+{% block twitter_title %}Chat With PDF - Ask Your AI Assistant About Documents{% endblock %}
+{% block twitter_description %}Chat with text-based PDF documents using a custom AI assistant. Upload knowledge, ask questions and retrieve relevant information from your files.{% endblock %}
+{% block structured_data %}<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebPage","name":"Chat With Your PDF Documents","url":"https://www.myaiassistantapp.se/chat-with-pdf/","description":"Chat with text-based PDF documents using a custom AI assistant. Upload knowledge, ask questions and retrieve relevant information from your files."}</script>{% endblock %}
+{% block content %}
+<section class="content">
+<h1>Chat With Your PDF Documents</h1>
+<p>Chat with text-based PDF documents using a custom AI assistant. Upload knowledge, ask questions and retrieve relevant information from your files.</p>
+<h2>Ask questions about your own PDF content</h2>
+<p>AI Assistant lets you upload PDFs containing extractable text to a Knowledge Base. Your assistant can retrieve relevant passages to help answer questions about that information.</p>
+<h2>Useful for studies and projects</h2>
+<p>Use your own course material, manuals, guides or project documentation as context. Keep your document questions in conversations associated with the relevant assistant.</p>
+<h2>More than PDFs</h2>
+<p>The Knowledge Base also supports DOCX, TXT and manually entered text. Combining these sources helps create an assistant for a specific subject.</p>
+<h2>Important PDF limitation</h2>
+<p>Image-only and scanned PDFs without extractable text are not processed through OCR. For best results, use text-based PDF documents and verify important answers against the original source.</p>
+<h2>Create a document assistant</h2>
+<p>Start with an account, create an assistant, upload supported documents to its Knowledge Base and ask questions in chat.</p>
+<h2>Explore related AI Assistant features</h2>
+<p><a href="{% url 'ai_assistant' %}">AI assistant</a> · <a href="{% url 'ai_chatbot' %}">AI chatbot</a> · <a href="{% url 'personal_ai_assistant' %}">personal AI assistant</a> · <a href="{% url 'ai_chatbot_for_business' %}">AI chatbot for business</a> · <a href="{% url 'website_chatbot' %}">website chatbot</a> · <a href="{% url 'ai_knowledge_base' %}">AI Knowledge Base</a></p>
+<p><a href="{% url 'accounts:register' %}" class="btn">Create Your AI Assistant</a></p>
+</section>
+{% endblock %}

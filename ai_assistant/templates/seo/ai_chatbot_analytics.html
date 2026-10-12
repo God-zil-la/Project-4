@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block title %}AI Chatbot Analytics - Track Assistant Usage and Activity{% endblock %}
+{% block canonical %}<link rel="canonical" href="https://www.myaiassistantapp.se/ai-chatbot-analytics/">{% endblock %}
+{% block meta_description %}Track AI chatbot usage, message activity and estimated AI costs. Manage custom assistants and review analytics from your AI Assistant account.{% endblock %}
+{% block og_title %}AI Chatbot Analytics - Track Assistant Usage and Activity{% endblock %}
+{% block og_description %}Track AI chatbot usage, message activity and estimated AI costs. Manage custom assistants and review analytics from your AI Assistant account.{% endblock %}
+{% block og_url %}https://www.myaiassistantapp.se/ai-chatbot-analytics/{% endblock %}
+{% block twitter_title %}AI Chatbot Analytics - Track Assistant Usage and Activity{% endblock %}
+{% block twitter_description %}Track AI chatbot usage, message activity and estimated AI costs. Manage custom assistants and review analytics from your AI Assistant account.{% endblock %}
+{% block structured_data %}<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebPage","name":"AI Chatbot Analytics and Usage Tracking","url":"https://www.myaiassistantapp.se/ai-chatbot-analytics/","description":"Track AI chatbot usage, message activity and estimated AI costs. Manage custom assistants and review analytics from your AI Assistant account."}</script>{% endblock %}
+{% block content %}
+<section class="content">
+<h1>AI Chatbot Analytics and Usage Tracking</h1>
+<p>Track AI chatbot usage, message activity and estimated AI costs. Manage custom assistants and review analytics from your AI Assistant account.</p>
+<h2>Understand how your assistants are used</h2>
+<p>AI Assistant provides account analytics to help you review assistant activity, message usage and conversation trends.</p>
+<h2>Track usage and limits</h2>
+<p>Review message quotas, token usage and estimated AI costs. Plan-aware limits help users understand the capacity available to their account.</p>
+<h2>Export analytics</h2>
+<p>The platform documents CSV analytics export for users who want to work with their usage data outside the dashboard.</p>
+<h2>Manage multiple assistants</h2>
+<p>Separate assistants and conversations make it easier to organize different projects or business needs while tracking account-wide usage.</p>
+<h2>Website chatbot conversations</h2>
+<p>For Pro Website Widget assistants, visitor conversations are stored as separate conversations visible to the assistant owner.</p>
+<h2>Explore related AI Assistant features</h2>
+<p><a href="{% url 'ai_assistant' %}">AI assistant</a> · <a href="{% url 'ai_chatbot' %}">AI chatbot</a> · <a href="{% url 'personal_ai_assistant' %}">personal AI assistant</a> · <a href="{% url 'ai_chatbot_for_business' %}">AI chatbot for business</a> · <a href="{% url 'website_chatbot' %}">website chatbot</a> · <a href="{% url 'ai_knowledge_base' %}">AI Knowledge Base</a></p>
+<p><a href="{% url 'accounts:register' %}" class="btn">Create Your AI Assistant</a></p>
+</section>
+{% endblock %}
