@@ -20,21 +20,85 @@ LENGTH_CHOICES = [
 
 ]
 
+
+# Assistant icon choices.
+# Keep existing IDs for backward compatibility.
+# All IDs must fit Bot.avatar_icon (max_length=9).
+
 ICON_CHOICES = [
+    ("default", "None (current appearance)"),
+    ("robot", "🤖 Robot"),
+    ("sparkles", "✨ Sparkles"),
+    ("book", "📚 Books"),
+    ("briefcase", "💼 Briefcase"),
 
-    ('default', 'None (current appearance)'),
-
-    ('robot', '🤖 Robot'),
-
-    ('sparkles', '✨ Sparkles'),
-
-    ('book', '📚 Books'),
-
-    ('briefcase', '💼 Briefcase'),
-
+    # Category-matched assistant icons
+    ("art", "🎨 Art"),
+    ("business", "🏢 Business"),
+    ("career", "🎯 Career"),
+    ("community", "👥 Community"),
+    ("culture", "🎭 Culture"),
+    ("affairs", "🌍 Current Affairs"),
+    ("education", "🎓 Education"),
+    ("startup", "🚀 Entrepreneurship"),
+    ("entertain", "🍿 Entertainment"),
+    ("environ", "🌳 Environment"),
+    ("events", "🎉 Events"),
+    ("fashion", "👗 Fashion"),
+    ("finance", "💰 Finance"),
+    ("fitness", "🏋️ Fitness"),
+    ("food", "🍳 Food"),
+    ("funny", "😂 Funny"),
+    ("gaming", "🎮 Gaming"),
+    ("garden", "🌱 Gardening"),
+    ("general", "💬 General"),
+    ("hobbies", "🧩 Hobbies"),
+    ("history", "🏛️ History"),
+    ("home", "🏠 Home Improvement"),
+    ("innovate", "💡 Innovation"),
+    ("interview", "🤝 Interview Preparation"),
+    ("jobsearch", "🔎 Job Search"),
+    ("language", "🗣️ Language"),
+    ("leader", "👑 Leadership"),
+    ("lifestyle", "🌞 Lifestyle"),
+    ("local", "📍 Local"),
+    ("manage", "📋 Management"),
+    ("marketing", "📣 Marketing"),
+    ("mental", "🧠 Mental Health"),
+    ("music", "🎵 Music"),
+    ("news", "📰 News"),
+    ("other", "⭐ Other"),
+    ("parenting", "👶 Parenting"),
+    ("pets", "🐾 Pets"),
+    ("philos", "🤔 Philosophy"),
+    ("politics", "🗳️ Politics"),
+    ("product", "⚡ Productivity"),
+    ("relation", "❤️ Relationships"),
+    ("resume", "📄 Resume Building"),
+    ("sales", "📈 Sales"),
+    ("science", "🔬 Science"),
+    ("self", "🌟 Self Improvement"),
+    ("shopping", "🛍️ Shopping"),
+    ("society", "🌐 Society"),
+    ("spirit", "🕊️ Spirituality"),
+    ("sports", "🏆 Sports"),
+    ("support", "🎧 Support"),
+    ("sustain", "♻️ Sustainability"),
+    ("tech", "💻 Tech"),
+    ("technol", "⚙️ Technology"),
+    ("therapy", "🫂 Therapy"),
+    ("travel", "✈️ Travel"),
+    ("wellbeing", "🌻 Wellbeing"),
+    ("wellness", "🧘 Wellness"),
+    ("print3d", "🖨️ 3-D Printing"),
 ]
 
-ICON_SYMBOLS = {'robot': '🤖', 'sparkles': '✨', 'book': '📚', 'briefcase': '💼'}
+ICON_SYMBOLS = {
+    value: label.split(" ", 1)[0]
+    for value, label in ICON_CHOICES
+    if value != "default"
+}
+
 
 TONE_HINT = 'Choose a default tone. More specific personality instructions or chat requests take priority.'
 
