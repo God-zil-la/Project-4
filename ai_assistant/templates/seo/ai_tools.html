@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block title %}AI Tools - Custom Assistants, Knowledge and Website Chatbots{% endblock %}
+{% block canonical %}<link rel="canonical" href="https://www.myaiassistantapp.se/ai-tools/">{% endblock %}
+{% block meta_description %}Explore AI tools for custom assistants, document knowledge, website chatbots, Discord and analytics in one platform. Start building with AI Assistant.{% endblock %}
+{% block og_title %}AI Tools - Custom Assistants, Knowledge and Website Chatbots{% endblock %}
+{% block og_description %}Explore AI tools for custom assistants, document knowledge, website chatbots, Discord and analytics in one platform. Start building with AI Assistant.{% endblock %}
+{% block og_url %}https://www.myaiassistantapp.se/ai-tools/{% endblock %}
+{% block twitter_title %}AI Tools - Custom Assistants, Knowledge and Website Chatbots{% endblock %}
+{% block twitter_description %}Explore AI tools for custom assistants, document knowledge, website chatbots, Discord and analytics in one platform. Start building with AI Assistant.{% endblock %}
+{% block structured_data %}<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebPage","name":"AI Tools for Work, Projects and Business","url":"https://www.myaiassistantapp.se/ai-tools/","description":"Explore AI tools for custom assistants, document knowledge, website chatbots, Discord and analytics in one platform. Start building with AI Assistant."}</script>{% endblock %}
+{% block content %}
+<section class="content">
+<h1>AI Tools for Work, Projects and Business</h1>
+<p>Explore AI tools for custom assistants, document knowledge, website chatbots, Discord and analytics in one platform. Start building with AI Assistant.</p>
+<h2>A toolkit for creating AI assistants</h2>
+<p>AI Assistant combines a chatbot builder, assistant customization, document Knowledge Base, persistent conversations and usage analytics in one platform.</p>
+<h2>AI tools for your own information</h2>
+<p>Upload supported documents or enter knowledge manually so an assistant can answer questions using information relevant to your project.</p>
+<h2>AI tools for websites</h2>
+<p>Pro users can share a public chatbot or embed an assistant in a website widget. Website visitor conversations are kept separate and visible to the assistant owner.</p>
+<h2>AI tools for communities</h2>
+<p>The platform supports a Discord integration for connecting a configured assistant to a Discord server. The broader customer-facing API package is planned rather than available today.</p>
+<h2>Choose tools that match your goal</h2>
+<p>Build a personal research assistant, a study helper, a business FAQ assistant or a community chatbot. Start free and review plan limits before upgrading.</p>
+<h2>Explore related AI Assistant features</h2>
+<p><a href="{% url 'ai_assistant' %}">AI assistant</a> · <a href="{% url 'ai_chatbot' %}">AI chatbot</a> · <a href="{% url 'personal_ai_assistant' %}">personal AI assistant</a> · <a href="{% url 'ai_chatbot_for_business' %}">AI chatbot for business</a> · <a href="{% url 'website_chatbot' %}">website chatbot</a> · <a href="{% url 'ai_knowledge_base' %}">AI Knowledge Base</a></p>
+<p><a href="{% url 'accounts:register' %}" class="btn">Create Your AI Assistant</a></p>
+</section>
+{% endblock %}
