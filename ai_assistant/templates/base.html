@@ -81,6 +81,7 @@
       {% if user.is_authenticated %}
         <li><a href="/dashboard/">Dashboard</a></li>
         <li><a href="/bots/">My AI Assistants</a></li>
+        <li><a href="{% url 'accounts:api-access' %}">API Access</a></li>
         <li><a href="/payments/">Billing</a></li>
         <li><a href="{% url 'bots:analytics' %}">Analytics</a></li>
         <li>

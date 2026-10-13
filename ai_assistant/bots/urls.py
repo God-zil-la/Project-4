@@ -11,6 +11,7 @@ from .api_views import (
     api_bot_chat,
 )
 from .discord_download import download_discord_bridge
+from .discord_auth import DiscordIntegrationAuthentication
 from .report_api import AIResponseReportAPIView
 
 
@@ -133,6 +134,17 @@ urlpatterns = [
     ),
 
     # Discord
+    path(
+        "<int:bot_id>/discord/integrations/<int:integration_id>/revoke/",
+        views.revoke_discord_integration,
+        name="discord-revoke",
+    ),
+    path(
+        "api/discord/bot/<int:bot_id>/chat/",
+        api_bot_chat.cls.as_view(authentication_classes=[DiscordIntegrationAuthentication]),
+        {"require_pro": True},
+        name="discord-api-bot-chat",
+    ),
     path(
         "<int:bot_id>/discord/setup/",
         views.discord_setup,

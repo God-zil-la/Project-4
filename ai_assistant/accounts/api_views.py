@@ -29,7 +29,11 @@ from ai_assistant.bots.chat_service import (
     ChatUsageLimitError,
     process_bot_message,
 )
-from ai_assistant.bots.models import Bot
+from ai_assistant.bots.models import Bot, Conversation
+from .api_keys import hash_api_key, valid_api_key_format
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import never_cache
+from django.views.decorators.debug import sensitive_variables
 
 class IOSLoginAPIView(APIView):
     """Authenticate native app users with case-insensitive usernames."""
@@ -239,9 +243,10 @@ class IOSRegisterAPIView(APIView):
                 "email": email,
             },
             status=status.HTTP_201_CREATED,
-        )        
+        )
 
 
+@method_decorator(never_cache, name="dispatch")
 class PublicChatAPIView(APIView):
     """
     Public API endpoint for sending messages to a bot
@@ -251,6 +256,7 @@ class PublicChatAPIView(APIView):
     permission_classes = [AllowAny]
     authentication_classes = []
 
+    @sensitive_variables()
     def post(self, request, *args, **kwargs):
         api_key = request.headers.get("X-API-KEY")
 
@@ -262,9 +268,12 @@ class PublicChatAPIView(APIView):
                 status=status.HTTP_401_UNAUTHORIZED,
             )
 
+        if not valid_api_key_format(api_key):
+            return Response({"error": "Invalid API key."}, status=401)
+
         try:
             profile = UserProfile.objects.get(
-                api_key=api_key,
+                api_key=hash_api_key(api_key),
                 user__is_active=True,
             )
             user = profile.user
@@ -341,6 +350,8 @@ class PublicChatAPIView(APIView):
             )
 
         try:
+            if conversation_id is None:
+                conversation_id = Conversation(user=user, bot=bot)
             result = process_bot_message(
                 user=user,
                 bot=bot,

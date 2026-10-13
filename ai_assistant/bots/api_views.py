@@ -366,7 +366,7 @@ class ConversationDetailAPIView(APIView):
 
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
-def api_bot_chat(request, bot_id):
+def api_bot_chat(request, bot_id, require_pro=False):
     """
     Send a message to an authenticated user's bot
     using the shared AI chat service.
@@ -377,6 +377,14 @@ def api_bot_chat(request, bot_id):
     If no conversation_id is provided, the shared
     chat service resolves or creates a conversation.
     """
+
+    if require_pro:
+        profile = getattr(request.user, "profile", None)
+        if profile is None or not profile.is_pro:
+            return Response(
+                {"error": "Discord integration requires the Pro plan."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
 
     validate_request_object(request.data, ("message", "conversation_id"), ("conversation_id",))
     user = request.user
@@ -423,6 +431,18 @@ def api_bot_chat(request, bot_id):
             conversation_id = None
 
     try:
+        if require_pro:
+            if conversation_id is None:
+                conversation_id = Conversation(user=user, bot=bot, discord_integration=request.auth)
+            else:
+                from django.core.exceptions import ValidationError
+                try:
+                    conversation_id = Conversation.objects.get(
+                        public_id=conversation_id, user=user, bot=bot,
+                        discord_integration=request.auth,
+                    )
+                except (Conversation.DoesNotExist, ValidationError, ValueError, TypeError):
+                    raise ChatServiceError("Conversation not found.") from None
         result = process_bot_message(
             user=user,
             bot=bot,

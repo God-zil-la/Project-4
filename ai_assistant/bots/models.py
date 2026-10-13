@@ -274,6 +274,10 @@ class Conversation(models.Model):
     """
 
     is_widget = models.BooleanField(default=False, editable=False)
+    discord_integration = models.ForeignKey(
+        "DiscordIntegration", null=True, blank=True, editable=False,
+        on_delete=models.SET_NULL, related_name="conversations",
+    )
 
     public_id = models.UUIDField(
         default=uuid.uuid4,
@@ -489,3 +493,13 @@ class WidgetBranding(models.Model):
 
     def __str__(self):
         return f"Widget branding for {self.bot.name}"
+
+
+class DiscordIntegration(models.Model):
+    """A revocable credential restricted to one owner's Discord assistant."""
+
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="discord_integrations")
+    bot = models.ForeignKey(Bot, on_delete=models.CASCADE, related_name="discord_integrations")
+    secret_hash = models.CharField(max_length=64, unique=True, editable=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    revoked_at = models.DateTimeField(null=True, blank=True)

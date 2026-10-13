@@ -23,6 +23,25 @@
 
     <section class="wizard">
 
+        <div class="step">
+            <h2>Integration access</h2>
+            <p>Grant View Channels, Send Messages and, when needed, Send Messages in Threads. Do not grant Administrator. Restrict the bot to intended channels. Channel members share AI history and can use the selected assistant's Knowledge; the bot also accepts direct messages.</p>
+            <p>Keep the downloaded ZIP and .env private: both contain credentials. The bridge accepts !ask, direct mentions and DMs; !ping checks Discord connectivity.</p>
+            <p>Updated bridges use a separate credential. Existing installations need the updated bridge and configuration. Revoking access here does not revoke older account tokens or sign you out.</p>
+            {% if not discord_is_pro %}
+            <p>New downloads and Discord chat require Pro. You can still revoke existing integration credentials below.</p>
+            {% endif %}
+            {% for integration in discord_integrations %}
+            <form method="post" action="{% url 'bots:discord-revoke' bot.id integration.id %}">
+                {% csrf_token %}
+                <p>Integration {{ integration.id }} — created {{ integration.created_at }}</p>
+                <button type="submit" class="btn secondary-btn">Revoke integration {{ integration.id }}</button>
+            </form>
+            {% empty %}
+            <p>No active integration credentials.</p>
+            {% endfor %}
+        </div>
+
         <!-- STEP 1 -->
         <div class="step">
 
@@ -103,7 +122,7 @@
 
                 </div>
 
-                <button class="btn download-btn" type="submit">
+                <button class="btn download-btn" type="submit" {% if not discord_is_pro %}disabled{% endif %}>
                     ⬇ Download Ready-to-Run Discord Bridge
                 </button>
 
@@ -119,7 +138,7 @@
             <h2>Documentation</h2>
 
             <p>
-                Need help? Follow the guides below.
+                Use the current U5 instructions in README.txt included with your download. Older PDF guides may describe previous credentials or commands.
             </p>
 
             <div class="guide-buttons">

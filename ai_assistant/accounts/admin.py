@@ -55,8 +55,9 @@ class UserProfileAdmin(admin.ModelAdmin):
         'user__email',
     )
 
+    exclude = ("api_key",)
+
     readonly_fields = (
-        'api_key',
         'effective_plan_display',
         'complimentary_active',
     )

@@ -20,13 +20,14 @@ from django.http import JsonResponse, HttpResponseNotAllowed
 
 # Third-party imports
 
-from rest_framework.authtoken.models import Token
+from django.utils import timezone
+from django.views.decorators.http import require_POST
+from .models import DiscordIntegration
 
 
 # Local app imports
 
 from ai_assistant.accounts.models import UserProfile
-from ai_assistant.dashboard.models import BotUsageLog
 from .models import (
     Bot,
     ChatMessage,
@@ -635,31 +636,29 @@ def bot_chat_playground(request, bot_id):
 
 @login_required
 def discord_setup(request, bot_id):
-    bot = get_object_or_404(
-        Bot,
-        id=bot_id,
-        owner=request.user,
-    )
+    bot = get_object_or_404(Bot, id=bot_id, owner=request.user)
+    return render(request, "bots/discord/setup.html", {
+        "bot": bot,
+        "discord_is_pro": request.user.profile.is_pro,
+        "discord_integrations": DiscordIntegration.objects.filter(
+            owner=request.user, bot=bot, revoked_at__isnull=True,
+        ).order_by("-created_at"),
+    })
 
-    if request.user.profile.effective_plan != "pro":
-        messages.warning(
-            request,
-            "Discord integration is available on the Pro plan."
-        )
-        return redirect("payments:billing")
 
-    token, _ = Token.objects.get_or_create(
-        user=request.user
+@login_required
+@require_POST
+@csrf_protect
+def revoke_discord_integration(request, bot_id, integration_id):
+    bot = get_object_or_404(Bot, id=bot_id, owner=request.user)
+    integration = get_object_or_404(
+        DiscordIntegration, pk=integration_id, owner=request.user, bot=bot,
     )
-
-    return render(
-        request,
-        "bots/discord/setup.html",
-        {
-            "bot": bot,
-            "api_token": token.key,
-        },
+    DiscordIntegration.objects.filter(pk=integration.pk, revoked_at__isnull=True).update(
+        revoked_at=timezone.now(),
     )
+    messages.success(request, "Discord integration access revoked.")
+    return redirect("bots:discord-setup", bot_id=bot.id)
 
 
 def analytics_data(user):

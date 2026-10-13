@@ -14,12 +14,15 @@ from .api_views import (
 )
 from .deletion_views import confirm_delete_account
 
+from .api_access import api_access
+
 app_name = 'accounts'
 
 urlpatterns = [
+    path("api-access/", api_access, name="api-access"),
     path('delete/', confirm_delete_account, name='delete_account'),
     path('register/', views.register, name='register'),
-    
+
     path(
     'resend-verification/',
     views.resend_activation,

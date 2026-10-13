@@ -202,7 +202,8 @@ class WidgetTests(TestCase):
 
     def test_public_session_rate_limit_and_cache_failure_fail_closed(self):
         self.enable()
-        for _ in range(30): self.session()
+        for _ in range(30):
+            self.session()
         response = self.public.post(self.url('public-session'), {}, format='json')
         self.assertEqual(response.status_code, 429)
         self.assertEqual(response['Retry-After'], '60')

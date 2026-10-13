@@ -139,7 +139,7 @@ class UserProfile(models.Model):
     )
 
     api_key = models.CharField(
-        max_length=64,
+        max_length=71,
         unique=True,
         blank=True,
     )
@@ -305,12 +305,12 @@ class UserProfile(models.Model):
         )
 
     def generate_api_key(self):
-        """Generate and save a new API key for the user."""
-        self.api_key = secrets.token_hex(32)
-
-        self.save(
-            update_fields=["api_key"]
-        )
+        """Replace the stored digest and return the secret exactly once."""
+        from .api_keys import hash_api_key
+        secret = "api_" + secrets.token_hex(32)
+        self.api_key = hash_api_key(secret)
+        self.save(update_fields=["api_key"])
+        return secret
 
     def __str__(self):
         return f"{self.user.username} Profile"

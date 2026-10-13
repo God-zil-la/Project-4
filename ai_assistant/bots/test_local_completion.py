@@ -268,7 +268,7 @@ class LocalCompletionTests(TestCase):
             update_fields=["plan"]
         )
 
-        profile.generate_api_key()
+        api_key = profile.generate_api_key()
 
         for payload in [
             [],
@@ -286,7 +286,7 @@ class LocalCompletionTests(TestCase):
                 "/accounts/api/public-chat/",
                 json.dumps(payload),
                 content_type="application/json",
-                HTTP_X_API_KEY=profile.api_key,
+                HTTP_X_API_KEY=api_key,
                 secure=True,
             )
 

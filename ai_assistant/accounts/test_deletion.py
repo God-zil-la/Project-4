@@ -115,7 +115,7 @@ class AccountDeletionTests(TestCase):
         BotUsageLog.objects.create(user=self.user, bot=bot, tokens_used=2)
         DashboardUsage.objects.create(user=self.user, bot=bot, tokens_used=2)
         Token.objects.create(user=self.user)
-        key = self.user.profile.api_key
+        key = self.user.profile.generate_api_key()
         BillingEmail.objects.create(key='mine', recipient='OWNER@example.com', subject='bill', body='private')
         BillingEmail.objects.create(key='other', recipient=self.other.email, subject='keep', body='keep')
         StripeEvent.objects.create(event_id='evt_keep_for_deduplication')

@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}API Access{% endblock %}
+{% block content %}
+<main class="container">
+  <h1>API Access</h1>
+  <p>Connect your own server to your AI assistants. API calls require Pro and share your account's monthly allowance and request limits.</p>
+  {% if notice %}<p role="status">{{ notice }}</p>{% endif %}
+  {% if new_api_key %}
+  <label for="new-api-key">New API key — save securely now</label>
+  <input id="new-api-key" type="text" value="{{ new_api_key }}" readonly autocomplete="off" spellcheck="false" style="width:100%">
+  {% endif %}
+  <p>Keep this key on your server. Never put it in a website, mobile app, repository, URL, or message. It can invoke any assistant you own.</p>
+  {% if api_is_pro %}
+  <form method="post">{% csrf_token %}<button name="action" value="rotate">Create / rotate API key</button></form>
+  <p>Rotation immediately invalidates the previous key. Update your integrations with the replacement.</p>
+  {% else %}<p>Pro is required to create a key and call the API.</p>{% endif %}
+  <form method="post">{% csrf_token %}<button name="action" value="revoke">Revoke API key</button></form>
+  <h2>Send a message</h2>
+  <p>POST JSON to <code>/accounts/api/public-chat/</code> over HTTPS. Set <code>X-API-KEY</code> to your secret and <code>Content-Type</code> to <code>application/json</code>.</p>
+  <pre>{"bot_id": 123, "message": "Hello"}</pre>
+  <p>Use an assistant ID from <a href="{% url 'bots:list' %}">My AI Assistants</a>. A successful response includes <code>response</code> and <code>conversation_id</code>. To continue, send that ID as <code>conversation_id</code>. Omitting it starts a new conversation.</p>
+  <p>Errors: 400 invalid request, 401 invalid key, 403 Pro or usage restriction, 404 assistant unavailable, 429 request limit, 500 processing failure. For 429, wait the returned <code>retry_after_seconds</code>. Do not automatically retry uncertain or timed-out chat requests.</p>
+  <h2>Discord</h2>
+  <p>Discord uses its own assistant-specific credential. Manage it from each assistant's Discord Setup page. Rotating this API key does not disconnect Discord.</p>
+</main>
+{% endblock %}

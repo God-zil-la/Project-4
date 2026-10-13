@@ -290,6 +290,9 @@ def _resolve_conversation(
     if resolved_conversation.is_widget and not allow_widget:
         raise ChatServiceError("Visitor conversations are read-only for the assistant owner.")
 
+    if resolved_conversation._state.adding:
+        resolved_conversation.save()
+
     return resolved_conversation
 
 
