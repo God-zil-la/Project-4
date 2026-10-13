@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block title %}AI Document Chatbot - Build a Chatbot With Your Files{% endblock %}
+{% block canonical %}<link rel="canonical" href="https://www.myaiassistantapp.se/ai-document-chatbot/">{% endblock %}
+{% block meta_description %}Create an AI document chatbot with PDF, DOCX, TXT and your own text. Build a knowledge-powered assistant for research, projects or business.{% endblock %}
+{% block og_title %}AI Document Chatbot - Build a Chatbot With Your Files{% endblock %}
+{% block og_description %}Create an AI document chatbot with PDF, DOCX, TXT and your own text. Build a knowledge-powered assistant for research, projects or business.{% endblock %}
+{% block og_url %}https://www.myaiassistantapp.se/ai-document-chatbot/{% endblock %}
+{% block twitter_title %}AI Document Chatbot - Build a Chatbot With Your Files{% endblock %}
+{% block twitter_description %}Create an AI document chatbot with PDF, DOCX, TXT and your own text. Build a knowledge-powered assistant for research, projects or business.{% endblock %}
+{% block structured_data %}<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebPage","name":"Create an AI Chatbot With Your Documents","url":"https://www.myaiassistantapp.se/ai-document-chatbot/","description":"Create an AI document chatbot with PDF, DOCX, TXT and your own text. Build a knowledge-powered assistant for research, projects or business."}</script>{% endblock %}
+{% block content %}
+<section class="content">
+<h1>Create an AI Chatbot With Your Documents</h1>
+<p>Create an AI document chatbot with PDF, DOCX, TXT and your own text. Build a knowledge-powered assistant for research, projects or business.</p>
+<h2>Turn your information into assistant knowledge</h2>
+<p>A document chatbot can use your uploaded files as context for answers. AI Assistant supports text-based PDFs, Word DOCX files, TXT files and manually entered information.</p>
+<h2>Relevant retrieval, not just keyword matching</h2>
+<p>The Knowledge Base uses retrieval-augmented generation with exact, lexical and semantic matching strategies to find relevant information for a question.</p>
+<h2>Separate knowledge for different assistants</h2>
+<p>Create dedicated assistants for different projects or departments. Knowledge is associated with its owning assistant, rather than being shared indiscriminately between accounts.</p>
+<h2>Document chat for businesses</h2>
+<p>A business can use its own FAQs, product information or internal reference documents to create a specialist assistant. Pro users can also make a configured assistant available through the Website Widget.</p>
+<h2>Know the limits</h2>
+<p>Uploaded files must meet the supported format and storage limits. Scanned PDFs without text extraction are not supported by the current Knowledge processing pipeline.</p>
+<h2>Explore related AI Assistant features</h2>
+<p><a href="{% url 'ai_assistant' %}">AI assistant</a> · <a href="{% url 'ai_chatbot' %}">AI chatbot</a> · <a href="{% url 'personal_ai_assistant' %}">personal AI assistant</a> · <a href="{% url 'ai_chatbot_for_business' %}">AI chatbot for business</a> · <a href="{% url 'website_chatbot' %}">website chatbot</a> · <a href="{% url 'ai_knowledge_base' %}">AI Knowledge Base</a></p>
+<p><a href="{% url 'accounts:register' %}" class="btn">Create Your AI Assistant</a></p>
+</section>
+{% endblock %}
