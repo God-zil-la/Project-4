@@ -1,3 +1,4 @@
+from .mobile_u5_api import NativeDiscordView, NativeDiscordRevokeView
 from .parity_api import DashboardAPIView, AnalyticsAPIView, KnowledgeAPIView, KnowledgeDetailAPIView
 from django.urls import path
 from rest_framework.authtoken.views import obtain_auth_token
@@ -19,6 +20,8 @@ app_name = "bots"
 
 
 urlpatterns = [
+    path("api/u5/bots/<int:bot_id>/discord/", NativeDiscordView.as_view(), name="native-u5-discord"),
+    path("api/u5/bots/<int:bot_id>/discord/<int:integration_id>/revoke/", NativeDiscordRevokeView.as_view(), name="native-u5-discord-revoke"),
     path(
         "api/conversations/<uuid:conversation_id>/messages/<int:message_id>/report/",
         AIResponseReportAPIView.as_view(),

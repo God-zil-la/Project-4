@@ -1,3 +1,4 @@
+from .mobile_u5_api import NativeApiAccessView
 from django.urls import path, reverse_lazy
 from django.contrib.auth import views as auth_views
 
@@ -19,6 +20,7 @@ from .api_access import api_access
 app_name = 'accounts'
 
 urlpatterns = [
+    path("api/u5/api-access/", NativeApiAccessView.as_view(), name="native-u5-api-access"),
     path("api-access/", api_access, name="api-access"),
     path('delete/', confirm_delete_account, name='delete_account'),
     path('register/', views.register, name='register'),

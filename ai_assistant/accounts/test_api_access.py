@@ -189,6 +189,50 @@ class APIAccessTests(TestCase):
         legacy = 'a' * 32
         UserProfile.objects.filter(user=self.user).update(api_key=legacy)
         module = importlib.import_module('ai_assistant.accounts.migrations.0012_hash_customer_api_keys')
+    def test_implicit_private_chat_reuses_private_history_after_discord_activity(self):
+        private = Conversation.objects.create(user=self.user, bot=self.bot)
+        integration, secret = issue_discord_integration(self.user, self.bot)
+        discord_url = reverse('bots:discord-api-bot-chat', args=[self.bot.pk])
+        discord = self.api.post(discord_url, {'message': 'Discord channel text'},
+            format='json', HTTP_AUTHORIZATION='Discord ' + secret)
+        self.assertEqual(discord.status_code, 200, discord.data)
+        discord_history = Conversation.objects.get(public_id=discord.data['conversation_id'])
+        from ai_assistant.bots.models import ChatMessage
+        before = list(ChatMessage.objects.filter(conversation=discord_history).values())
+        self.api.force_authenticate(user=self.user)
+        response = self.api.post(reverse('bots:api-bot-chat', args=[self.bot.pk]),
+            {'message': 'Private text'}, format='json')
+        self.assertEqual(response.status_code, 200, response.data)
+        self.assertEqual(response.data['conversation_id'], str(private.public_id))
+        self.assertTrue(ChatMessage.objects.filter(conversation=private, message='Private text').exists())
+        self.assertEqual(list(ChatMessage.objects.filter(conversation=discord_history).values()), before)
+
+    def test_implicit_private_chat_creates_private_history_when_only_discord_exists(self):
+        integration, secret = issue_discord_integration(self.user, self.bot)
+        discord_url = reverse('bots:discord-api-bot-chat', args=[self.bot.pk])
+        histories = []
+        for message in ('Discord channel text', 'Discord DM text'):
+            response = self.api.post(discord_url, {'message': message},
+                format='json', HTTP_AUTHORIZATION='Discord ' + secret)
+            self.assertEqual(response.status_code, 200, response.data)
+            histories.append(response.data['conversation_id'])
+        self.api.force_authenticate(user=self.user)
+        response = self.api.post(reverse('bots:api-bot-chat', args=[self.bot.pk]),
+            {'message': 'Private text'}, format='json')
+        self.assertEqual(response.status_code, 200, response.data)
+        private_id = response.data['conversation_id']
+        self.assertNotIn(private_id, histories)
+        self.assertIsNone(Conversation.objects.get(public_id=private_id).discord_integration_id)
+        self.api.force_authenticate(user=None)
+        for cid in histories:
+            response = self.api.post(discord_url, {'message': 'Continue', 'conversation_id': cid},
+                format='json', HTTP_AUTHORIZATION='Discord ' + secret)
+            self.assertEqual(response.status_code, 200, response.data)
+            self.assertEqual(response.data['conversation_id'], cid)
+        response = self.api.post(discord_url, {'message': 'Read private', 'conversation_id': private_id},
+            format='json', HTTP_AUTHORIZATION='Discord ' + secret)
+        self.assertEqual(response.status_code, 400)
+
         module.hash_existing_keys(apps, SimpleNamespace(connection=connection))
         self.user.profile.refresh_from_db()
         self.assertEqual(self.user.profile.api_key, hash_api_key(legacy))

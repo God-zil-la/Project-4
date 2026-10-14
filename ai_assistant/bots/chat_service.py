@@ -243,6 +243,7 @@ def _resolve_conversation(
                 user=user,
                 bot=bot,
                 is_widget=False,
+                discord_integration__isnull=True,
             )
             .order_by("-updated_at", "-created_at")
             .first()
