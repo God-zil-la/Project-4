@@ -8,7 +8,7 @@ from django.shortcuts import redirect
 from django.views.decorators.http import require_GET, require_POST
 
 from .premium_discord_discord_api import (
-    DiscordOAuthError, authorization_url, authorized_manageable_guilds, exchange_code,
+    DiscordOAuthError, authorization_url, authorized_manageable_guilds, exchange_code, verify_bot_membership,
 )
 from .premium_discord_guild_service import connect_verified_guild, disconnect_guild
 from .premium_discord_models import PremiumDiscordGuild
@@ -88,7 +88,12 @@ def premium_discord_add_guild(request):
     if not isinstance(guilds, dict) or guild_id not in guilds:
         return JsonResponse({"error": "Discord server permission not verified"}, status=403)
     # Consume authorization for this server before creating the record.
-    guild_name = guilds.pop(guild_id)
+    guild_name = guilds[guild_id]
+    try:
+        verify_bot_membership(guild_id)
+    except DiscordOAuthError:
+        return JsonResponse({"error": "Install the Premium Discord bot on this server first"}, status=403)
+    guilds.pop(guild_id)
     request.session["premium_discord_verified_guilds"] = guilds
     request.session.modified = True
     try:
