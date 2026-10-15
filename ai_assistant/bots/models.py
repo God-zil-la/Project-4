@@ -503,3 +503,7 @@ class DiscordIntegration(models.Model):
     secret_hash = models.CharField(max_length=64, unique=True, editable=False)
     created_at = models.DateTimeField(auto_now_add=True)
     revoked_at = models.DateTimeField(null=True, blank=True)
+
+
+# Isolated Premium Discord model, registered with Django without altering Pro U5.
+from .premium_discord_models import PremiumDiscordGuild  # noqa: E402,F401
