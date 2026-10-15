@@ -30,7 +30,8 @@ def authorization_url(state):
         "client_id": client_id,
         "redirect_uri": redirect_uri,
         "response_type": "code",
-        "scope": "identify guilds",
+        "scope": "identify guilds bot applications.commands",
+        "permissions": "2048",
         "state": state,
         "prompt": "consent",
     })
@@ -93,3 +94,24 @@ def authorized_manageable_guilds(access_token):
         ):
             result[guild_id] = str(guild.get("name", ""))[:100]
     return result
+
+
+def verify_bot_membership(guild_id):
+    """Verify the actual installation with the bot token; OAuth guild access alone is insufficient."""
+    if not isinstance(guild_id, str) or not guild_id.isdecimal():
+        raise DiscordOAuthError("Invalid Discord server.")
+    bot_token = os.environ.get("PREMIUM_DISCORD_BOT_TOKEN", "").strip()
+    if not bot_token:
+        raise DiscordOAuthError("Premium Discord bot token is not configured.")
+    request = urllib.request.Request(
+        "https://discord.com/api/v10/guilds/" + guild_id,
+        headers={"Authorization": "Bot " + bot_token, "User-Agent": "AI-Assistant-Premium-Discord/1.0"},
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=10) as response:
+            data = json.loads(response.read(262144))
+    except (urllib.error.URLError, ValueError, OSError) as exc:
+        raise DiscordOAuthError("Premium Discord bot is not installed on this server.") from exc
+    if not isinstance(data, dict) or data.get("id") != guild_id:
+        raise DiscordOAuthError("Premium Discord bot membership could not be verified.")
+    return True
