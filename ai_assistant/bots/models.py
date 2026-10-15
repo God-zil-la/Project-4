@@ -506,4 +506,8 @@ class DiscordIntegration(models.Model):
 
 
 # Isolated Premium Discord model, registered with Django without altering Pro U5.
-from .premium_discord_models import PremiumDiscordGuild  # noqa: E402,F401
+from .premium_discord_models import (
+    PremiumDiscordGuild,
+    PremiumDiscordUsageLog,
+    PremiumDiscordJob,
+)  # noqa: E402,F401

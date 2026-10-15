@@ -6,7 +6,12 @@ import requests
 from django.db import close_old_connections
 
 from .premium_discord_chat import answer_premium_discord
-from .premium_discord_queue import claim_interaction, decrypt_token, finish_interaction
+from .premium_discord_queue import (
+    claim_interaction,
+    decrypt_token,
+    finish_interaction,
+    expire_stale_interactions,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -40,5 +45,6 @@ def process_next():
 def run_worker(*, poll_seconds=1):
     while True:
         close_old_connections()
+        expire_stale_interactions()
         if not process_next():
             time.sleep(poll_seconds)
