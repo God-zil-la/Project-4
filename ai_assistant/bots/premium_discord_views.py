@@ -36,8 +36,6 @@ def premium_discord_status(request):
 def premium_discord_connect(request):
     if not _premium(request.user):
         return JsonResponse({"error": "Premium required"}, status=403)
-    nonce = secrets.token_urlsafe(32)
-    request.session["premium_discord_oauth_nonce"] = nonce
     state = create_oauth_state(request.user.pk)
     # Session binding makes the signed state single-use and blocks login CSRF.
     request.session["premium_discord_oauth_state"] = state
@@ -53,7 +51,6 @@ def premium_discord_connect(request):
 def premium_discord_callback(request):
     state = request.GET.get("state", "")
     expected = request.session.pop("premium_discord_oauth_state", None)
-    request.session.pop("premium_discord_oauth_nonce", None)
     if not expected or not secrets.compare_digest(state, expected):
         return HttpResponseBadRequest("Invalid or already-used Discord authorization.")
     try:
@@ -66,6 +63,7 @@ def premium_discord_callback(request):
         # Guild selection happens after verified OAuth, using a short-lived session
         # allowlist. Never accept arbitrary guild IDs from the client.
         request.session["premium_discord_verified_guilds"] = guilds
+        request.session["premium_discord_verified_at"] = __import__("time").time()
         return JsonResponse({"authorized_guilds": [
             {"guild_id": guild_id, "guild_name": name}
             for guild_id, name in guilds.items()
@@ -81,6 +79,12 @@ def premium_discord_add_guild(request):
         return JsonResponse({"error": "Premium required"}, status=403)
     guild_id = request.POST.get("guild_id", "")
     guilds = request.session.get("premium_discord_verified_guilds", {})
+    verified_at = request.session.get("premium_discord_verified_at", 0)
+    import time
+    if not isinstance(verified_at, (int, float)) or time.time() - verified_at > 600:
+        request.session.pop("premium_discord_verified_guilds", None)
+        request.session.pop("premium_discord_verified_at", None)
+        return JsonResponse({"error": "Discord verification expired"}, status=403)
     if not isinstance(guilds, dict) or guild_id not in guilds:
         return JsonResponse({"error": "Discord server permission not verified"}, status=403)
     # Consume authorization for this server before creating the record.
