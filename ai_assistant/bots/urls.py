@@ -16,10 +16,17 @@ from .discord_auth import DiscordIntegrationAuthentication
 from .report_api import AIResponseReportAPIView
 
 
+from . import premium_discord_views
+
 app_name = "bots"
 
 
 urlpatterns = [
+    path("api/premium-discord/status/", premium_discord_views.premium_discord_status, name="premium-discord-status"),
+    path("api/premium-discord/connect/", premium_discord_views.premium_discord_connect, name="premium-discord-connect"),
+    path("api/premium-discord/callback/", premium_discord_views.premium_discord_callback, name="premium-discord-callback"),
+    path("api/premium-discord/guilds/connect/", premium_discord_views.premium_discord_add_guild, name="premium-discord-add-guild"),
+    path("api/premium-discord/guilds/disconnect/", premium_discord_views.premium_discord_remove_guild, name="premium-discord-remove-guild"),
     path("api/u5/bots/<int:bot_id>/discord/", NativeDiscordView.as_view(), name="native-u5-discord"),
     path("api/u5/bots/<int:bot_id>/discord/<int:integration_id>/revoke/", NativeDiscordRevokeView.as_view(), name="native-u5-discord-revoke"),
     path(
