@@ -2,11 +2,11 @@
 import logging
 
 import openai
-from django.core.cache import cache
 
 from ai_assistant.accounts.plan_utils import get_ai_usage_status
 from .chat_service import CHAT_MODEL, _check_rate_limit
 from .premium_discord_guild_service import resolve_active_premium_guild
+from .premium_discord_models import PremiumDiscordUsageLog
 
 logger = logging.getLogger(__name__)
 
@@ -51,6 +51,17 @@ def answer_premium_discord(*, guild_id, message):
         answer = (response.choices[0].message.get("content") or "").strip()
         if not answer:
             raise PremiumDiscordChatError("AI did not return an answer.")
+        token_usage = getattr(response, "usage", None)
+        if token_usage is None:
+            raise PremiumDiscordChatError("AI token usage unavailable; cannot account for request.")
+        input_tokens = int(token_usage.get("prompt_tokens", 0))
+        output_tokens = int(token_usage.get("completion_tokens", 0))
+        if input_tokens <= 0 or output_tokens <= 0:
+            raise PremiumDiscordChatError("AI token accounting incomplete.")
+        PremiumDiscordUsageLog.objects.create(
+            owner=owner, guild=guild, model=CHAT_MODEL,
+            input_tokens=input_tokens, output_tokens=output_tokens,
+        )
         return answer[:1900]
     except Exception:
         profile.release_message_slot(reservation)
