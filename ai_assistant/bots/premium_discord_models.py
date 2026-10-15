@@ -39,3 +39,16 @@ class PremiumDiscordUsageLog(models.Model):
     output_tokens = models.PositiveIntegerField(default=0)
     model = models.CharField(max_length=100)
     timestamp = models.DateTimeField(auto_now_add=True)
+
+
+class PremiumDiscordJob(models.Model):
+    """Durable queue item; interaction token is encrypted, never stored as plaintext."""
+    interaction_id = models.CharField(max_length=32, unique=True)
+    guild_id = models.CharField(max_length=32)
+    application_id = models.CharField(max_length=32)
+    encrypted_token = models.TextField()
+    prompt = models.TextField()
+    status = models.CharField(max_length=16, default="pending")
+    created_at = models.DateTimeField(auto_now_add=True)
+    started_at = models.DateTimeField(null=True, blank=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
