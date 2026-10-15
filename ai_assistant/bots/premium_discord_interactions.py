@@ -1,45 +1,18 @@
 """Premium Discord interaction entrypoint, independent of existing Pro U5."""
 import json
 import logging
-from concurrent.futures import ThreadPoolExecutor
 
 import requests
-from django.conf import settings
-from django.core.cache import cache
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
-from .premium_discord_chat import answer_premium_discord
+from .premium_discord_queue import enqueue_interaction, PremiumDiscordQueueError
 from .premium_discord_signature import (
     DiscordInteractionVerificationError, verify_discord_interaction,
 )
 
 logger = logging.getLogger(__name__)
-_pool = ThreadPoolExecutor(max_workers=4, thread_name_prefix="premium-discord")
-
-
-def _followup(token, application_id, content):
-    # Discord interaction tokens are short-lived; never log or persist them.
-    if not token or not application_id:
-        return
-    try:
-        requests.post(
-            "https://discord.com/api/v10/webhooks/{}/{}".format(application_id, token),
-            json={"content": content[:1900], "allowed_mentions": {"parse": []}},
-            timeout=10,
-        ).raise_for_status()
-    except requests.RequestException:
-        logger.warning("Premium Discord followup delivery failed")
-
-
-def _respond(guild_id, prompt, token, application_id):
-    try:
-        content = answer_premium_discord(guild_id=guild_id, message=prompt)
-    except Exception:
-        logger.exception("Premium Discord interaction failed")
-        content = "AI Assistant is unavailable or the account's usage limit was reached."
-    _followup(token, application_id, content)
 
 
 @csrf_exempt
@@ -79,8 +52,14 @@ def premium_discord_interaction(request):
             and isinstance(token, str) and isinstance(application_id, str)
             and isinstance(interaction_id, str)):
         return JsonResponse({"type": 4, "data": {"content": "Invalid command or server.", "flags": 64}})
-    # Fail closed on duplicate Discord retries, before consuming AI quota.
-    if not cache.add("premium-discord-interaction:" + interaction_id, 1, timeout=900):
-        return JsonResponse({"type": 5})
-    _pool.submit(_respond, guild_id, prompt, token, application_id)
+    try:
+        enqueue_interaction(
+            interaction_id=interaction_id, guild_id=guild_id,
+            application_id=application_id, token=token, prompt=prompt.strip(),
+        )
+    except PremiumDiscordQueueError:
+        logger.error("Premium Discord queue encryption is not configured")
+        return JsonResponse({"error": "Discord queue unavailable"}, status=503)
+    # Discord expects an acknowledgement within three seconds. A dedicated
+    # worker processes the persisted job; web dyno restarts cannot lose it.
     return JsonResponse({"type": 5})
