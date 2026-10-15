@@ -23,3 +23,19 @@ class PremiumDiscordGuild(models.Model):
 
     def __str__(self):
         return f"Premium Discord guild {self.guild_id}"
+
+
+class PremiumDiscordUsageLog(models.Model):
+    """Cost accounting without inventing a customer Bot or modifying Pro usage logs."""
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
+        related_name="premium_discord_usage_logs",
+    )
+    guild = models.ForeignKey(
+        PremiumDiscordGuild, on_delete=models.SET_NULL, null=True,
+        related_name="usage_logs",
+    )
+    input_tokens = models.PositiveIntegerField(default=0)
+    output_tokens = models.PositiveIntegerField(default=0)
+    model = models.CharField(max_length=100)
+    timestamp = models.DateTimeField(auto_now_add=True)
