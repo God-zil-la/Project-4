@@ -4,6 +4,7 @@ import os
 from cryptography.fernet import Fernet, InvalidToken
 from django.db import IntegrityError, transaction
 from django.utils import timezone
+from datetime import timedelta
 
 from .premium_discord_models import PremiumDiscordJob
 
@@ -36,10 +37,19 @@ def enqueue_interaction(*, interaction_id, guild_id, application_id, token, prom
         return False
 
 
+def expire_stale_interactions(*, max_age_minutes=14):
+    """Discord followup tokens expire after 15 minutes; never retry old AI jobs."""
+    cutoff = timezone.now() - timedelta(minutes=max_age_minutes)
+    return PremiumDiscordJob.objects.filter(
+        status__in=["pending", "processing"], created_at__lt=cutoff,
+    ).update(status="expired", encrypted_token="", prompt="", completed_at=timezone.now())
+
+
 def claim_interaction():
     with transaction.atomic():
         job = PremiumDiscordJob.objects.select_for_update(skip_locked=True).filter(
             status="pending",
+            created_at__gte=timezone.now() - timedelta(minutes=14),
         ).order_by("created_at").first()
         if job is None:
             return None
