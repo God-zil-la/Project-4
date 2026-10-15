@@ -17,11 +17,13 @@ from .report_api import AIResponseReportAPIView
 
 
 from . import premium_discord_views
+from .premium_discord_interactions import premium_discord_interaction
 
 app_name = "bots"
 
 
 urlpatterns = [
+    path("api/premium-discord/interactions/", premium_discord_interaction, name="premium-discord-interactions"),
     path("api/premium-discord/status/", premium_discord_views.premium_discord_status, name="premium-discord-status"),
     path("api/premium-discord/connect/", premium_discord_views.premium_discord_connect, name="premium-discord-connect"),
     path("api/premium-discord/callback/", premium_discord_views.premium_discord_callback, name="premium-discord-callback"),
