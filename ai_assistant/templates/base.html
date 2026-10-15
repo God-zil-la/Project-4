@@ -157,37 +157,6 @@
       </div>
 
       <div class="footer-center">
-        {% if not user.is_authenticated %}
-        <nav class="footer-explore-links" aria-label="Explore AI Assistant">
-          <a href="{% url 'ai_assistant' %}" class="footer-link">AI Assistant</a>
-          <span aria-hidden="true">·</span>
-          <a href="{% url 'ai_chatbot' %}" class="footer-link">AI Chatbot</a>
-          <span aria-hidden="true">·</span>
-          <a href="{% url 'personal_ai_assistant' %}" class="footer-link">Personal AI Assistant</a>
-          <span aria-hidden="true">·</span>
-          <a href="{% url 'ai_chatbot_for_business' %}" class="footer-link">AI Chatbot for Business</a>
-          <span aria-hidden="true">·</span>
-          <a href="{% url 'website_chatbot' %}" class="footer-link">Website Chatbot</a>
-          <span aria-hidden="true">·</span>
-          <a href="{% url 'ai_knowledge_base' %}" class="footer-link">AI Knowledge Base</a>
-          <span aria-hidden="true">·</span>
-          <a href="{% url 'discord_ai_bot' %}" class="footer-link">Discord AI Bot</a>
-          <span aria-hidden="true">·</span>
-          <a href="{% url 'ai_assistant_builder' %}" class="footer-link">AI Assistant Builder</a>
-          <span aria-hidden="true">·</span>
-          <a href="{% url 'chat_with_pdf' %}" class="footer-link">Chat With PDF</a>
-          <span aria-hidden="true">·</span>
-          <a href="{% url 'ai_document_chatbot' %}" class="footer-link">AI Document Chatbot</a>
-          <span aria-hidden="true">·</span>
-          <a href="{% url 'ai_tools' %}" class="footer-link">AI Tools</a>
-          <span aria-hidden="true">·</span>
-          <a href="{% url 'personalized_ai_chatbot' %}" class="footer-link">Personalized AI Chatbot</a>
-          <span aria-hidden="true">·</span>
-          <a href="{% url 'ai_chatbot_analytics' %}" class="footer-link">AI Chatbot Analytics</a>
-          <span aria-hidden="true">·</span>
-          <a href="{% url 'ai_assistant_android' %}" class="footer-link">AI Assistant Android</a>
-        </nav>
-        {% endif %}
 
         <div class="footer-policy-links">
           <a href="{% url 'privacy' %}" class="footer-link">Privacy Policy</a>

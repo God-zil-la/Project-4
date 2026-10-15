@@ -1366,17 +1366,46 @@ body > main.site-main {
   text-align: center;
 }
 
+/* Clean footer layout */
+.footer-inner {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 1rem;
+}
 
-/* Footer: prevent SEO links from squeezing the support email */
-.footer-center {
+.footer-left {
   min-width: 0;
-  white-space: normal;
+  justify-content: flex-start;
 }
 
 .footer-left .footer-link {
   white-space: nowrap;
 }
 
-.footer-explore-links {
-  flex-wrap: wrap;
+.footer-center {
+  min-width: 0;
+  white-space: normal;
+  text-align: center;
+}
+
+.footer-right {
+  justify-content: flex-end;
+}
+
+@media (max-width: 768px) {
+  .footer-inner {
+    grid-template-columns: 1fr;
+    text-align: center;
+  }
+
+  .footer-left,
+  .footer-right {
+    justify-content: center;
+  }
+
+  .footer-left .footer-link {
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
 }
