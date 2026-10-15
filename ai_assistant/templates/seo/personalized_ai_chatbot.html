@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block title %}Personalized AI Chatbot - Customize Personality and Knowledge{% endblock %}
+{% block canonical %}<link rel="canonical" href="https://www.myaiassistantapp.se/personalized-ai-chatbot/">{% endblock %}
+{% block meta_description %}Create a personalized AI chatbot with custom personality, instructions, behavior and knowledge. Build assistants for personal projects or business.{% endblock %}
+{% block og_title %}Personalized AI Chatbot - Customize Personality and Knowledge{% endblock %}
+{% block og_description %}Create a personalized AI chatbot with custom personality, instructions, behavior and knowledge. Build assistants for personal projects or business.{% endblock %}
+{% block og_url %}https://www.myaiassistantapp.se/personalized-ai-chatbot/{% endblock %}
+{% block twitter_title %}Personalized AI Chatbot - Customize Personality and Knowledge{% endblock %}
+{% block twitter_description %}Create a personalized AI chatbot with custom personality, instructions, behavior and knowledge. Build assistants for personal projects or business.{% endblock %}
+{% block structured_data %}<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebPage","name":"Create a Personalized AI Chatbot","url":"https://www.myaiassistantapp.se/personalized-ai-chatbot/","description":"Create a personalized AI chatbot with custom personality, instructions, behavior and knowledge. Build assistants for personal projects or business."}</script>{% endblock %}
+{% block content %}
+<section class="content">
+<h1>Create a Personalized AI Chatbot</h1>
+<p>Create a personalized AI chatbot with custom personality, instructions, behavior and knowledge. Build assistants for personal projects or business.</p>
+<h2>Give your chatbot a clear purpose</h2>
+<p>Create an assistant with a defined role for work, education, hobbies or business. Different assistants can focus on different tasks.</p>
+<h2>Control personality and behavior</h2>
+<p>Advanced customization lets you adjust assistant instructions, personality and behavior rather than relying on a one-size-fits-all chatbot.</p>
+<h2>Use your own knowledge</h2>
+<p>Add supported documents or manual information to the assistant Knowledge Base. This gives the assistant relevant context for its subject area.</p>
+<h2>Organize ongoing chats</h2>
+<p>Persistent conversations make it possible to return to earlier discussions with the same assistant and keep unrelated topics separate.</p>
+<h2>Personalization for public chatbots</h2>
+<p>Pro users can publish a configured assistant through a public chatbot or website widget. Branding options depend on plan entitlements.</p>
+<h2>Explore related AI Assistant features</h2>
+<p><a href="{% url 'ai_assistant' %}">AI assistant</a> · <a href="{% url 'ai_chatbot' %}">AI chatbot</a> · <a href="{% url 'personal_ai_assistant' %}">personal AI assistant</a> · <a href="{% url 'ai_chatbot_for_business' %}">AI chatbot for business</a> · <a href="{% url 'website_chatbot' %}">website chatbot</a> · <a href="{% url 'ai_knowledge_base' %}">AI Knowledge Base</a></p>
+<p><a href="{% url 'accounts:register' %}" class="btn">Create Your AI Assistant</a></p>
+</section>
+{% endblock %}
