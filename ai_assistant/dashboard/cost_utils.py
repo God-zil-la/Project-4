@@ -3,6 +3,7 @@ from datetime import datetime, timezone as dt_timezone
 from django.conf import settings
 
 from ai_assistant.dashboard.models import BotUsageLog
+from ai_assistant.bots.premium_discord_models import PremiumDiscordUsageLog
 
 
 def calculate_ai_cost(
@@ -59,6 +60,12 @@ def calculate_user_cost(
         logs = logs.filter(
             timestamp__month=month,
         )
+
+    premium_logs = PremiumDiscordUsageLog.objects.filter(owner=user)
+    if year is not None:
+        premium_logs = premium_logs.filter(timestamp__year=year)
+    if month is not None:
+        premium_logs = premium_logs.filter(timestamp__month=month)
 
     total_cost = 0.0
     total_input_tokens = 0
