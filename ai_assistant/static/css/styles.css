@@ -1365,3 +1365,18 @@ body > main.site-main {
   border-radius: 7px;
   text-align: center;
 }
+
+
+/* Footer: prevent SEO links from squeezing the support email */
+.footer-center {
+  min-width: 0;
+  white-space: normal;
+}
+
+.footer-left .footer-link {
+  white-space: nowrap;
+}
+
+.footer-explore-links {
+  flex-wrap: wrap;
+}
