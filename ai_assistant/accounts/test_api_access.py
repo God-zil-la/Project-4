@@ -189,6 +189,11 @@ class APIAccessTests(TestCase):
         legacy = 'a' * 32
         UserProfile.objects.filter(user=self.user).update(api_key=legacy)
         module = importlib.import_module('ai_assistant.accounts.migrations.0012_hash_customer_api_keys')
+        module.hash_existing_keys(apps, SimpleNamespace(connection=connection))
+        self.user.profile.refresh_from_db()
+        self.assertEqual(self.user.profile.api_key, hash_api_key(legacy))
+        self.assertEqual(self.chat(key=legacy).status_code, 200)
+        self.assertEqual(self.chat(key=self.user.profile.api_key).status_code, 401)
     def test_implicit_private_chat_reuses_private_history_after_discord_activity(self):
         private = Conversation.objects.create(user=self.user, bot=self.bot)
         integration, secret = issue_discord_integration(self.user, self.bot)
@@ -233,11 +238,7 @@ class APIAccessTests(TestCase):
             format='json', HTTP_AUTHORIZATION='Discord ' + secret)
         self.assertEqual(response.status_code, 400)
 
-        module.hash_existing_keys(apps, SimpleNamespace(connection=connection))
-        self.user.profile.refresh_from_db()
-        self.assertEqual(self.user.profile.api_key, hash_api_key(legacy))
-        self.assertEqual(self.chat(key=legacy).status_code, 200)
-        self.assertEqual(self.chat(key=self.user.profile.api_key).status_code, 401)
+
 
 
 class APIKeyMigrationTests(TransactionTestCase):

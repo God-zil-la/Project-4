@@ -1,8 +1,15 @@
 """Offline tests for Premium Discord installation verification."""
+
+import sys
 from unittest.mock import MagicMock, patch
+
 from django.test import SimpleTestCase
+
 from .premium_discord_discord_api import (
-    DiscordOAuthError, authorization_url, authorized_manageable_guilds, verify_bot_membership,
+    DiscordOAuthError,
+    authorization_url,
+    authorized_manageable_guilds,
+    verify_bot_membership,
 )
 
 
@@ -18,17 +25,20 @@ class PremiumDiscordInstallationTests(SimpleTestCase):
         self.assertIn("applications.commands", url)
         self.assertIn("identify", url)
 
-    @patch("ai_assistant.bots.premium_discord_discord_api._discord_json")
-    def test_only_manageable_guilds_are_allowed(self, fetch):
-        fetch.return_value = [
-            {"id": "123", "name": "Allowed", "permissions": "32", "owner": False},
-            {"id": "456", "name": "Denied", "permissions": "0", "owner": False},
-            {"id": "789", "name": "Owner", "permissions": "0", "owner": True},
-        ]
-        self.assertEqual(
-            authorized_manageable_guilds("fake-token"),
-            {"123": "Allowed", "789": "Owner"},
-        )
+    def test_only_manageable_guilds_are_allowed(self):
+        module = sys.modules[authorized_manageable_guilds.__module__]
+
+        with patch.object(module, "_discord_json") as fetch:
+            fetch.return_value = [
+                {"id": "123", "name": "Allowed", "permissions": "32", "owner": False},
+                {"id": "456", "name": "Denied", "permissions": "0", "owner": False},
+                {"id": "789", "name": "Owner", "permissions": "0", "owner": True},
+            ]
+
+            self.assertEqual(
+                authorized_manageable_guilds("fake-token"),
+                {"123": "Allowed", "789": "Owner"},
+            )
 
     @patch.dict("os.environ", {"PREMIUM_DISCORD_BOT_TOKEN": "fake-token"})
     @patch("ai_assistant.bots.premium_discord_discord_api.urllib.request.urlopen")
