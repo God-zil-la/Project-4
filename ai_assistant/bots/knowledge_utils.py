@@ -1665,7 +1665,8 @@ CATEGORY_DOMAIN_RULES = {
     ),
     "fitness": (
         "Exercise, workouts, physical training, strength, endurance, mobility, "
-        "and fitness programs."
+        "fitness programs, nutrition, healthy eating, meal planning, "
+        "hydration, training-related diet, and recovery."
     ),
     "food": (
         "Cooking, recipes, ingredients, cuisine, baking, food preparation, "
@@ -1760,8 +1761,8 @@ CATEGORY_DOMAIN_RULES = {
         "news unless current information has actually been supplied."
     ),
     "other": (
-        "Topics that do not fit an existing category. This category may answer "
-        "broadly unless another safety or capability restriction applies."
+        "The custom specialist topic established by this assistant's purpose "
+        "and its current conversation. Do not assume unlimited scope."
     ),
     "parenting": (
         "Parenting, raising children, family routines involving children, "
@@ -1874,10 +1875,24 @@ def check_message_domain(
         bot.get_category_display()
     )
 
-    if category_key in {
-        "general",
-        "other",
-    }:
+    if category_key == "general":
+        return {
+            "in_domain": True,
+            "tokens_used": 0,
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "model": None,
+        }
+
+    # Pure social greetings and acknowledgements are valid for every bot.
+    # Do not broaden multi-part requests by matching a greeting prefix.
+    if re.fullmatch(
+        r"(?:hej|hejsan|hallå|hello|hi|hey|god morgon|god kväll|"
+        r"tack|tack så mycket|thanks|thank you|ok|okay|yes|ja|"
+        r"good morning|good evening)[!.?\\s]*",
+        str(message).strip(),
+        flags=re.IGNORECASE,
+    ):
         return {
             "in_domain": True,
             "tokens_used": 0,
@@ -1959,7 +1974,7 @@ def check_message_domain(
         )
 
     classification_prompt = f"""
-You are a strict multilingual domain classifier.
+You are a context-aware multilingual domain classifier.
 
 BOT CATEGORY:
 {category_name}
@@ -1999,9 +2014,11 @@ CLASSIFICATION RULES:
   explanations, recommendations, instructions, terminology,
   calculations, setup questions, and follow-up questions when
   their meaning clearly concerns the category.
-- Accept common subtopics that naturally belong to the category
-  even when the exact wording does not appear in the category
-  definition.
+- Accept common subtopics and naturally related needs even when
+  the exact wording does not appear in the category definition.
+- Treat the category as an area of expertise, not a keyword whitelist.
+- A reasonable indirect connection to the user's established goal is
+  enough; do not require the user to explain that connection first.
 - First determine whether recent conversation establishes a specific
   task, assignment, project, activity, or goal that itself belongs to
   the bot category.
@@ -2051,8 +2068,9 @@ CLASSIFICATION RULES:
 - Do not reject a legitimate category or task-related question merely
   because it is short, informal, misspelled, or conversational.
 - Greetings, thanks, confirmations, and ordinary conversational
-  responses are allowed when they reasonably occur during
-  interaction with this bot.
+  responses are ALWAYS allowed, including the first message.
+- If an ambiguous question plausibly belongs to the category, accept
+  it and let the answering assistant clarify intent where needed.
 - Do not invent weak, indirect, hypothetical, or creative
   connections merely to make an unrelated request fit the category.
 - The bot name does not expand the category.
@@ -2148,6 +2166,11 @@ CURRENT USER MESSAGE:
     )
 
     result_upper = raw_result.upper()
+    if result_upper != "IN_DOMAIN" and not result_upper.startswith(
+        "OUT_OF_DOMAIN|"
+    ):
+        raise RuntimeError("Invalid category classifier response")
+
     in_domain = result_upper == "IN_DOMAIN"
 
     rejection_message = ""
@@ -2229,10 +2252,7 @@ def render_system_message(
         or ""
     ).strip()
 
-    if category_key in {
-        "general",
-        "other",
-    }:
+    if category_key == "general":
         domain_rules = f"""
 CATEGORY AND SCOPE:
 
@@ -2254,7 +2274,12 @@ The bot specializes in:
 Category definition:
 {domain_definition}
 
-Stay within this category.
+Treat this category as an area of expertise, not a rigid keyword list.
+Answer greetings, ordinary conversational messages, natural follow-ups,
+and questions with a reasonable relationship to the category, even if
+related subtopics are not explicitly listed above.
+If the relationship is plausible but unclear, ask a useful clarifying
+question rather than rejecting the user.
 
 Do not use the bot name, personality, description, conversation
 history, or uploaded Knowledge Base to expand the category.
@@ -2379,9 +2404,10 @@ RESPONSE RULES:
   provide the most useful substantial portion possible and clearly indicate
   that additional content remains. Never present an abbreviated outline
   as though it fulfilled the requested length.
-- For General and Other categories, do not claim that an ordinary
-  permissible user request falls outside the assistant's subject area.
-  Specialized categories must retain their existing domain restrictions.
+- For General, do not claim that an ordinary permissible user request
+  falls outside the assistant's subject area.
+- Specialized categories accept greetings, natural follow-ups and
+  reasonably related topics without rigid keyword restrictions.
 - Use conversation history to understand references and natural
   follow-up questions.
 - Never fabricate Knowledge Base facts, sources, measurements,
