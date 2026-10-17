@@ -1,3 +1,5 @@
+from ai_assistant.accounts.campaign import campaign_scope
+from ai_assistant.accounts.campaign import provider_call
 import os
 import re
 import logging
@@ -163,7 +165,7 @@ def _log_usage(
 def _localize_incomplete_notice(response_text):
     """Best-effort translation; a failed notice must never discard a paid answer."""
     try:
-        response = openai.ChatCompletion.create(
+        response = provider_call(openai.ChatCompletion.create,
             model=CHAT_MODEL,
             messages=[
                 {
@@ -530,6 +532,7 @@ def _requested_word_count(message):
 
     return None
 
+@campaign_scope
 def process_bot_message(
     user,
     bot,
@@ -859,7 +862,7 @@ def process_bot_message(
                     ),
                 })
             try:
-                response = openai.ChatCompletion.create(
+                response = provider_call(openai.ChatCompletion.create,
                     model=CHAT_MODEL,
                     messages=part_messages,
                     max_tokens=CHAT_MAX_TOKENS,

@@ -5486,3 +5486,56 @@ The project will continue to evolve beyond the first web release, while keeping 
 > Build useful, specialized AI assistants on a secure and maintainable platform that can grow across multiple clients and integrations.
 
 ⭐ **Thanks for checking out the project.**
+
+## K1 - 14 Days Free Pro Campaign
+
+K1 adds a temporary entitlement to the existing `UserProfile.effective_plan`.
+The ordinary plan, complimentary access and billing state are never overwritten.
+An active account whose effective plan is Free can redeem once at
+`/accounts/campaign/` using a session-authenticated, CSRF-protected web form.
+The English page explains the allowance, expiry and lack of automatic payment.
+No mobile release or mobile redemption endpoint is included.
+
+- Exactly 14 days from successful redemption; no calendar-month reset.
+- At most 2,000,000 combined input/output tokens per redeemed account.
+- Shared accounting covers web chat, existing native/API chat, public widgets,
+  Pro Discord (shared chat pipeline), Knowledge upload/query embeddings,
+  classification, retrieval planning, continuations and translated notices.
+  The separate Premium Discord provider boundary is guarded as well; its
+  existing Premium-only eligibility remains unchanged. The standalone legacy
+  `bots/disc.py` demo is not an account-connected launch channel.
+- Each provider call atomically reserves a conservative input-byte/framing bound
+  plus its maximum output before sending. Concurrent requests share the same
+  database counters. Successful usage refunds unused capacity. Missing usage,
+  provider errors and timeouts are charged conservatively; process termination
+  can leave an outstanding reservation. Never clear it without provider evidence.
+- The supported campaign providers are text-only `gpt-4o-mini` and
+  `text-embedding-3-small`. New models/features require a reviewed token bound.
+- A request that cannot fit is rejected before contacting the provider. Existing
+  monthly message limits and rate limits still apply. When time or charged
+  tokens expire, ordinary plan access resumes on subsequent requests. Ordinary
+  Free usage after the campaign is governed by the Free plan, not this allowance.
+- Assistants, history, files and integrations are retained. Existing plan gates
+  govern subsequent access; K1 performs no deletion or billing action.
+
+Configuration is server-only: `K1_CAMPAIGN_ENABLED` defaults to `false` and
+`K1_CAMPAIGN_CODE` defaults to empty. No code is shipped. A later authorized
+rollout requires migrations 0013/0014 and an independently chosen secret code.
+Disabling redemption does not revoke already redeemed entitlements. Code
+rotation never permits another redemption on the same account.
+
+USD 500 is exclusively a monitoring budget. `python manage.py k1_report`
+reports token counts and conservative cost exposure using the highest configured
+per-token price, and emits a review notice at USD 500. It never disables access,
+charges a card or starts a subscription. Reconcile this estimate with provider
+invoices (unknown usage and deleted accounts limit local reporting accuracy).
+No changes are made to Stripe, Apple IAP or Google Play Billing.
+
+Validation: `python manage.py test ai_assistant.accounts.test_campaign
+--settings=ai_assistant.buildabot.test_settings --noinput` (one command).
+Tests include web authorization/CSRF, eligibility, single redemption, exact
+expiry, plan fallback, shared token accounting, separate database connections
+with overlapping provider requests, failure accounting and monitoring-only budget.
+Use PostgreSQL staging verification before an independently authorized launch;
+local tests use isolated SQLite and mocked providers. No live campaign, database
+migration, commit, push or deployment is performed by this implementation.

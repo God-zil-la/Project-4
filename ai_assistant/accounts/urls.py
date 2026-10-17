@@ -19,7 +19,10 @@ from .api_access import api_access
 
 app_name = 'accounts'
 
+from .campaign_views import campaign
+
 urlpatterns = [
+    path("campaign/", campaign, name="campaign"),
     path("api/u5/api-access/", NativeApiAccessView.as_view(), name="native-u5-api-access"),
     path("api-access/", api_access, name="api-access"),
     path('delete/', confirm_delete_account, name='delete_account'),

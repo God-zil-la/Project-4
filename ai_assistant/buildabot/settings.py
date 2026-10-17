@@ -416,3 +416,7 @@ for _store_name in (
 ):
     globals()['STORE_' + _store_name] = os.environ.get('STORE_' + _store_name, '')
 
+
+# K1: disabled by default; redemption only, never billing.
+K1_CAMPAIGN_ENABLED = os.environ.get("K1_CAMPAIGN_ENABLED", "false").lower() == "true"
+K1_CAMPAIGN_CODE = os.environ.get("K1_CAMPAIGN_CODE", "")

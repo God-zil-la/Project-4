@@ -1,3 +1,4 @@
+from ai_assistant.accounts.campaign import provider_call
 import json
 import os
 import re
@@ -78,7 +79,7 @@ def generate_embedding_batches(
             start:start + batch_size
         ]
 
-        response = openai.Embedding.create(
+        response = provider_call(openai.Embedding.create,
             model=EMBEDDING_MODEL,
             input=batch,
             api_key=api_key,
@@ -213,7 +214,7 @@ def generate_embedding(
 
     openai.api_key = api_key
 
-    response = openai.Embedding.create(
+    response = provider_call(openai.Embedding.create,
         model=EMBEDDING_MODEL,
         input=text,
         request_timeout=30,
@@ -632,7 +633,7 @@ No markdown.
 No explanation.
 """.strip()
 
-    response = openai.ChatCompletion.create(
+    response = provider_call(openai.ChatCompletion.create,
         model=KNOWLEDGE_PLANNER_MODEL,
         messages=[
             {
@@ -2119,7 +2120,7 @@ CURRENT USER MESSAGE:
 {message}
 """.strip()
 
-    response = openai.ChatCompletion.create(
+    response = provider_call(openai.ChatCompletion.create,
         model=requested_model,
         messages=[
             {

@@ -1,3 +1,4 @@
+from ai_assistant.accounts.campaign import provider_call
 import os
 
 import openai
@@ -28,7 +29,7 @@ def call_openai(bot, message, knowledge_text=""):
         knowledge_text,
     )
 
-    response = openai.ChatCompletion.create(
+    response = provider_call(openai.ChatCompletion.create, campaign_user=bot.owner,
         model=requested_model,
         messages=[
             {

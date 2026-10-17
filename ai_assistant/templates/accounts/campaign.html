@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% block content %}
+<main class="container py-4">
+  <h1>14 Days Free Pro</h1>
+  <p>Redeem your campaign code on this website to activate 14 days of Pro, starting now. One redemption per eligible active Free account.</p>
+  <p>Your allowance is up to 2,000,000 combined input and output AI tokens across all supported channels. This includes chat history, classification, Knowledge embeddings, search and follow-up generation. Normal rate and message limits also apply.</p>
+  <p>No payment details are required. There is no automatic payment or renewal. Your Pro access lasts for the full 14 days, even if you use all 2,000,000 tokens. When the token allowance is exhausted, further campaign AI usage is blocked, but your Pro access remains active until the 14 days end. After that, your ordinary plan applies automatically. Your assistants, conversations and uploaded data are preserved; ordinary plan limits apply to future use.</p>
+  <p>Requests reserve tokens before processing. Large or simultaneous requests may be refused when the remaining allowance is insufficient. Unconfirmed provider usage remains reserved.</p>
+  {% if error %}<p role="alert">{{ error }}</p>{% endif %}
+  {% if success %}<p role="status">Your free Pro campaign has started.</p>{% endif %}
+  {% if profile.campaign_started_at %}
+    <p>Campaign ends: {{ profile.campaign_ends_at }}. Tokens charged: {{ profile.campaign_tokens }} / 2,000,000. Outstanding reservations: {{ profile.campaign_reserved_tokens }}.</p>
+  {% else %}
+    <form method="post">{% csrf_token %}
+      <label for="campaign-code">Campaign code</label>
+      <input id="campaign-code" name="code" required maxlength="200" autocomplete="off">
+      <button type="submit">Activate free Pro</button>
+    </form>
+  {% endif %}
+</main>
+{% endblock %}

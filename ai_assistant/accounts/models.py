@@ -187,7 +187,21 @@ class UserProfile(models.Model):
         plans = [self.subscription_plan, store_plan(self)]
         if self.has_complimentary_access:
             plans.append(self.complimentary_plan)
+        if self.has_campaign_access:
+            plans.append(self.PLAN_PRO)
         return max(plans, key={'free': 0, 'premium': 1, 'pro': 2}.get)
+
+    campaign_started_at = models.DateTimeField(null=True, blank=True)
+    campaign_ends_at = models.DateTimeField(null=True, blank=True)
+    campaign_tokens = models.PositiveIntegerField(default=0)
+    campaign_reserved_tokens = models.PositiveIntegerField(default=0)
+
+    @property
+    def has_campaign_access(self):
+        return bool(
+            self.campaign_started_at and self.campaign_ends_at
+            and self.campaign_started_at <= timezone.now() < self.campaign_ends_at
+        )
 
     @property
     def has_paid_plan(self):

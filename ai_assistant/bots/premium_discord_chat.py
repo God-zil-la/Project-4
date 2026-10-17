@@ -1,3 +1,4 @@
+from ai_assistant.accounts.campaign import provider_call
 """General Premium Discord AI; never loads a customer's Bot, KB or instructions."""
 import logging
 
@@ -39,7 +40,7 @@ def answer_premium_discord(*, guild_id, message):
     if reservation is None:
         raise PremiumDiscordChatError("The account's monthly message limit has been reached.")
     try:
-        response = openai.ChatCompletion.create(
+        response = provider_call(openai.ChatCompletion.create, campaign_user=owner,
             model=CHAT_MODEL,
             messages=[
                 {"role": "system", "content": SYSTEM_PROMPT},

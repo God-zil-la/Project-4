@@ -1,3 +1,4 @@
+from ai_assistant.accounts.campaign import campaign_scope
 """Shared synchronous upload pipeline. No external calls under the quota lock."""
 import logging
 
@@ -21,6 +22,7 @@ def _check_quota(user, source_size):
         raise KnowledgeQuotaError(storage)
 
 
+@campaign_scope
 def upload_knowledge(user, bot, file=None, manual_text=""):
     if bot.owner_id != user.pk:
         raise PermissionError("Knowledge must belong to the uploading user.")
