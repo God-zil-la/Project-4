@@ -199,6 +199,60 @@ class AIQualityTests(TestCase):
 
         api.assert_not_called()
 
+    @patch("ai_assistant.bots.knowledge_utils.openai.ChatCompletion.create")
+    def test_specialized_categories_allow_greetings(self, api):
+        for category, _ in Bot.CATEGORY_CHOICES:
+            if category == "general":
+                continue
+            self.bot.category = category
+            for greeting in ("Hej", "Hello!", "Tack", "Hi"):
+                with self.subTest(category=category, greeting=greeting):
+                    result = check_message_domain(self.bot, greeting)
+                    self.assertTrue(result["in_domain"])
+                    self.assertEqual(result["tokens_used"], 0)
+        api.assert_not_called()
+
+    @patch("ai_assistant.bots.knowledge_utils.openai.ChatCompletion.create")
+    def test_fitness_food_question_reaches_classifier(self, api):
+        self.bot.category = "fitness"
+        api.return_value = openai.util.convert_to_openai_object({
+            "choices": [{"message": {"content": "IN_DOMAIN"}}],
+            "usage": {"prompt_tokens": 12, "completion_tokens": 2,
+                      "total_tokens": 14},
+            "model": "gpt-4o-mini",
+        })
+        result = check_message_domain(self.bot, "Vad ska jag äta?")
+        self.assertTrue(result["in_domain"])
+        prompt = api.call_args.kwargs["messages"][1]["content"]
+        self.assertIn("nutrition", prompt)
+        self.assertIn("meal planning", prompt)
+
+    @patch("ai_assistant.bots.knowledge_utils.openai.ChatCompletion.create")
+    def test_other_uses_classifier(self, api):
+        self.bot.category = "other"
+        api.return_value = openai.util.convert_to_openai_object({
+            "choices": [{"message": {
+                "content": "OUT_OF_DOMAIN|Ask a related question."
+            }}],
+            "usage": {"prompt_tokens": 12, "completion_tokens": 2,
+                      "total_tokens": 14},
+            "model": "gpt-4o-mini",
+        })
+        self.assertFalse(check_message_domain(self.bot, "Unrelated")["in_domain"])
+        api.assert_called_once()
+
+    @patch("ai_assistant.bots.knowledge_utils.openai.ChatCompletion.create")
+    def test_invalid_classifier_reply_is_not_false_rejection(self, api):
+        self.bot.category = "fitness"
+        api.return_value = openai.util.convert_to_openai_object({
+            "choices": [{"message": {"content": "MAYBE"}}],
+            "usage": {"prompt_tokens": 12, "completion_tokens": 2,
+                      "total_tokens": 14},
+            "model": "gpt-4o-mini",
+        })
+        with self.assertRaisesRegex(RuntimeError, "Invalid category"):
+            check_message_domain(self.bot, "What should I eat?")
+
     @patch(
         "ai_assistant.bots.knowledge_utils."
         "openai.ChatCompletion.create"
