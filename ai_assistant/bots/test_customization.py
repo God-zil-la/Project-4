@@ -167,7 +167,7 @@ class AssistantCustomizationTests(TestCase):
             self.data["personality"],
             "warm, friendly",
             "concise and focused",
-            "Stay within this category.",
+            "Treat this category as an area of expertise, not a rigid keyword list.",
             "Verified opening hours: 10–18.",
             "RESPONSE LANGUAGE (Automatic): Answer in the language of the current user message",
             "higher-priority instructions",
