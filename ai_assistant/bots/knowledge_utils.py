@@ -1889,7 +1889,7 @@ def check_message_domain(
     if re.fullmatch(
         r"(?:hej|hejsan|hallå|hello|hi|hey|god morgon|god kväll|"
         r"tack|tack så mycket|thanks|thank you|ok|okay|yes|ja|"
-        r"good morning|good evening)[!.?\\s]*",
+        r"good morning|good evening)[!.?\s]*",
         str(message).strip(),
         flags=re.IGNORECASE,
     ):
