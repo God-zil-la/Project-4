@@ -2461,6 +2461,70 @@ main {
         }
 
 
+        // DOCUMENT_HISTORY_UI_V1
+        function appendSavedDocuments(documents) {
+            if (!Array.isArray(documents) || documents.length === 0) {
+                return;
+            }
+
+            const existingLinks = new Set(
+                Array.from(chatBox.querySelectorAll("a[href]"))
+                    .map(link => {
+                        try {
+                            return new URL(link.href, window.location.origin)
+                                .pathname;
+                        } catch (_) {
+                            return null;
+                        }
+                    })
+                    .filter(Boolean)
+            );
+
+            const unseen = documents.filter(item => {
+                if (!item || typeof item.download_url !== "string") {
+                    return false;
+                }
+
+                const url = item.download_url;
+
+                if (!/^\/bots\/api\/documents\/saved\/[0-9a-f-]{36}\/download\/$/i.test(url)) {
+                    return false;
+                }
+
+                return !existingLinks.has(url);
+            });
+
+            if (unseen.length === 0) {
+                return;
+            }
+
+            const container = document.createElement("div");
+            container.className = "chat-message assistant";
+
+            const heading = document.createElement("strong");
+            heading.textContent = "Saved documents:";
+            container.appendChild(heading);
+
+            const list = document.createElement("ul");
+
+            unseen.forEach(item => {
+                const li = document.createElement("li");
+                const link = document.createElement("a");
+
+                link.href = item.download_url;
+                link.textContent =
+                    "Download " + (item.filename || "document");
+                link.rel = "noopener noreferrer";
+
+                li.appendChild(link);
+                list.appendChild(li);
+            });
+
+            container.appendChild(list);
+            chatBox.appendChild(container);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
         function setActiveConversationButton() {
             const buttons =
                 conversationList.querySelectorAll(
@@ -2616,6 +2680,9 @@ main {
                         );
                     }
                 );
+
+                // Restore persisted document downloads.
+                appendSavedDocuments(data.documents);
 
                 setLanguageChatHintVisible(
                     data.messages.length === 0

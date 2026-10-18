@@ -168,3 +168,51 @@ urlpatterns = [
         name="discord-download",
     ),
 ]
+
+
+# Secure generated-document downloads.
+from .document_download import download_document
+
+urlpatterns += [
+    path(
+        "api/documents/<str:token>/download/",
+        download_document,
+        name="document-download",
+    ),
+]
+
+
+# Persistent generated-document download.
+from .saved_document_download import download_saved_document
+
+urlpatterns += [
+    path(
+        "api/documents/saved/<uuid:document_id>/download/",
+        download_saved_document,
+        name="saved-document-download",
+    ),
+]
+
+
+# Authenticated native document download link.
+from .document_mobile_api import mobile_document_link
+
+urlpatterns += [
+    path(
+        "api/documents/saved/<uuid:document_id>/link/",
+        mobile_document_link,
+        name="mobile-document-link",
+    ),
+]
+
+
+# Private document list for native chat clients.
+from .document_list_api import conversation_documents
+
+urlpatterns += [
+    path(
+        "api/conversations/<uuid:conversation_id>/documents/",
+        conversation_documents,
+        name="conversation-documents",
+    ),
+]

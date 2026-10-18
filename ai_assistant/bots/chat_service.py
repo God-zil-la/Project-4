@@ -877,6 +877,34 @@ def process_bot_message(
             bot,
             knowledge_text,
         )
+        # DOCUMENT_GENERATION_V1
+        from .document_intent import resolve_document_format
+
+        document_format = (
+            resolve_document_format(
+                message,
+                _build_history(active_conversation, ""),
+            )
+            if not crisis_active and not allow_widget
+            else None
+        )
+
+        if document_format:
+            system_message += (
+                "\n\nDOCUMENT EXPORT CAPABILITY: "
+                "The platform can generate a real downloadable "
+                f"{document_format.upper()} file after your response. "
+                "If the user supplied enough information, write "
+                "the actual complete document content in your "
+                "normal reply, with useful sections and details. "
+                "Do not claim that you cannot create files. "
+                "Do not invent a download link or claim the file "
+                "has already been created. "
+                "If essential details are missing, ask the user "
+                "for those details instead of pretending to "
+                "have completed the document."
+            )
+
         if crisis_active:
             system_message += (
                 '\n\nCRISIS SAFETY OVERRIDE (highest priority): The user has expressed possibl'
@@ -1088,6 +1116,41 @@ def process_bot_message(
             model=model_name,
         )
 
+        # DOCUMENT_GENERATION_V1: Export only a completed answer.
+        generated_document = None
+
+        if document_format and not interrupted:
+            from .document_intent import document_content_ready
+
+            if document_content_ready(message, response_text):
+                try:
+                    from .document_pipeline import create_chat_document
+
+                    generated_document = create_chat_document(
+                        user=user,
+                        title="AI Generated Document",
+                        content=response_text,
+                        file_format=document_format,
+                        conversation=active_conversation,
+                        bot=bot,
+                    )
+                    response_text += (
+                        "\n\n[Download "
+                        + document_format.upper()
+                        + " document]("
+                        + generated_document["download_url"]
+                        + ")"
+                    )
+                except Exception:
+                    logger.exception(
+                        "Document generation failed for bot %s.",
+                        bot.pk,
+                    )
+                    response_text += (
+                        "\n\nThe document could not be generated "
+                        "right now. Please try again."
+                    )
+
         _save_chat_exchange(
             conversation=active_conversation,
             bot=bot,
@@ -1106,6 +1169,7 @@ def process_bot_message(
         )
 
         return {
+            "document": generated_document,
             "response": response_text,
             "conversation_id": str(
                 active_conversation.public_id

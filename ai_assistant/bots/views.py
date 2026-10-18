@@ -211,6 +211,35 @@ def bot_chat_api(request, bot_id):
         for message in chat_messages
     ]
 
+    # DOCUMENT_HISTORY_V1
+    from django.urls import reverse
+    from .document_models import GeneratedDocument
+
+    saved_documents = GeneratedDocument.objects.filter(
+        owner=request.user,
+        bot=bot,
+        conversation=conversation,
+    ).order_by("-created_at")
+
+    documents = [
+        {
+            "document_id": str(document.pk),
+            "filename": document.filename,
+            "format": document.file_format,
+            "size_bytes": document.size_bytes,
+            "created_at": document.created_at.isoformat(),
+            "download_url": reverse(
+                "bots:saved-document-download",
+                kwargs={"document_id": document.pk},
+            ),
+            "mobile_link_url": reverse(
+                "bots:mobile-document-link",
+                kwargs={"document_id": document.pk},
+            ),
+        }
+        for document in saved_documents
+    ]
+
     return JsonResponse(
         {
             "conversation_id": str(
@@ -219,6 +248,7 @@ def bot_chat_api(request, bot_id):
             "title": conversation.title,
             "is_widget": conversation.is_widget,
             "messages": data,
+            "documents": documents,
         }
     )
 
@@ -430,6 +460,7 @@ def ajax_chat(request, bot_id):
             return JsonResponse(
                 {
                     "reply": result["response"],
+                    "document": result.get("document"),
                     "conversation_id": result[
                         "conversation_id"
                     ],

@@ -273,9 +273,19 @@ class U41LongResponseTests(SimpleTestCase):
             ) as chunks:
                 chunks.return_value.order_by.return_value.values_list.return_value = []
                 bot.default_language = code
-                self.api.side_effect = [_api_response("OUT_OF_DOMAIN|Mock rejection")]
+                self.api.reset_mock()
+                self.api.side_effect = [
+                    _api_response("OUT_OF_DOMAIN|Mock rejection"),
+                    _api_response("SWITCH"),
+                ]
                 result = knowledge_utils.check_message_domain(bot, "Svara på svenska.")
-                messages = self.api.call_args.kwargs["messages"]
+                self.assertEqual(self.api.call_count, 2)
+                messages = self.api.call_args_list[0].kwargs["messages"]
+                review_messages = self.api.call_args_list[1].kwargs["messages"]
+                self.assertIn(
+                    "independent multilingual domain continuity reviewer",
+                    review_messages[0]["content"],
+                )
                 self.assertFalse(result["in_domain"])
                 self.assertEqual(result["rejection_message"], "Mock rejection")
                 self.assertIn("Respond in Afrikaans" if code == "af" else

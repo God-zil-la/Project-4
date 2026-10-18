@@ -511,3 +511,6 @@ from .premium_discord_models import (
     PremiumDiscordUsageLog,
     PremiumDiscordJob,
 )  # noqa: E402,F401
+
+# Generated document metadata
+from .document_models import GeneratedDocument
