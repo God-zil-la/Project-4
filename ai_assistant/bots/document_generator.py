@@ -1,4 +1,4 @@
-﻿from io import BytesIO, StringIO
+from io import BytesIO, StringIO
 import csv
 
 from docx import Document
@@ -97,14 +97,91 @@ def generate_document(title, content, file_format):
         return buffer.getvalue()
 
     if file_format == "xlsx":
+        # DOCUMENT_WORKBOOK_V1: Build real structured spreadsheets.
+        import json
+        import re
+
+        specification = json.loads(content)
+
+        if not isinstance(specification, dict):
+            raise ValueError("Invalid workbook specification.")
+
+        sheets = specification.get("sheets")
+
+        if not isinstance(sheets, list) or not 1 <= len(sheets) <= 12:
+            raise ValueError("Invalid worksheet collection.")
+
         workbook = Workbook()
-        sheet = workbook.active
-        sheet.title = "Document"
+        workbook.remove(workbook.active)
 
-        sheet.append([title])
+        used_names = set()
 
-        for line in content.split("\n"):
-            sheet.append([line])
+        for definition in sheets:
+            if not isinstance(definition, dict):
+                raise ValueError("Invalid worksheet.")
+
+            name = definition.get("name")
+            rows = definition.get("rows")
+
+            if (
+                not isinstance(name, str)
+                or not 1 <= len(name) <= 31
+                or any(char in name for char in "[]:*?/\\")
+                or name.startswith("'")
+                or name.endswith("'")
+                or name.casefold() in used_names
+            ):
+                raise ValueError("Invalid worksheet name.")
+
+            if not isinstance(rows, list) or not 1 <= len(rows) <= 250:
+                raise ValueError("Invalid worksheet rows.")
+
+            used_names.add(name.casefold())
+            sheet = workbook.create_sheet(name)
+
+            for row in rows:
+                if not isinstance(row, list) or len(row) > 30:
+                    raise ValueError("Invalid worksheet row.")
+
+                for value in row:
+                    if value is not None and not isinstance(
+                        value, (str, int, float, bool)
+                    ):
+                        raise ValueError("Invalid cell value.")
+
+                    if isinstance(value, str):
+                        if len(value) > 10000:
+                            raise ValueError("Cell value too large.")
+
+                        if value.startswith("="):
+                            if re.search(
+                                r"(?i)HYPERLINK|WEBSERVICE|DDE|RTD|https?://",
+                                value,
+                            ):
+                                raise ValueError("Unsafe spreadsheet formula.")
+
+                sheet.append(row)
+
+            sheet.freeze_panes = "A2"
+
+            from openpyxl.styles import Font, PatternFill
+            from openpyxl.utils import get_column_letter
+
+            for cell in sheet[1]:
+                cell.font = Font(bold=True, color="FFFFFF")
+                cell.fill = PatternFill(
+                    fill_type="solid", fgColor="243B53"
+                )
+
+            for column in sheet.columns:
+                cells = list(column)
+                width = max(
+                    len(str(cell.value or "")) for cell in cells[:100]
+                )
+                letter = get_column_letter(cells[0].column)
+                sheet.column_dimensions[letter].width = min(
+                    max(width + 3, 12), 45
+                )
 
         buffer = BytesIO()
         workbook.save(buffer)

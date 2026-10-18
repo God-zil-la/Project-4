@@ -1160,7 +1160,59 @@ def process_bot_message(
         # DOCUMENT_GENERATION_V1: Export only a completed answer.
         generated_document = None
 
-        if document_format and not interrupted:
+        # DOCUMENT_WORKBOOK_V1: Create XLSX independently of prose validation.
+        if document_format == "xlsx" and not interrupted:
+            try:
+                from .document_workbook import generate_workbook_spec
+                from .document_pipeline import create_chat_document
+
+                workbook_content = generate_workbook_spec(
+                    message,
+                    _build_history(active_conversation, ""),
+                )
+
+                generated_document = create_chat_document(
+                    user=user,
+                    title="AI Generated Workbook",
+                    content=workbook_content,
+                    file_format="xlsx",
+                    conversation=active_conversation,
+                    bot=bot,
+                )
+
+                response_text = (
+                    "Your Excel workbook is ready.\n\n"
+                    "[Download XLSX document]("
+                    + generated_document["download_url"]
+                    + ")"
+                )
+
+                if re.search(
+                    r"\b(?:skapa|arbetsbok|kalkylblad|g\\u00f6ra)\b",
+                    message,
+                    re.I,
+                ):
+                    response_text = (
+                        "Din Excel-arbetsbok \\u00e4r klar.\n\n"
+                        "[Ladda ner Excel-filen]("
+                        + generated_document["download_url"]
+                        + ")"
+                    )
+                    response_text = response_text.replace(
+                        "\\u00e4", chr(0xE4)
+                    )
+
+            except Exception:
+                logger.exception(
+                    "Structured XLSX generation failed for bot %s.",
+                    bot.pk,
+                )
+                response_text = (
+                    "The Excel workbook could not be generated "
+                    "right now. Please try again."
+                )
+
+        elif document_format and not interrupted:
             from .document_ai_intent import document_response_complete
 
             if document_response_complete(response_text):
