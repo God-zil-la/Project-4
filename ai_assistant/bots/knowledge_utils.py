@@ -2210,9 +2210,7 @@ CURRENT USER MESSAGE:
 
 
         try:
-            review = provider_call(
-                openai.ChatCompletion.create,
-                model=requested_model,
+            review = openai.ChatCompletion.create(model=requested_model, request_timeout=10,
                 messages=[
                     {
                         "role": "system",
