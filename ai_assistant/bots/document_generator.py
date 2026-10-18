@@ -235,11 +235,11 @@ def generate_document(title, content, file_format):
         workbook.save(buffer)
         return buffer.getvalue()
 
+    # DOCUMENT_EXPORT_QUALITY_V2: Export actual tabular CSV rows.
+    from .document_export_quality import parse_csv_content
+
+    rows = parse_csv_content(content)
     output = StringIO(newline="")
-    writer = csv.writer(output)
-    writer.writerow([title])
-
-    for line in content.split("\n"):
-        writer.writerow([line])
-
+    writer = csv.writer(output, lineterminator="\r\n")
+    writer.writerows(rows)
     return output.getvalue().encode("utf-8-sig")

@@ -1213,22 +1213,51 @@ def process_bot_message(
                 )
 
         elif document_format and not interrupted:
+            # DOCUMENT_EXPORT_QUALITY_V2: Never persist conversation chatter.
             from .document_ai_intent import document_response_complete
+            from .document_export_quality import (
+                clean_document_content,
+                derive_document_title,
+                parse_csv_content,
+                strip_generated_links,
+            )
 
-            if document_response_complete(response_text):
+            original_response = response_text
+            response_text = strip_generated_links(response_text)
+            # CSV must have an actual table; general prose validators may
+            # incorrectly accept a convincing-looking CSV promise.
+            try:
+                if document_format == "csv":
+                    parse_csv_content(original_response)
+                    ready_for_export = True
+                else:
+                    ready_for_export = document_response_complete(
+                        clean_document_content(original_response)
+                    )
+            except ValueError:
+                ready_for_export = False
+
+            if ready_for_export:
                 try:
                     from .document_pipeline import create_chat_document
 
+                    export_content = clean_document_content(original_response)
+                    export_title = derive_document_title(
+                        message, export_content, document_format
+                    )
                     generated_document = create_chat_document(
                         user=user,
-                        title="AI Generated Document",
-                        content=response_text,
+                        title=export_title,
+                        content=export_content,
                         file_format=document_format,
                         conversation=active_conversation,
                         bot=bot,
                     )
-                    response_text += (
-                        "\n\n[Download "
+                    # The only download link shown to the user is the one
+                    # returned after successful ownership-checked persistence.
+                    response_text = (
+                        export_content
+                        + "\n\n[Download "
                         + document_format.upper()
                         + " document]("
                         + generated_document["download_url"]
@@ -1236,12 +1265,11 @@ def process_bot_message(
                     )
                 except Exception:
                     logger.exception(
-                        "Document generation failed for bot %s.",
-                        bot.pk,
+                        "Document generation failed for bot %s.", bot.pk
                     )
-                    response_text += (
-                        "\n\nThe document could not be generated "
-                        "right now. Please try again."
+                    response_text = (
+                        "The document could not be generated right now. "
+                        "Please try again."
                     )
 
         _save_chat_exchange(

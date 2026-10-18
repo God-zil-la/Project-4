@@ -87,5 +87,33 @@ def generate_workbook_spec(message, history):
     if set(specification) != {"sheets"}:
         raise ValueError("Unexpected workbook response structure.")
 
+    # DOCUMENT_EXPORT_QUALITY_V2: Refuse silently altered explicit sums.
+    # Exact currency amounts from the latest message must occur in numeric
+    # workbook cells. This guards against AI replacing user-provided values.
+    import re
+    from decimal import Decimal
+
+    def requested_amounts(prompt):
+        pattern = re.compile(
+            r"(?<![\w\d])(?:\d{1,3}(?:[ \u00a0]\d{3})+|\d{4,})"
+            r"(?=\s*(?:SEK|kr\b|kronor\b))",
+            re.I,
+        )
+        return {
+            Decimal(match.group(0).replace(' ', '').replace('\u00a0', ''))
+            for match in pattern.finditer(prompt)
+        }
+
+    specified = requested_amounts(str(message))
+    present = set()
+    for sheet in specification.get('sheets', []):
+        for row in sheet.get('rows', []):
+            for value in row:
+                if isinstance(value, (int, float)) and not isinstance(value, bool):
+                    present.add(Decimal(str(value)))
+    absent = specified - present
+    if absent:
+        raise ValueError('AI workbook changed explicitly specified currency values.')
+
     # The document generator validates every worksheet and cell.
     return json.dumps(specification, ensure_ascii=True)
