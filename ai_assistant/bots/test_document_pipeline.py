@@ -29,7 +29,10 @@ class DocumentPipelineTests(SimpleTestCase):
                 result = create_chat_document(
                     user=self.user,
                     title="My Workbook",
-                    content="Chapter 1\nExercise 1",
+                    content={
+                        "xlsx": '{"sheets":[{"name":"Data","rows":[["Item","Value"],["A",1]]}]}',
+                        "csv": "Item,Value,Note\nA,1,Example",
+                    }.get(extension, "Chapter 1\nExercise 1"),
                     file_format=extension,
                 )
 

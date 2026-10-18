@@ -43,13 +43,57 @@ _CHAT_TRAILER = re.compile(
 )
 
 
+_DOCUMENT_TRAILER = re.compile(
+    r'(?i)^(?:(?:nu\s+(?:genererar|skapar)\s+jag\s+|'
+    r'jag\s+(?:(?:kommer\s+(?:nu\s+)?att|ska\s+(?:nu\s+)?)\s*)?'
+    r'(?:genererar|skapar|generera|skapa)\s+(?:nu\s+)?)'
+    r'(?:PDF(?:-filen)?|DOCX(?:-filen)?|Word(?:-filen)?|filen|dokumentet)\b'
+    r'(?:\s+med\s+(?:ovanst\u00e5ende|detta)\s+inneh\u00e5ll)?[.!]?'
+    r'(?:\s+V\u00e4nligen\s+v\u00e4nta\s+en\s+stund[.!]?)?'
+    r'|V\u00e4nligen\s+v\u00e4nta\s+en\s+stund[.!]?'
+    r'|I\s+will\s+(?:now\s+)?(?:generate|create)\s+the\s+(?:PDF|DOCX|document|file)[.!]?)$'
+)
+
+
+def _plain_math(match):
+    expression = next(group for group in match.groups() if group is not None)
+    expression = re.sub(r'\\(?:left|right)\b', '', expression)
+    expression = re.sub(r'\\(?:,|;|:|!|quad\b|qquad\b)', ' ', expression)
+    for command, replacement in {
+        'times': '\u00d7', 'cdot': '\u00b7', 'div': '\u00f7',
+        'leq': '\u2264', 'geq': '\u2265', 'neq': '\u2260',
+    }.items():
+        expression = re.sub(r'\\' + command + r'\b', lambda _: replacement, expression)
+    # Reduce innermost groups first, preserving grouping in fractions.
+    for _ in range(20):
+        previous = expression
+        expression = re.sub(r'\\(?:text|mathrm|mathbf)\s*\{([^{}]*)\}', r'\1', expression)
+        expression = re.sub(r'\\frac\s*\{([^{}]*)\}\s*\{([^{}]*)\}', r'(\1)/(\2)', expression)
+        if expression == previous:
+            break
+    expression = expression.replace(r'\%', '%').replace(r'\$', '$')
+    if '\\' in expression or '{' in expression or '}' in expression:
+        raise ValueError('Unsupported document math notation.')
+    return re.sub(r'\s+', ' ', expression).strip()
+
+
+def prepare_document_content(title, content):
+    """Normalize human-readable DOCX/PDF text without changing CSV data."""
+    content = clean_document_content(content, strict=True)
+    content = re.sub(r'\\\((.*?)\\\)|\\\[(.*?)\\\]|\$\$(.*?)\$\$', _plain_math, content, flags=re.S)
+    lines = content.splitlines()
+    if lines and lines[0].strip(' #*').casefold() == title.strip(' #*').casefold():
+        lines.pop(0)
+    return '\n'.join(lines).strip()
+
+
 def strip_generated_links(text):
     """Strip model-invented download URLs before adding the persisted URL."""
     text = _GENERATED_SANDBOX_LINK.sub('', str(text or ''))
     return _FAKE_LINK.sub('', text).strip()
 
 
-def clean_document_content(text):
+def clean_document_content(text, strict=False):
     """Remove model-generated chat trailers without deleting document body."""
     result = strip_generated_links(text)
     lines = result.splitlines()
@@ -63,7 +107,8 @@ def clean_document_content(text):
         if not tail or re.fullmatch(r'[-*_]{3,}', tail):
             lines.pop()
             continue
-        if _PROMISE.search(tail) or _CHAT_TRAILER.search(tail):
+        if (_DOCUMENT_TRAILER.search(tail) if strict else
+                (_PROMISE.search(tail) or _CHAT_TRAILER.search(tail))):
             lines.pop()
             continue
         break

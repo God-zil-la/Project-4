@@ -23,6 +23,10 @@ def generate_document(title, content, file_format):
     title = str(title).strip() or "Document"
     content = str(content)
 
+    if file_format in ("docx", "pdf"):
+        from .document_export_quality import prepare_document_content
+        content = prepare_document_content(title, content)
+
     if file_format == "docx":
         # DOCUMENT_FORMAT_QUALITY_V1
         import re
@@ -150,6 +154,8 @@ def generate_document(title, content, file_format):
         import re
 
         specification = json.loads(content)
+        from .document_workbook_validation import bind_and_validate
+        bind_and_validate(specification)
 
         if not isinstance(specification, dict):
             raise ValueError("Invalid workbook specification.")

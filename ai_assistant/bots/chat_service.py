@@ -1232,7 +1232,7 @@ def process_bot_message(
                     ready_for_export = True
                 else:
                     ready_for_export = document_response_complete(
-                        clean_document_content(original_response)
+                        clean_document_content(original_response, strict=True)
                     )
             except ValueError:
                 ready_for_export = False
@@ -1241,7 +1241,9 @@ def process_bot_message(
                 try:
                     from .document_pipeline import create_chat_document
 
-                    export_content = clean_document_content(original_response)
+                    export_content = clean_document_content(
+                        original_response, strict=document_format in ("docx", "pdf")
+                    )
                     export_title = derive_document_title(
                         message, export_content, document_format
                     )
