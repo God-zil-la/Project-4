@@ -78,6 +78,17 @@ def requested_document_format(message):
     if formats:
         return formats[0]
 
+    # A requested downloadable workbook defaults to Excel.
+    if (
+        re.search(r"\b(?:arbetsbok|workbook)\b", message, re.I)
+        and re.search(
+            r"nedladd|ladda\s+ner|download|excel|kalkyl",
+            message,
+            re.I,
+        )
+    ):
+        return "xlsx"
+
     # A generic downloadable document defaults to Word.
     # Explicit Excel workbook requests are handled above.
     if GENERIC_DOCUMENT.search(message):
