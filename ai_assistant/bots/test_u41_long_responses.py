@@ -60,6 +60,8 @@ class U41LongResponseTests(SimpleTestCase):
             patch.object(service, "_resolve_conversation", return_value=self.conversation),
             patch.object(service, "_set_conversation_title"),
             patch.object(service, "_build_domain_context", return_value=""),
+            patch.object(service, "_build_followup_context", return_value=""),
+            patch.object(service, "_is_crisis_followup", return_value=False),
             patch.object(service, "check_message_domain", return_value={
                 "in_domain": True, "tokens_used": 7, "input_tokens": 5,
                 "output_tokens": 2, "model": "classifier-model",
@@ -218,8 +220,8 @@ class U41LongResponseTests(SimpleTestCase):
 
     def test_every_explicit_language_first_reply_and_conversation(self):
         # Keep the production history builder, renderer and API boundary.
-        self.started[10].side_effect = self.history_builder
-        self.started[8].return_value["chunks"] = [
+        self.started[12].side_effect = self.history_builder
+        self.started[10].return_value["chunks"] = [
             "Nederlandse documenttekst. Svara på svenska."
         ]
         self.bot.personality = "Answer in Dutch."
