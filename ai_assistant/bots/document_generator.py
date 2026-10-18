@@ -44,14 +44,54 @@ def generate_document(title, content, file_format):
             Spacer(1, 16),
         ]
 
-        for paragraph in content.split("\n"):
-            elements.append(
-                Paragraph(
-                    escape(paragraph) or " ",
-                    styles["Normal"],
+        import re
+        from reportlab.platypus import HRFlowable
+        from reportlab.lib.styles import ParagraphStyle
+
+        heading_style = ParagraphStyle(
+            "DocumentHeading",
+            parent=styles["Heading2"],
+            spaceBefore=12,
+            spaceAfter=6,
+        )
+
+        def format_inline(text):
+            parts = []
+            last = 0
+            for match in re.finditer(r"\*\*(.+?)\*\*", text):
+                parts.append(escape(text[last:match.start()]))
+                parts.append("<b>" + escape(match.group(1)) + "</b>")
+                last = match.end()
+            parts.append(escape(text[last:]))
+            return "".join(parts)
+
+        for line in content.splitlines():
+            stripped = line.strip()
+
+            if not stripped:
+                elements.append(Spacer(1, 8))
+                continue
+
+            if re.fullmatch(r"[-*_]{3,}", stripped):
+                elements.append(HRFlowable(width="100%", thickness=0.5))
+                continue
+
+            heading = re.match(r"^#{1,6}\s+(.+)$", stripped)
+            if heading:
+                elements.append(
+                    Paragraph(format_inline(heading.group(1)), heading_style)
                 )
-            )
-            elements.append(Spacer(1, 8))
+                continue
+
+            bullet = re.match(r"^[-*+]\s+(.+)$", stripped)
+            if bullet:
+                elements.append(
+                    Paragraph("&#8226; " + format_inline(bullet.group(1)), styles["Normal"])
+                )
+                continue
+
+            elements.append(Paragraph(format_inline(stripped), styles["Normal"]))
+            elements.append(Spacer(1, 6))
 
         pdf.build(elements)
         return buffer.getvalue()

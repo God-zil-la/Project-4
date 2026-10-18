@@ -1,4 +1,4 @@
-from .mobile_u5_api import NativeDiscordView, NativeDiscordRevokeView
+﻿from .mobile_u5_api import NativeDiscordView, NativeDiscordRevokeView
 from .parity_api import DashboardAPIView, AnalyticsAPIView, KnowledgeAPIView, KnowledgeDetailAPIView
 from django.urls import path
 from rest_framework.authtoken.views import obtain_auth_token
@@ -214,5 +214,16 @@ urlpatterns += [
         "api/conversations/<uuid:conversation_id>/documents/",
         conversation_documents,
         name="conversation-documents",
+    ),
+]
+
+
+from .saved_document_download import get_saved_document_download_url
+
+urlpatterns += [
+    path(
+        "api/documents/saved/<uuid:document_id>/download-url/",
+        get_saved_document_download_url,
+        name="saved-document-download-url",
     ),
 ]
