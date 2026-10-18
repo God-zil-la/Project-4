@@ -822,8 +822,11 @@ class P0CrisisRegressionTests(SimpleTestCase):
             def order_by(self, *args):
                 return self
 
+            def __iter__(self):
+                return iter(reversed(history))
+
             def __getitem__(self, key):
-                return list(reversed(history))[:12]
+                return list(reversed(history))[key]
 
         def fake_filter(**kwargs):
             return FakeQuery()
@@ -860,9 +863,7 @@ class P0CrisisRegressionTests(SimpleTestCase):
         previous.sender = ChatMessage.SENDER_USER
         previous.message = "Jag vill ta mitt liv"
 
-        mock_filter.return_value.order_by.return_value.__getitem__.return_value = [
-            previous
-        ]
+        mock_filter.return_value.order_by.return_value.__iter__.return_value = iter([previous])
 
         long_reply = (
             "Ja g?rna, jag vill prata vidare om det som har h?nt. "
@@ -888,4 +889,82 @@ class P0CrisisRegressionTests(SimpleTestCase):
 
         self.assertFalse(
             _is_crisis_followup(object(), "Byt \u00e4mne, jag vill prata om musik")
+        )
+
+class P02CrisisEpisodeBoundaryTests(TestCase):
+    """Regression tests for long crisis conversations and topic changes."""
+
+    def setUp(self):
+        from django.contrib.auth.models import User
+        from ai_assistant.bots.models import Bot, Conversation
+
+        self.user = User.objects.create_user(username="p02-crisis-user")
+        self.bot = Bot.objects.create(
+            owner=self.user,
+            name="P02 Crisis Test",
+            category="therapy",
+        )
+        self.conversation = Conversation.objects.create(
+            user=self.user,
+            bot=self.bot,
+        )
+
+    def add_message(self, sender, message):
+        from ai_assistant.bots.models import ChatMessage
+
+        ChatMessage.objects.create(
+            conversation=self.conversation,
+            bot=self.bot,
+            user=self.user,
+            sender=sender,
+            message=message,
+        )
+
+    def test_crisis_context_survives_more_than_twelve_messages(self):
+        from ai_assistant.bots.chat_service import _is_crisis_followup
+        from ai_assistant.bots.models import ChatMessage
+
+        self.add_message(
+            ChatMessage.SENDER_USER,
+            "Jag vill ta mitt liv",
+        )
+
+        for index in range(14):
+            self.add_message(
+                ChatMessage.SENDER_ASSISTANT
+                if index % 2 == 0
+                else ChatMessage.SENDER_USER,
+                f"Continuing the support conversation {index}",
+            )
+
+        self.assertTrue(
+            _is_crisis_followup(self.conversation, "Jag vill fortsätta prata"),
+        )
+
+    def test_old_crisis_does_not_reactivate_after_topic_change(self):
+        from ai_assistant.bots.chat_service import _is_crisis_followup
+        from ai_assistant.bots.models import ChatMessage
+
+        self.add_message(
+            ChatMessage.SENDER_USER,
+            "Jag vill ta mitt liv",
+        )
+        self.add_message(
+            ChatMessage.SENDER_ASSISTANT,
+            "Jag finns här och lyssnar.",
+        )
+        self.add_message(
+            ChatMessage.SENDER_USER,
+            "Byt ämne, jag vill prata om musik",
+        )
+        self.add_message(
+            ChatMessage.SENDER_ASSISTANT,
+            "Vi kan prata om musik.",
+        )
+
+        self.assertFalse(
+            _is_crisis_followup(
+                self.conversation,
+                "Vilken gitarr passar för nybörjare?",
+            )
         )

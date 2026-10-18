@@ -464,39 +464,41 @@ def _is_crisis_message(message):
 
 
 def _is_crisis_followup(conversation, message):
-    """Preserve recent crisis context, including longer follow-up replies."""
+    """Keep crisis context across follow-ups until an explicit topic change."""
     if _is_crisis_message(message):
         return True
 
-    recent = list(
+    topic_change_markers = (
+        "byt \u00e4mne",
+        "byta \u00e4mne",
+        "new topic",
+        "ist\u00e4llet vill jag",
+        "by the way",
+    )
+
+    def is_topic_change(value):
+        text = str(value).strip().casefold()
+        return any(marker in text for marker in topic_change_markers)
+
+    if is_topic_change(message):
+        return False
+
+    history = (
         ChatMessage.objects.filter(conversation=conversation)
-        .order_by("-timestamp", "-pk")[:12]
+        .order_by("-timestamp", "-pk")
     )
 
-    crisis_seen = any(
-        item.sender == ChatMessage.SENDER_USER
-        and _is_crisis_message(item.message)
-        for item in recent
-    )
+    for item in history:
+        if item.sender != ChatMessage.SENDER_USER:
+            continue
 
-    if not crisis_seen:
-        return False
+        if is_topic_change(item.message):
+            return False
 
-    text = str(message).strip().casefold()
+        if _is_crisis_message(item.message):
+            return True
 
-    if any(
-        marker in text
-        for marker in (
-            "byt \u00e4mne",
-            "byta \u00e4mne",
-            "new topic",
-            "ist\u00e4llet vill jag",
-            "by the way",
-        )
-    ):
-        return False
-
-    return True
+    return False
 
 
 @transaction.atomic
