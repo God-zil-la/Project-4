@@ -239,7 +239,7 @@ class AIQualityTests(TestCase):
             "model": "gpt-4o-mini",
         })
         self.assertFalse(check_message_domain(self.bot, "Unrelated")["in_domain"])
-        api.assert_called_once()
+        self.assertEqual(api.call_count, 2)
 
     @patch("ai_assistant.bots.knowledge_utils.openai.ChatCompletion.create")
     def test_invalid_classifier_reply_is_not_false_rejection(self, api):
