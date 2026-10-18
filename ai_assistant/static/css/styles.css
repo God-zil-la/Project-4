@@ -1409,3 +1409,31 @@ body > main.site-main {
     overflow-wrap: anywhere;
   }
 }
+
+/* SIDEBAR_CONVERSATION_OVERFLOW_FIX */
+.app-sidebar,
+.app-sidebar-nav,
+.app-sidebar-group,
+.app-sidebar-submenu {
+    min-width: 0;
+    max-width: 100%;
+}
+
+.app-sidebar-group > summary {
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.app-sidebar-conversation {
+    display: block;
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
