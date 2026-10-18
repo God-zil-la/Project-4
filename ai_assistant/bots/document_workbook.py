@@ -18,6 +18,17 @@ Requirements:
 - Follow the user's latest request and relevant conversation context.
 - Create multiple sheets when the user requests multiple sheets.
 - Use Excel formulas as cell strings starting with =.
+- Use mathematically consistent units and periods in calculations.
+- Monthly costs must be multiplied by 12 when compared against
+  annual revenue, unless the source already provides annual costs.
+- Prefer formulas that reference existing cells over hardcoded totals.
+- Quote worksheet names in cross-sheet formulas, especially names
+  with spaces or non-ASCII letters. Example:
+  ='Monthly Budget'!B8*12
+- Ensure that every formula references the intended populated cells.
+- Do not mix monthly and annual quantities without conversion.
+- Do not claim that formulas have been calculated by the server.
+
 - Use English Excel function names such as SUM.
 - Cross-sheet references must use correct Excel syntax.
 - Include numerical examples only when requested or clearly appropriate.

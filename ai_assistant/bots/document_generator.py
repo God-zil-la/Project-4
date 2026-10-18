@@ -24,11 +24,59 @@ def generate_document(title, content, file_format):
     content = str(content)
 
     if file_format == "docx":
+        # DOCUMENT_FORMAT_QUALITY_V1
+        import re
+        from docx.shared import Pt
+
         document = Document()
         document.add_heading(title, 0)
 
-        for paragraph in content.split("\n"):
-            document.add_paragraph(paragraph)
+        normal = document.styles["Normal"]
+        normal.font.size = Pt(10.5)
+        normal.paragraph_format.space_after = Pt(6)
+
+        def add_inline(paragraph, text):
+            parts = re.split(r"(\*\*.+?\*\*)", text)
+            for part in parts:
+                if not part:
+                    continue
+                if part.startswith("**") and part.endswith("**"):
+                    run = paragraph.add_run(part[2:-2])
+                    run.bold = True
+                else:
+                    paragraph.add_run(part)
+
+        for raw_line in content.splitlines():
+            line = raw_line.strip()
+
+            if not line:
+                continue
+
+            if re.fullmatch(r"[-*_]{3,}", line):
+                document.add_paragraph("")
+                continue
+
+            heading = re.match(r"^(#{1,6})\s+(.+)$", line)
+            if heading:
+                level = min(len(heading.group(1)), 4)
+                paragraph = document.add_heading(level=level)
+                add_inline(paragraph, heading.group(2))
+                continue
+
+            bullet = re.match(r"^[-*+]\s+(.+)$", line)
+            if bullet:
+                paragraph = document.add_paragraph(style="List Bullet")
+                add_inline(paragraph, bullet.group(1))
+                continue
+
+            numbered = re.match(r"^\d+[.)]\s+(.+)$", line)
+            if numbered:
+                paragraph = document.add_paragraph(style="List Number")
+                add_inline(paragraph, numbered.group(1))
+                continue
+
+            paragraph = document.add_paragraph()
+            add_inline(paragraph, line)
 
         buffer = BytesIO()
         document.save(buffer)
