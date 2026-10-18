@@ -877,17 +877,23 @@ def process_bot_message(
             bot,
             knowledge_text,
         )
-        # DOCUMENT_GENERATION_V1
-        from .document_intent import resolve_document_format
+        # DOCUMENT_GENERATION_V2: Multilingual intent classification.
+        document_format = None
+        document_decision = None
 
-        document_format = (
-            resolve_document_format(
+        if not crisis_active and not allow_widget:
+            from .document_ai_intent import classify_document_request
+
+            document_decision = classify_document_request(
                 message,
                 _build_history(active_conversation, ""),
             )
-            if not crisis_active and not allow_widget
-            else None
-        )
+
+            if (
+                document_decision
+                and document_decision["status"] == "ready"
+            ):
+                document_format = document_decision["format"]
 
         if document_format:
             system_message += (
@@ -1120,9 +1126,9 @@ def process_bot_message(
         generated_document = None
 
         if document_format and not interrupted:
-            from .document_intent import document_content_ready
+            from .document_ai_intent import document_response_complete
 
-            if document_content_ready(message, response_text):
+            if document_response_complete(response_text):
                 try:
                     from .document_pipeline import create_chat_document
 

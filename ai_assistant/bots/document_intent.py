@@ -13,7 +13,7 @@ FILE_REQUESTS = {
 }
 
 CREATE_ACTION = re.compile(
-    r"\b(?:skapa|generera|gör|göra|bygg|exportera|"
+    r"\b(?:skapa|generera|g\u00f6r|g\u00f6ra|bygg|exportera|"
     r"create|generate|make|build|export)\b",
     re.I,
 )
@@ -124,6 +124,13 @@ def resolve_document_format(message, history):
     if explicit:
         return explicit
 
+    # Acknowledgements must not restart an earlier document export.
+    if message.casefold().strip(" .!?") in {
+        "tack", "tack s? mycket", "thank you", "thanks",
+        "thank you very much", "ok", "okay",
+    }:
+        return None
+
     if not isinstance(history, (list, tuple)):
         return None
 
@@ -148,7 +155,9 @@ def resolve_document_format(message, history):
 
     # Only continue a pending export after an actual question.
     # An ordinary completed answer must never reactivate it.
-    if not last["content"].strip().endswith("?"):
+    # A clarification may end with a statement after its question.
+    # Do not reactivate exports after a completed document.
+    if "?" not in last["content"]:
         return None
 
     if not CLARIFICATION.search(last["content"]):
