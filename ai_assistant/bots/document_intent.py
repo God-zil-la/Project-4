@@ -28,6 +28,36 @@ GENERIC_DOCUMENT = re.compile(
 )
 
 
+
+
+# Gate expensive document classification for plausible document requests.
+# Unicode escapes avoid terminal encoding corruption.
+DOCUMENT_CANDIDATE = re.compile(
+    r"(?:\b(?:pdf|docx|xlsx|csv|document|download|downloadable|"
+    r"export|spreadsheet|workbook|dokument|arbetsbok|"
+    r"documento|archivo|fichier)\b|"
+    r"nedladd|exportera|excel|word.file|"
+    r"\u0648\u062b\u064a\u0642\u0629|"
+    r"\u0645\u0633\u062a\u0646\u062f|"
+    r"\u0645\u0644\u0641|"
+    r"\u062a\u062d\u0645\u064a\u0644|"
+    r"\u0926\u0938\u094d\u0924\u093e\u0935\u0947\u091c|"
+    r"\u092b\u093c\u093e\u0907\u0932|"
+    r"\u6587\u6863|"
+    r"\u6587\u4ef6|"
+    r"\u4e0b\u8f7d|"
+    r"\u5bfc\u51fa|"
+    r"\u30c0\u30a6\u30f3\u30ed\u30fc\u30c9|"
+    r"\ub2e4\uc6b4\ub85c\ub4dc)",
+    re.I,
+)
+
+
+def is_document_candidate(message):
+    """Cheap, side-effect-free document classification gate."""
+    return bool(DOCUMENT_CANDIDATE.search(str(message or "")))
+
+
 def requested_document_format(message):
     """Detect explicit file generation requests."""
 

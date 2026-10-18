@@ -881,13 +881,41 @@ def process_bot_message(
         document_format = None
         document_decision = None
 
-        if not crisis_active and not allow_widget:
+        from .document_intent import is_document_candidate
+
+        if (
+            not crisis_active
+            and not allow_widget
+            and is_document_candidate(message)
+        ):
             from .document_ai_intent import classify_document_request
 
             document_decision = classify_document_request(
                 message,
                 _build_history(active_conversation, ""),
             )
+
+            # Explicit requests must still work if AI classification
+            # fails or incorrectly rejects a supported file format.
+            # This does not bypass the document completion validator.
+            from .document_intent import (
+                CANCEL_DOCUMENT,
+                requested_document_format,
+            )
+
+            explicit_format = requested_document_format(message)
+
+            # Cancellation always wins, including if the AI
+            # classifier incorrectly reports a ready document.
+            if CANCEL_DOCUMENT.search(message):
+                document_decision = None
+            elif explicit_format:
+                # Explicit user format wins over a conflicting
+                # classifier decision or classifier outage.
+                document_decision = {
+                    "status": "ready",
+                    "format": explicit_format,
+                }
 
             if (
                 document_decision
@@ -903,6 +931,13 @@ def process_bot_message(
                 "If the user supplied enough information, write "
                 "the actual complete document content in your "
                 "normal reply, with useful sections and details. "
+                "Document export is a platform capability, not "
+                "an unsupported external task. Do not refuse a "
+                "request solely because it asks for a PDF, DOCX, "
+                "XLSX, or CSV file. Respect the assistant's subject "
+                "and all safety rules. For an explicit file-format "
+                "follow-up, use relevant document content already "
+                "available in the conversation when appropriate. "
                 "Do not claim that you cannot create files. "
                 "Do not invent a download link or claim the file "
                 "has already been created. "
