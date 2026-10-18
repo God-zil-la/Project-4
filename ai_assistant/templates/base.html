@@ -2,6 +2,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<link rel="icon" href="{% static 'images/favicon.ico' %}" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="{% static 'images/favicon-32x32.png' %}">
+<link rel="icon" type="image/png" sizes="16x16" href="{% static 'images/favicon-16x16.png' %}">
+<link rel="apple-touch-icon" sizes="180x180" href="{% static 'images/apple-touch-icon.png' %}">
   <script>
     (function () {
       const storedTheme = localStorage.getItem("theme");
@@ -58,8 +62,6 @@
   <meta name="twitter:image:alt" content="AI Assistant">
 
   <link rel="stylesheet" href="{% static 'css/styles.css' %}?v=4">
-  <link rel="icon" href="{% static 'images/favicon.ico' %}?v=2" sizes="any">
-  <link rel="apple-touch-icon" href="{% static 'images/ai-assistant-logo.png' %}">
 
   {% block structured_data %}
   <script type="application/ld+json">
@@ -109,7 +111,12 @@
         <li><a href="/accounts/login/">Login</a></li>
         <li><a href="/accounts/register/">Register</a></li>
       {% endif %}
-    </ul>
+    <li class="nav-guide-link">
+  <a href="{% static 'pdf/ai_assistant_setup_guide_v2.pdf' %}"
+     target="_blank"
+     rel="noopener noreferrer">Information Guide (PDF)</a>
+</li>
+</ul>
   </nav>
 
   <div class="theme-strip">

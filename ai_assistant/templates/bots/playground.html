@@ -2417,7 +2417,7 @@ main {
                 return "Assistant";
             }
 
-            return "User";
+            return "{{ request.user.username|escapejs }}";
         }
 
 
