@@ -693,3 +693,199 @@ class AIQualityTests(TestCase):
             ChatMessage.objects.count(),
             0,
         )
+
+    def test_p0_followup_context_keeps_assistant_offer_not_refusal(self):
+        from ai_assistant.bots.chat_service import _build_followup_context
+        conversation = Conversation.objects.create(user=self.user, bot=self.bot)
+        for sender, message in (
+            (ChatMessage.SENDER_USER, "I need help with training."),
+            (ChatMessage.SENDER_ASSISTANT, "Would you like a workout playlist?"),
+            (ChatMessage.SENDER_USER, "Ja gärna"),
+            (ChatMessage.SENDER_ASSISTANT, "I specialize in Fitness. Please ask something related to that category."),
+        ):
+            ChatMessage.objects.create(conversation=conversation, bot=self.bot,
+                                       user=self.user, sender=sender, message=message)
+        context = _build_followup_context(conversation)
+        self.assertIn("ASSISTANT: Would you like a workout playlist?", context)
+        self.assertIn("USER: Ja gärna", context)
+        self.assertNotIn("I specialize in Fitness", context)
+
+    def test_p0_crisis_followup_recognizes_recent_user_disclosure(self):
+        from ai_assistant.bots.chat_service import _is_crisis_followup
+        conversation = Conversation.objects.create(user=self.user, bot=self.bot)
+        ChatMessage.objects.create(conversation=conversation, bot=self.bot,
+                                   user=self.user, sender=ChatMessage.SENDER_USER,
+                                   message="Jag mår inte bra och vill ta mitt liv")
+        self.assertTrue(_is_crisis_followup(conversation, "Ja gärna"))
+        self.assertTrue(_is_crisis_followup(conversation, "Du ställde ju en fråga till mig?"))
+
+    @patch("ai_assistant.bots.chat_service.check_message_domain")
+    @patch("ai_assistant.bots.chat_service.openai.ChatCompletion.create")
+    def test_p0_crisis_followup_bypasses_domain_gate(self, api, domain):
+        self.bot.category = "therapy"
+        self.bot.save(update_fields=["category"])
+        conversation = Conversation.objects.create(user=self.user, bot=self.bot)
+        ChatMessage.objects.create(conversation=conversation, bot=self.bot,
+                                   user=self.user, sender=ChatMessage.SENDER_USER,
+                                   message="Jag mår inte bra och vill ta mitt liv")
+        api.return_value = self.completion()
+        result = process_bot_message(self.user, self.bot, "Ja gärna",
+                                     conversation=conversation.public_id)
+        self.assertTrue(result["in_domain"])
+        domain.assert_not_called()
+        self.assertIn("CRISIS SAFETY OVERRIDE", api.call_args.kwargs["messages"][0]["content"])
+
+
+    @patch.dict("os.environ", {"OPENAI_API_KEY": "test-only"})
+    @patch("ai_assistant.bots.chat_service.check_message_domain")
+    @patch("ai_assistant.bots.chat_service.openai.ChatCompletion.create")
+    def test_p0_full_crisis_pipeline_four_turns(self, api, domain):
+        self.bot.category = "therapy"
+        self.bot.save(update_fields=["category"])
+
+        messages = [
+            "Jag mar inte bra och vill ta mitt liv",
+            "Ja garna",
+            "Jomen det kan jag gora",
+            "Du stallde ju en fraga till mig?",
+        ]
+
+        api.return_value = self.completion()
+        conversation_id = None
+
+        for index, message in enumerate(messages):
+            result = process_bot_message(
+                self.user,
+                self.bot,
+                message,
+                conversation=conversation_id,
+            )
+
+            self.assertTrue(result["in_domain"])
+            self.assertEqual(result["response"], "A grounded answer.")
+            conversation_id = result["conversation_id"]
+
+            self.assertEqual(api.call_count, index + 1)
+            domain.assert_not_called()
+
+            sent_messages = api.call_args.kwargs["messages"]
+
+            self.assertIn(
+                "CRISIS SAFETY OVERRIDE",
+                sent_messages[0]["content"],
+            )
+            self.assertEqual(sent_messages[-1]["content"], message)
+
+            if index:
+                self.assertIn(
+                    messages[index - 1],
+                    [
+                        m["content"] for m in sent_messages
+                        if m["role"] == "user"
+                    ],
+                )
+
+        conversation = Conversation.objects.get(public_id=conversation_id)
+        self.assertEqual(
+            ChatMessage.objects.filter(conversation=conversation).count(),
+            8,
+        )
+        self.assertEqual(api.call_count, 4)
+        domain.assert_not_called()
+
+from django.test import SimpleTestCase
+from unittest.mock import patch, MagicMock
+
+
+class P0CrisisRegressionTests(SimpleTestCase):
+
+    def test_negated_suicide_statement_is_safety_relevant(self):
+        from ai_assistant.bots.chat_service import _is_crisis_message
+
+        self.assertTrue(_is_crisis_message("Jag vill inte ta mitt liv"))
+        self.assertTrue(_is_crisis_message("Jag har sj\u00e4lvmordstankar"))
+
+
+    def test_p0_four_turn_crisis_continuity(self):
+        from ai_assistant.bots.chat_service import (
+            _is_crisis_message,
+            _is_crisis_followup,
+        )
+        from ai_assistant.bots.models import ChatMessage
+
+        from unittest.mock import MagicMock, patch
+
+        conversation = object()
+        history = []
+
+        class FakeQuery:
+            def order_by(self, *args):
+                return self
+
+            def __getitem__(self, key):
+                return list(reversed(history))[:12]
+
+        def fake_filter(**kwargs):
+            return FakeQuery()
+
+        messages = [
+            "Jag mar inte bra och vill ta mitt liv",
+            "Ja garna",
+            "Jomen det kan jag gora",
+            "Du stallde ju en fraga till mig?",
+        ]
+
+        with patch(
+            "ai_assistant.bots.chat_service.ChatMessage.objects.filter",
+            side_effect=fake_filter,
+        ):
+            for index, message in enumerate(messages):
+                self.assertTrue(
+                    _is_crisis_followup(conversation, message),
+                    f"Crisis continuity failed at turn {index + 1}",
+                )
+                previous = MagicMock()
+                previous.sender = ChatMessage.SENDER_USER
+                previous.message = message
+                history.append(previous)
+
+        self.assertTrue(_is_crisis_message(messages[0]))
+
+    @patch("ai_assistant.bots.chat_service.ChatMessage.objects.filter")
+    def test_long_crisis_followup(self, mock_filter):
+        from ai_assistant.bots.chat_service import _is_crisis_followup
+        from ai_assistant.bots.models import ChatMessage
+
+        previous = MagicMock()
+        previous.sender = ChatMessage.SENDER_USER
+        previous.message = "Jag vill ta mitt liv"
+
+        mock_filter.return_value.order_by.return_value.__getitem__.return_value = [
+            previous
+        ]
+
+        long_reply = (
+            "Ja g?rna, jag vill prata vidare om det som har h?nt. "
+            + "Jag k?nner mig v?ldigt ensam och skulle vilja att du "
+              "hj?lper mig att f?rst? vad jag kan g?ra just nu. " * 8
+        )
+
+        self.assertGreater(len(long_reply.split()), 20)
+        self.assertTrue(_is_crisis_followup(object(), long_reply))
+
+    @patch("ai_assistant.bots.chat_service.ChatMessage.objects.filter")
+    def test_explicit_topic_change(self, mock_filter):
+        from ai_assistant.bots.chat_service import _is_crisis_followup
+        from ai_assistant.bots.models import ChatMessage
+
+        previous = MagicMock()
+        previous.sender = ChatMessage.SENDER_USER
+        previous.message = "Jag vill ta mitt liv"
+
+        mock_filter.return_value.order_by.return_value.__getitem__.return_value = [
+            previous
+        ]
+
+        self.assertFalse(
+            _is_crisis_followup(object(), "Byt \u00e4mne, jag vill prata om musik")
+        )

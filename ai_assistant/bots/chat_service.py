@@ -419,6 +419,88 @@ def _build_domain_context(conversation, limit=6):
     )
 
 
+# P0_AG_CONTEXT_V1: relevant assistant turns, excluding prior category refusals.
+def _build_followup_context(conversation, limit=24):
+    """Build context for category classification."""
+    previous = list(
+        ChatMessage.objects.filter(conversation=conversation)
+        .order_by("-timestamp", "-pk")[:limit]
+    )
+
+    lines = []
+
+    for item in reversed(previous):
+        content = strip_source_list(item.message).strip()[:1000]
+        if not content:
+            continue
+
+        if item.sender == ChatMessage.SENDER_ASSISTANT:
+            normalized = content.casefold()
+            if any(marker in normalized for marker in (
+                "specialiserar mig",
+                "utanf?r min kategori",
+                "outside my category",
+            )):
+                continue
+            if "please ask" in normalized and "category" in normalized:
+                continue
+            lines.append("ASSISTANT: " + content)
+
+        elif item.sender == ChatMessage.SENDER_USER:
+            lines.append("USER: " + content)
+
+    return "\n".join(lines)[-10000:]
+
+
+def _is_crisis_message(message):
+    """Detect explicit references to suicide or self-harm."""
+    s = str(message).casefold()
+    return bool(re.search(
+        r"(?:\b(?:vill|t\u00e4nker|ska|planerar)\s+(?:inte\s+)?"
+        r"(?:ta mitt liv|beg\u00e5 sj\u00e4lvmord|d\u00f6da mig sj\u00e4lv)\b|"
+        r"\b(?:ta livet av mig|skada mig sj\u00e4lv|suicid|sj\u00e4lvmordstankar)\b|"
+        r"\b(?:want to|going to|plan to)\s+"
+        r"(?:kill myself|end my life)\b|"
+        r"\b(?:suicidal|suicide|self.harm)\b)", s
+    ))
+
+
+def _is_crisis_followup(conversation, message):
+    """Preserve recent crisis context, including longer follow-up replies."""
+    if _is_crisis_message(message):
+        return True
+
+    recent = list(
+        ChatMessage.objects.filter(conversation=conversation)
+        .order_by("-timestamp", "-pk")[:12]
+    )
+
+    crisis_seen = any(
+        item.sender == ChatMessage.SENDER_USER
+        and _is_crisis_message(item.message)
+        for item in recent
+    )
+
+    if not crisis_seen:
+        return False
+
+    text = str(message).strip().casefold()
+
+    if any(
+        marker in text
+        for marker in (
+            "byt \u00e4mne",
+            "byta \u00e4mne",
+            "new topic",
+            "ist\u00e4llet vill jag",
+            "by the way",
+        )
+    ):
+        return False
+
+    return True
+
+
 @transaction.atomic
 def _save_chat_exchange(
     conversation,
@@ -640,15 +722,20 @@ def process_bot_message(
             message,
         )
 
-        domain_context = _build_domain_context(
-            active_conversation
-        )
+        domain_context = _build_followup_context(active_conversation)
+        crisis_active = _is_crisis_followup(active_conversation, message)
 
-        domain_result = check_message_domain(
+        domain_result = ({
+            "in_domain": True,
+            "tokens_used": 0,
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "model": None,
+        } if crisis_active else check_message_domain(
             bot,
             message,
             conversation_context=domain_context,
-        )
+        ))
 
         classifier_tokens = domain_result[
             "tokens_used"
@@ -788,6 +875,33 @@ def process_bot_message(
             bot,
             knowledge_text,
         )
+        if crisis_active:
+            system_message += (
+                '\n\nCRISIS SAFETY OVERRIDE (highest priority): The user has expressed possibl'
+                'e suicidal intent or is continuing a recent suicide-related conversation. R'
+                "espond calmly, directly and compassionately in the user's language. Never r"
+                'eject this conversation as outside the assistant category. This safety rule'
+                ' overrides conflicting category and personality rules. Ask an unambiguous i'
+                "mmediate-safety question, such as: 'Are you safe right now? Is there a risk"
+                " you might hurt yourself soon?' Do not ask confusing questions such as 'Are"
+                " you sure you are in danger?' If there is immediate danger, or serious conc"
+                'ern about imminent self-harm, advise contacting emergency services immediat'
+                'ely. For users in Sweden: 112 is the national emergency number for immediat'
+                'e danger; 1177 is healthcare advice; Mind Sj\u00e4lvmordslinjen can be reached at'
+                ' 90101 for suicide-related emotional support. Do not describe 112 as a spec'
+                'ific crisis organization or counseling service. Do not invent organizations'
+                ', telephone numbers, websites, opening hours, or emergency-service capabili'
+                'ties. If location is unknown, avoid assuming Sweden; advise local emergency'
+                ' services and ask for the country if necessary. Encourage contacting a trus'
+                'ted person who can stay with the user. When appropriate, suggest moving awa'
+                'y from means of self-harm. When the user accepts an offer of help, provide '
+                'the requested information or next steps immediately, without repeatedly ask'
+                "ing permission or offering the same help again. Respond to the user's actua"
+                'l latest message, preserving context. Avoid repetitive questions and generi'
+                'c category refusals. Do not provide self-harm instructions. Do not claim to'
+                ' be a therapist, emergency responder, or real-time monitoring service. Do n'
+                'ot claim to have contacted emergency services.'
+            )
 
         if knowledge_result.get("sources"):
             source_ids = [
