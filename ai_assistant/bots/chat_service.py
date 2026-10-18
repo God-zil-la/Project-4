@@ -1245,6 +1245,18 @@ def process_bot_message(
                     export_title = derive_document_title(
                         message, export_content, document_format
                     )
+                    # DOCUMENT_FINAL_HOTFIX_V3: Avoid duplicate top title.
+                    export_lines = export_content.splitlines()
+                    if export_lines:
+                        first_heading = re.match(
+                            r"^#{1,6}\s+(.+?)\s*$", export_lines[0].strip()
+                        )
+                        if (
+                            first_heading
+                            and first_heading.group(1).strip().casefold()
+                            == export_title.strip().casefold()
+                        ):
+                            export_content = "\n".join(export_lines[1:]).lstrip()
                     generated_document = create_chat_document(
                         user=user,
                         title=export_title,

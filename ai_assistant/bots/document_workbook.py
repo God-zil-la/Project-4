@@ -42,78 +42,110 @@ Requirements:
 """
 
 def generate_workbook_spec(message, history):
-    conversation = []
+    """Create structured Excel data; retry once if literal amounts are lost."""
+    # DOCUMENT_FINAL_HOTFIX_V3
+    import re
+    from decimal import Decimal, InvalidOperation
 
+    conversation = []
     for item in list(history or [])[-10:]:
         if not isinstance(item, dict):
             continue
-        role = item.get("role")
-        content = item.get("content")
-        if role in ("user", "assistant") and isinstance(content, str):
-            conversation.append({
-                "role": role,
-                "content": content[:3000],
-            })
+        role, content = item.get('role'), item.get('content')
+        if role in ('user', 'assistant') and isinstance(content, str):
+            conversation.append({'role': role, 'content': content[:3000]})
 
-    conversation.append({
-        "role": "user",
-        "content": str(message)[:5000],
-    })
+    user_message = str(message)[:5000]
+    conversation.append({'role': 'user', 'content': user_message})
 
-    result = provider_call(
-        openai.ChatCompletion.create,
-        model="gpt-4o-mini",
-        messages=[
-            {"role": "system", "content": SYSTEM_PROMPT},
-            *conversation,
-        ],
-        temperature=0,
-        max_tokens=3500,
-        request_timeout=45,
-        response_format={"type": "json_object"},
+    def number(value):
+        if isinstance(value, bool):
+            return None
+        try:
+            if isinstance(value, (int, float)):
+                return Decimal(str(value))
+            if isinstance(value, str):
+                stripped = value.strip().replace(' ', '').replace('\u00a0', '')
+                if re.fullmatch(r'\d+(?:[.,]\d+)?', stripped):
+                    return Decimal(stripped.replace(',', '.'))
+        except (InvalidOperation, ValueError):
+            pass
+        return None
+
+    # Capture amounts tied to currency, without mistaking the year for money.
+    amounts = set()
+    amount_pattern = re.compile(
+        r'(?<![\w\d])(?:\d{1,3}(?:[ \u00a0]\d{3})+|\d{4,})'
+        r'(?=\s*(?:SEK|kr\b|kronor\b))', re.I
     )
+    for match in amount_pattern.finditer(user_message):
+        value = number(match.group(0))
+        if value is not None:
+            amounts.add(value)
 
-    choices = result.get("choices") or []
+    # Numeric amounts may also be written as 'Hyra 15000, Personal 25000'.
+    labelled_pattern = re.compile(
+        r'(?i)\b(?:hyra|personal|r[aå]varor|[oö]vrigt|'
+        r'försäljning|forsaljning|rent|staff|salary|materials|other)'
+        r'\s*[:=]?\s*(\d{4,}(?:[ \u00a0]\d{3})*)\b'
+    )
+    for match in labelled_pattern.finditer(user_message):
+        value = number(match.group(1))
+        if value is not None:
+            amounts.add(value)
 
-    if not choices or choices[0].get("finish_reason") != "stop":
-        raise ValueError("Workbook response was incomplete.")
-
-    content = (choices[0].get("message") or {}).get("content")
-    specification = json.loads(content)
-
-    if not isinstance(specification, dict):
-        raise ValueError("Invalid workbook response.")
-
-    if set(specification) != {"sheets"}:
-        raise ValueError("Unexpected workbook response structure.")
-
-    # DOCUMENT_EXPORT_QUALITY_V2: Refuse silently altered explicit sums.
-    # Exact currency amounts from the latest message must occur in numeric
-    # workbook cells. This guards against AI replacing user-provided values.
-    import re
-    from decimal import Decimal
-
-    def requested_amounts(prompt):
-        pattern = re.compile(
-            r"(?<![\w\d])(?:\d{1,3}(?:[ \u00a0]\d{3})+|\d{4,})"
-            r"(?=\s*(?:SEK|kr\b|kronor\b))",
-            re.I,
+    retry_note = ''
+    for attempt in range(2):
+        messages = [
+            {'role': 'system', 'content': SYSTEM_PROMPT},
+            *conversation,
+        ]
+        if retry_note:
+            messages.append({'role': 'system', 'content': retry_note})
+        result = provider_call(
+            openai.ChatCompletion.create,
+            model='gpt-4o-mini',
+            messages=messages,
+            temperature=0,
+            max_tokens=3500,
+            request_timeout=45,
+            response_format={'type': 'json_object'},
         )
-        return {
-            Decimal(match.group(0).replace(' ', '').replace('\u00a0', ''))
-            for match in pattern.finditer(prompt)
-        }
-
-    specified = requested_amounts(str(message))
-    present = set()
-    for sheet in specification.get('sheets', []):
-        for row in sheet.get('rows', []):
-            for value in row:
-                if isinstance(value, (int, float)) and not isinstance(value, bool):
-                    present.add(Decimal(str(value)))
-    absent = specified - present
-    if absent:
-        raise ValueError('AI workbook changed explicitly specified currency values.')
-
-    # The document generator validates every worksheet and cell.
-    return json.dumps(specification, ensure_ascii=True)
+        choices = result.get('choices') or []
+        if not choices or choices[0].get('finish_reason') != 'stop':
+            raise ValueError('Workbook response was incomplete.')
+        content = (choices[0].get('message') or {}).get('content')
+        specification = json.loads(content)
+        if not isinstance(specification, dict) or set(specification) != {'sheets'}:
+            raise ValueError('Unexpected workbook response structure.')
+        sheets = specification.get('sheets')
+        if not isinstance(sheets, list):
+            raise ValueError('Invalid workbook sheets.')
+        present = set()
+        for sheet in sheets:
+            if not isinstance(sheet, dict) or not isinstance(sheet.get('rows'), list):
+                raise ValueError('Invalid workbook worksheet.')
+            for row in sheet['rows']:
+                if not isinstance(row, list):
+                    raise ValueError('Invalid workbook row.')
+                for cell in row:
+                    value = number(cell)
+                    if value is not None:
+                        present.add(value)
+        missing = amounts - present
+        if not missing:
+            return json.dumps(specification, ensure_ascii=True)
+        if attempt == 0:
+            retry_note = (
+                'Your previous workbook changed or omitted user-entered values. '
+                'Regenerate the entire JSON workbook accurately. Preserve each '
+                'of these numeric user inputs unchanged in actual numeric cells: '
+                + ', '.join(str(x) for x in sorted(missing))
+                + '. Preserve the requested 12 monthly sales values when applicable. '
+                'Do not return an explanation.'
+            )
+            continue
+        raise ValueError(
+            'Workbook failed to preserve user-entered amounts after retry.'
+        )
+    raise ValueError('Workbook generation failed.')

@@ -26,26 +26,51 @@ _HEADING = re.compile(r'^#{1,6}\s+(.+?)\s*$')
 _REQUEST_TITLE = re.compile(r'(?i)\b(?:titeln|title(?:d)?)\s*["“]([^"”]{4,100})["”]')
 
 
+# DOCUMENT_FINAL_HOTFIX_V3
+_GENERATED_SANDBOX_LINK = re.compile(
+    r'(?im)^\s*\[[^\]\n]+\]\(sandbox:[^\n)]*\)\s*$'
+)
+_CHAT_TRAILER = re.compile(
+    r'(?i)^(?:'
+    r'jag\s+(?:skapar|genererar|kommer\s+(?:nu\s+)?att\s+(?:skapa|generera)|ska\s+nu\s+(?:skapa|generera))\b'
+    r'|nu\s+har\s+jag\s+(?:genererat|skapat)\b'
+    r'|h[aä]r\s+(?:kan\s+du\s+)?(?:ladda\s+ner|[aä]r\s+din\s+nedladdningsl[aä]nk)\b'
+    r'|v[aä]nligen\s+v[aä]nta\b'
+    r'|h[aä]mta\s+[^\n]+$'
+    r'|i\s+(?:will|have)\s+(?:now\s+)?(?:generate|create|generated|created)\b'
+    r'|your\s+(?:download|file)\s+(?:link|is\s+ready)\b'
+    r')'
+)
+
+
 def strip_generated_links(text):
-    """Strip only AI-invented download links, never actual persisted links."""
-    return _FAKE_LINK.sub('', str(text or '')).strip()
+    """Strip model-invented download URLs before adding the persisted URL."""
+    text = _GENERATED_SANDBOX_LINK.sub('', str(text or ''))
+    return _FAKE_LINK.sub('', text).strip()
 
 
 def clean_document_content(text):
-    lines = strip_generated_links(text).splitlines()
+    """Remove model-generated chat trailers without deleting document body."""
+    result = strip_generated_links(text)
+    lines = result.splitlines()
     while lines and not lines[0].strip():
         lines.pop(0)
-    while lines and (_PREAMBLE.search(lines[0].strip()) or not lines[0].strip()):
+    while lines and _PREAMBLE.search(lines[0].strip()):
         lines.pop(0)
-    while lines and (not lines[-1].strip() or _PROMISE.search(lines[-1].strip())):
-        lines.pop()
-    # Remove any final promise regardless of trailing blank lines.
-    while lines and _PROMISE.search(lines[-1].strip()):
-        lines.pop()
-    result = '\n'.join(lines).strip()
-    if not result:
+    # Remove the trailing exchange as a block, including divider and blanks.
+    while lines:
+        tail = lines[-1].strip()
+        if not tail or re.fullmatch(r'[-*_]{3,}', tail):
+            lines.pop()
+            continue
+        if _PROMISE.search(tail) or _CHAT_TRAILER.search(tail):
+            lines.pop()
+            continue
+        break
+    cleaned = '\n'.join(lines).strip()
+    if not cleaned:
         raise ValueError('No document content remains after removing chat text.')
-    return result
+    return cleaned
 
 
 def derive_document_title(message, content, file_format):
