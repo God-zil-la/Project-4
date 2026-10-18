@@ -57,18 +57,43 @@ def requested_document_format(message):
 
 
 def document_content_ready(message, response):
-    """
-    Basic guard against exporting short clarification replies.
-    """
+    """Export only substantive completed answers, not clarification replies."""
     response = str(response or "").strip()
 
     if len(response.split()) < 25:
         return False
 
-    if response.endswith("?") and len(response.split()) < 100:
-        return False
+    # A reply requesting essential details is not a completed document.
+    clarification_patterns = (
+        r"\b(?:kan du|skulle du kunna|could you|can you|please)\b"
+        r".{0,120}\b(?:ange|ber?tta|specificera|provide|specify|tell me)\b",
+        r"\b(?:vilka specifika|vilket ?mne|vilka ?mnen|vad vill du"
+        r"|what topics|what subject|what should)\b",
+        r"\b(?:f?r att b?rja|innan jag b?rjar|before i begin"
+        r"|to get started|i need more information)\b",
+        r"\b(?:n?r jag har denna information|once i have"
+        r"|when you provide)\b",
+    )
+
+    for pattern in clarification_patterns:
+        if re.search(pattern, response, re.I | re.S):
+            return False
+
+    # Questions in the closing part of the answer often indicate
+    # that the assistant is still gathering document requirements.
+    tail = response[-700:]
+    if "?" in tail:
+        question_patterns = (
+            r"\b(?:kan du|vilka|vilket|vilken|vad|hur|n?r"
+            r"|could you|can you|what|which|how|would you)\b"
+            r"[^?]{0,180}\\?",
+        )
+        if any(re.search(p, tail, re.I) for p in question_patterns):
+            return False
 
     return True
+
+
 
 
 # DOCUMENT_FOLLOWUP_V2
