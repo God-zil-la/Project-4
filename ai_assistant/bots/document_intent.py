@@ -87,7 +87,7 @@ def requested_document_format(message):
             re.I,
         )
     ):
-        return "xlsx"
+        return "docx"
 
     # A generic downloadable document defaults to Word.
     # Explicit Excel workbook requests are handled above.

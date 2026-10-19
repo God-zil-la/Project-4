@@ -49,6 +49,100 @@ def budget_spec():
     ]}
 
 
+
+class SourceLabelRegressionTests(TestCase):
+    def test_english_instruction_source_labels(self):
+        message = (
+            "Include Hyra 15 000 SEK, Personal 25 000 SEK, "
+            "R\u00e5varor 10 000 SEK, and \u00d6vrigt 5 000 SEK."
+        )
+        amounts = extract_amounts(message)
+
+        self.assertEqual(
+            [item["label"] for item in amounts],
+            ["Hyra", "Personal", "R\u00e5varor", "\u00d6vrigt"],
+        )
+
+        spec = {"sheets": [{"name": "Budget", "rows": [
+            ["Hyra", {"source": "amount_1"}],
+            ["Personal", {"source": "amount_2"}],
+            ["R\u00e5varor", {"source": "amount_3"}],
+            ["\u00d6vrigt", {"source": "amount_4"}],
+            ["Total", "=SUM(B1:B4)"],
+        ]}]}
+
+        evaluator = bind_and_validate(spec, amounts)
+        self.assertEqual(evaluator.cell("Budget", 5, 2), 55000)
+
+    def test_swapped_source_binding_is_rejected(self):
+        amounts = extract_amounts(
+            "Include Hyra 15 000 SEK, Personal 25 000 SEK."
+        )
+        spec = {"sheets": [{"name": "Budget", "rows": [
+            ["Hyra", {"source": "amount_2"}],
+            ["Personal", {"source": "amount_1"}],
+        ]}]}
+
+        with self.assertRaisesRegex(
+            ValueError, "Source label does not match its row"
+        ):
+            bind_and_validate(spec, amounts)
+
+
+
+class ProductionPromptExtractionTests(TestCase):
+    def test_full_english_production_amount_extraction(self):
+        message = (
+            "Create a downloadable Excel workbook with exactly three worksheets.\n"
+            "Worksheet 1: M\\u00e5nadsbudget.\n"
+            "Include Hyra 15 000 SEK, Personal 25 000 SEK, "
+            "R\\u00e5varor 10 000 SEK, and \\u00d6vrigt 5 000 SEK.\n"
+            "Calculate monthly total using an Excel formula and annual costs using a formula.\n"
+            "Worksheet 2: F\\u00f6rs\\u00e4ljningsprognos.\n"
+            "Include January through December with 50 000 SEK in sales for each month.\n"
+            "Calculate annual sales using a formula.\n"
+            "Worksheet 3: Resultatsammanst\\u00e4llning.\n"
+            "Reference the totals from the other two worksheets using Excel formulas "
+            "and calculate the annual result.\n"
+            "Generate the actual downloadable .xlsx file, not a textual description."
+        )
+
+        amounts = extract_amounts(message)
+
+        self.assertEqual(
+            [item["value"] for item in amounts],
+            ["15000", "25000", "10000", "5000", "50000"],
+        )
+        self.assertEqual(
+            [item["label"] for item in amounts[:4]],
+            ["Hyra", "Personal", "R\\u00e5varor", "\\u00d6vrigt"],
+        )
+        self.assertEqual(amounts[4]["count"], 12)
+        self.assertFalse(amounts[4]["derived"])
+
+    def test_worksheet_numbers_are_not_money(self):
+        for number in (1, 2, 3):
+            with self.subTest(number=number):
+                self.assertEqual(
+                    extract_amounts(f"Worksheet {number}: Budget."),
+                    [],
+                )
+
+    def test_twelve_month_phrasing(self):
+        cases = (
+            "Include January through December with 50 000 SEK in sales for each month.",
+            "Sales 50 000 SEK each month from January to December.",
+            "Sales: 50 000 SEK per month for 12 months.",
+            "January-December: 50 000 SEK each month.",
+        )
+        for message in cases:
+            with self.subTest(message=message):
+                amounts = extract_amounts(message)
+                self.assertEqual(len(amounts), 1)
+                self.assertEqual(amounts[0]["value"], "50000")
+                self.assertEqual(amounts[0]["count"], 12)
+
+
 class WorkbookRegressionTests(TestCase):
     def test_real_three_sheet_workbook_and_calculated_results(self):
         spec = budget_spec()
@@ -63,6 +157,51 @@ class WorkbookRegressionTests(TestCase):
             self.assertEqual(evaluator.cell(workbook.sheetnames[sheet], row, 2), expected)
             self.assertEqual(workbook.worksheets[sheet].cell(row, 2).data_type, 'f')
         self.assertEqual(workbook.worksheets[2]['B3'].value, "='M\u00e5nadsbudget'!B7")
+
+
+    def test_original_english_prompt_generates_valid_xlsx(self):
+        message = (
+            "Worksheet 1: M\u00e5nadsbudget.\n"
+            "Include Hyra 15 000 SEK, Personal 25 000 SEK, "
+            "R\u00e5varor 10 000 SEK, and \u00d6vrigt 5 000 SEK.\n"
+            "Worksheet 2: F\u00f6rs\u00e4ljningsprognos.\n"
+            "Include January through December with 50 000 SEK in sales for each month.\n"
+            "Worksheet 3: Resultatsammanst\u00e4llning."
+        )
+        amounts = extract_amounts(message)
+        self.assertEqual(len(amounts), 5)
+        self.assertEqual(amounts[4]["count"], 12)
+
+        spec = budget_spec()
+        for row in spec["sheets"][1]["rows"]:
+            if isinstance(row[1], dict) and row[1].get("source") == "amount_7":
+                row[1]["source"] = "amount_5"
+
+        evaluator = bind_and_validate(spec, amounts)
+        data = generate_document("Budget", json.dumps(spec), "xlsx")
+        workbook = load_workbook(BytesIO(data))
+
+        self.assertEqual(
+            workbook.sheetnames,
+            [sheet["name"] for sheet in spec["sheets"]],
+        )
+        self.assertEqual(
+            [workbook.worksheets[0].cell(r, 2).value for r in range(2, 6)],
+            [15000, 25000, 10000, 5000],
+        )
+        self.assertEqual(
+            [workbook.worksheets[1].cell(r, 2).value for r in range(2, 14)],
+            [50000] * 12,
+        )
+        for index, row, expected in (
+            (0, 6, 55000),
+            (0, 7, 660000),
+            (1, 14, 600000),
+            (2, 4, -60000),
+        ):
+            sheet = workbook.worksheets[index]
+            self.assertEqual(sheet.cell(row, 2).data_type, "f")
+            self.assertEqual(evaluator.cell(sheet.title, row, 2), expected)
 
     def test_generic_labels_decimal_negative_and_small_currency(self):
         amounts = extract_amounts('Hosting: 1 250,50 SEK; Refund: -50 SEK; Seats: 3')
@@ -139,6 +278,55 @@ class ProviderWorkbookTests(TestCase):
         content = generate_workbook_spec(REQUEST, [])
         self.assertEqual(len(load_workbook(BytesIO(generate_document('Budget', content, 'xlsx'))).sheetnames), 3)
         self.assertEqual(provider.call_count, 1)
+
+
+    @patch('ai_assistant.bots.document_workbook.provider_call')
+    def test_original_english_prompt_provider_to_xlsx(self, provider):
+        from .document_workbook import generate_workbook_spec
+
+        message = (
+            "Create a downloadable Excel workbook with exactly three worksheets. "
+            "Worksheet 1: M\u00e5nadsbudget. "
+            "Include Hyra 15 000 SEK, Personal 25 000 SEK, "
+            "R\u00e5varor 10 000 SEK, and \u00d6vrigt 5 000 SEK. "
+            "Calculate monthly total using an Excel formula and annual costs using a formula. "
+            "Worksheet 2: F\u00f6rs\u00e4ljningsprognos. "
+            "Include January through December with 50 000 SEK in sales for each month. "
+            "Calculate annual sales using a formula. "
+            "Worksheet 3: Resultatsammanst\u00e4llning. "
+            "Reference the totals from the other two worksheets using Excel formulas "
+            "and calculate the annual result. Generate the actual downloadable .xlsx file, "
+            "not a textual description."
+        )
+
+        spec = budget_spec()
+        for row in spec["sheets"][1]["rows"]:
+            if isinstance(row[1], dict) and row[1].get("source") == "amount_7":
+                row[1]["source"] = "amount_5"
+
+        provider.return_value = self.response(spec)
+        content = generate_workbook_spec(message, [])
+        self.assertEqual(provider.call_count, 1)
+
+        call = provider.call_args
+        system_prompt = call.kwargs["messages"][0]["content"]
+        self.assertIn('"count": 12', system_prompt)
+        self.assertIn('"id": "amount_5"', system_prompt)
+
+        workbook = load_workbook(
+            BytesIO(generate_document("Budget", content, "xlsx"))
+        )
+        self.assertEqual(
+            workbook.sheetnames,
+            ["M\u00e5nadsbudget", "F\u00f6rs\u00e4ljningsprognos",
+             "Resultatsammanst\u00e4llning"],
+        )
+        self.assertEqual(
+            [workbook.worksheets[1].cell(r, 2).value for r in range(2, 14)],
+            [50000] * 12,
+        )
+        self.assertEqual(workbook.worksheets[2]["B4"].value, "=B2-B3")
+        self.assertEqual(workbook.worksheets[2]["B4"].data_type, "f")
 
     @patch('ai_assistant.bots.document_workbook.provider_call')
     def test_retry_and_fail_closed(self, provider):

@@ -1237,6 +1237,63 @@ def process_bot_message(
             except ValueError:
                 ready_for_export = False
 
+            if not ready_for_export:
+                # A legitimate short question is not a failed file export.
+                # Preserve it instead of replacing it with a generic error.
+                from .document_ai_intent import (
+                    is_document_clarification,
+                    regenerate_document_content,
+                )
+                clarification_pending = is_document_clarification(
+                    original_response
+                )
+                # A retry belongs to the same reserved chat message, but
+                # must not bypass the current monthly AI cost limit.
+                recovery_allowed = (
+                    not clarification_pending
+                    and not get_ai_usage_status(user).get(
+                        "monthly_cost_limit_reached", False
+                    )
+                )
+
+                if recovery_allowed:
+                    try:
+                        recovered, recovery_usage = regenerate_document_content(
+                            message=message,
+                            openai_messages=openai_messages,
+                            file_format=document_format,
+                            model=CHAT_MODEL,
+                        )
+                        _log_usage(user=user, bot=bot, **recovery_usage)
+                        tokens_used += recovery_usage["tokens_used"]
+                        input_tokens += recovery_usage["input_tokens"]
+                        output_tokens += recovery_usage["output_tokens"]
+                        if recovered:
+                            if document_format == "csv":
+                                parse_csv_content(recovered)
+                            else:
+                                recovered_clean = clean_document_content(
+                                    recovered, strict=True
+                                )
+                                if not document_response_complete(recovered_clean):
+                                    raise ValueError("Document recovery incomplete.")
+                            original_response = recovered
+                            response_text = strip_generated_links(recovered)
+                            ready_for_export = True
+                    except Exception:
+                        logger.warning(
+                            "Document content recovery unavailable for bot %s.",
+                            bot.pk,
+                            exc_info=True,
+                        )
+
+            if not ready_for_export and not clarification_pending:
+                # Do not expose false promises as successful exports.
+                response_text = (
+                    "The document could not be generated right now. "
+                    "Please try again or provide more details."
+                )
+
             if ready_for_export:
                 try:
                     from .document_pipeline import create_chat_document

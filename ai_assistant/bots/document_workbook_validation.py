@@ -38,8 +38,15 @@ def extract_amounts(text):
             and re.match(r"\.\s+\S", following)
         ):
             continue
+        # Worksheet headings are structural metadata, not monetary inputs.
+        if not match[2] and re.search(
+            r'\b(?:worksheet|sheet|kalkylblad|arbetsblad|flik|ark)\s*$',
+            line_prefix,
+            re.I,
+        ):
+            continue
         value = Decimal(re.sub(r'[ \u00a0\u202f]', '', match[1]).replace(',', '.'))
-        prefix = re.split(r'[,;\n()]+', text[:match.start()])[-1].strip(' :\"\'')
+        prefix = re.split(r'[,;\n()]+|\.\s+', text[:match.start()])[-1].strip(' :\"\'')
         suffix = text[match.end():match.end() + 35]
         if not match[2] and (abs(value) < 1000 or 1900 <= value <= 2100):
             assignment = re.search(r'[:=]\s*$', text[max(0, match.start() - 3):match.start()])
@@ -47,8 +54,27 @@ def extract_amounts(text):
             metadata = re.match(r'\s*(?:ark|sheets?|months?|m\u00e5nader|\u00e5r|years?)\b', suffix, re.I)
             if not assignment and (not labelled or metadata or 1900 <= value <= 2100):
                 continue
-        prefix = re.split(r'\d+(?:\s+(?:SEK|kr))?\s+', prefix, flags=re.I)[-1]
+        # Separate monetary entries without consuming characters from labels.
+        previous_amounts = list(_AMOUNT.finditer(prefix))
+        if previous_amounts:
+            prefix = prefix[previous_amounts[-1].end():].lstrip()
+
         label = prefix.strip(' :=')
+        # Remove instruction words only at the beginning of source labels.
+        label = re.sub(
+            r'^(?:(?:include|including|and|och|inkludera|samt)\s+)+',
+            '',
+            label,
+            flags=re.I,
+        )
+        # A month range describes the period, not the money category.
+        if re.fullmatch(
+            r'(?:jan(?:uary|uari)?\s*(?:-|\u2013|to|through|till)\s*'
+            r'dec(?:ember)?)(?:\s+with)?',
+            label,
+            re.I,
+        ):
+            label = ''
         if len(label.split()) > 4:
             label = ''
         context = text[max(0, match.start() - 80):match.end() + 60]
@@ -56,9 +82,18 @@ def extract_amounts(text):
         derived = bool(_TOTAL.search(prefix) or trailing_label)
         if trailing_label:
             label = trailing_label[1]
+        # Sales may be named after the amount instead of before it.
+        if not label and re.search(
+            r'\b(?:sales|revenue|f\u00f6rs\u00e4ljning|int\u00e4kter)\b',
+            suffix,
+            re.I,
+        ):
+            label = 'Sales' if re.search(
+                r'\b(?:sales|revenue)\b', suffix, re.I
+            ) else 'F\u00f6rs\u00e4ljning'
         repeated = bool(
             re.search(r'(?:varje\s+m\u00e5nad|each\s+month|per\s+month)', suffix, re.I)
-            and re.search(r'jan(?:uari|uary)?\s*[-\u2013]\s*dec(?:ember)?|12\s+(?:m\u00e5nader|months)', context, re.I)
+            and re.search(r'jan(?:uari|uary)?\s*(?:-|\u2013|to|through|till)\s*dec(?:ember)?|12\s+(?:m\u00e5nader|months)', context, re.I)
         )
         amounts.append({
             'id': 'amount_' + str(len(amounts) + 1),
