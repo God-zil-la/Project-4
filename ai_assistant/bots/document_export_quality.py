@@ -93,9 +93,47 @@ def strip_generated_links(text):
     return _FAKE_LINK.sub('', text).strip()
 
 
+
+def _strip_document_meta_edges(text):
+    """Remove standalone assistant chatter at document boundaries."""
+    import re
+
+    lines = str(text).splitlines()
+
+    intro = re.compile(
+        r"(?i)^(?:"
+        r"jag kommer (?:nu )?att (?:skapa|generera|ta fram)\b"
+        r"|vänligen vänta\b"
+        r"|vänta medan jag\b"
+        r")"
+    )
+
+    outro = re.compile(
+        r"(?i)^(?:"
+        r"jag har (?:nu )?(?:skapat|genererat)\b"
+        r"|vänligen vänta\b"
+        r"|vänta medan jag\b"
+        r")"
+    )
+
+    while lines and (
+        not lines[0].strip()
+        or intro.match(lines[0].strip())
+    ):
+        lines.pop(0)
+
+    while lines and (
+        not lines[-1].strip()
+        or outro.match(lines[-1].strip())
+    ):
+        lines.pop()
+
+    return "\n".join(lines).strip()
+
+
 def clean_document_content(text, strict=False):
     """Remove model-generated chat trailers without deleting document body."""
-    result = strip_generated_links(text)
+    result = _strip_document_meta_edges(strip_generated_links(text))
     lines = result.splitlines()
     while lines and not lines[0].strip():
         lines.pop(0)
