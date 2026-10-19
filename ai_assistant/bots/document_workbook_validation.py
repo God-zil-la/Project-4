@@ -60,6 +60,12 @@ def extract_amounts(text):
             prefix = prefix[previous_amounts[-1].end():].lstrip()
 
         label = prefix.strip(' :=')
+        # A quoted worksheet heading is metadata, not a source-row label.
+        label = re.sub(
+            r'^["\x27][^"\x27]{1,31}["\x27]\s*:\s*',
+            '',
+            label,
+        )
         # Remove instruction words only at the beginning of source labels.
         label = re.sub(
             r'^(?:(?:include|including|and|och|inkludera|samt)\s+)+',
