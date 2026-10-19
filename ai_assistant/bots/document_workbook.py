@@ -24,8 +24,13 @@ Requirements:
 - Prefer formulas that reference existing cells over hardcoded totals.
 - Quote worksheet names in cross-sheet formulas, especially names
   with spaces or non-ASCII letters. Example:
-  ='Monthly Budget'!B8*12
+  ='Monthly Budget'!B7
 - Ensure that every formula references the intended populated cells.
+- Never reference the formula cell itself, directly or indirectly.
+- Check every formula against the exact row and column positions in the generated JSON.
+- Example: if monthly expenses occupy B2:B5, monthly total is in B6 and annual total is in B7, use =SUM(B2:B5) in B6 and =B6*12 in B7.
+- A cross-sheet reference to that annual total must use ='Monthly Budget'!B7, not B8 and not an additional multiplication by 12.
+- Never reference an empty cell for a financial total.
 - Do not mix monthly and annual quantities without conversion.
 - Do not claim that formulas have been calculated by the server.
 
@@ -82,12 +87,14 @@ def generate_workbook_spec(message, history):
         'Ledger: ' + json.dumps(amounts, ensure_ascii=True)
     )
     retry_note = ''
+    previous_response = ''
     for attempt in range(2):
         result = provider_call(
             openai.ChatCompletion.create,
             model='gpt-4o-mini',
             messages=[{'role': 'system', 'content': SYSTEM_PROMPT + source_note},
                       *conversation,
+                      *([{'role': 'assistant', 'content': previous_response}] if previous_response else []),
                       *([{'role': 'system', 'content': retry_note}] if retry_note else [])],
             temperature=0, max_tokens=3500, request_timeout=45,
             response_format={'type': 'json_object'},
@@ -96,7 +103,8 @@ def generate_workbook_spec(message, history):
             choices = result.get('choices') or []
             if not choices or choices[0].get('finish_reason') != 'stop':
                 raise ValueError('Workbook response was incomplete.')
-            specification = json.loads((choices[0].get('message') or {}).get('content') or '')
+            previous_response = (choices[0].get('message') or {}).get('content') or ''
+            specification = json.loads(previous_response)
             bind_and_validate(specification, amounts)
             if sheet_names and [sheet['name'] for sheet in specification['sheets']] != sheet_names:
                 raise ValueError('Worksheet names or order do not match the request.')

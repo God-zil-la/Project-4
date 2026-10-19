@@ -162,8 +162,12 @@ class FormulaValues:
         key = (sheet.casefold(), row, col)
         if key in self.cache:
             return self.cache[key]
-        if key in self.active or len(self.active) >= 100:
-            raise ValueError('Circular or excessively deep formula.')
+        if key in self.active:
+            raise ValueError(
+                f'Circular formula detected at {sheet}!R{row}C{col}.'
+            )
+        if len(self.active) >= 100:
+            raise ValueError('Formula dependency depth exceeds 100.')
         rows = self.sheets.get(key[0])
         if rows is None or not 1 <= row <= len(rows) or not 1 <= col <= len(rows[row - 1]):
             raise ValueError('Formula references an absent cell.')
