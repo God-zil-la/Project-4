@@ -1,0 +1,13 @@
+Font copyright notices
+
+NotoSansArabic-Regular.ttf
+Copyright 2022 The Noto Project Authors (https://github.com/notofonts/arabic)
+
+NotoSansDevanagari-Regular.ttf
+Copyright 2022 The Noto Project Authors (https://github.com/notofonts/devanagari)
+
+NotoSansJP-Test.ttf
+(c) 2014-2021 Adobe (http://www.adobe.com/), with Reserved Font Name 'Source'.
+
+NotoSansSC-Test.ttf
+(c) 2014-2021 Adobe (http://www.adobe.com/), with Reserved Font Name 'Source'.
