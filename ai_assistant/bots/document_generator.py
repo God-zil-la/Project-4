@@ -87,6 +87,10 @@ def generate_document(title, content, file_format):
         return buffer.getvalue()
 
     if file_format == "pdf":
+        import os
+        if os.environ.get("MAAS_PDF_ENGINE") == "weasyprint":
+            from .pdf_weasyprint import generate_pdf_weasyprint
+            return generate_pdf_weasyprint(title, content)
         buffer = BytesIO()
         pdf = SimpleDocTemplate(buffer, pagesize=A4)
         styles = getSampleStyleSheet()
