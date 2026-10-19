@@ -78,3 +78,28 @@ class GlobalP1CategoryReviewTests(TestCase):
                 self.assertFalse(result["in_domain"])
                 self.assertEqual(api.call_count, 2)
                 self.assertEqual(result["tokens_used"], 24)
+
+    @patch("ai_assistant.bots.knowledge_utils.openai.ChatCompletion.create")
+    def test_every_category_can_request_clarification(self, api):
+        message = "Kan du hjälpa mig med det här?"
+
+        for category, _ in Bot.CATEGORY_CHOICES:
+            if category == "general":
+                continue
+
+            with self.subTest(category=category):
+                self.bot.category = category
+                api.reset_mock()
+                api.side_effect = [
+                    self.response("OUT_OF_DOMAIN|Unrelated."),
+                    self.response("CLARIFY"),
+                ]
+
+                result = check_message_domain(self.bot, message)
+
+                self.assertTrue(result["in_domain"])
+                self.assertTrue(result["needs_clarification"])
+                self.assertEqual(api.call_count, 2)
+                self.assertEqual(result["tokens_used"], 24)
+                self.assertEqual(result["input_tokens"], 20)
+                self.assertEqual(result["output_tokens"], 4)

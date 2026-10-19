@@ -877,6 +877,22 @@ def process_bot_message(
             bot,
             knowledge_text,
         )
+        # P1_CLARIFY_V1: Domain clarification using existing answer model.
+        needs_clarification = (
+            not crisis_active
+            and domain_result.get("needs_clarification", False)
+        )
+        if needs_clarification:
+            system_message += (
+                "\n\nDOMAIN CLARIFICATION: "
+                "The request may belong to this specialist category, "
+                "but its intended meaning is unclear. "
+                "Ask exactly one short, relevant clarification question "
+                "in the user's language. Do not reject a plausibly "
+                "relevant request. Do not invent missing details, "
+                "perform the task, or claim to have created a file. "
+                "Preserve conversation continuity and safety rules."
+            )
         # DOCUMENT_GENERATION_V2: Multilingual intent classification.
         document_format = None
         document_decision = None
@@ -885,6 +901,7 @@ def process_bot_message(
 
         if (
             not crisis_active
+            and not needs_clarification
             and not allow_widget
             and is_document_candidate(message)
         ):
@@ -1016,7 +1033,7 @@ def process_bot_message(
 
 
         requested_words = _requested_word_count(message) or 0
-        is_long_answer = requested_words >= 1000
+        is_long_answer = requested_words >= 1000 and not needs_clarification
         max_calls = LONG_ANSWER_MAX_PARTS if is_long_answer else 1
         response_parts = []
         input_tokens = output_tokens = tokens_used = 0

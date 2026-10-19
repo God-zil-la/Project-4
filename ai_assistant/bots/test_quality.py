@@ -710,6 +710,164 @@ class AIQualityTests(TestCase):
         self.assertIn("USER: Ja gärna", context)
         self.assertNotIn("I specialize in Fitness", context)
 
+
+    @patch.dict("os.environ", {"OPENAI_API_KEY": "test-only"})
+    @patch("ai_assistant.bots.chat_service.check_message_domain")
+    @patch("ai_assistant.bots.chat_service.search_relevant_chunks")
+    @patch("ai_assistant.bots.chat_service.openai.ChatCompletion.create")
+    def test_p1_clarify_full_chat_pipeline(self, api, search, domain):
+        self.bot.category = "business"
+        self.bot.save(update_fields=["category"])
+
+        domain.return_value = {
+            "in_domain": True,
+            "needs_clarification": True,
+            "tokens_used": 12,
+            "input_tokens": 10,
+            "output_tokens": 2,
+            "model": "gpt-4o-mini",
+        }
+
+        api.return_value = self.completion()
+
+        search.return_value = {
+            "chunks": [],
+            "tokens_used": 0,
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "model": "gpt-4o-mini",
+        }
+
+        result = process_bot_message(
+            self.user,
+            self.bot,
+            "Can you prepare a 2000-word business report?",
+        )
+
+        self.assertTrue(result["in_domain"])
+        self.assertEqual(result["response"], "A grounded answer.")
+
+        api.assert_called_once()
+
+        messages = api.call_args.kwargs["messages"]
+        system_prompt = messages[0]["content"]
+
+        self.assertIn("DOMAIN CLARIFICATION", system_prompt)
+        self.assertIn("Ask exactly one short", system_prompt)
+        self.assertNotIn("DOCUMENT EXPORT CAPABILITY", system_prompt)
+
+        self.assertEqual(ChatMessage.objects.count(), 2)
+        self.assertEqual(
+            ChatMessage.objects.filter(
+                sender=ChatMessage.SENDER_ASSISTANT,
+                message="A grounded answer.",
+            ).count(),
+            1,
+        )
+
+        self.assertGreaterEqual(result["tokens_used"], 12)
+        self.assertEqual(
+            BotUsageLog.objects.filter(user=self.user).count(),
+            2,
+        )
+
+
+    @patch.dict("os.environ", {"OPENAI_API_KEY": "test-only"})
+    @patch("ai_assistant.bots.chat_service.check_message_domain")
+    @patch("ai_assistant.bots.chat_service.search_relevant_chunks")
+    @patch("ai_assistant.bots.chat_service.openai.ChatCompletion.create")
+    def test_p1_clarify_two_turn_continuity(self, api, search, domain):
+        self.bot.category = "business"
+        self.bot.save(update_fields=["category"])
+
+        domain.side_effect = [
+            {
+                "in_domain": True,
+                "needs_clarification": True,
+                "tokens_used": 12,
+                "input_tokens": 10,
+                "output_tokens": 2,
+                "model": "gpt-4o-mini",
+            },
+            {
+                "in_domain": True,
+                "needs_clarification": False,
+                "tokens_used": 12,
+                "input_tokens": 10,
+                "output_tokens": 2,
+                "model": "gpt-4o-mini",
+            },
+        ]
+
+        search.return_value = {
+            "chunks": [],
+            "tokens_used": 0,
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "model": "gpt-4o-mini",
+        }
+
+        def completion(content):
+            result = self.completion()
+            result.choices[0].message["content"] = content
+            return result
+
+        question = "What kind of business report do you need?"
+        final_answer = "Here is the sales report outline."
+
+        api.side_effect = [
+            completion(question),
+            completion(final_answer),
+        ]
+
+        first = process_bot_message(
+            self.user,
+            self.bot,
+            "Can you prepare a report?",
+        )
+
+        self.assertTrue(first["in_domain"])
+        self.assertEqual(first["response"], question)
+
+        second = process_bot_message(
+            self.user,
+            self.bot,
+            "A monthly sales report.",
+            conversation=first["conversation_id"],
+        )
+
+        self.assertTrue(second["in_domain"])
+        self.assertEqual(second["response"], final_answer)
+        self.assertEqual(
+            second["conversation_id"],
+            first["conversation_id"],
+        )
+
+        self.assertEqual(api.call_count, 2)
+        self.assertEqual(domain.call_count, 2)
+
+        first_prompt = api.call_args_list[0].kwargs["messages"][0]["content"]
+        second_messages = api.call_args_list[1].kwargs["messages"]
+
+        self.assertIn("DOMAIN CLARIFICATION", first_prompt)
+        self.assertNotIn(
+            "DOMAIN CLARIFICATION",
+            second_messages[0]["content"],
+        )
+
+        history = str(second_messages)
+
+        self.assertIn(question, history)
+        self.assertIn("A monthly sales report.", history)
+        self.assertIn("Can you prepare a report?", history)
+
+        self.assertEqual(
+            ChatMessage.objects.filter(
+                conversation__public_id=first["conversation_id"]
+            ).count(),
+            4,
+        )
+
     def test_p0_crisis_followup_recognizes_recent_user_disclosure(self):
         from ai_assistant.bots.chat_service import _is_crisis_followup
         conversation = Conversation.objects.create(user=self.user, bot=self.bot)
