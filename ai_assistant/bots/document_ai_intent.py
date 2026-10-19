@@ -270,3 +270,19 @@ def regenerate_document_content(*, message, openai_messages, file_format, model)
         return None, token_counts
     draft = (choices[0].get("message") or {}).get("content")
     return (draft.strip() if isinstance(draft, str) else None), token_counts
+
+
+# Short clarification questions should be shown, not hidden as export errors.
+def is_document_clarification(response_text):
+    text = str(response_text or "").strip()
+    if not text or len(text) > 500:
+        return False
+    if text[-1] not in ("?", "？", "؟"):
+        return False
+    # A document containing headings or multiple substantial paragraphs is
+    # not a clarification simply because it ends with a question.
+    if "\n\n" in text or any(
+        line.lstrip().startswith("#") for line in text.splitlines()
+    ):
+        return False
+    return True
