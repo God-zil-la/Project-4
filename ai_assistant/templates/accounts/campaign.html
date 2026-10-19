@@ -1,21 +1,189 @@
 {% extends 'base.html' %}
 {% block content %}
-<main class="container py-4">
-  <h1>14 Days Free Pro</h1>
-  <p>Redeem your campaign code on this website to activate 14 days of Pro, starting now. One redemption per eligible active Free account.</p>
-  <p>Your allowance is up to 2,000,000 combined input and output AI tokens across all supported channels. This includes chat history, classification, Knowledge embeddings, search and follow-up generation. Normal rate and message limits also apply.</p>
-  <p>No payment details are required. There is no automatic payment or renewal. Your Pro access lasts for the full 14 days, even if you use all 2,000,000 tokens. When the token allowance is exhausted, further campaign AI usage is blocked, but your Pro access remains active until the 14 days end. After that, your ordinary plan applies automatically. Your assistants, conversations and uploaded data are preserved; ordinary plan limits apply to future use.</p>
-  <p>Requests reserve tokens before processing. Large or simultaneous requests may be refused when the remaining allowance is insufficient. Unconfirmed provider usage remains reserved.</p>
-  {% if error %}<p role="alert">{{ error }}</p>{% endif %}
-  {% if success %}<p role="status">Your free Pro campaign has started.</p>{% endif %}
-  {% if profile.campaign_started_at %}
-    <p>Campaign ends: {{ profile.campaign_ends_at }}. Tokens charged: {{ profile.campaign_tokens }} / 2,000,000. Outstanding reservations: {{ profile.campaign_reserved_tokens }}.</p>
-  {% else %}
-    <form method="post">{% csrf_token %}
-      <label for="campaign-code">Campaign code</label>
-      <input id="campaign-code" name="code" required maxlength="200" autocomplete="off">
-      <button type="submit">Activate free Pro</button>
-    </form>
-  {% endif %}
+<style>
+.k1-page {
+  max-width: 780px;
+  margin: 32px auto 60px;
+  padding: 0 16px;
+  color: #f8fafc;
+}
+.k1-panel {
+  padding: clamp(22px, 5vw, 42px);
+  border: 1px solid #2678ae;
+  border-radius: 24px;
+  background: linear-gradient(145deg, #14264a, #081325);
+  box-shadow: 0 20px 60px rgba(0,0,0,.3);
+}
+.k1-page h1 {
+  color: #fff;
+  font-size: clamp(30px, 5vw, 46px);
+  font-weight: 800;
+  line-height: 1.15;
+  margin-bottom: 20px;
+}
+.k1-page p {
+  color: #e2e8f0;
+  font-size: 16px;
+  line-height: 1.75;
+}
+.k1-form {
+  width: 100%;
+  margin-top: 30px;
+}
+.k1-form label {
+  display: block;
+  color: #fff;
+  font-weight: 700;
+  margin-bottom: 12px;
+  font-size: 17px;
+}
+.k1-form input {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: none;
+  height: 58px;
+  padding: 14px 18px;
+  border: 2px solid #38bdf8;
+  border-radius: 12px;
+  background: #071325;
+  color: #fff;
+  font-size: 18px;
+  font-weight: 600;
+  opacity: 1;
+}
+.k1-form input::placeholder {
+  color: #cbd5e1;
+}
+.k1-form input:focus {
+  outline: 3px solid #67e8f9;
+  outline-offset: 3px;
+}
+.k1-form button {
+  display: block;
+  width: 100%;
+  min-height: 56px;
+  margin-top: 18px;
+  padding: 14px 20px;
+  border: 0;
+  border-radius: 12px;
+  color: #fff;
+  background: linear-gradient(110deg, #087bd3, #1655d9);
+  font-size: 17px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.k1-form button:hover {
+  filter: brightness(1.15);
+}
+.k1-message {
+  padding: 20px;
+  margin: 24px 0;
+  border-radius: 14px;
+  font-size: 16px;
+  line-height: 1.6;
+}
+.k1-success {
+  border: 2px solid #22c55e;
+  background: #103b2b;
+  color: #fff;
+}
+.k1-error {
+  border: 2px solid #fb7185;
+  background: #491f30;
+  color: #fff;
+}
+.k1-message strong {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 20px;
+}
+.k1-status {
+  margin-top: 22px;
+  padding: 20px;
+  border: 1px solid #38bdf8;
+  border-radius: 14px;
+  background: #0b2343;
+}
+.k1-status p { margin-bottom: 8px; }
+.k1-status strong { color: #fff; }
+@media (max-width: 600px) {
+  .k1-page { margin: 16px auto 40px; }
+  .k1-panel { padding: 22px 18px; }
+  .k1-form input { font-size: 16px; }
+}
+</style>
+
+<main class="k1-page">
+  <section class="k1-panel">
+    <h1>14 Days Free Pro</h1>
+
+    <p>Unlock 14 days of Pro access with up to
+    <strong>2,000,000 AI tokens</strong>.</p>
+
+    <p>Available to eligible active Free accounts.
+    One redemption per account.</p>
+
+    <p>No credit card required. No automatic payment or renewal.</p>
+
+    <p>Your Pro access lasts for the full 14 days, even if your
+    campaign token allowance is exhausted. When your campaign
+    ends, your ordinary plan applies automatically. Your
+    assistants, conversations and uploaded data are preserved.</p>
+
+    <p>Normal rate and message limits apply. The token allowance
+    includes supported AI usage across channels. Requests may be
+    refused if insufficient tokens remain.</p>
+
+    {% if error %}
+      <div class="k1-message k1-error" role="alert">
+        <strong>Activation unsuccessful</strong>
+        {{ error }}
+      </div>
+    {% endif %}
+
+    {% if success %}
+      <div class="k1-message k1-success"
+           role="status" aria-live="polite">
+        <strong>✓ Your Pro access is now active!</strong>
+        Your 14-day Free Pro campaign has started successfully.
+        {% if profile.campaign_ends_at %}
+          <p><strong>Pro ends:</strong>
+          {{ profile.campaign_ends_at|date:"F j, Y, H:i" }}</p>
+        {% endif %}
+      </div>
+    {% endif %}
+
+    {% if profile.campaign_started_at %}
+      <div class="k1-status">
+        <p><strong>Campaign record:</strong> Activated
+        </p>
+        <p><strong>Campaign ends:</strong>
+          {{ profile.campaign_ends_at|date:"F j, Y, H:i" }}
+        </p>
+        <p><strong>Tokens used:</strong>
+          {{ profile.campaign_tokens }} / 2,000,000
+        </p>
+        <p><strong>Outstanding reservations:</strong>
+          {{ profile.campaign_reserved_tokens }}
+        </p>
+      </div>
+    {% else %}
+      <form class="k1-form" method="post">
+        {% csrf_token %}
+        <label for="campaign-code">Enter your campaign code</label>
+        <input
+          type="text"
+          id="campaign-code"
+          name="code"
+          placeholder="Enter promotional code"
+          maxlength="200"
+          autocomplete="off"
+          required
+        >
+        <button type="submit">Activate 14 Days Free Pro</button>
+      </form>
+    {% endif %}
+  </section>
 </main>
 {% endblock %}
