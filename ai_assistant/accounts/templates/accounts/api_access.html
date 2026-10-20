@@ -1,26 +1,109 @@
 {% extends "base.html" %}
-{% block title %}API Access{% endblock %}
+{% block title %}API Access | My AI Assistant Studio{% endblock %}
 {% block content %}
-<main class="container">
-  <h1>API Access</h1>
-  <p>Connect your own server to your AI assistants. API calls require Pro and share your account's monthly allowance and request limits.</p>
-  {% if notice %}<p role="status">{{ notice }}</p>{% endif %}
-  {% if new_api_key %}
-  <label for="new-api-key">New API key — save securely now</label>
-  <input id="new-api-key" type="text" value="{{ new_api_key }}" readonly autocomplete="off" spellcheck="false" style="width:100%">
-  {% endif %}
-  <p>Keep this key on your server. Never put it in a website, mobile app, repository, URL, or message. It can invoke any assistant you own.</p>
-  {% if api_is_pro %}
-  <form method="post">{% csrf_token %}<button name="action" value="rotate">Create / rotate API key</button></form>
-  <p>Rotation immediately invalidates the previous key. Update your integrations with the replacement.</p>
-  {% else %}<p>Pro is required to create a key and call the API.</p>{% endif %}
-  <form method="post">{% csrf_token %}<button name="action" value="revoke">Revoke API key</button></form>
-  <h2>Send a message</h2>
-  <p>POST JSON to <code>/accounts/api/public-chat/</code> over HTTPS. Set <code>X-API-KEY</code> to your secret and <code>Content-Type</code> to <code>application/json</code>.</p>
-  <pre>{"bot_id": 123, "message": "Hello"}</pre>
-  <p>Use an assistant ID from <a href="{% url 'bots:list' %}">My AI Assistants</a>. A successful response includes <code>response</code> and <code>conversation_id</code>. To continue, send that ID as <code>conversation_id</code>. Omitting it starts a new conversation.</p>
-  <p>Errors: 400 invalid request, 401 invalid key, 403 Pro or usage restriction, 404 assistant unavailable, 429 request limit, 500 processing failure. For 429, wait the returned <code>retry_after_seconds</code>. Do not automatically retry uncertain or timed-out chat requests.</p>
-  <h2>Discord</h2>
-  <p>Discord uses its own assistant-specific credential. Manage it from each assistant's Discord Setup page. Rotating this API key does not disconnect Discord.</p>
+<style>
+.api-studio{--api-blue:#58b7ff;--api-border:rgba(126,176,255,.22);--api-muted:#b5c6df;color:#f3f7ff;max-width:1080px;margin:0 auto;padding:clamp(18px,4vw,48px) 16px 64px}
+.api-studio *{box-sizing:border-box}
+.api-studio .api-hero{position:relative;overflow:hidden;padding:clamp(24px,5vw,48px);border:1px solid var(--api-border);border-radius:24px;background:radial-gradient(circle at 90% 0%,rgba(45,139,255,.27),transparent 47%),linear-gradient(135deg,#122744,#101629 72%);box-shadow:0 22px 60px rgba(0,0,0,.2)}
+.api-studio .api-eyebrow{font-size:.75rem;font-weight:800;letter-spacing:.17em;text-transform:uppercase;color:#85d3ff;margin:0 0 12px}
+.api-studio h1{font-size:clamp(2rem,5vw,3.2rem);line-height:1.12;color:#fff;margin:0 0 14px}
+.api-studio h2{font-size:1.3rem;color:#fff;margin:0 0 12px}
+.api-studio h3{font-size:1rem;color:#fff;margin:0 0 10px}
+.api-studio p{line-height:1.65;margin:0 0 14px;color:var(--api-muted)}
+.api-studio .api-hero p{max-width:680px}
+.api-studio .api-pill{display:inline-flex;align-items:center;gap:8px;border:1px solid rgba(120,202,255,.42);border-radius:100px;padding:7px 13px;color:#c4edff;font-size:.82rem;font-weight:700;background:rgba(37,127,219,.16)}
+.api-studio .api-pill:before{content:"";width:8px;height:8px;background:#59dfba;border-radius:50%;box-shadow:0 0 12px #59dfba}
+.api-studio .api-grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);gap:18px;margin-top:18px}
+.api-studio .api-card{min-width:0;padding:clamp(20px,3vw,30px);background:linear-gradient(145deg,#19243c,#141c30);border:1px solid var(--api-border);border-radius:20px;box-shadow:0 10px 30px rgba(0,0,0,.12)}
+.api-studio .api-card-wide{grid-column:1/-1}
+.api-studio .api-kicker{font-size:.78rem;font-weight:800;text-transform:uppercase;letter-spacing:.11em;color:#8cd5ff;margin:0 0 10px}
+.api-studio .api-note{border-left:3px solid #5ebdff;padding:10px 14px;background:rgba(64,146,238,.09);border-radius:0 10px 10px 0;font-size:.92rem}
+.api-studio .api-warning{border-left-color:#ffbd72;background:rgba(255,172,91,.08)}
+.api-studio .api-actions{display:flex;flex-wrap:wrap;gap:12px;margin:18px 0 12px}
+.api-studio .api-button{appearance:none;display:inline-flex;justify-content:center;align-items:center;min-height:48px;padding:12px 20px;border-radius:12px;border:1px solid #67baff;background:linear-gradient(135deg,#137ed8,#2455b6);color:#fff;font-weight:800;font:inherit;cursor:pointer;text-decoration:none;transition:transform .15s,box-shadow .15s}
+.api-studio .api-button:hover{transform:translateY(-1px);box-shadow:0 8px 22px rgba(25,119,229,.25)}
+.api-studio .api-button-danger{background:transparent;border-color:#df8290;color:#ffc1c9}
+.api-studio .api-button-danger:hover{background:rgba(215,72,93,.1)}
+.api-studio .api-button:focus-visible,.api-studio a:focus-visible{outline:3px solid #9bdcff;outline-offset:3px}
+.api-studio .api-field{display:block;font-weight:700;color:#fff;margin:14px 0 8px}
+.api-studio .api-secret{display:block;width:100%;max-width:100%;padding:13px;background:#0a1425;border:1px solid #69c5ff;border-radius:10px;color:#fff;font-family:ui-monospace,monospace;font-size:.88rem}
+.api-studio .api-code{overflow-x:auto;padding:18px;border-radius:14px;border:1px solid rgba(107,177,255,.24);background:#091324;color:#d5f0ff;font-size:.86rem;line-height:1.7;white-space:pre;margin:12px 0 16px}
+.api-studio code{overflow-wrap:anywhere;color:#a9e3ff}
+.api-studio .api-code code{overflow-wrap:normal;color:inherit}
+.api-studio .api-steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:14px}
+.api-studio .api-step{padding:15px;border:1px solid var(--api-border);border-radius:14px;background:rgba(20,50,90,.35)}
+.api-studio .api-step b{display:block;color:#fff;margin-bottom:7px}
+.api-studio .api-step p{font-size:.88rem;margin:0}
+.api-studio a{color:#91d7ff;text-decoration:underline;text-underline-offset:3px}
+.api-studio .api-divider{height:1px;background:var(--api-border);margin:22px 0}
+.api-studio .api-status{padding:13px 16px;border:1px solid #58c4a0;border-radius:12px;background:rgba(53,178,141,.12);color:#d6fff1;margin-top:16px}
+@media(max-width:740px){.api-studio .api-grid{grid-template-columns:1fr}.api-studio .api-steps{grid-template-columns:1fr}.api-studio .api-card-wide{grid-column:auto}.api-studio .api-actions,.api-studio .api-actions form{width:100%}.api-studio .api-button{width:100%}}
+@media(prefers-reduced-motion:reduce){.api-studio .api-button{transition:none}.api-studio .api-button:hover{transform:none}}
+</style>
+<main class="api-studio" id="main-content">
+  <header class="api-hero">
+    <p class="api-eyebrow">My AI Assistant Studio / Developer tools</p>
+    <h1>API Access</h1>
+    <p>Connect your own server to your AI assistants. Build secure integrations with your existing assistants and knowledge bases.</p>
+    <span class="api-pill">Pro feature · HTTPS API</span>
+    <p style="margin:16px 0 0;font-size:.91rem">API calls share your account's monthly allowance and request limits.</p>
+  </header>
+  {% if notice %}<div class="api-status" role="status">{{ notice }}</div>{% endif %}
+  <div class="api-grid">
+    <section class="api-card" aria-labelledby="api-keys-title">
+      <p class="api-kicker">01 / Authentication</p>
+      <h2 id="api-keys-title">Manage your API key</h2>
+      <p>Create a server-side credential to access assistants you own.</p>
+      {% if new_api_key %}
+      <label class="api-field" for="new-api-key">New API key — save it securely now</label>
+      <input class="api-secret" id="new-api-key" type="text" value="{{ new_api_key }}" readonly autocomplete="off" spellcheck="false">
+      <p class="api-note api-warning" style="margin-top:12px">This is your new secret. Store it in a secure server-side secret manager. Do not share or publish it.</p>
+      {% endif %}
+      {% if api_is_pro %}
+      <div class="api-actions"><form method="post">{% csrf_token %}<button class="api-button" name="action" value="rotate" type="submit">Create / rotate API key</button></form></div>
+      <p class="api-note">Rotating immediately invalidates the previous key. Update your integrations with the replacement.</p>
+      {% else %}
+      <p class="api-note">Pro is required to create a key and call the API.</p>
+      {% endif %}
+      <div class="api-divider"></div>
+      <h3>Revoke access</h3>
+      <p>Revoke your current key when it is no longer needed or may be compromised.</p>
+      <div class="api-actions"><form method="post" onsubmit="return confirm('Revoke your API key? Existing integrations will stop working immediately.');">{% csrf_token %}<button class="api-button api-button-danger" name="action" value="revoke" type="submit">Revoke API key</button></form></div>
+    </section>
+    <aside class="api-card" aria-labelledby="api-safety-title">
+      <p class="api-kicker">Security first</p>
+      <h2 id="api-safety-title">Keep your key private</h2>
+      <p>Keep this key on your server. Never put it in a website, mobile app, repository, URL, or message.</p>
+      <p class="api-note api-warning">Your key can invoke any assistant you own. Treat it like a password.</p>
+      <div class="api-divider"></div>
+      <h3>Before you start</h3>
+      <p>Use HTTPS, send the secret in the <code>X-API-KEY</code> header, and keep the key outside client-side code.</p>
+    </aside>
+    <section class="api-card api-card-wide" aria-labelledby="api-send-title">
+      <p class="api-kicker">02 / Quick start</p>
+      <h2 id="api-send-title">Send your first message</h2>
+      <div class="api-steps">
+        <div class="api-step"><b>1. Choose an assistant</b><p>Find its ID in <a href="{% url 'bots:list' %}">My AI Assistants</a>.</p></div>
+        <div class="api-step"><b>2. Send a request</b><p>POST JSON over HTTPS with your server-side API key.</p></div>
+        <div class="api-step"><b>3. Continue chatting</b><p>Reuse the returned <code>conversation_id</code> to keep the conversation going.</p></div>
+      </div>
+      <h3 style="margin-top:24px">Endpoint</h3>
+      <pre class="api-code"><code>POST /accounts/api/public-chat/
+X-API-KEY: YOUR_SECRET_API_KEY
+Content-Type: application/json</code></pre>
+      <h3>JSON request body</h3>
+      <pre class="api-code"><code>{"bot_id": 123, "message": "Hello"}</code></pre>
+      <p>Replace <code>123</code> with your assistant ID. A successful response includes <code>response</code> and <code>conversation_id</code>. To continue, send that ID as <code>conversation_id</code>. Omitting it starts a new conversation.</p>
+      <div class="api-divider"></div>
+      <h3>Response and error handling</h3>
+      <p><strong>400</strong> invalid request · <strong>401</strong> invalid key · <strong>403</strong> Pro or usage restriction · <strong>404</strong> assistant unavailable · <strong>429</strong> request limit · <strong>500</strong> processing failure.</p>
+      <p>For 429, wait the returned <code>retry_after_seconds</code>. Do not automatically retry uncertain or timed-out chat requests.</p>
+    </section>
+    <section class="api-card api-card-wide" aria-labelledby="api-discord-title">
+      <p class="api-kicker">03 / Integrations</p>
+      <h2 id="api-discord-title">Discord is separate</h2>
+      <p>Discord uses its own assistant-specific credential. Manage it from each assistant's Discord Setup page. Rotating this API key does not disconnect Discord.</p>
+    </section>
+  </div>
 </main>
 {% endblock %}
