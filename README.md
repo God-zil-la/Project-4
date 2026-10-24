@@ -5539,3 +5539,23 @@ with overlapping provider requests, failure accounting and monitoring-only budge
 Use PostgreSQL staging verification before an independently authorized launch;
 local tests use isolated SQLite and mocked providers. No live campaign, database
 migration, commit, push or deployment is performed by this implementation.
+
+
+---
+
+## 🔭 Future Roadmap — Coming Soon
+
+My AI Assistant Studio is continuing to evolve. The following capabilities are **under development or planned**; they are **not currently available as production features**. This section is forward-looking and does not change existing plan entitlements.
+
+| Capability | Status | Intended direction |
+| --- | --- | --- |
+| AI Voice & Speech (speech-to-text and text-to-speech) | **In Development** | Speak to assistants and hear their responses. |
+| Live Voice Conversations | **In Development** | A more fluid voice-based conversation experience. |
+| Wake Word Activation | **Planned** | Activate a supported assistant by speaking its configured name, subject to plan eligibility. |
+| Vision AI / Image Understanding | **Planned** | Help assistants understand user-supplied images. |
+| Smart Document-to-Excel | **Planned** | Turn supported document content into structured, editable spreadsheets. |
+| Expanded Integrations & Improvements | **Planned** | Broader connections and ongoing platform refinements. |
+
+> **Availability notice:** Roadmap entries are not announcements of released functionality. Scope, platform support, plan access, and implementation order may change. **No release dates are promised.** Check the live product and official announcements for availability.
+
+**User guide:** [Complete User Guide v5.1](ai_assistant/static/pdf/ai_assistant_setup_guide_v2.pdf). Version 6 is reserved for the completed U6 voice-feature documentation.
