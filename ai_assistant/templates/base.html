@@ -78,47 +78,23 @@
 </head>
 
 <body>
+  {% if not user.is_authenticated %}
   <nav class="site-nav" aria-label="Main navigation">
     <ul class="site-nav-links">
-      {% if user.is_authenticated %}
-        <li><a href="/dashboard/">Dashboard</a></li>
-        <li><a href="/bots/">My AI Assistants</a></li>
-        <li><a href="{% url 'accounts:api-access' %}">API Access</a></li>
-        <li><a href="/payments/">Billing</a></li>
-        <li><a href="{% url 'bots:analytics' %}">Analytics</a></li>
-        <li>
-          <a
-            href="#"
-            class="nav-logout"
-            onclick="document.getElementById('logout-form').submit(); return false;"
-          >
-            Logout
-            {% if messages %}
-              <span class="nav-message-dot" aria-hidden="true"></span>
-            {% endif %}
-          </a>
-          <form
-            id="logout-form"
-            method="POST"
-            action="{% url 'accounts:logout' %}"
-            hidden
-          >
-            {% csrf_token %}
-          </form>
-        </li>
-      {% else %}
-        <li><a href="/">Home</a></li>
-        <li><a href="/accounts/login/">Login</a></li>
-        <li><a href="/accounts/register/">Register</a></li>
-      {% endif %}
-    <li class="nav-guide-link">
-  <a href="{% static 'pdf/ai_assistant_setup_guide_v2.pdf' %}"
-     target="_blank"
-     rel="noopener noreferrer">Download Complete User Guide (PDF)</a>
-</li>
-</ul>
+      <li><a href="/">Home</a></li>
+      <li><a href="/accounts/login/">Login</a></li>
+      <li><a href="/accounts/register/">Register</a></li>
+      <li class="nav-guide-link">
+        <a href="{% static 'pdf/ai_assistant_setup_guide_v2.pdf' %}"
+           target="_blank" rel="noopener noreferrer">
+          Download Complete User Guide (PDF)
+        </a>
+      </li>
+    </ul>
   </nav>
+  {% endif %}
 
+  {% if not user.is_authenticated %}
   <div class="theme-strip">
     <button
       id="toggleTheme"
@@ -130,6 +106,7 @@
       <span id="theme-icon" aria-hidden="true">🌙</span>
     </button>
   </div>
+  {% endif %}
 
   {% if messages %}
     <div class="site-messages" aria-live="polite">

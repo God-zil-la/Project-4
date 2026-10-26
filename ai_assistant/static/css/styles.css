@@ -1410,30 +1410,242 @@ body > main.site-main {
   }
 }
 
-/* SIDEBAR_CONVERSATION_OVERFLOW_FIX */
-.app-sidebar,
-.app-sidebar-nav,
-.app-sidebar-group,
-.app-sidebar-submenu {
-    min-width: 0;
-    max-width: 100%;
+
+/* P1 unified sidebar navigation */
+@media (min-width: 1024px) {
+  body:has(> .app-sidebar) > .app-sidebar {
+    grid-row: 2;
+  }
+
+  body:has(> .app-sidebar) > .site-main {
+    grid-row: 2;
+  }
 }
 
-.app-sidebar-group > summary {
+.sidebar-theme-control,
+#sidebar-logout-form {
+  width: 100%;
+}
+
+.sidebar-theme-control #toggleTheme.toggle-theme,
+.sidebar-logout-button {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.65rem;
+  width: 100%;
+  min-height: 44px;
+  padding: 0.65rem 0.8rem;
+  border: 1px solid var(--button-border);
+  border-radius: 7px;
+  background: var(--button-bg);
+  color: var(--button-text);
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.sidebar-theme-control #toggleTheme.toggle-theme:hover,
+.sidebar-logout-button:hover {
+  background: var(--button-hover);
+}
+/* Dashboard sidebar layout correction */
+@media (min-width: 1024px) {
+  body:has(> .app-sidebar) {
+    grid-template-columns: 280px minmax(0, 1fr);
+  }
+
+  body:has(> .app-sidebar) > .app-sidebar {
+    grid-column: 1;
+    grid-row: 2;
     min-width: 0;
-    max-width: 100%;
+  }
+
+  body:has(> .app-sidebar) > .site-main {
+    grid-column: 2;
+    grid-row: 2;
+    min-width: 0;
+  }
+
+  body:has(> .app-sidebar) > footer,
+  body:has(> .app-sidebar) > .site-footer {
+    grid-column: 1 / -1;
+    grid-row: 3;
+  }
+}
+
+/* Keep long sidebar labels inside their buttons */
+.app-sidebar .app-sidebar-nav > a,
+.app-sidebar .app-sidebar-nav > button {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  text-align: center;
+  line-height: 1.4;
+  height: auto;
+  min-height: 44px;
+  padding: 12px 10px;
+}
+
+
+/* Dashboard sidebar stretch to footer v2 */
+@media (min-width: 1024px) {
+    body:has(> .app-sidebar) {
+        align-items: stretch;
+    }
+
+    body:has(> .app-sidebar) > .app-sidebar {
+        align-self: stretch;
+        height: 100%;
+        box-sizing: border-box;
+    }
+
+    body:has(> .app-sidebar) > .app-sidebar .app-sidebar-nav {
+        display: flex;
+        flex-direction: column;
+        min-height: 100%;
+        box-sizing: border-box;
+    }
+
+    body:has(> .app-sidebar) > .app-sidebar #sidebar-logout-form {
+        margin-top: auto;
+    }
+}
+
+
+/* SIDEBAR FINAL SHARED LAYOUT 20261026 */
+@media (min-width: 1024px) {
+
+  body:has(> .app-sidebar) {
+    grid-template-rows: auto auto max-content auto;
+    height: auto;
+    min-height: 100vh;
+    align-items: start;
+  }
+
+  body:has(> .app-sidebar) > .app-sidebar {
+    grid-column: 1;
+    grid-row: 3;
+    position: static;
+    top: auto;
+    height: calc(100dvh - 24px);
+    max-height: calc(100dvh - 24px);
+    min-height: 0;
+    align-self: start;
     overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.app-sidebar-conversation {
-    display: block;
+    display: flex;
+    flex-direction: column;
     box-sizing: border-box;
-    width: 100%;
+  }
+
+  body:has(> .app-sidebar) > .site-main {
+    grid-column: 2;
+    grid-row: 3;
     min-width: 0;
-    max-width: 100%;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+  }
+
+  body:has(> .app-sidebar) > .site-footer {
+    grid-column: 1 / -1;
+    grid-row: 4;
+  }
+
+  .app-sidebar > .app-sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: thin;
+    overscroll-behavior: contain;
+  }
+
+  .app-sidebar .app-sidebar-title {
+    display: none;
+  }
+
+  .app-sidebar .sidebar-assistants-section {
+    display: block;
+    height: auto;
+    min-height: auto;
+    flex: none;
+    overflow: visible;
+  }
+
+  .app-sidebar .sidebar-assistants-section[open]
+    > .app-sidebar-submenu {
+    max-height: none;
+    overflow: visible;
+  }
+
+  .app-sidebar #sidebar-logout-form {
+    margin-top: auto;
+    flex-shrink: 0;
+  }
+}
+
+/* CHAT MESSAGE ALIGNMENT 20261026 */
+.chat-message.user {
+  margin-left: auto !important;
+  margin-right: 0 !important;
+  align-self: flex-end !important;
+}
+
+.chat-message.assistant {
+  margin-left: 0 !important;
+  margin-right: auto !important;
+  align-self: flex-start !important;
+}
+
+/* OUTER SIDEBAR SHELL FIX 20261026 */
+@media (min-width: 1024px) {
+  body:has(> .app-sidebar) > .app-sidebar {
+    align-self: start;
+    height: fit-content;
+    max-height: calc(100vh - 24px);
+    max-height: calc(100dvh - 24px);
+  }
+}
+
+/* ASSISTANT EDIT PANEL WIDTH FIX 20261026 */
+@media (min-width: 1024px) {
+  .assistant-edit-form .assistant-customization-panel {
+    min-width: 0;
+  }
+
+  .assistant-edit-form .assistant-customization-fields {
+    display: block;
+    width: 100%;
+    max-width: none;
+    min-width: 0;
+  }
+
+  .assistant-edit-form .assistant-preferences {
+    display: block;
+    width: 100%;
+    max-width: none;
+    min-width: 0;
+    box-sizing: border-box;
+  }
+}
+
+/* CREATE ASSISTANT RIGHT PANEL WIDTH FIX 20261026 */
+@media (min-width: 1024px) {
+  .assistant-create-form .assistant-customization-panel {
+    min-width: 0;
+  }
+
+  .assistant-create-form .assistant-customization-fields,
+  .assistant-create-form .assistant-preferences {
+    display: block;
+    width: 100%;
+    max-width: none;
+    min-width: 0;
+    box-sizing: border-box;
+  }
 }
