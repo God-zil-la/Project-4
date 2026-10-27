@@ -69,7 +69,7 @@ class CampaignTests(TestCase):
         self.assertEqual(client.post(url, {'code': 'test-campaign'}).status_code, 403)
         token = client.cookies['csrftoken'].value
         response = client.post(url, {'code': 'test-campaign', 'csrfmiddlewaretoken': token})
-        self.assertContains(response, 'Your free Pro campaign has started.')
+        self.assertContains(response, 'Your 14-day Free Pro campaign has started successfully.')
 
     def test_actual_input_output_and_embedding_share_counter(self):
         self.activate()
