@@ -7,7 +7,7 @@ import logging
 
 import openai
 
-from ai_assistant.accounts.campaign import provider_call
+from ai_assistant.voice.provider_boundary import provider_call
 
 logger = logging.getLogger(__name__)
 

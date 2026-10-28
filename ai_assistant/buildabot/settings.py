@@ -78,6 +78,9 @@ INSTALLED_APPS = [
     # Project apps
     'ai_assistant.dashboard.apps.DashboardConfig',
     'ai_assistant.bots',
+    'ai_assistant.stt.apps.STTConfig',
+    'ai_assistant.tts.apps.TTSConfig',
+    'ai_assistant.voice.apps.VoiceConfig',
     'ai_assistant.payments.apps.PaymentsConfig',
     'ai_assistant.accounts.apps.AccountsConfig',
 
