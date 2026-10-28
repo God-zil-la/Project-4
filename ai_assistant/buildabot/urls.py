@@ -29,7 +29,7 @@ path('af47ba2096e54410b397d65549f112d1.txt', seo.indexnow_key, name='indexnow_ke
     path('ai-chatbot-analytics/', TemplateView.as_view(template_name='seo/ai_chatbot_analytics.html'), name='ai_chatbot_analytics'),
     path('ai-assistant-android/', TemplateView.as_view(template_name='seo/ai_assistant_android.html'), name='ai_assistant_android'),
     path('admin/', admin.site.urls),
-    path('', dashboard_views.home, name='home'),  
+    path('', dashboard_views.home, name='home'),
     path('dashboard/', include(('ai_assistant.dashboard.urls', 'dashboard'), namespace='dashboard')),
     path('accounts/', include(('ai_assistant.accounts.urls', 'accounts'), namespace='accounts')),
     path('bots/', include(('ai_assistant.bots.urls', 'bots'), namespace='bots')),
@@ -46,3 +46,12 @@ handler403 = "django.views.defaults.permission_denied"
 handler404 = "django.views.defaults.page_not_found"
 handler500 = "django.views.defaults.server_error"
 
+# U6.3 Live Voice API ? local development
+from django.urls import include as _u63_include, path as _u63_path
+
+urlpatterns += [
+    _u63_path(
+        "api/live-voice/",
+        _u63_include("ai_assistant.voice.api_urls"),
+    ),
+]

@@ -1,5 +1,5 @@
 from ai_assistant.accounts.campaign import campaign_scope
-from ai_assistant.accounts.campaign import provider_call
+from ai_assistant.voice.provider_boundary import provider_call
 import os
 import re
 import logging
@@ -510,6 +510,7 @@ def _save_chat_exchange(
     user,
     user_message,
     assistant_message,
+    voice_turn_id=None,
 ):
     """
     Save one complete user and assistant exchange.
@@ -526,7 +527,7 @@ def _save_chat_exchange(
         message=user_message,
     )
 
-    ChatMessage.objects.create(
+    assistant_record = ChatMessage.objects.create(
         conversation=conversation,
         bot=bot,
         user=user,
@@ -535,6 +536,30 @@ def _save_chat_exchange(
     )
 
     _touch_conversation(conversation)
+
+    if voice_turn_id is not None:
+        from ai_assistant.voice.models import VoiceTurn
+
+        turn = VoiceTurn.objects.select_for_update().select_related(
+            'session'
+        ).get(pk=voice_turn_id)
+
+        if (
+            turn.session.user_id != user.pk
+            or turn.session.assistant_id != bot.pk
+            or turn.session.conversation_id != conversation.pk
+            or turn.state != VoiceTurn.State.PROCESSING
+            or turn.assistant_message_id is not None
+        ):
+            raise ValueError('Invalid voice turn binding.')
+
+        turn.assistant_message = assistant_record
+        turn.state = VoiceTurn.State.ANSWER_SAVED
+        turn.save(update_fields=[
+            'assistant_message', 'state', 'updated_at'
+        ])
+
+    return assistant_record.pk
 
 
 def _check_rate_limit(user, profile):
@@ -623,6 +648,8 @@ def process_bot_message(
     message,
     conversation=None,
     allow_widget=False,
+    return_message_id=False,
+    voice_turn_id=None,
 ):
     """
     Process one bot message using the shared AI pipeline.
@@ -771,12 +798,13 @@ def process_bot_message(
                 )
             )
 
-            _save_chat_exchange(
+            saved_message_id = _save_chat_exchange(
                 conversation=active_conversation,
                 bot=bot,
                 user=user,
                 user_message=message,
                 assistant_message=response_text,
+                voice_turn_id=voice_turn_id,
             )
 
             reservation_active = False
@@ -788,7 +816,7 @@ def process_bot_message(
                 ]
             )
 
-            return {
+            result = {
                 "response": response_text,
                 "conversation_id": str(
                     active_conversation.public_id
@@ -810,6 +838,9 @@ def process_bot_message(
                 ],
                 "in_domain": False,
             }
+            if return_message_id:
+                result['assistant_message_id'] = saved_message_id
+            return result
 
         try:
             retrieval_context = _build_retrieval_context(active_conversation)
@@ -1360,12 +1391,13 @@ def process_bot_message(
                         "Please try again."
                     )
 
-        _save_chat_exchange(
+        saved_message_id = _save_chat_exchange(
             conversation=active_conversation,
             bot=bot,
             user=user,
             user_message=message,
             assistant_message=response_text,
+            voice_turn_id=voice_turn_id,
         )
 
         reservation_active = False
@@ -1377,7 +1409,7 @@ def process_bot_message(
             ]
         )
 
-        return {
+        result = {
             "document": generated_document,
             "response": response_text,
             "conversation_id": str(
@@ -1411,6 +1443,9 @@ def process_bot_message(
             ],
             "in_domain": True,
         }
+        if return_message_id:
+            result['assistant_message_id'] = saved_message_id
+        return result
 
     except Exception:
         if reservation_active:

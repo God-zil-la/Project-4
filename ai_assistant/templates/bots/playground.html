@@ -2247,6 +2247,22 @@ main {
         const botId = "{{ bot.id }}";
 
         let currentConversationId = null;
+        let conversationGeneration = 0;
+        let conversationListGeneration = 0;
+        let conversationLoadGeneration = 0;
+        // U6.3 ? synchronize the active chat with Live Voice.
+        function syncU63VoiceContext() {
+            const root = document.querySelector('[data-u63-live-voice]');
+            const bridge = window.MyAIStudioVoiceContext;
+            if (!root || !bridge) return;
+
+            if (currentConversationId) {
+                bridge.set(root, botId, currentConversationId);
+            } else {
+                bridge.clear(root);
+            }
+        }
+
 
         // Session-authenticated Knowledge API. A failed write is never retried automatically.
         const kbForm = document.getElementById('knowledge-upload-form');
@@ -2686,8 +2702,19 @@ main {
         async function loadConversation(
             conversationId
         ) {
+            const generation = ++conversationGeneration;
+            const loadGeneration = ++conversationLoadGeneration;
+            currentConversationId = conversationId || null;
+            syncU63VoiceContext();
+            setActiveConversationButton();
+            if (conversationId) {
+                chatForm.style.display = "none";
+                conversationTitle.textContent = "Loading conversation...";
+                chatBox.innerHTML = "";
+            }
             if (!conversationId) {
                 currentConversationId = null;
+                syncU63VoiceContext();
                 chatForm.style.display = "";
 
                 conversationTitle.textContent =
@@ -2721,8 +2748,14 @@ main {
                 const data =
                     await response.json();
 
+                if (generation !== conversationGeneration
+                    || loadGeneration !== conversationLoadGeneration) return;
+                if (String(data.conversation_id) !== String(conversationId)) {
+                    throw new Error("Conversation ID mismatch");
+                }
                 currentConversationId =
                     data.conversation_id;
+                syncU63VoiceContext();
 
                 conversationTitle.textContent =
                     (data.title || "New Chat") + (data.is_widget ? " — Visitor chat (read-only)" : "");
@@ -2749,6 +2782,10 @@ main {
                 setActiveConversationButton();
 
             } catch (error) {
+                if (generation !== conversationGeneration
+                    || loadGeneration !== conversationLoadGeneration) return;
+                chatForm.style.display = "none";
+                conversationTitle.textContent = "Failed to load conversation";
                 console.error(
                     "Failed to load conversation:",
                     error
@@ -2758,8 +2795,11 @@ main {
 
 
         async function loadConversations(
-            preferredConversationId = null
+            preferredConversationId = null,
+            forceReload = false
         ) {
+            const listGeneration = ++conversationListGeneration;
+            const selectionGeneration = conversationGeneration;
             try {
                 const response = await fetch(
                     "/bots/api/conversations/"
@@ -2773,6 +2813,7 @@ main {
 
                 const conversations =
                     await response.json();
+                if (listGeneration !== conversationListGeneration) return;
 
                 conversationList.innerHTML =
                     "";
@@ -2793,8 +2834,9 @@ main {
                         + "No conversations yet."
                         + "</p>";
 
-                    await loadConversation(null);
-
+                    if (selectionGeneration === conversationGeneration) {
+                        await loadConversation(null);
+                    }
                     return;
                 }
 
@@ -3011,7 +3053,7 @@ main {
                 );
 
                 let conversationToLoad =
-                    preferredConversationId;
+                    currentConversationId || preferredConversationId;
 
                 if (
                     !conversationToLoad
@@ -3027,11 +3069,22 @@ main {
                             .conversation_id;
                 }
 
+                if (listGeneration !== conversationListGeneration) return;
+                if (selectionGeneration !== conversationGeneration) {
+                    setActiveConversationButton();
+                    return;
+                }
+                if (!forceReload && currentConversationId &&
+                    String(currentConversationId) === String(conversationToLoad)) {
+                    setActiveConversationButton();
+                    return;
+                }
                 await loadConversation(
                     conversationToLoad
                 );
 
             } catch (error) {
+                if (listGeneration !== conversationListGeneration) return;
                 conversationList.innerHTML =
                     '<p class="conversation-empty">'
                     + "Failed to load conversations."
@@ -3192,6 +3245,9 @@ main {
                         ) {
                             currentConversationId =
                                 null;
+                            conversationGeneration += 1;
+                            conversationLoadGeneration += 1;
+                            syncU63VoiceContext();
 
                             chatBox.innerHTML =
                                 "";
@@ -3224,6 +3280,7 @@ main {
 
 
         async function createConversation() {
+            const selectionGeneration = conversationGeneration;
             try {
                 newChatButton.disabled =
                     true;
@@ -3256,9 +3313,15 @@ main {
 
                 const conversation =
                     await response.json();
-
+                if (selectionGeneration !== conversationGeneration) {
+                    await loadConversations(currentConversationId);
+                    return;
+                }
+                conversationGeneration += 1;
+                conversationLoadGeneration += 1;
                 currentConversationId =
                     conversation.conversation_id;
+                syncU63VoiceContext();
                 chatForm.style.display = "";
 
                 chatBox.innerHTML =
@@ -3273,7 +3336,8 @@ main {
                     || "New Chat";
 
                 await loadConversations(
-                    conversation.conversation_id
+                    conversation.conversation_id,
+                    true
                 );
 
                 chatInput.focus();
@@ -3331,6 +3395,8 @@ main {
         async function sendMessage(
             userMessage
         ) {
+            let sendGeneration = conversationGeneration;
+            const sendConversationId = currentConversationId;
             const cleanMessage =
                 String(userMessage)
                     .trim();
@@ -3373,13 +3439,14 @@ main {
                                 message:
                                     cleanMessage,
                                 conversation_id:
-                                    currentConversationId,
+                                    sendConversationId,
                             }),
                         }
                     );
 
                 const data =
                     await readChatResponse(response);
+                if (sendGeneration !== conversationGeneration) return;
 
                 if (!response.ok || data.error) {
                     appendMessage(
@@ -3391,14 +3458,23 @@ main {
                     return;
                 }
 
-                currentConversationId =
-                    data.conversation_id;
-
+                if (!data.conversation_id) {
+                    throw new Error("Chat response missing conversation ID");
+                }
+                if (String(currentConversationId) !== String(data.conversation_id)) {
+                    currentConversationId = data.conversation_id;
+                    conversationGeneration += 1;
+                    conversationLoadGeneration += 1;
+                    sendGeneration = conversationGeneration;
+                    syncU63VoiceContext();
+                }
                 await loadConversations(
-                    currentConversationId
+                    currentConversationId,
+                    true
                 );
 
             } catch (error) {
+                if (sendGeneration !== conversationGeneration) return;
                 appendMessage(
                     "assistant",
                     "Connection lost. The reply may still be saved. Reload the conversation history before sending again."
@@ -3412,7 +3488,7 @@ main {
                 chatInput.disabled =
                     false;
 
-                chatInput.focus();
+                if (sendGeneration === conversationGeneration) chatInput.focus();
             }
         }
 
@@ -3484,4 +3560,7 @@ main {
     });
 </script>
 
+
+<!-- U6.3 Live Voice -->
+{% include 'voice/live_voice_panel.html' %}
 {% endblock %}
