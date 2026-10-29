@@ -1,12 +1,12 @@
 ﻿# 🤖 AI Assistant Platform
 
-> **Current platform status — September 2026:** Production web app live on `www.myaiassistantapp.se`; native Expo/React Native Android app in Google Play Closed Testing; Stripe production billing in Live Mode; iOS distribution work has progressed to App Store Connect/TestFlight; U1, U2, and U3 are completed.
+> **Current platform status — October 2026:** My AI Assistant Studio is live on the web, Google Play (public since October 7), and the Apple App Store (live since October 2026). Stripe web billing operates in Live Mode. U1–U5 are completed; K1 launched October 24. U6 voice features remain isolated from production pending separate approval.
 
 > A production-focused AI SaaS platform for creating, customizing, training, managing, and integrating specialized AI assistants.
 
-**AI Assistant Platform** is a full-stack SaaS application built with **Django**, **OpenAI**, **Stripe**, **PostgreSQL**, and Redis-compatible infrastructure. A functional **Discord integration is already available**; U5 implements expanded Discord integration and Pro-only customer-facing API Access; its coordinated production release awaits Apple approval.
+**My AI Assistant Studio** is a full-stack SaaS application built with **Django**, **OpenAI**, **Stripe**, **PostgreSQL**, and Redis-compatible infrastructure. A functional **Discord integration is already available**; U5 implements expanded Discord integration and Pro-only customer-facing API Access; its production integration is complete.
 
-The platform allows users to create purpose-built AI assistants, extend them with their own documents and Knowledge, maintain separate conversations, monitor AI usage, manage subscription plans, publish Pro assistants through an embeddable Website Widget / Public Chatbot, connect assistants to Discord, and use the supported web and native mobile clients. The U5 Discord improvements and customer-facing API Access are implemented on the release branch and await coordinated production release.
+The platform allows users to create purpose-built AI assistants, extend them with their own documents and Knowledge, maintain separate conversations, monitor AI usage, manage subscription plans, publish Pro assistants through an embeddable Website Widget / Public Chatbot, connect assistants to Discord, and use the supported web and native mobile clients. The U5 Discord improvements and customer-facing API Access have been integrated into production.
 
 Unlike a simple chatbot project, the application is designed as a complete multi-user AI product with account plans, usage quotas, subscription lifecycle management, Retrieval-Augmented Generation (RAG), persistent conversations, analytics, API authentication, external integrations, production security controls, automated regression testing, and cloud deployment.
 
@@ -78,8 +78,8 @@ The production web application is configured with **Stripe Live Mode**. Test Mod
 | Plan | Price | AI Assistants | AI Messages | Knowledge Storage | Website Widget | API | Discord |
 | --- | ---: | ---: | ---: | ---: | :---: | :---: | :---: |
 | **Free** | **$0/month** | 1 | 150/month | 10 MB | — | — | — |
-| **Premium** | **$29/month** | 5 | 3,000/month | 250 MB | — | — | — |
-| **Pro** | **$59/month** | 15 | 10,000/month | 1 GB | ✓ | Implemented U5; release pending | ✓ |
+| **Premium** | **$29.99/month** | 5 | 3,000/month | 250 MB | — | — | — |
+| **Pro** | **$59.99/month** | 15 | 10,000/month | 1 GB | ✓ | Available (U5) | ✓ |
 
 All plans support persistent conversations and unlimited stored chats.
 
@@ -108,9 +108,9 @@ The platform is actively deployed and has moved beyond a web-only release candid
 The dedicated mobile application is built with **Expo / React Native** and is no longer a planned WebView client.
 
 - Package: `com.mrhusse.aiassistant`
-- Google Play track: **Closed Testing (Alpha)**
-- Current tested release: **versionCode 12 / versionName 1.3.1**
-- Current track/status: **Closed Test – Alpha**
+- Google Play track: **Public production**
+- Latest reported project configuration (October 22): **versionCode 24 / versionName 1.3.5**; verify the current store listing separately
+- Current track/status: **Public production**
 - Signed with the approved production upload key
 - Existing closed-test users can update through the Google Play test listing
 - The app shares the production Django backend and account data with the web application
@@ -119,7 +119,7 @@ The dedicated mobile application is built with **Expo / React Native** and is no
 
 ### iOS
 
-The React Native codebase supports iOS as well as Android. iOS distribution work has progressed into App Store Connect/TestFlight preparation and testing. Platform-specific behaviour continues to be validated as the iOS release moves through Apple's distribution workflow.
+The React Native application is publicly available on iOS through the Apple App Store. iOS updates continue through App Store review.
 
 ### Source Repositories
 
@@ -153,16 +153,16 @@ A user can work with the same platform data across supported clients:
 
 ### Android Distribution
 
-The Android app is currently distributed through Google Play Closed Testing.
+The Android app has been publicly available on Google Play since October 7, 2026.
 
 | Item | Current Status |
 | --- | --- |
 | Framework | Expo / React Native |
 | Android package | `com.mrhusse.aiassistant` |
-| Play track | Closed Testing (Alpha) |
-| versionCode | 12 |
-| versionName | 1.3.1 |
-| Release status | `Closed Test – Alpha` |
+| Play track | Public production |
+| versionCode | 24 (reported project configuration, October 22; store version not independently verified) |
+| versionName | 1.3.5 (reported project configuration, October 22; store version not independently verified) |
+| Release status | Public production |
 | Backend | Production Django API |
 | WebView | No — dedicated native client |
 
@@ -182,7 +182,7 @@ Recent Android validation has included:
 
 ### iOS Direction
 
-Because the client is React Native, the same application codebase provides the foundation for iOS. App Store Connect/TestFlight distribution work is now underway, with iOS-specific validation handled as part of that release cycle.
+The React Native application is also publicly available on the Apple App Store; platform-specific updates are reviewed separately.
 
 ---
 
@@ -198,7 +198,7 @@ All current product limits, pricing, and release information are documented in t
 
 # ✨ Features
 
-AI Assistant Platform combines specialized artificial intelligence, persistent conversations, Retrieval-Augmented Generation (RAG), assistant customization, a Pro-only Website Widget / Public Chatbot, functional Discord integration, account-level usage controls, subscription management, analytics, and protected backend/native interfaces in a single Django-based SaaS platform. U5 implements expanded Discord integration and customer-facing API Access, pending coordinated production release.
+AI Assistant Platform combines specialized artificial intelligence, persistent conversations, Retrieval-Augmented Generation (RAG), assistant customization, a Pro-only Website Widget / Public Chatbot, functional Discord integration, account-level usage controls, subscription management, analytics, and protected backend/native interfaces in a single Django-based SaaS platform. U5 implements expanded Discord integration and customer-facing API Access, integrated into production.
 
 The system is designed around shared backend services rather than isolated feature implementations. Web chat, supported API access, usage accounting, Knowledge retrieval, plan enforcement, and external integrations reuse the same core business rules wherever practical.
 
@@ -565,8 +565,8 @@ The production application is configured for **Stripe Live Mode**. Stripe Test M
 | Plan | Monthly Price | Assistants | AI Messages | Knowledge | Website Widget | API | Discord |
 | --- | ---: | ---: | ---: | ---: | :---: | :---: | :---: |
 | **Free** | **$0 USD** | 1 | 150/month | 10 MB | — | — | — |
-| **Premium** | **$29 USD** | 5 | 3,000/month | 250 MB | — | — | — |
-| **Pro** | **$59 USD** | 15 | 10,000/month | 1 GB | ✓ | Implemented U5; release pending | ✓ |
+| **Premium** | **$29.99 USD** | 5 | 3,000/month | 250 MB | — | — | — |
+| **Pro** | **$59.99 USD** | 15 | 10,000/month | 1 GB | ✓ | Available (U5) | ✓ |
 
 The Free plan does not require a paid Stripe subscription.
 
@@ -689,7 +689,7 @@ Supported commands and triggers are `!ping`, `!ask <question>`, a direct bot men
 
 The bridge ZIP includes the [Setup Guide (PDF)](ai_assistant/static/discord_bridge/Setup_Guide.pdf) and [Commands Guide (PDF)](ai_assistant/static/discord_bridge/Commands_Guide.pdf).
 
-**U5 — Discord Integration Expansion + API Access** is an enhancement package, not the initial Discord implementation. U5 implements per-assistant setup, bridge ZIP generation, integration revocation, and customer-facing API Access. The coordinated production release awaits Apple approval.
+**U5 — Discord Integration Expansion + API Access** is an enhancement package, not the initial Discord implementation. U5 implements per-assistant setup, bridge ZIP generation, integration revocation, and customer-facing API Access. The coordinated production release is complete.
 ---
 
 ## 📊 Dashboard & Analytics
@@ -808,7 +808,7 @@ This means hiding a button is never treated as sufficient protection for a restr
 
 The platform already uses protected backend API functionality for supported first-party/native client communication.
 
-**Pro-only customer-facing API Access** is implemented in **U5 — Discord Integration + API Access** on the release branch, awaiting coordinated production release after Apple approval.
+**Pro-only customer-facing API Access** is implemented in **U5 — Discord Integration + API Access** on the release branch, available in production.
 
 ### Current Backend Role
 
@@ -1025,7 +1025,7 @@ Protected backend/native API functionality includes:
 - Request-rate enforcement
 - Sanitized client-facing errors
 
-Backend/native credentials and provider secrets are treated as secrets and are not intended for public display or source-control storage. Customer-facing API-key management is implemented in U5, pending coordinated production release.
+Backend/native credentials and provider secrets are treated as secrets and are not intended for public display or source-control storage. Customer-facing API-key management is implemented in U5, integrated into production.
 
 ### Knowledge Security & Reliability
 
@@ -1313,7 +1313,7 @@ Discord integration is already implemented and functional. Eligible users can co
 
 The current integration includes the BYOB architecture, bridge/setup workflow, assistant binding, backend ownership and entitlement checks, and an end-to-end Discord response flow.
 
-**U5 — Discord Integration Expansion + API Access** is an enhancement package, not the initial Discord implementation. U5 implements per-assistant setup, bridge ZIP generation, integration revocation, and customer-facing API Access. The coordinated production release awaits Apple approval.
+**U5 — Discord Integration Expansion + API Access** is an enhancement package, not the initial Discord implementation. U5 implements per-assistant setup, bridge ZIP generation, integration revocation, and customer-facing API Access. The coordinated production release is complete.
 ---
 
 ## 💳 Plans & Membership
@@ -1323,8 +1323,8 @@ AI Assistant Platform provides three account plans:
 | Plan | Price | Assistants | AI Messages | Knowledge | Website Widget | API | Discord |
 | --- | ---: | ---: | ---: | ---: | :---: | :---: | :---: |
 | **Free** | **$0/month** | 1 | 150/month | 10 MB | — | — | — |
-| **Premium** | **$29/month** | 5 | 3,000/month | 250 MB | — | — | — |
-| **Pro** | **$59/month** | 15 | 10,000/month | 1 GB | ✓ | Implemented U5; release pending | ✓ |
+| **Premium** | **$29.99/month** | 5 | 3,000/month | 250 MB | — | — | — |
+| **Pro** | **$59.99/month** | 15 | 10,000/month | 1 GB | ✓ | Available (U5) | ✓ |
 
 Chats remain unlimited across all plans.
 
@@ -1340,7 +1340,7 @@ Paid web subscriptions are processed through Stripe Checkout.
 
 The production web application is configured with **Stripe Live Mode**, including production credentials, Live Price IDs, production webhook configuration, and production Checkout settings. Test Mode remains separate for safe development validation.
 
-**Historical screenshot:** An earlier Stripe sandbox screenshot showed a Pro Bot Plan priced at USD 15.00. That amount is historical and does **not** represent the current Pro price of **$59/month**. The original screenshot remains preserved in the project history.
+**Historical screenshot:** An earlier Stripe sandbox screenshot showed a Pro Bot Plan priced at USD 15.00. That amount is historical and does **not** represent the current Pro price of **$59.99/month**. The original screenshot remains preserved in the project history.
 
 ---
 
@@ -1997,8 +1997,8 @@ The current web pricing is:
 | Plan | Price |
 | --- | ---: |
 | **Free** | $0/month |
-| **Premium** | $29/month |
-| **Pro** | $59/month |
+| **Premium** | $29.99/month |
+| **Pro** | $59.99/month |
 
 Those payment-flow checks were performed in Stripe Test Mode during development. The **current production web application uses Stripe Live Mode**.
 
@@ -2096,7 +2096,7 @@ Release-specific test totals and production-verification results should be docum
 
 # 🛠️ Technology Stack
 
-AI Assistant Platform is built as a Django-based SaaS application with a responsive web frontend, a native Expo/React Native mobile client, OpenAI-powered AI processing, the current Retrieval-Augmented Generation (RAG) implementation, Stripe subscription infrastructure, PostgreSQL persistence, Redis-compatible caching, and protected backend/native APIs. Discord integration is already functional; broader Discord improvements and customer-facing API Access are implemented in U5, pending coordinated production release.
+AI Assistant Platform is built as a Django-based SaaS application with a responsive web frontend, a native Expo/React Native mobile client, OpenAI-powered AI processing, the current Retrieval-Augmented Generation (RAG) implementation, Stripe subscription infrastructure, PostgreSQL persistence, Redis-compatible caching, and protected backend/native APIs. Discord integration is already functional; broader Discord improvements and customer-facing API Access are implemented in U5, integrated into production.
 
 The architecture separates user-facing interfaces from backend business rules so authentication, ownership, plan entitlements, quotas, Knowledge retrieval, and AI processing can be reused by supported clients.
 
@@ -2308,8 +2308,8 @@ Stripe is used for web subscription infrastructure for the paid plans:
 | Plan | Web Price |
 | --- | ---: |
 | **Free** | $0/month |
-| **Premium** | $29/month |
-| **Pro** | $59/month |
+| **Premium** | $29.99/month |
+| **Pro** | $59.99/month |
 
 Subscription processing includes backend entitlement logic rather than treating a successful browser redirect as authoritative payment state.
 
@@ -2337,7 +2337,7 @@ Production payment configuration includes the Live publishable/secret keys, Live
 
 ## 🤖 Discord Integration
 
-The Discord stack below represents the **implemented U5 architecture**, pending coordinated production release.
+The Discord stack below represents the **implemented U5 architecture**, integrated into production.
 
 | Planned Technology | Purpose |
 | --- | --- |
@@ -2346,7 +2346,7 @@ The Discord stack below represents the **implemented U5 architecture**, pending 
 | Bring Your Own Bot (BYOB) | Customer-controlled Discord deployment |
 | Platform API | Planned bridge communication with Django |
 
-The implemented U5 design uses a downloadable/customer-run bridge with the customer's own Discord bot. Setup, revocation, authentication, entitlement/usage enforcement, and documentation are implemented; production release remains pending.
+The implemented U5 design uses a downloadable/customer-run bridge with the customer's own Discord bot. Setup, revocation, authentication, entitlement/usage enforcement, and documentation are implemented; production integration is complete.
 
 ---
 
@@ -2724,7 +2724,7 @@ For example, the native Android application can reuse the existing account, assi
 
 The AI Assistant Platform follows Django's **Model–View–Template (MVT)** architecture and is divided into focused applications for accounts, AI assistants, analytics, payments, and infrastructure.
 
-The backend is designed so the current web and native Android clients reuse the same account, entitlement, Knowledge, conversation, and AI-processing logic. The same architecture supports the implemented U5 customer-facing API and Discord integration, pending coordinated production release.
+The backend is designed so the current web and native Android clients reuse the same account, entitlement, Knowledge, conversation, and AI-processing logic. The same architecture supports the implemented U5 customer-facing API and Discord integration, integrated into production.
 
 ---
 
@@ -2777,7 +2777,7 @@ The project is divided into several Django applications, each responsible for a 
 
 ### 👤 Accounts
 
-The `accounts` application manages identity, account state, plan information, and authentication/entitlement data used by supported clients. Customer-facing API Access is implemented in U5, pending coordinated production release.
+The `accounts` application manages identity, account state, plan information, and authentication/entitlement data used by supported clients. Customer-facing API Access is implemented in U5, integrated into production.
 
 #### Responsibilities
 
@@ -3396,7 +3396,7 @@ To avoid mixing historical development work with released product functionality,
 - **Historical** — earlier screenshots, prototypes, tests, or development checkpoints retained for project history.
 - **Roadmap** — planned work that must not be presented as released until its upgrade package is completed and shipped.
 
-Upgrade status is tracked explicitly below. **U1, U2, and U3 are completed. U4 remains listed as paused until the Android application reaches production. U5 is implemented and pushed to GitHub, awaiting coordinated production release after Apple approval.**
+Upgrade status is tracked explicitly below. **U1, U2, and U3 are completed. U4 and U5 are completed; U5 is integrated into production.**
 
 ---
 
@@ -3409,8 +3409,8 @@ The next major product work is organized into complete upgrade packages. Related
 | **U1** | Assistant Customization | ✅ **Completed** | Personality, instructions, behaviour, appearance, plan-aware controls, and related assistant configuration |
 | **U2** | Knowledge Base / RAG 2.0 | ✅ **Completed** | Improved retrieval, embeddings/RAG, multiple documents, assistant-specific Knowledge, isolation, and storage/retrieval improvements |
 | **U3** | Website Widget / Public Chatbot | ✅ **Completed** | Pro-only embeddable website widget, public visitor chat, per-assistant widget settings, visitor isolation, persisted conversations, and backend enforcement |
-| **U4** | Advanced Customization + Remove AI Assistant Branding | ⏸️ **Paused** | Additional customization and paid-plan branding controls; resumes after Android production release |
-| **U5** | Discord Integration Expansion + API Access | ✅ **Implemented — release pending** | Expanded Discord integration and Pro-only API Access; coordinated production release awaits Apple approval |
+| **U4** | Advanced Customization + Remove AI Assistant Branding | ✅ **Completed** | Advanced customization, branding controls and UI/UX 2.0 |
+| **U5** | Discord Integration Expansion + API Access | ✅ **Completed and integrated** | Expanded Discord integration and Pro-only API Access |
 
 ### Upgrade Release Rule
 
@@ -3429,11 +3429,11 @@ New feature ideas are assigned to the most appropriate not-yet-started upgrade, 
 
 # 🛣️ Roadmap
 
-AI Assistant Platform has a live production web application and a native Android client distributed through Google Play Closed Testing.
+My AI Assistant Studio has live web, Android and iOS applications.
 
 The current core platform includes account management, assistant CRUD/chat, the existing Knowledge/RAG implementation, analytics, plan enforcement, and Stripe Live Mode billing on the web.
 
-The product roadmap is organized into the U1-U5 upgrade packages above. U1, U2, and U3 have been completed. U4 remains listed as paused until the Android application reaches production. U5 is implemented and awaits coordinated production release after Apple approval. Discord itself is already functional; U5 expands that integration and adds the broader API Access product.
+The U1–U5 upgrade packages are completed, including U4 customization and U5 Discord/API Access. Discord itself is already functional; U5 expands that integration and adds the broader API Access product.
 
 ---
 
@@ -3445,7 +3445,7 @@ The product roadmap is organized into the U1-U5 upgrade packages above. U1, U2, 
 - ✅ **U2 — Knowledge Base / RAG 2.0**
 - ✅ **U3 — Website Widget / Public Chatbot**
 
-U4 remains listed as paused until the Android application reaches production. U5 is implemented and pushed to GitHub, awaiting coordinated production release after Apple approval. The existing Discord integration remains functional; U5 is its implemented expansion package together with customer-facing API Access.
+U4 and U5 are completed; U5 is integrated into production. The existing Discord integration remains functional; U5 is its implemented expansion package together with customer-facing API Access.
 
 
 
@@ -3473,8 +3473,8 @@ U4 remains listed as paused until the Android application reaches production. U5
 | Plan | Price | Assistants | AI Messages / Month | Knowledge | API | Discord |
 | --- | ---: | ---: | ---: | ---: | --- | --- |
 | **Free** | $0 | 1 | 150 | 10 MB | No | No |
-| **Premium** | $29/month | 5 | 3,000 | 250 MB | No | No |
-| **Pro** | $59/month | 15 | 10,000 | 1 GB | Implemented U5; release pending | Available |
+| **Premium** | $29.99/month | 5 | 3,000 | 250 MB | No | No |
+| **Pro** | $59.99/month | 15 | 10,000 | 1 GB | Available (U5) | Available |
 
 Chats are not limited by a separate plan-level conversation count.
 
@@ -3654,7 +3654,7 @@ Additional development checks have included:
 
 ## Current Release Focus 🚧
 
-The web platform is already live in production. Current release focus is on completing the Android production-release path and continuing iOS/TestFlight validation before paused roadmap work resumes.
+The web platform is already live in production. Current work focuses on controlled web/backend consolidation and isolated U6 voice development. Mobile consolidation is paused; production deployment requires separate authorization.
 
 ### Release Regression Audit
 
@@ -3721,7 +3721,7 @@ The web application is already live. Future web releases follow the same regress
 
 ### Android Application
 
-The Android client is now implemented as a dedicated **Expo / React Native** application and is distributed through **Google Play Closed Testing (Alpha)**.
+The Android client is a dedicated **Expo / React Native** application publicly available on Google Play.
 
 Current release information:
 
@@ -3733,9 +3733,9 @@ Current release information:
 - Shared accounts, assistants, conversations, Knowledge, usage, analytics, and entitlement rules
 - Native authentication, Dashboard, Analytics, assistant management/chat, Knowledge access, and Account functionality
 
-The current v4 release includes Android chat/keyboard layout fixes and Analytics date/Message Count fixes.
+Earlier Android releases included chat/keyboard layout fixes and Analytics date/Message Count fixes.
 
-Google Play Billing and broader store-launch work remain separate from the fact that the native client itself is already implemented and in Closed Testing.
+Google Play production launch is complete. Billing changes remain subject to separate review and approval.
 
 ---
 
@@ -4321,7 +4321,7 @@ Discord integration is already implemented and functional. Eligible users can co
 
 The current integration includes the BYOB architecture, bridge/setup workflow, assistant binding, backend ownership and entitlement checks, and an end-to-end Discord response flow.
 
-**U5 — Discord Integration Expansion + API Access** is an enhancement package, not the initial Discord implementation. U5 implements per-assistant setup, bridge ZIP generation, integration revocation, and customer-facing API Access. The coordinated production release awaits Apple approval.
+**U5 — Discord Integration Expansion + API Access** is an enhancement package, not the initial Discord implementation. U5 implements per-assistant setup, bridge ZIP generation, integration revocation, and customer-facing API Access. The coordinated production release is complete.
 ---
 
 ### ☁️ Deployment and Environment Differences
@@ -4732,7 +4732,7 @@ This avoids surprising destructive behaviour during subscription changes.
 
 ## Customer API Keys — U5
 
-Dedicated customer API-key management is implemented in **U5 — Discord Integration + API Access**, pending coordinated production release.
+Dedicated customer API-key management is implemented in **U5 — Discord Integration + API Access**, integrated into production.
 
 The implemented U5 package includes account key creation, rotation and revocation, assistant invocation, ownership and entitlement enforcement, usage/rate limits, safe errors, documentation, and examples. New secrets are shown only once and stored as one-way hashes.
 
@@ -4761,7 +4761,7 @@ Secret handling remains part of ongoing production and release verification.
 
 BYOB is implemented for the **U5 Discord integration**. Customers connect their own Discord bot while the primary AI processing remains inside Django.
 
-The customer-facing bridge/setup workflow is implemented; coordinated production release awaits Apple approval.
+The customer-facing bridge/setup workflow is implemented; coordinated production release is complete.
 ---
 
 ## Responsive Web Interface
@@ -4773,7 +4773,7 @@ The web interface is designed to work across:
 - Tablet
 - Mobile browsers
 
-Responsive layouts keep the web client usable across device sizes. A dedicated Expo/React Native Android client is already implemented and distributed through Google Play Closed Testing.
+Responsive layouts keep the web client usable across device sizes. A dedicated Expo/React Native Android client is already implemented and publicly available on Google Play.
 
 ---
 
@@ -5188,8 +5188,8 @@ Current web pricing:
 | Plan | Monthly Price |
 | --- | ---: |
 | **Free** | $0 |
-| **Premium** | $29 USD |
-| **Pro** | $59 USD |
+| **Premium** | $29.99 USD |
+| **Pro** | $59.99 USD |
 
 Production and development payment environments are intentionally separated.
 
@@ -5225,7 +5225,7 @@ Discord integration is already implemented and functional. Eligible users can co
 
 The current integration includes the BYOB architecture, bridge/setup workflow, assistant binding, backend ownership and entitlement checks, and an end-to-end Discord response flow.
 
-**U5 — Discord Integration Expansion + API Access** is an enhancement package, not the initial Discord implementation. U5 implements per-assistant setup, bridge ZIP generation, integration revocation, and customer-facing API Access. The coordinated production release awaits Apple approval.
+**U5 — Discord Integration Expansion + API Access** is an enhancement package, not the initial Discord implementation. U5 implements per-assistant setup, bridge ZIP generation, integration revocation, and customer-facing API Access. The coordinated production release is complete.
 ---
 
 ## 🧪 Run Automated Tests
