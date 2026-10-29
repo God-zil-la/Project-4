@@ -78,7 +78,7 @@ The production web application is configured with **Stripe Live Mode**. Test Mod
 | Plan | Price | AI Assistants | AI Messages | Knowledge Storage | Website Widget | API | Discord |
 | --- | ---: | ---: | ---: | ---: | :---: | :---: | :---: |
 | **Free** | **$0/month** | 1 | 150/month | 10 MB | — | — | — |
-| **Premium** | **$29.99/month** | 5 | 3,000/month | 250 MB | — | — | — |
+| **Premium** | **$29.99/month** | 5 | 3,000/month | 250 MB | — | — | Active (max 3 servers) |
 | **Pro** | **$59.99/month** | 15 | 10,000/month | 1 GB | ✓ | Available (U5) | ✓ |
 
 All plans support persistent conversations and unlimited stored chats.
@@ -565,7 +565,7 @@ The production application is configured for **Stripe Live Mode**. Stripe Test M
 | Plan | Monthly Price | Assistants | AI Messages | Knowledge | Website Widget | API | Discord |
 | --- | ---: | ---: | ---: | ---: | :---: | :---: | :---: |
 | **Free** | **$0 USD** | 1 | 150/month | 10 MB | — | — | — |
-| **Premium** | **$29.99 USD** | 5 | 3,000/month | 250 MB | — | — | — |
+| **Premium** | **$29.99 USD** | 5 | 3,000/month | 250 MB | — | — | Active (max 3 servers) |
 | **Pro** | **$59.99 USD** | 15 | 10,000/month | 1 GB | ✓ | Available (U5) | ✓ |
 
 The Free plan does not require a paid Stripe subscription.
@@ -1323,7 +1323,7 @@ My AI Assistant Studio provides three account plans:
 | Plan | Price | Assistants | AI Messages | Knowledge | Website Widget | API | Discord |
 | --- | ---: | ---: | ---: | ---: | :---: | :---: | :---: |
 | **Free** | **$0/month** | 1 | 150/month | 10 MB | — | — | — |
-| **Premium** | **$29.99/month** | 5 | 3,000/month | 250 MB | — | — | — |
+| **Premium** | **$29.99/month** | 5 | 3,000/month | 250 MB | — | — | Active (max 3 servers) |
 | **Pro** | **$59.99/month** | 15 | 10,000/month | 1 GB | ✓ | Available (U5) | ✓ |
 
 Chats remain unlimited across all plans.
@@ -3475,7 +3475,7 @@ U4 and U5 are completed; U5 is integrated into production. The existing Discord 
 | Plan | Price | Assistants | AI Messages / Month | Knowledge | API | Discord |
 | --- | ---: | ---: | ---: | ---: | --- | --- |
 | **Free** | $0 | 1 | 150 | 10 MB | No | No |
-| **Premium** | $29.99/month | 5 | 3,000 | 250 MB | No | No |
+| **Premium** | $29.99/month | 5 | 3,000 | 250 MB | No | Active (max 3 servers) |
 | **Pro** | $59.99/month | 15 | 10,000 | 1 GB | Available (U5) | Available |
 
 Chats are not limited by a separate plan-level conversation count.
