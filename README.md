@@ -1,4 +1,4 @@
-﻿# 🤖 AI Assistant Platform
+﻿# 🤖 My AI Assistant Studio
 
 > **Current platform status — October 2026:** My AI Assistant Studio is live on the web, Google Play (public since October 7), and the Apple App Store (live since October 2026). Stripe web billing operates in Live Mode. U1–U5 are completed; K1 launched October 24. U6 voice features remain isolated from production pending separate approval.
 
@@ -808,7 +808,7 @@ This means hiding a button is never treated as sufficient protection for a restr
 
 The platform already uses protected backend API functionality for supported first-party/native client communication.
 
-**Pro-only customer-facing API Access** is implemented in **U5 — Discord Integration + API Access** on the release branch, available in production.
+**Pro-only customer-facing API Access** is implemented in **U5 — Discord Integration + API Access** and available in production.
 
 ### Current Backend Role
 
@@ -1969,7 +1969,7 @@ Protected backend/API experiments include entitlement and ownership checks. The 
 
 ### Discord / API Roadmap Validation
 
-Earlier Discord/API experiments and backend tests are development history. The complete customer-facing Discord and API Access package belongs to **U5** and will receive its own end-to-end and regression validation before the affected release.
+Earlier Discord/API experiments and backend tests are development history. The complete customer-facing Discord and API Access package belongs to **U5** and has been integrated into production; future changes still require regression validation.
 
 
 ### Stripe Testing
@@ -3841,7 +3841,7 @@ Redis connectivity is production infrastructure and should be revalidated after 
 
 ## Long-Term Vision 🚀
 
-The long-term goal is to develop AI Assistant Platform into a commercially viable multi-client AI service where individuals and businesses can create, customize, equip with their own Knowledge, and manage specialized AI assistants.
+The long-term goal is to continue developing My AI Assistant Studio into a commercially viable multi-client AI service where individuals and businesses can create, customize, equip with their own Knowledge, and manage specialized AI assistants.
 
 The web platform and native Android application are designed to share the same:
 
@@ -4310,7 +4310,7 @@ This separates entitlement from destructive data deletion.
 
 ### 🔐 Customer API Security — U5
 
-Customer-facing API Access belongs to **U5**. Earlier API authentication/authorization work provides useful backend groundwork, but the complete customer API must not be described as generally available until U5 is released.
+Customer-facing API Access belongs to **U5**. Earlier API authentication/authorization work provides useful backend groundwork, but the Pro-only customer API is available following U5's production integration.
 
 The implemented security model includes account API keys, active-user and entitlement checks, strict request validation, assistant/conversation ownership checks, usage/rate limits, safe errors, key rotation, and protection against credential exposure in logs, admin interfaces, templates, and client code.
 ---
