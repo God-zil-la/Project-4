@@ -18,7 +18,7 @@ The production platform now has both a web client and a native mobile client. Th
 
 ### Production Deployment
 
-The AI Assistant Platform is deployed on Heroku and uses the production Django application stack.
+The My AI Assistant Studio is deployed on Heroku and uses the production Django application stack.
 
 **Live application:**
 
@@ -112,7 +112,7 @@ The dedicated mobile application is built with **Expo / React Native** and is no
 - Latest reported project configuration (October 22): **versionCode 24 / versionName 1.3.5**; verify the current store listing separately
 - Current track/status: **Public production**
 - Signed with the approved production upload key
-- Existing closed-test users can update through the Google Play test listing
+- Existing users can update through the public Google Play listing
 - The app shares the production Django backend and account data with the web application
 - Native areas include authentication, Dashboard, Analytics, assistant management/chat, Knowledge access, and Account functionality
 - Recent releases include Android keyboard/chat layout fixes plus Analytics date and Message Count fixes
@@ -132,7 +132,7 @@ Development now proceeds as complete upgrade packages: each upgrade is implement
 
 ## 📱 Native Mobile Application
 
-AI Assistant Platform now includes a dedicated **Expo / React Native** mobile application rather than wrapping the production website in a WebView.
+My AI Assistant Studio now includes a dedicated **Expo / React Native** mobile application rather than wrapping the production website in a WebView.
 
 The mobile client communicates with the same Django backend used by the web application. This keeps business rules authoritative on the server and prevents the mobile client from becoming a separate copy of the product logic.
 
@@ -166,7 +166,7 @@ The Android app has been publicly available on Google Play since October 7, 2026
 | Backend | Production Django API |
 | WebView | No — dedicated native client |
 
-Closed-test updates may be reached through the tester's Google Play listing. Production distribution will be handled separately when the application is ready to leave testing.
+Updates are distributed through the public Google Play listing.
 
 ### Android Validation
 
@@ -198,7 +198,7 @@ All current product limits, pricing, and release information are documented in t
 
 # ✨ Features
 
-AI Assistant Platform combines specialized artificial intelligence, persistent conversations, Retrieval-Augmented Generation (RAG), assistant customization, a Pro-only Website Widget / Public Chatbot, functional Discord integration, account-level usage controls, subscription management, analytics, and protected backend/native interfaces in a single Django-based SaaS platform. U5 implements expanded Discord integration and customer-facing API Access, integrated into production.
+My AI Assistant Studio combines specialized artificial intelligence, persistent conversations, Retrieval-Augmented Generation (RAG), assistant customization, a Pro-only Website Widget / Public Chatbot, functional Discord integration, account-level usage controls, subscription management, analytics, and protected backend/native interfaces in a single Django-based SaaS platform. U5 implements expanded Discord integration and customer-facing API Access, integrated into production.
 
 The system is designed around shared backend services rather than isolated feature implementations. Web chat, supported API access, usage accounting, Knowledge retrieval, plan enforcement, and external integrations reuse the same core business rules wherever practical.
 
@@ -477,7 +477,7 @@ These internal cost calculations are intended for analytics and operational moni
 
 ## 🚦 Plans, Quotas & Rate Limiting
 
-AI Assistant Platform uses several independent protection mechanisms.
+My AI Assistant Studio uses several independent protection mechanisms.
 
 They serve different purposes and should not be confused with one another:
 
@@ -828,13 +828,13 @@ The implemented U5 customer-facing API package includes:
 - Documentation and examples
 - Separate assistant-specific credentials for the U5 Discord workflow
 
-Earlier protected endpoints, adapters, tests, or internal API work should not be interpreted as the complete public API product being generally available.
+Earlier protected endpoints, adapters, tests, or internal API work should not be confused with the completed Pro-only U5 customer API.
 
 API keys can be created, rotated, and revoked from the web and native Android/iOS U5 screens. A newly generated secret is shown only once; the backend stores a one-way hash. Rotation invalidates the previous key, and revocation disables customer API access without revoking Discord credentials.
 
 To invoke an assistant, send HTTPS `POST /accounts/api/public-chat/` with `X-API-KEY`, `Content-Type: application/json`, and a JSON body containing `bot_id` and `message`. Include the returned `conversation_id` to continue a conversation. Authentication, active-account and Pro checks, assistant/conversation ownership, account-wide monthly usage quotas, and request rate limits are enforced by Django.
 
-Web and native Android/iOS clients share the same Django backend and U5 entitlement/security rules. Their interfaces differ; both support API-key management and per-assistant Discord setup and revocation. These implemented features do not imply that U5 is already live in production.
+Web and native Android/iOS clients share the same Django backend and U5 entitlement/security rules. Their interfaces differ; both support API-key management and per-assistant Discord setup and revocation. U5 is integrated into production.
 
 ### Integrated Services
 
@@ -1199,7 +1199,7 @@ Stripe Live Mode is active in production; Test Mode remains isolated for develop
 
 # 📸 Application Tour
 
-The following screenshots provide a visual tour of the AI Assistant Platform and demonstrate key parts of the web application.
+The following screenshots provide a visual tour of the My AI Assistant Studio and demonstrate key parts of the web application.
 
 Some screenshots were captured during earlier development stages. Where an older screenshot contains historical pricing, wording, or interface state, it is explicitly identified as historical and should not be interpreted as the current product configuration.
 
@@ -1209,7 +1209,7 @@ Current pricing and plan limits are documented in the Product Plans and Subscrip
 
 ## 🏠 Home Page
 
-The landing page introduces the AI Assistant Platform, highlights its main capabilities, and provides navigation appropriate to the user's authentication state.
+The landing page introduces the My AI Assistant Studio, highlights its main capabilities, and provides navigation appropriate to the user's authentication state.
 
 Visitors can access account registration and authentication, while authenticated users can continue into the application and their existing account functionality.
 
@@ -1318,7 +1318,7 @@ The current integration includes the BYOB architecture, bridge/setup workflow, a
 
 ## 💳 Plans & Membership
 
-AI Assistant Platform provides three account plans:
+My AI Assistant Studio provides three account plans:
 
 | Plan | Price | Assistants | AI Messages | Knowledge | Website Widget | API | Discord |
 | --- | ---: | ---: | ---: | ---: | :---: | :---: | :---: |
@@ -1420,7 +1420,7 @@ Validation feedback is presented to users in a clear interface while the Django 
 
 # 🔄 System Workflows
 
-The following workflows illustrate how the main components of the AI Assistant Platform interact.
+The following workflows illustrate how the main components of the My AI Assistant Studio interact.
 
 The diagrams were created during development and are preserved as part of the project's technical documentation. The accompanying descriptions below reflect the current backend architecture, including account-wide quotas, multi-format Knowledge processing, centralized AI processing, and plan-aware access control.
 
@@ -1672,7 +1672,7 @@ This allows the data model to preserve user content independently from subscript
 
 # ✅ Validation
 
-The AI Assistant Platform has been continuously tested throughout development using automated regression tests, Django validation tools, manual end-to-end testing, standards validators, and live hosted verification.
+The My AI Assistant Studio has been continuously tested throughout development using automated regression tests, Django validation tools, manual end-to-end testing, standards validators, and live hosted verification.
 
 Validation covers both expected behaviour and important failure paths.
 
@@ -2096,7 +2096,7 @@ Release-specific test totals and production-verification results should be docum
 
 # 🛠️ Technology Stack
 
-AI Assistant Platform is built as a Django-based SaaS application with a responsive web frontend, a native Expo/React Native mobile client, OpenAI-powered AI processing, the current Retrieval-Augmented Generation (RAG) implementation, Stripe subscription infrastructure, PostgreSQL persistence, Redis-compatible caching, and protected backend/native APIs. Discord integration is already functional; broader Discord improvements and customer-facing API Access are implemented in U5, integrated into production.
+My AI Assistant Studio is built as a Django-based SaaS application with a responsive web frontend, a native Expo/React Native mobile client, OpenAI-powered AI processing, the current Retrieval-Augmented Generation (RAG) implementation, Stripe subscription infrastructure, PostgreSQL persistence, Redis-compatible caching, and protected backend/native APIs. Discord integration is already functional; broader Discord improvements and customer-facing API Access are implemented in U5, integrated into production.
 
 The architecture separates user-facing interfaces from backend business rules so authentication, ownership, plan entitlements, quotas, Knowledge retrieval, and AI processing can be reused by supported clients.
 
@@ -2722,7 +2722,7 @@ For example, the native Android application can reuse the existing account, assi
 
 # 🏗️ Architecture
 
-The AI Assistant Platform follows Django's **Model–View–Template (MVT)** architecture and is divided into focused applications for accounts, AI assistants, analytics, payments, and infrastructure.
+The My AI Assistant Studio follows Django's **Model–View–Template (MVT)** architecture and is divided into focused applications for accounts, AI assistants, analytics, payments, and infrastructure.
 
 The backend is designed so the current web and native Android clients reuse the same account, entitlement, Knowledge, conversation, and AI-processing logic. The same architecture supports the implemented U5 customer-facing API and Discord integration, integrated into production.
 
@@ -3396,13 +3396,13 @@ To avoid mixing historical development work with released product functionality,
 - **Historical** — earlier screenshots, prototypes, tests, or development checkpoints retained for project history.
 - **Roadmap** — planned work that must not be presented as released until its upgrade package is completed and shipped.
 
-Upgrade status is tracked explicitly below. **U1, U2, and U3 are completed. U4 and U5 are completed; U5 is integrated into production.**
+Upgrade status is tracked explicitly below. **U1–U5 are completed; U5 is integrated into production.**
 
 ---
 
 # 🧭 Product Upgrade Roadmap
 
-The next major product work is organized into complete upgrade packages. Related UI, backend/API work, tests, regression coverage, and release work are grouped together so the same systems are not repeatedly reopened for small disconnected changes.
+The completed U1–U5 product work was organized into complete upgrade packages. Related UI, backend/API work, tests, regression coverage, and release work are grouped together so the same systems are not repeatedly reopened for small disconnected changes.
 
 | Upgrade | Package | Status | Main Direction |
 | --- | --- | --- | --- |
@@ -3423,7 +3423,7 @@ Each package follows the same sequence:
 5. Perform release smoke testing.
 6. Close the upgrade before beginning the next package.
 
-New feature ideas are assigned to the most appropriate not-yet-started upgrade, or to a later upgrade when they do not belong in U1-U5.
+New feature ideas are assigned to a future upgrade rather than reopening completed U1–U5 packages without review.
 
 ---
 
@@ -3444,6 +3444,8 @@ The U1–U5 upgrade packages are completed, including U4 customization and U5 Di
 - ✅ **U1 — Assistant Customization**
 - ✅ **U2 — Knowledge Base / RAG 2.0**
 - ✅ **U3 — Website Widget / Public Chatbot**
+- ✅ **U4 — Advanced Customization + Remove Branding / UI/UX 2.0**
+- ✅ **U5 — Discord Integration Expansion + API Access**
 
 U4 and U5 are completed; U5 is integrated into production. The existing Discord integration remains functional; U5 is its implemented expansion package together with customer-facing API Access.
 
@@ -3726,9 +3728,7 @@ The Android client is a dedicated **Expo / React Native** application publicly a
 Current release information:
 
 - Package: `com.mrhusse.aiassistant`
-- `versionCode 4`
-- `versionName 1.0.0`
-- Play release: `1.2 - Native Bug Fixes`
+- Latest reported project configuration (October 22, 2026): `versionCode 24`, `versionName 1.3.5` (current Google Play store version not independently verified)
 - Shared production Django backend
 - Shared accounts, assistants, conversations, Knowledge, usage, analytics, and entitlement rules
 - Native authentication, Dashboard, Analytics, assistant management/chat, Knowledge access, and Account functionality
@@ -3881,7 +3881,7 @@ Broader Multi-Client Platform
 
 Many AI projects stop at a basic chatbot interface.
 
-AI Assistant Platform was designed as a broader SaaS-style product where users can create, configure, equip, and manage specialized AI assistants from one account.
+My AI Assistant Studio was designed as a broader SaaS-style product where users can create, configure, equip, and manage specialized AI assistants from one account.
 
 Instead of treating every assistant as an unrestricted general-purpose chatbot, the platform combines focused AI behaviour, custom Knowledge retrieval, persistent conversations, account-level quotas, subscriptions, APIs, analytics, and external integrations behind a shared Django backend.
 
@@ -3963,7 +3963,7 @@ The longer-term product direction is for the same account, assistants, conversat
 
 # ⚡ Challenges & Lessons Learned
 
-Building AI Assistant Platform required solving engineering problems across AI integration, data consistency, retrieval quality, account limits, security, subscriptions, caching, usage accounting, external services, and deployment.
+Building My AI Assistant Studio required solving engineering problems across AI integration, data consistency, retrieval quality, account limits, security, subscriptions, caching, usage accounting, external services, and deployment.
 
 As the project developed from a web-based assistant builder into a larger SaaS platform, several earlier implementations had to be redesigned rather than simply extended.
 
@@ -4830,7 +4830,7 @@ These decisions allow the platform to evolve without requiring a separate implem
 
 # 🚀 Installation
 
-Follow the steps below to set up AI Assistant Platform for local development.
+Follow the steps below to set up My AI Assistant Studio for local development.
 
 The production application has separate Heroku configuration, hosted services, and credentials. Local setup should use development or Test Mode credentials and must not modify production configuration unintentionally.
 
@@ -5425,7 +5425,7 @@ See the repository's `LICENSE` file for the complete license text.
 
 # 🙏 Acknowledgements
 
-AI Assistant Platform was built using a range of open-source technologies, developer platforms, APIs, documentation, and community resources.
+My AI Assistant Studio was built using a range of open-source technologies, developer platforms, APIs, documentation, and community resources.
 
 Special thanks to the communities and organizations behind:
 
@@ -5477,9 +5477,9 @@ It helps support the project and makes the work easier for other developers and 
 
 ---
 
-## Thank You for Visiting AI Assistant Platform! 🤖
+## Thank You for Visiting My AI Assistant Studio! 🤖
 
-AI Assistant Platform began as a web-development project and has evolved into a larger SaaS-style system combining AI, Knowledge retrieval, subscriptions, APIs, analytics, external integrations, and multi-client architecture.
+My AI Assistant Studio began as a web-development project and has evolved into a larger SaaS-style system combining AI, Knowledge retrieval, subscriptions, APIs, analytics, external integrations, and multi-client architecture.
 
 The project will continue to evolve beyond the first web release, while keeping the same core focus:
 
@@ -5519,8 +5519,7 @@ No mobile release or mobile redemption endpoint is included.
   govern subsequent access; K1 performs no deletion or billing action.
 
 Configuration is server-only: `K1_CAMPAIGN_ENABLED` defaults to `false` and
-`K1_CAMPAIGN_CODE` defaults to empty. No code is shipped. A later authorized
-rollout requires migrations 0013/0014 and an independently chosen secret code.
+`K1_CAMPAIGN_CODE` defaults to empty. K1 launched October 24, 2026 at 00:00 Swedish time. The redemption window is scheduled to close November 7, 2026; existing redemptions retain their individual 14-day entitlement. Migrations 0013/0014 and the redemption code belong to the approved K1 rollout.
 Disabling redemption does not revoke already redeemed entitlements. Code
 rotation never permits another redemption on the same account.
 
@@ -5536,9 +5535,7 @@ Validation: `python manage.py test ai_assistant.accounts.test_campaign
 Tests include web authorization/CSRF, eligibility, single redemption, exact
 expiry, plan fallback, shared token accounting, separate database connections
 with overlapping provider requests, failure accounting and monitoring-only budget.
-Use PostgreSQL staging verification before an independently authorized launch;
-local tests use isolated SQLite and mocked providers. No live campaign, database
-migration, commit, push or deployment is performed by this implementation.
+Local tests use isolated SQLite and mocked providers; PostgreSQL staging verification remains relevant for future changes. K1 launched October 24, 2026. This README correction does not change campaign code, migrations or production deployment.
 
 
 ---
